@@ -303,9 +303,6 @@ const EmployeeBadge = () => {
           </div>
           
           {/* Badge ID/Number */}
-          <div className="text-center text-xs text-muted-foreground pt-2 border-t border-border/50">
-            ID: {isLoading ? "•••••" : "12345"}
-          </div>
         </CardContent>
       </Card>
     </div>
