@@ -1,9 +1,9 @@
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, Bell, Calendar, Eye, AlertTriangle, Info, CheckCircle, Loader2 } from "lucide-react";
+import { ArrowLeft, Bell, Calendar, Eye, AlertTriangle, Info, CheckCircle, Loader2, Trash2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import Header from "@/components/Header";
 import Sidebar from "@/components/Sidebar";
@@ -72,6 +72,33 @@ const Avisos = () => {
   const handleOpenMessage = (message: Message) => {
     setSelectedMessage(message);
     setIsDialogOpen(true);
+  };
+
+  const handleDeleteMessage = async (messageId: string) => {
+    try {
+      const headers = getAuthHeaders();
+      const response = await fetch(`/api/messages/${messageId}`, {
+        method: "DELETE",
+        headers: headers,
+      });
+
+      if (!response.ok) {
+        throw new Error("Falha ao deletar a mensagem.");
+      }
+
+      setMessages(messages.filter(msg => msg.messageId !== messageId));
+      setIsDialogOpen(false);
+      toast({
+        title: "Sucesso!",
+        description: "Mensagem deletada com sucesso.",
+      });
+    } catch (err: any) {
+      toast({
+        title: "Erro ao deletar mensagem",
+        description: err.message,
+        variant: "destructive",
+      });
+    }
   };
 
   const getIconePorTipo = (priority: string) => {
@@ -249,6 +276,16 @@ const Avisos = () => {
               </div>
             </div>
           )}
+          <DialogFooter>
+            {selectedMessage && (
+              <Button
+                variant="destructive"
+                onClick={() => handleDeleteMessage(selectedMessage.messageId)}
+              >
+                <Trash2 className="mr-2 h-4 w-4" /> Deletar Mensagem
+              </Button>
+            )}
+          </DialogFooter>
         </DialogContent>
       </Dialog>
     </div>
