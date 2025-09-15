@@ -9,6 +9,7 @@ import { MessageSquarePlus, Send, ArrowLeft } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import Header from "@/components/Header";
 import Sidebar from "@/components/Sidebar";
+import { API_BASE_URL } from "@/config/api";
 
 // Função auxiliar para obter o token de autenticação
 const getAuthHeaders = () => {
@@ -49,7 +50,7 @@ const CriarAviso = () => {
         priority: tipo.toUpperCase(), // Converte para o formato do ENUM do backend
       };
 
-      const response = await fetch("/api/messages", {
+      const response = await fetch(`${API_BASE_URL}messages`, {
         method: "POST",
         headers: headers,
         body: JSON.stringify(payload),

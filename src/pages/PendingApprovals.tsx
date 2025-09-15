@@ -11,6 +11,7 @@ import Sidebar from "@/components/Sidebar";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { Check, X, Edit } from "lucide-react";
+import { API_BASE_URL } from "@/config/api";
 
 // Interface para os dados da solicitação pendente
 interface PendingApproval {
@@ -78,7 +79,7 @@ const PendingApprovals = () => {
         throw new Error("Token de autenticação não encontrado.");
       }
 
-      const response = await fetch("/api/records/pending-approvals", {
+      const response = await fetch(`${API_BASE_URL}records/pending-approvals`, {
         method: "GET",
         headers: {
           "Content-Type": "application/json",

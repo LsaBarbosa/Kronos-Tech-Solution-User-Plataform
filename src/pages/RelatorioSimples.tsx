@@ -15,6 +15,7 @@ import { ptBR } from "date-fns/locale";
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
 import autoTable from "jspdf-autotable";
+import { API_BASE_URL } from "@/config/api";
 
 // Auxiliary function to get authentication headers
 const getAuthHeaders = () => {
@@ -211,7 +212,7 @@ const RelatorioSimples = () => {
       };
 
       // Construir URL com employeeId como query parameter
-      const apiUrl = new URL("/api/records/report/simple", window.location.origin);
+      const apiUrl = new URL(`${API_BASE_URL}records/report/simple`, window.location.origin);
       if (selectedEmployee) {
         apiUrl.searchParams.append("employeeId", selectedEmployee);
       }

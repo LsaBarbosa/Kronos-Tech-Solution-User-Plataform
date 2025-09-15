@@ -10,6 +10,7 @@ import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
+import { API_BASE_URL } from "@/config/api";
 
 // Interface para os dados da solicitação pendente, baseada no novo payload da API
 interface PendingApproval {
@@ -36,7 +37,7 @@ const ApuracaoHoras = () => {
         throw new Error("Token de autenticação não encontrado.");
       }
 
-      const response = await fetch("/api/records/pending-approvals", {
+      const response = await fetch(`${API_BASE_URL}records/pending-approvals`, {
         method: "GET",
         headers: {
           "Content-Type": "application/json",

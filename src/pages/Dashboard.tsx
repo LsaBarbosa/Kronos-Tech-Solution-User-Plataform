@@ -6,6 +6,7 @@ import EmployeeBadge from "@/components/EmployeeBadge";
 import { Button } from "@/components/ui/button";
 import { LogIn, LogOut } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { API_BASE_URL } from "@/config/api";
 
 const Dashboard = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -28,7 +29,7 @@ const Dashboard = () => {
     const fetchCompanyName = async () => {
       try {
         const headers = getAuthHeaders();
-        const response = await fetch("/api/employee/own-profile", {
+        const response = await fetch(`${API_BASE_URL}employee/own-profile`, {
           method: "GET",
           headers: headers,
         });

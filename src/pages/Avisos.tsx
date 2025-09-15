@@ -8,6 +8,7 @@ import { useNavigate } from "react-router-dom";
 import Header from "@/components/Header";
 import Sidebar from "@/components/Sidebar";
 import { useToast } from "@/hooks/use-toast";
+import { API_BASE_URL } from "@/config/api";
 
 interface Message {
   messageId: string;
@@ -44,7 +45,7 @@ const Avisos = () => {
         setLoading(true);
         setError(null);
         const headers = getAuthHeaders();
-        const response = await fetch("/api/messages", {
+        const response = await fetch(`${API_BASE_URL}messages`, {
           method: "GET",
           headers: headers,
         });

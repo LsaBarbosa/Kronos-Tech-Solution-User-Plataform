@@ -14,6 +14,7 @@ import { useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
+import { API_BASE_URL } from "@/config/api";
 
 // Schema para edição da empresa
 const editEmpresaSchema = z.object({
@@ -61,7 +62,7 @@ const BuscarEmpresa = () => {
         return;
       }
 
-      const response = await fetch("/api/companies", {
+      const response = await fetch(`${API_BASE_URL}companies`, {
         method: "GET",
         headers: {
           "Content-Type": "application/json",

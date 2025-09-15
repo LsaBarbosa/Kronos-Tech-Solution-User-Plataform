@@ -21,6 +21,7 @@ import {
   SelectTrigger,
   SelectValue,
 } from "@/components/ui/select";
+import { API_BASE_URL } from "@/config/api";
 
 // Form validation schema
 const formSchema = z.object({
@@ -117,7 +118,7 @@ const CriarColaborador = () => {
         },
       };
 
-      const employeeResponse = await fetch("/api/employee", {
+      const employeeResponse = await fetch(`${API_BASE_URL}employee`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -142,7 +143,7 @@ const CriarColaborador = () => {
         employeeId: employeeId,
       };
 
-      const userResponse = await fetch("/api/users", {
+      const userResponse = await fetch(`${API_BASE_URL}users`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

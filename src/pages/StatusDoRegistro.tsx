@@ -16,6 +16,7 @@ import Header from "@/components/Header";
 import Sidebar from "@/components/Sidebar";
 import { useToast } from "@/hooks/use-toast";
 import { cn } from "@/lib/utils";
+import { API_BASE_URL } from "@/config/api";
 
 interface TimeRecord {
   timeRecordId: number;
@@ -87,7 +88,7 @@ const StatusDoRegistro = () => {
         throw new Error("Token de autenticação não encontrado.");
       }
 
-      const response = await fetch("/api/employee", {
+      const response = await fetch(`${API_BASE_URL}employee`, {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
@@ -154,7 +155,7 @@ const StatusDoRegistro = () => {
         dates: formattedDates,
       };
 
-      const apiUrl = new URL("/api/records/report", window.location.origin);
+      const apiUrl = new URL(`${API_BASE_URL}records/report`, window.location.origin);
       apiUrl.searchParams.append("employeeId", selectedEmployee);
 
       const response = await fetch(apiUrl.toString(), {

@@ -9,6 +9,7 @@ import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { useToast } from "@/hooks/use-toast";
 import { Skeleton } from "@/components/ui/skeleton";
+import { API_BASE_URL } from "@/config/api";
 
 interface UserAccountData {
   userId: string;
@@ -77,8 +78,8 @@ const Usuario = () => {
       };
 
       const [employeeResponse, userResponse] = await Promise.all([
-        fetch("/api/employee/own-profile", { method: "GET", headers }),
-        fetch("/api/users/own-profile", { method: "GET", headers }),
+        fetch(`${API_BASE_URL}employee/own-profile`, { method: "GET", headers }),
+        fetch(`${API_BASE_URL}users/own-profile`, { method: "GET", headers }),
       ]);
 
       if (!employeeResponse.ok) {
@@ -152,7 +153,7 @@ const Usuario = () => {
       const token = localStorage.getItem("token");
       if (!token) throw new Error("Token de autenticação não encontrado.");
 
-      const response = await fetch("/api/users/password", {
+      const response = await fetch(`${API_BASE_URL}users/password`, {
         method: "PUT",
         headers: {
           "Content-Type": "application/json",

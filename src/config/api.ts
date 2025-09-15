@@ -1,0 +1,1 @@
+export const API_BASE_URL = "http://kronos.sa-east-1.elasticbeanstalk.com/";

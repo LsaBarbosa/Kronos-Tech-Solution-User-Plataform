@@ -22,6 +22,7 @@ import { z } from "zod";
 import jsPDF from 'jspdf';
 import 'jspdf-autotable'; // This import adds the autoTable functionality to jsPDF
 import autoTable from "jspdf-autotable";
+import { API_BASE_URL } from "@/config/api";
 
 // New function to decode the JWT token
 const decodeToken = (token: string) => {
@@ -223,7 +224,7 @@ const RelatorioDetalhado = () => {
         throw new Error("Token de autenticação não encontrado.");
       }
 
-      const response = await fetch("/api/users/search", {
+      const response = await fetch(`${API_BASE_URL}users/search`, {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
@@ -322,7 +323,7 @@ const RelatorioDetalhado = () => {
       };
 
       // Construir URL com employeeId como query parameter
-      const apiUrl = new URL("/api/records/report", window.location.origin);
+      const apiUrl = new URL(`${API_BASE_URL}records/report`, window.location.origin);
       if (selectedEmployee) {
         apiUrl.searchParams.append("employeeId", selectedEmployee);
       }

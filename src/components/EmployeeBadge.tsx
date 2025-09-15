@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
+import { API_BASE_URL } from "@/config/api";
 
 interface UserProfile {
   fullName: string;
@@ -40,7 +41,7 @@ const EmployeeBadge = () => {
         throw new Error("Token de autenticação não encontrado.");
       }
 
-      const response = await fetch("/api/employee/own-profile", {
+      const response = await fetch(`${API_BASE_URL}employee/own-profile`, {
         method: "GET",
         headers: {
           "Content-Type": "application/json",
@@ -83,7 +84,7 @@ const EmployeeBadge = () => {
 
       const payload = { [field]: tempData[field] };
       
-      const response = await fetch("/api/employee/update-own-profile", {
+      const response = await fetch(`${API_BASE_URL}employee/update-own-profile`, {
         method: "PATCH",
         headers: {
           "Content-Type": "application/json",

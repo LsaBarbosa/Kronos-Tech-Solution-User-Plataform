@@ -6,8 +6,9 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Eye, EyeOff } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "@/components/ui/sonner";
+import { API_BASE_URL } from "@/config/api";
 
-const API_URL = "/api/auth/login";
+const API_URL = `${API_BASE_URL}auth/login`;
 
 const LoginForm = () => {
   const [showPassword, setShowPassword] = useState(false);

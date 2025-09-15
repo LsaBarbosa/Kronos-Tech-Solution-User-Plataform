@@ -12,6 +12,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { ArrowLeft, Building2, Save, User, Users, Shield } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
+import { API_BASE_URL } from "@/config/api";
 
 const formSchema = z.object({
   name: z.string().min(2, {
@@ -129,7 +130,7 @@ const CriarEmpresa = () => {
         employeeRequest: values.employeeRequest,
       };
 
-      const companyResponse = await fetch("/api/companies", {
+      const companyResponse = await fetch(`${API_BASE_URL}companies`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -154,7 +155,7 @@ const CriarEmpresa = () => {
         employeeId: employeeId,
       };
 
-      const userResponse = await fetch("/api/users", {
+      const userResponse = await fetch(`${API_BASE_URL}users`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
