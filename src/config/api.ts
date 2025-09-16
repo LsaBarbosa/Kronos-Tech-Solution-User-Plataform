@@ -1,1 +1,1 @@
-export const API_BASE_URL = "http://kronos.sa-east-1.elasticbeanstalk.com/";
+export const API_BASE_URL = import.meta.env.VITE_API_URL;
