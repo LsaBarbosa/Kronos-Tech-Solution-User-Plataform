@@ -194,7 +194,7 @@ const RelatorioDetalhado = () => {
       }
 
       const activeStatus = employeeActive === "active";
-      const url = `/api/employee?active=${activeStatus}`;
+      const url = `${API_BASE_URL}employee?active=${activeStatus}`;
 
       const response = await fetch(url, {
         method: "GET",
@@ -583,7 +583,7 @@ const handleDownload = () => {
         managerId: data.managerId,
       };
 
-      const endpoint = `/api/records/update/time-record/${selectedRecord.timeRecordId}`;
+      const endpoint = `${API_BASE_URL}records/update/time-record/${selectedRecord.timeRecordId}`;
 
       const response = await fetch(endpoint, {
         method: "PUT",

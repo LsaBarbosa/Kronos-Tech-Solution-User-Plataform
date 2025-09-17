@@ -6,6 +6,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Label } from "@/components/ui/label";
 import { Upload, FileText, X, Ban } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { API_BASE_URL } from "@/config/api";
 
 // Auxiliary function to get authentication headers
 const getAuthHeaders = () => {
@@ -109,7 +110,7 @@ export default function EnviarAtestado() {
         type: "DOCTOR_APPOINTMENT",
       });
 
-      const response = await fetch(`/api/documents?${searchParams.toString()}`, {
+      const response = await fetch(`${API_BASE_URL}documents?${searchParams.toString()}`, {
         method: "POST",
         headers: headers,
         body: formData,

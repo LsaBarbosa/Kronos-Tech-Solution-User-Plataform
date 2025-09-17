@@ -7,6 +7,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Label } from "@/components/ui/label";
 import { Upload, FileText, X, UserCheck, UserX } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { API_BASE_URL } from "@/config/api";
 
 interface Employee {
   id: string;
@@ -86,7 +87,7 @@ export default function EnviarDocumentos() {
           return;
         }
 
-        const response = await fetch(`/api/employee?active=${activeEmployeeFilter}`, { headers });
+        const response = await fetch(`${API_BASE_URL}employee?active=${activeEmployeeFilter}`, { headers });
         if (!response.ok) {
           throw new Error("Erro ao buscar funcionários.");
         }
@@ -166,7 +167,7 @@ export default function EnviarDocumentos() {
         type: selectedDocumentType,
       });
 
-      const response = await fetch(`/api/documents?${searchParams.toString()}`, {
+      const response = await fetch(`${API_BASE_URL}documents?${searchParams.toString()}`, {
         method: "POST",
         headers: headers,
         body: formData,

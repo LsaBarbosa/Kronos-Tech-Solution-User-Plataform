@@ -201,7 +201,7 @@ const Usuario = () => {
       const token = localStorage.getItem("token");
       if (!token) throw new Error("Token de autenticação não encontrado.");
 
-      const response = await fetch('/api/employee/update-own-profile', {
+      const response = await fetch(`${API_BASE_URL}employee/update-own-profile`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',
@@ -238,7 +238,7 @@ const Usuario = () => {
       const token = localStorage.getItem("token");
       if (!token) throw new Error("Token de autenticação não encontrado.");
 
-      const response = await fetch('/api/employee/update-own-profile', {
+      const response = await fetch(`${API_BASE_URL}employee/update-own-profile`, {
         method: 'PATCH',
         headers: {
           'Content-Type': 'application/json',

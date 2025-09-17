@@ -78,7 +78,7 @@ const Avisos = () => {
   const handleDeleteMessage = async (messageId: string) => {
     try {
       const headers = getAuthHeaders();
-      const response = await fetch(`/api/messages/${messageId}`, {
+      const response = await fetch(`${API_BASE_URL}messages/${messageId}`, {
         method: "DELETE",
         headers: headers,
       });

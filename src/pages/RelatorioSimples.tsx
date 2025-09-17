@@ -149,7 +149,7 @@ const RelatorioSimples = () => {
         setIsPartner(false);
       }
       
-      const endpoint = `/api/employee?active=${employeeActive === "active"}`;
+      const endpoint = `${API_BASE_URL}employee?active=${employeeActive === "active"}`;
 
       const response = await fetch(endpoint, {
         method: "GET",

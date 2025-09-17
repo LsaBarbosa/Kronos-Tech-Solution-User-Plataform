@@ -84,7 +84,7 @@ const ApuracaoHoras = () => {
       }
 
       // Faz a chamada real à API para aprovar o registro
-      const response = await fetch(`/api/records/approve/${timeRecordId}`, {
+      const response = await fetch(`${API_BASE_URL}records/approve/${timeRecordId}`, {
         method: "PATCH",
         headers: {
           "Content-Type": "application/json",
@@ -123,7 +123,7 @@ const ApuracaoHoras = () => {
       }
 
       // Faz a chamada real à API para rejeitar o registro
-      const response = await fetch(`/api/records/reject/${timeRecordId}`, {
+      const response = await fetch(`${API_BASE_URL}records/reject/${timeRecordId}`, {
         method: "PATCH",
         headers: {
           "Content-Type": "application/json",

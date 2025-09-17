@@ -39,6 +39,7 @@ import { useToast } from "@/hooks/use-toast";
 // Importações adicionais
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
+import { API_BASE_URL } from "@/config/api";
 
 interface Address {
   street: string;
@@ -94,14 +95,14 @@ const ListaColaboradores = () => {
       }
 
       const [employeesResponse, usersResponse] = await Promise.all([
-        fetch(`/api/employee`, {
+        fetch(`${API_BASE_URL}employee`, {
           method: "GET",
           headers: {
             "Content-Type": "application/json",
             Authorization: `Bearer ${token}`,
           },
         }),
-        fetch(`/api/users/search`, {
+        fetch(`${API_BASE_URL}users/search`, {
           method: "GET",
           headers: {
             "Content-Type": "application/json",
@@ -291,7 +292,7 @@ const ListaColaboradores = () => {
 
       if (Object.keys(bodyDataEmployee).length > 0) {
         promises.push(
-          fetch(`/api/employee/manager/update-employee/${colaboradorId}`, {
+          fetch(`${API_BASE_URL}employee/manager/update-employee/${colaboradorId}`, {
             method: "PATCH",
             headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
             body: JSON.stringify(bodyDataEmployee),
@@ -301,7 +302,7 @@ const ListaColaboradores = () => {
 
       if (Object.keys(bodyDataUser).length > 0) {
         promises.push(
-          fetch(`/api/users/update/${originalColaborador.userId}`, {
+          fetch(`${API_BASE_URL}users/update/${originalColaborador.userId}`, {
             method: "PATCH",
             headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
             body: JSON.stringify(bodyDataUser),
@@ -344,7 +345,7 @@ const ListaColaboradores = () => {
               throw new Error("Token de autenticação não encontrado.");
           }
 
-          const response = await fetch(`/api/users/${userId}`, {
+          const response = await fetch(`${API_BASE_URL}users/${userId}`, {
               method: "DELETE",
               headers: {
                   "Content-Type": "application/json",

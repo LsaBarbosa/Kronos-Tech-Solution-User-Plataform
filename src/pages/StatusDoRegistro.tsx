@@ -216,7 +216,7 @@ const StatusDoRegistro = () => {
         throw new Error("Token de autenticação não encontrado.");
       }
 
-      const url = `/api/records/update/status/${selectedEmployee}/${selectedRecord.timeRecordId}`;
+      const url = `${API_BASE_URL}records/update/status/${selectedEmployee}/${selectedRecord.timeRecordId}`;
       const response = await fetch(url, {
         method: "PUT",
         headers: {
@@ -268,7 +268,7 @@ const StatusDoRegistro = () => {
         throw new Error("Token de autenticação não encontrado.");
       }
 
-      const url = `/api/records/toggle-activate/${selectedEmployee}/${selectedRecord.timeRecordId}`;
+      const url = `${API_BASE_URL}records/toggle-activate/${selectedEmployee}/${selectedRecord.timeRecordId}`;
       const response = await fetch(url, {
         method: "PUT",
         headers: {

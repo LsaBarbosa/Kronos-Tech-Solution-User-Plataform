@@ -13,6 +13,7 @@ import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { es } from 'date-fns/locale';
+import { API_BASE_URL } from "@/config/api";
 
 interface Employee {
   id: string;
@@ -99,7 +100,7 @@ const Documentos = () => {
           return;
         }
 
-        const response = await fetch(`/api/employee?active=${activeEmployeeFilter}`, { headers });
+        const response = await fetch(`${API_BASE_URL}employee?active=${activeEmployeeFilter}`, { headers });
         if (!response.ok) {
           throw new Error("Erro ao buscar funcionários.");
         }
@@ -139,7 +140,7 @@ const Documentos = () => {
         type: selectedDocumentType,
       });
 
-      const response = await fetch(`/api/documents?${searchParams.toString()}`, {
+      const response = await fetch(`${API_BASE_URL}documents?${searchParams.toString()}`, {
         headers: headers,
       });
 
@@ -220,7 +221,7 @@ const Documentos = () => {
     const headers = getAuthHeaders();
     if (Object.keys(headers).length === 0) return;
 
-    const url = `/api/documents/${document.id}?employeeId=${selectedEmployeeId}`;
+    const url = `${API_BASE_URL}documents/${document.id}?employeeId=${selectedEmployeeId}`;
 
     const response = await fetch(url, { headers });
     if (!response.ok) {
