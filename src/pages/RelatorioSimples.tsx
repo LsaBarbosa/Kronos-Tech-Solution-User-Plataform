@@ -118,7 +118,7 @@ const RelatorioSimples = () => {
   const [referenceTime, setReferenceTime] = useState("08:00");
   const [selectedEmployee, setSelectedEmployee] = useState("");
   const [employeeActive, setEmployeeActive] = useState("active");
-  const [recordActive, setRecordActive] = useState("active");
+  const [active, setRecordActive] = useState("active");
   const [employees, setEmployees] = useState([]);
   const [reportData, setReportData] = useState(null);
   const [isPartner, setIsPartner] = useState(false);
@@ -208,7 +208,7 @@ const RelatorioSimples = () => {
         reference: referenceTime,
         dates: formattedDates,
         employeeActive: employeeActive === "active",
-        recordActive: recordActive === "active",
+        active: active === "active",
       };
 
       // Construir URL com employeeId como query parameter
@@ -627,7 +627,7 @@ const RelatorioSimples = () => {
                     <Label className="text-sm font-medium text-foreground">
                       Status do Registro
                     </Label>
-                    <RadioGroup value={recordActive} onValueChange={setRecordActive}>
+                    <RadioGroup value={active} onValueChange={setRecordActive}>
                       <div className="flex items-center space-x-2">
                         <RadioGroupItem value="active" id="record-active" />
                         <Label htmlFor="record-active" className="text-sm cursor-pointer">

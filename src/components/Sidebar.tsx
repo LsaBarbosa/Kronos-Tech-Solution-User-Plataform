@@ -91,7 +91,7 @@ const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
               variant="ghost"
               className="w-full justify-start h-12 px-4 text-left hover:bg-accent hover:text-accent-foreground transition-colors group"
               onClick={() => {
-                navigate("/");
+                navigate("/dashboard");
                 onClose();
               }}
             >
