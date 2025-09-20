@@ -1,3 +1,4 @@
+// src/components/Sidebar.tsx
 import { X, Home, BarChart3, FileText, ChevronDown, ChevronRight, User, Shield, Users, Clock, FilePlus, Upload, Download, LogOut, UserCheck, UserPlus, Folder, FolderOpen, FileCheck, Calculator, ClipboardCheck, Building2, Bell, MessageSquarePlus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
@@ -84,19 +85,19 @@ const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
         </div>
 
         {/* Menu Items */}
-        <nav className="p-4 space-y-2 flex flex-col h-full">
-          <div className="flex-1 space-y-2">
+        <div className="p-4 flex-1 space-y-2 flex flex-col h-full overflow-y-auto">
+          <div className="space-y-2">
             {/* Início */}
             <Button
               variant="ghost"
-              className="w-full justify-start h-12 px-4 text-left hover:bg-accent hover:text-accent-foreground transition-colors group"
+              className="w-full justify-start sidebar-fixed-height px-4 text-left hover:bg-accent hover:text-accent-foreground transition-colors group"
               onClick={() => {
                 navigate("/dashboard");
                 onClose();
               }}
             >
-              <Home className="mr-3 h-5 w-5 text-primary group-hover:text-primary transition-colors" />
-              <span className="font-medium">Início</span>
+              <Home className="mr-3 sidebar-icon-sm text-primary group-hover:text-primary transition-colors" />
+              <span className="font-medium sidebar-text-sm">Início</span>
             </Button>
 
             {/* Relatórios */}
@@ -104,38 +105,38 @@ const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
               <CollapsibleTrigger asChild>
                 <Button
                   variant="ghost"
-                  className="w-full justify-start h-12 px-4 text-left hover:bg-accent hover:text-accent-foreground transition-colors group"
+                  className="w-full justify-start sidebar-fixed-height px-4 text-left hover:bg-accent hover:text-accent-foreground transition-colors group"
                 >
-                  <BarChart3 className="mr-3 h-5 w-5 text-primary group-hover:text-primary transition-colors" />
-                  <span className="font-medium flex-1">Relatórios</span>
+                  <BarChart3 className="mr-3 sidebar-icon-sm text-primary group-hover:text-primary transition-colors" />
+                  <span className="font-medium flex-1 sidebar-text-sm">Relatórios</span>
                   {relatoriosOpen ? (
-                    <ChevronDown className="h-4 w-4 text-muted-foreground group-hover:text-accent-foreground transition-colors" />
+                    <ChevronDown className="sidebar-icon-xs text-muted-foreground group-hover:text-accent-foreground transition-colors" />
                   ) : (
-                    <ChevronRight className="h-4 w-4 text-muted-foreground group-hover:text-accent-foreground transition-colors" />
+                    <ChevronRight className="sidebar-icon-xs text-muted-foreground group-hover:text-accent-foreground transition-colors" />
                   )}
                 </Button>
               </CollapsibleTrigger>
               <CollapsibleContent className="space-y-1">
                 <Button
                   variant="ghost"
-                  className="w-full justify-start h-10 px-4 pl-12 text-left text-sm hover:bg-accent hover:text-accent-foreground transition-colors"
+                  className="w-full justify-start sidebar-fixed-height-sm px-4 pl-12 text-left sidebar-text-sm hover:bg-accent hover:text-accent-foreground transition-colors"
                   onClick={() => {
                     navigate("/relatorio-simples");
                     onClose();
                   }}
                 >
-                  <FileText className="mr-2 h-4 w-4" />
+                  <FileText className="mr-2 sidebar-icon-xs" />
                   <span>Relatório Simples</span>
                 </Button>
                 <Button
                   variant="ghost"
-                  className="w-full justify-start h-10 px-4 pl-12 text-left text-sm hover:bg-accent hover:text-accent-foreground transition-colors"
+                  className="w-full justify-start sidebar-fixed-height-sm px-4 pl-12 text-left sidebar-text-sm hover:bg-accent hover:text-accent-foreground transition-colors"
                   onClick={() => {
                     navigate("/relatorio-detalhado");
                     onClose();
                   }}
                 >
-                  <BarChart3 className="mr-2 h-4 w-4" />
+                  <BarChart3 className="mr-2 sidebar-icon-xs" />
                   <span>Relatório Detalhado</span>
                 </Button>
               </CollapsibleContent>
@@ -146,38 +147,38 @@ const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
               <CollapsibleTrigger asChild>
                 <Button
                   variant="ghost"
-                  className="w-full justify-start h-12 px-4 text-left hover:bg-accent hover:text-accent-foreground transition-colors group"
+                  className="w-full justify-start sidebar-fixed-height px-4 text-left hover:bg-accent hover:text-accent-foreground transition-colors group"
                 >
-                  <Folder className="mr-3 h-5 w-5 text-primary group-hover:text-primary transition-colors" />
-                  <span className="font-medium flex-1">Documentos</span>
+                  <Folder className="mr-3 sidebar-icon-sm text-primary group-hover:text-primary transition-colors" />
+                  <span className="font-medium flex-1 sidebar-text-sm">Documentos</span>
                   {documentosOpen ? (
-                    <ChevronDown className="h-4 w-4 text-muted-foreground group-hover:text-accent-foreground transition-colors" />
+                    <ChevronDown className="sidebar-icon-xs text-muted-foreground group-hover:text-accent-foreground transition-colors" />
                   ) : (
-                    <ChevronRight className="h-4 w-4 text-muted-foreground group-hover:text-accent-foreground transition-colors" />
+                    <ChevronRight className="sidebar-icon-xs text-muted-foreground group-hover:text-accent-foreground transition-colors" />
                   )}
                 </Button>
               </CollapsibleTrigger>
               <CollapsibleContent className="space-y-1">
                 <Button
                   variant="ghost"
-                  className="w-full justify-start h-10 px-4 pl-12 text-left text-sm hover:bg-accent hover:text-accent-foreground transition-colors"
+                  className="w-full justify-start sidebar-fixed-height-sm px-4 pl-12 text-left sidebar-text-sm hover:bg-accent hover:text-accent-foreground transition-colors"
                   onClick={() => {
                     navigate("/documentos");
                     onClose();
                   }}
                 >
-                  <FolderOpen className="mr-2 h-4 w-4" />
+                  <FolderOpen className="mr-2 sidebar-icon-xs" />
                   <span>Ver Documentos</span>
                 </Button>
                 <Button
                   variant="ghost"
-                  className="w-full justify-start h-10 px-4 pl-12 text-left text-sm hover:bg-accent hover:text-accent-foreground transition-colors"
+                  className="w-full justify-start sidebar-fixed-height-sm px-4 pl-12 text-left sidebar-text-sm hover:bg-accent hover:text-accent-foreground transition-colors"
                   onClick={() => {
                     navigate("/enviar-atestado");
                     onClose();
                   }}
                 >
-                  <FilePlus className="mr-2 h-4 w-4" />
+                  <FilePlus className="mr-2 sidebar-icon-xs" />
                   <span>Enviar Atestado</span>
                 </Button>
               </CollapsibleContent>
@@ -186,42 +187,42 @@ const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
             {/* Usuário */}
             <Button
               variant="ghost"
-              className="w-full justify-start h-12 px-4 text-left hover:bg-accent hover:text-accent-foreground transition-colors group"
+              className="w-full justify-start sidebar-fixed-height px-4 text-left hover:bg-accent hover:text-accent-foreground transition-colors group"
               onClick={() => {
                 navigate("/usuario");
                 onClose();
               }}
             >
-              <User className="mr-3 h-5 w-5 text-primary group-hover:text-primary transition-colors" />
-              <span className="font-medium">Usuário</span>
+              <User className="mr-3 sidebar-icon-sm text-primary group-hover:text-primary transition-colors" />
+              <span className="font-medium sidebar-text-sm">Usuário</span>
             </Button>
 
             {/* Empresa (Visível apenas para CTO) */}
             {isCto && (
               <Button
                 variant="ghost"
-                className="w-full justify-start h-12 px-4 text-left hover:bg-accent hover:text-accent-foreground transition-colors group"
+                className="w-full justify-start sidebar-fixed-height px-4 text-left hover:bg-accent hover:text-accent-foreground transition-colors group"
                 onClick={() => {
                   navigate("/empresa");
                   onClose();
                 }}
               >
-                <Building2 className="mr-3 h-5 w-5 text-primary group-hover:text-primary transition-colors" />
-                <span className="font-medium">Empresa</span>
+                <Building2 className="mr-3 sidebar-icon-sm text-primary group-hover:text-primary transition-colors" />
+                <span className="font-medium sidebar-text-sm">Empresa</span>
               </Button>
             )}
 
             {/* Avisos */}
             <Button
               variant="ghost"
-              className="w-full justify-start h-12 px-4 text-left hover:bg-accent hover:text-accent-foreground transition-colors group"
+              className="w-full justify-start sidebar-fixed-height px-4 text-left hover:bg-accent hover:text-accent-foreground transition-colors group"
               onClick={() => {
                 navigate("/avisos");
                 onClose();
               }}
             >
-              <Bell className="mr-3 h-5 w-5 text-primary group-hover:text-primary transition-colors" />
-              <span className="font-medium">Avisos</span>
+              <Bell className="mr-3 sidebar-icon-sm text-primary group-hover:text-primary transition-colors" />
+              <span className="font-medium sidebar-text-sm">Avisos</span>
             </Button>
             
             {/* Administrador (Somente visível para MANAGER) */}
@@ -230,14 +231,14 @@ const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
                 <CollapsibleTrigger asChild>
                   <Button
                     variant="ghost"
-                    className="w-full justify-start h-12 px-4 text-left hover:bg-accent hover:text-accent-foreground transition-colors group"
+                    className="w-full justify-start sidebar-fixed-height px-4 text-left hover:bg-accent hover:text-accent-foreground transition-colors group"
                   >
-                    <Shield className="mr-3 h-5 w-5 text-primary group-hover:text-primary transition-colors" />
-                    <span className="font-medium flex-1">Administrador</span>
+                    <Shield className="mr-3 sidebar-icon-sm text-primary group-hover:text-primary transition-colors" />
+                    <span className="font-medium flex-1 sidebar-text-sm">Administrador</span>
                     {administradorOpen ? (
-                      <ChevronDown className="h-4 w-4 text-muted-foreground group-hover:text-accent-foreground transition-colors" />
+                      <ChevronDown className="sidebar-icon-xs text-muted-foreground group-hover:text-accent-foreground transition-colors" />
                     ) : (
-                      <ChevronRight className="h-4 w-4 text-muted-foreground group-hover:text-accent-foreground transition-colors" />
+                      <ChevronRight className="sidebar-icon-xs text-muted-foreground group-hover:text-accent-foreground transition-colors" />
                     )}
                   </Button>
                 </CollapsibleTrigger>
@@ -247,38 +248,38 @@ const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
                     <CollapsibleTrigger asChild>
                       <Button
                         variant="ghost"
-                        className="w-full justify-start h-10 px-4 pl-12 text-left text-sm hover:bg-accent hover:text-accent-foreground transition-colors group"
+                        className="w-full justify-start sidebar-fixed-height-sm px-4 pl-12 text-left sidebar-text-sm hover:bg-accent hover:text-accent-foreground transition-colors group"
                       >
-                        <Users className="mr-2 h-4 w-4 text-muted-foreground group-hover:text-accent-foreground transition-colors" />
+                        <Users className="mr-2 sidebar-icon-xs text-muted-foreground group-hover:text-accent-foreground transition-colors" />
                         <span className="flex-1">Colaboradores</span>
                         {colaboradoresOpen ? (
-                          <ChevronDown className="h-3 w-3 text-muted-foreground group-hover:text-accent-foreground transition-colors" />
+                          <ChevronDown className="sidebar-icon-xxs text-muted-foreground group-hover:text-accent-foreground transition-colors" />
                         ) : (
-                          <ChevronRight className="h-3 w-3 text-muted-foreground group-hover:text-accent-foreground transition-colors" />
+                          <ChevronRight className="sidebar-icon-xxs text-muted-foreground group-hover:text-accent-foreground transition-colors" />
                         )}
                       </Button>
                     </CollapsibleTrigger>
                     <CollapsibleContent className="space-y-1">
                       <Button
                         variant="ghost"
-                        className="w-full justify-start h-9 px-4 pl-20 text-left text-xs hover:bg-accent hover:text-accent-foreground transition-colors"
+                        className="w-full justify-start sidebar-fixed-height-xs px-4 pl-20 text-left sidebar-text-xs hover:bg-accent hover:text-accent-foreground transition-colors"
                         onClick={() => {
                           navigate("/lista-colaboradores");
                           onClose();
                         }}
                       >
-                        <UserCheck className="mr-2 h-3 w-3" />
+                        <UserCheck className="mr-2 sidebar-icon-xxs" />
                         <span>Lista de Colaboradores</span>
                       </Button>
                       <Button
                         variant="ghost"
-                        className="w-full justify-start h-9 px-4 pl-20 text-left text-xs hover:bg-accent hover:text-accent-foreground transition-colors"
+                        className="w-full justify-start sidebar-fixed-height-xs px-4 pl-20 text-left sidebar-text-xs hover:bg-accent hover:text-accent-foreground transition-colors"
                         onClick={() => {
                           navigate("/criar-colaborador");
                           onClose();
                         }}
                       >
-                        <UserPlus className="mr-2 h-3 w-3" />
+                        <UserPlus className="mr-2 sidebar-icon-xxs" />
                         <span>Criar Colaborador</span>
                       </Button>
                     </CollapsibleContent>
@@ -289,38 +290,38 @@ const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
                     <CollapsibleTrigger asChild>
                       <Button
                         variant="ghost"
-                        className="w-full justify-start h-10 px-4 pl-12 text-left text-sm hover:bg-accent hover:text-accent-foreground transition-colors group"
+                        className="w-full justify-start sidebar-fixed-height-sm px-4 pl-12 text-left sidebar-text-sm hover:bg-accent hover:text-accent-foreground transition-colors group"
                       >
-                        <Clock className="mr-2 h-4 w-4 text-muted-foreground group-hover:text-accent-foreground transition-colors" />
+                        <Clock className="mr-2 sidebar-icon-xs text-muted-foreground group-hover:text-accent-foreground transition-colors" />
                         <span className="flex-1">Folha de Ponto</span>
                         {folhaDePontoOpen ? (
-                          <ChevronDown className="h-3 w-3 text-muted-foreground group-hover:text-accent-foreground transition-colors" />
+                          <ChevronDown className="sidebar-icon-xxs text-muted-foreground group-hover:text-accent-foreground transition-colors" />
                         ) : (
-                          <ChevronRight className="h-3 w-3 text-muted-foreground group-hover:text-accent-foreground transition-colors" />
+                          <ChevronRight className="sidebar-icon-xxs text-muted-foreground group-hover:text-accent-foreground transition-colors" />
                         )}
                       </Button>
                     </CollapsibleTrigger>
                     <CollapsibleContent className="space-y-1">
                       <Button
                         variant="ghost"
-                        className="w-full justify-start h-9 px-4 pl-20 text-left text-xs hover:bg-accent hover:text-accent-foreground transition-colors"
+                        className="w-full justify-start sidebar-fixed-height-xs px-4 pl-20 text-left sidebar-text-xs hover:bg-accent hover:text-accent-foreground transition-colors"
                         onClick={() => {
                           navigate("/apuracao-horas");
                           onClose();
                         }}
                       >
-                        <Calculator className="mr-2 h-3 w-3" />
+                        <Calculator className="mr-2 sidebar-icon-xxs" />
                         <span>Apuração de Horas</span>
                       </Button>
                       <Button
                         variant="ghost"
-                        className="w-full justify-start h-9 px-4 pl-20 text-left text-xs hover:bg-accent hover:text-accent-foreground transition-colors"
+                        className="w-full justify-start sidebar-fixed-height-xs px-4 pl-20 text-left sidebar-text-xs hover:bg-accent hover:text-accent-foreground transition-colors"
                         onClick={() => {
                           navigate("/status-do-registro");
                           onClose();
                         }}
                       >
-                        <ClipboardCheck className="mr-2 h-3 w-3" />
+                        <ClipboardCheck className="mr-2 sidebar-icon-xxs" />
                         <span>Status do Registro</span>
                       </Button>
                     </CollapsibleContent>
@@ -331,38 +332,38 @@ const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
                     <CollapsibleTrigger asChild>
                       <Button
                         variant="ghost"
-                        className="w-full justify-start h-10 px-4 pl-12 text-left text-sm hover:bg-accent hover:text-accent-foreground transition-colors group"
+                        className="w-full justify-start sidebar-fixed-height-sm px-4 pl-12 text-left sidebar-text-sm hover:bg-accent hover:text-accent-foreground transition-colors group"
                       >
-                        <Folder className="mr-2 h-4 w-4 text-muted-foreground group-hover:text-accent-foreground transition-colors" />
+                        <Folder className="mr-2 sidebar-icon-xs text-muted-foreground group-hover:text-accent-foreground transition-colors" />
                         <span className="flex-1">Documentos</span>
                         {adminDocumentosOpen ? (
-                          <ChevronDown className="h-3 w-3 text-muted-foreground group-hover:text-accent-foreground transition-colors" />
+                          <ChevronDown className="sidebar-icon-xxs text-muted-foreground group-hover:text-accent-foreground transition-colors" />
                         ) : (
-                          <ChevronRight className="h-3 w-3 text-muted-foreground group-hover:text-accent-foreground transition-colors" />
+                          <ChevronRight className="sidebar-icon-xxs text-muted-foreground group-hover:text-accent-foreground transition-colors" />
                         )}
                       </Button>
                     </CollapsibleTrigger>
                     <CollapsibleContent className="space-y-1">
                       <Button
                         variant="ghost"
-                        className="w-full justify-start h-9 px-4 pl-20 text-left text-xs hover:bg-accent hover:text-accent-foreground transition-colors"
+                        className="w-full justify-start sidebar-fixed-height-xs px-4 pl-20 text-left sidebar-text-xs hover:bg-accent hover:text-accent-foreground transition-colors"
                         onClick={() => {
                           navigate("/documentos");
                           onClose();
                         }}
                       >
-                        <FolderOpen className="mr-2 h-3 w-3" />
+                        <FolderOpen className="mr-2 sidebar-icon-xxs" />
                         <span>Ver Documentos</span>
                       </Button>
                       <Button
                         variant="ghost"
-                        className="w-full justify-start h-9 px-4 pl-20 text-left text-xs hover:bg-accent hover:text-accent-foreground transition-colors"
+                        className="w-full justify-start sidebar-fixed-height-xs px-4 pl-20 text-left sidebar-text-xs hover:bg-accent hover:text-accent-foreground transition-colors"
                         onClick={() => {
                           navigate("/enviar-documentos");
                           onClose();
                         }}
                       >
-                        <Upload className="mr-2 h-3 w-3" />
+                        <Upload className="mr-2 sidebar-icon-xxs" />
                         <span>Enviar Documentos</span>
                       </Button>
                     </CollapsibleContent>
@@ -371,13 +372,13 @@ const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
                   {/* Criar Aviso */}
                   <Button
                     variant="ghost"
-                    className="w-full justify-start h-10 px-4 pl-12 text-left text-sm hover:bg-accent hover:text-accent-foreground transition-colors"
+                    className="w-full justify-start sidebar-fixed-height-sm px-4 pl-12 text-left sidebar-text-sm hover:bg-accent hover:text-accent-foreground transition-colors"
                     onClick={() => {
                       navigate("/criar-aviso");
                       onClose();
                     }}
                   >
-                    <MessageSquarePlus className="mr-2 h-4 w-4" />
+                    <MessageSquarePlus className="mr-2 sidebar-icon-xs" />
                     <span>Criar Aviso</span>
                   </Button>
                 </CollapsibleContent>
@@ -387,14 +388,14 @@ const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
             {/* Sair */}
             <Button
               variant="ghost"
-              className="w-full justify-start h-12 px-4 text-left hover:bg-accent hover:text-accent-foreground transition-colors group"
+              className="w-full justify-start sidebar-fixed-height px-4 text-left hover:bg-accent hover:text-accent-foreground transition-colors group"
               onClick={handleLogout}
             >
-              <LogOut className="mr-3 h-5 w-5 text-primary group-hover:text-primary transition-colors" />
-              <span className="font-medium">Sair</span>
+              <LogOut className="mr-3 sidebar-icon-sm text-primary group-hover:text-primary transition-colors" />
+              <span className="font-medium sidebar-text-sm">Sair</span>
             </Button>
           </div>
-        </nav>
+        </div>
       </div>
     </>
   );
