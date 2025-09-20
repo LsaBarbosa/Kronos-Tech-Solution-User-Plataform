@@ -17,6 +17,9 @@ interface UserProfile {
   companyName: string;
 }
 
+const CACHE_KEY = "userProfileCache";
+const CACHE_TTL = 5 * 60 * 1000;
+
 const EmployeeBadge = () => {
   const [userData, setUserData] = useState<UserProfile | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -33,9 +36,9 @@ const EmployeeBadge = () => {
   });
   const [companyName, setCompanyName] = useState("");
 
-  const fetchUserProfile = async () => {
+  // Função para buscar e salvar no cache
+  const fetchAndCacheProfile = async () => {
     try {
-      setIsLoading(true);
       const token = localStorage.getItem("token");
       if (!token) {
         throw new Error("Token de autenticação não encontrado.");
@@ -54,24 +57,62 @@ const EmployeeBadge = () => {
       }
 
       const data = await response.json();
-      setUserData(data);
-      setTempData({
-        fullName: data.fullName,
-        email: data.email,
-        phone: data.phone,
-      });
-      setCompanyName(data.companyName);
+      const dataWithTimestamp = { data, timestamp: Date.now() };
+      localStorage.setItem(CACHE_KEY, JSON.stringify(dataWithTimestamp));
+      
+      return data;
     } catch (error) {
-      console.error("Erro ao carregar o perfil:", error);
-      toast.error("Erro ao carregar o perfil do usuário.");
-      setCompanyName("Nome da Empresa não encontrado");
-    } finally {
-      setIsLoading(false);
+      console.error("Erro ao buscar e armazenar o perfil:", error);
+      throw error;
     }
   };
 
+  // 🚨 ATENÇÃO: A LÓGICA AGORA ESTÁ INTEIRAMENTE NESTE useEffect 🚨
   useEffect(() => {
-    fetchUserProfile();
+    const loadProfile = async () => {
+      let cachedData = null;
+      const cachedItem = localStorage.getItem(CACHE_KEY);
+      const now = Date.now();
+
+      // 1. Tenta carregar do cache
+      if (cachedItem) {
+        const { data, timestamp } = JSON.parse(cachedItem);
+        // Verifica se o cache ainda é válido
+        if (now - timestamp < CACHE_TTL) {
+          console.log("Perfil carregado do cache.");
+          setUserData(data);
+          setTempData({
+            fullName: data.fullName,
+            email: data.email,
+            phone: data.phone,
+          });
+          setCompanyName(data.companyName);
+          setIsLoading(false);
+          return; // 🛑 SAÍDA IMEDIATA. NÃO FAZ A CHAMADA À API.
+        }
+      }
+
+      // 2. Se chegou aqui, o cache é inválido ou não existe.
+      console.log("Cache expirado ou não encontrado. Buscando da API...");
+      setIsLoading(true);
+      try {
+        const newData = await fetchAndCacheProfile();
+        setUserData(newData);
+        setTempData({
+          fullName: newData.fullName,
+          email: newData.email,
+          phone: newData.phone,
+        });
+        setCompanyName(newData.companyName);
+      } catch (error) {
+        toast.error("Erro ao carregar o perfil do usuário.");
+        setCompanyName("Nome da Empresa não encontrado");
+      } finally {
+        setIsLoading(false);
+      }
+    };
+
+    loadProfile();
   }, []);
 
   const handleUpdateProfile = async (field: keyof Omit<UserProfile, 'fullName' | 'jobPosition' | 'salary' | 'companyName'>) => {
@@ -99,10 +140,19 @@ const EmployeeBadge = () => {
 
       toast.success(`Dados do perfil atualizados com sucesso.`);
       
-      await fetchUserProfile();
+      // Força a atualização do cache após uma alteração bem-sucedida
+      const updatedData = await fetchAndCacheProfile();
+      setUserData(updatedData);
+      setTempData({
+        fullName: updatedData.fullName,
+        email: updatedData.email,
+        phone: updatedData.phone,
+      });
+      setCompanyName(updatedData.companyName);
+
     } catch (error) {
       console.error(error);
-      toast.error(error.message || "Ocorreu um erro ao atualizar o perfil.");
+      toast.error("Ocorreu um erro ao atualizar o perfil.");
       setTempData({
         fullName: userData?.fullName || "",
         email: userData?.email || "",
@@ -151,17 +201,14 @@ const EmployeeBadge = () => {
 
   return (
     <div className="w-64">
-      {/* Badge Design */}
       <Card className="bg-gradient-to-b from-card to-card/95 shadow-lg border-2 border-primary/20">
         <CardHeader className="pb-3">
-          {/* Company Name Header */}
           <div className="text-center bg-primary/10 -mx-6 -mt-6 pt-4 pb-2 rounded-t-lg border-b border-primary/20">
             <h3 className="text-sm font-bold text-primary uppercase tracking-wider">
               {isLoading ? <Skeleton className="w-32 h-4 mx-auto" /> : companyName}
             </h3>
           </div>
           
-          {/* Employee Photo */}
           <div className="flex justify-center mt-2">
             <div className="relative">
               <Avatar className="h-20 w-20 border-4 border-primary/30 shadow-md">
@@ -177,21 +224,18 @@ const EmployeeBadge = () => {
         </CardHeader>
         
         <CardContent className="space-y-4 pb-4">
-          {/* Employee Name */}
           <div className="text-center">
             <h2 className="text-lg font-bold text-foreground">
               {isLoading ? <Skeleton className="w-40 h-5 mx-auto" /> : userData?.fullName}
             </h2>
           </div>
           
-          {/* Job Position */}
           <div className="text-center">
             <div className="text-sm text-muted-foreground bg-muted/50 px-3 py-1 rounded-full inline-block">
               {isLoading ? <Skeleton className="w-32 h-4" /> : userData?.jobPosition}
             </div>
           </div>
 
-          {/* Contact Field */}
           <div className="flex items-start gap-2 p-2 bg-muted/30 rounded-lg">
             <Phone className="mt-1 h-4 w-4 text-muted-foreground flex-shrink-0" />
             <div className="flex-1">
@@ -238,7 +282,6 @@ const EmployeeBadge = () => {
             </div>
           </div>
           
-          {/* Email Field */}
           <div className="flex items-start gap-2 p-2 bg-muted/30 rounded-lg">
             <Mail className="mt-1 h-4 w-4 text-muted-foreground flex-shrink-0" />
             <div className="flex-1">
@@ -285,7 +328,6 @@ const EmployeeBadge = () => {
             </div>
           </div>
 
-          {/* Salary Field */}
           <div className="flex items-center gap-2 p-2 bg-muted/30 rounded-lg">
             <DollarSign className="h-4 w-4 text-muted-foreground" />
             <div className="flex items-center justify-between w-full">
@@ -302,8 +344,6 @@ const EmployeeBadge = () => {
               </Button>
             </div>
           </div>
-          
-          {/* Badge ID/Number */}
         </CardContent>
       </Card>
     </div>
