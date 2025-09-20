@@ -295,7 +295,7 @@ export default function EnviarDocumentos() {
                       type="file"
                       className="absolute inset-0 w-full h-full opacity-0 cursor-pointer touch-target"
                       onChange={handleFileSelect}
-                      accept=".pdf,.doc,.docx,.jpg,.jpeg,.png"
+                      accept=".pdf"
                     />
                     
                     {!selectedFile ? (
@@ -304,7 +304,7 @@ export default function EnviarDocumentos() {
                         <div>
                           <p className="text-base sm:text-lg font-medium text-foreground">Clique para selecionar ou arraste um arquivo</p>
                           <p className="text-xs sm:text-sm text-muted-foreground mt-1">
-                            PDF, DOC, DOCX, JPG, PNG até 10MB
+                           Somente arquivos no formato .PDF
                           </p>
                         </div>
                       </div>

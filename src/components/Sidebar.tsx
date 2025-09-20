@@ -358,12 +358,12 @@ const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
                         variant="ghost"
                         className="w-full justify-start h-9 px-4 pl-20 text-left text-xs hover:bg-accent hover:text-accent-foreground transition-colors"
                         onClick={() => {
-                          navigate("/enviar-atestado");
+                          navigate("/enviar-documentos");
                           onClose();
                         }}
                       >
-                        <FilePlus className="mr-2 h-3 w-3" />
-                        <span>Enviar Atestado</span>
+                        <Upload className="mr-2 h-3 w-3" />
+                        <span>Enviar Documentos</span>
                       </Button>
                     </CollapsibleContent>
                   </Collapsible>
