@@ -296,71 +296,83 @@ const RelatorioDetalhado = () => {
     });
   };
 
-  const handleSearch = async () => {
+const handleSearch = async () => {
 
     if (!status) {
-      toast({
-        title: "Erro",
-        description: "Selecione um status para gerar o relatório.",
-        variant: "destructive"
-      });
-      return;
+        toast({
+            title: "Erro",
+            description: "Selecione um status para gerar o relatório.",
+            variant: "destructive"
+        });
+        return;
     }
 
     try {
-      const token = localStorage.getItem("token");
-      if (!token) {
-        throw new Error("Token de autenticação não encontrado.");
-      }
+        const token = localStorage.getItem("token");
+        if (!token) {
+            throw new Error("Token de autenticação não encontrado.");
+        }
 
-      // Preparar dados para enviar no corpo da requisição (POST)
-      const formattedDates = selectedDates.map(date => format(date, "dd-MM-yyyy"));
-      const requestBody = {
-        reference: referenceTime,
-        active: isActive,
-        status: status,
-        dates: formattedDates,
-      };
+        const formattedDates = selectedDates.map(date => format(date, "dd-MM-yyyy"));
+        const requestBody = {
+            reference: referenceTime,
+            active: isActive,
+            status: status,
+            dates: formattedDates,
+        };
 
-      // Construir URL com employeeId como query parameter
-      const apiUrl = new URL(`${API_BASE_URL}records/report`, window.location.origin);
-      if (selectedEmployee) {
-        apiUrl.searchParams.append("employeeId", selectedEmployee);
-      }
+        const apiUrl = new URL(`${API_BASE_URL}records/report`, window.location.origin);
+        if (selectedEmployee) {
+            apiUrl.searchParams.append("employeeId", selectedEmployee);
+        }
 
-      const response = await fetch(apiUrl.toString(), {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify(requestBody),
-      });
+        const response = await fetch(apiUrl.toString(), {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${token}`,
+            },
+            body: JSON.stringify(requestBody),
+        });
 
-      if (!response.ok) {
-        throw new Error("Erro ao buscar o relatório. Tente novamente mais tarde.");
-      }
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.message || "Erro ao buscar o relatório. Tente novamente mais tarde.");
+        }
 
-      const data = await response.json();
-      setReportData(data);
+        const data = await response.json();
 
-      const datesList = selectedDates
-        .map(date => format(date, "dd/MM/yyyy", { locale: ptBR }))
-        .join(", ");
+        // 1. Check if the data array is empty
+        if (data.length === 0) {
+            setReportData([]); // Clear any previous report data
+            toast({
+                title: "Aviso",
+                description: "Não há registro para as datas selecionadas",
+                variant: "default",
+            });
+            return; // Exit the function to prevent the success toast from showing
+        }
 
-      toast({
-        title: "Busca realizada",
-        description: `Relatório detalhado gerado para as datas: ${datesList}`,
-      });
+        // Set the report data if it's not empty
+        setReportData(data);
+
+        const datesList = selectedDates
+            .map(date => format(date, "dd/MM/yyyy", { locale: ptBR }))
+            .join(", ");
+
+        toast({
+            title: "Busca realizada",
+            description: `Relatório detalhado gerado para as datas: ${datesList}`,
+        });
     } catch (error) {
-      console.error("Erro na busca:", error);
-      toast({
-        title: "Erro",
-        description: error.message || "Ocorreu um erro ao buscar o relatório.",
-        variant: "destructive",
-      });
+        console.error("Erro na busca:", error);
+        toast({
+            title: "Erro",
+            description: error.message || "Ocorreu um erro ao buscar o relatório.",
+            variant: "destructive",
+        });
     }
-  };
+};
 
 // ...
 // ... dentro do componente RelatorioDetalhado
@@ -696,12 +708,12 @@ const handleDownload = () => {
                 onSelect={setSelectedDates}
                 className="w-full pointer-events-auto"
                 classNames={{
-                  day: "h-9 w-9 p-0 font-normal aria-selected:opacity-100 hover:bg-primary/10 hover:text-primary transition-colors relative",
-                  day_selected: "bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground focus:bg-primary focus:text-primary-foreground z-10",
-                  day_today: "bg-accent text-accent-foreground font-semibold",
-                  day_outside: "text-muted-foreground opacity-50 aria-selected:bg-accent/50 aria-selected:text-muted-foreground aria-selected:opacity-30",
+                  day: "h-9 w-9 p-0 font-normal aria-selected:opacity-100 hover:bg-calendar-selected-hover/20 hover:text-calendar-selected transition-colors duration-200 relative",
+                  day_selected: "bg-calendar-selected text-calendar-selected-foreground hover:bg-calendar-selected-hover hover:text-calendar-selected-foreground focus:bg-calendar-selected focus:text-calendar-selected-foreground font-semibold shadow-sm z-10",
+                  day_today: "bg-calendar-today text-calendar-today-foreground font-medium border border-border",
+                  day_outside: "text-muted-foreground opacity-50 aria-selected:bg-calendar-selected/50 aria-selected:text-calendar-selected-foreground aria-selected:opacity-80",
                   day_disabled: "text-muted-foreground opacity-50",
-                  day_range_middle: "aria-selected:bg-accent aria-selected:text-accent-foreground",
+                  day_range_middle: "aria-selected:bg-calendar-selected/20 aria-selected:text-calendar-selected",
                   day_hidden: "invisible",
                 }}
                 modifiers={{
@@ -892,7 +904,7 @@ const handleDownload = () => {
                       <SelectItem 
                         key={option.value} 
                         value={option.value}
-                        className="hover:bg-primary/10 focus:bg-primary/10"
+ className="hover:bg-primary/10 focus:bg-primary/10 hover:text-foreground focus:text-foreground"
                       >
                         {option.label}
                       </SelectItem>

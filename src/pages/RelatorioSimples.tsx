@@ -471,13 +471,13 @@ const RelatorioSimples = () => {
                 }}
                 modifiersStyles={{
                   holiday: {
-                    color: 'hsl(var(--primary))',
+                    color: 'hsl(var(--calendar-selected))',
                     fontWeight: 'bold',
                     textDecoration: 'underline'
                   },
                   selected: {
-                    backgroundColor: 'hsl(var(--primary))',
-                    color: 'hsl(var(--primary-foreground))',
+                    backgroundColor: 'hsl(var(--calendar-selected))',
+                    color: 'hsl(var(--calendar-selected-foreground))',
                     fontWeight: 'bold',
                     borderRadius: '50%'
                   }
