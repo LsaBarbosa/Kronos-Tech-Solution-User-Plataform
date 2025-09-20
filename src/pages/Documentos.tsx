@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import Header from "@/components/Header";
 import Sidebar from "@/components/Sidebar";
-import { Download, FileText, Calendar, Search, CalendarIcon, UserCheck, UserX } from "lucide-react";
+import { Download, FileText, Calendar, Search, UserCheck, UserX } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -55,6 +55,20 @@ const decodeToken = (token: string) => {
   }
 };
 
+// --- NOVA FUNÇÃO PARA TRATAR ERROS DE API ---
+const handleApiError = async (response: Response) => {
+  try {
+    const errorData = await response.json();
+    if (errorData.message) {
+      toast.error(errorData.message);
+    } else {
+      toast.error(`Erro ${response.status}: ${errorData.error || 'Ocorreu um erro.'}`);
+    }
+  } catch {
+    toast.error(`Erro ${response.status}: Ocorreu um erro inesperado.`);
+  }
+};
+
 const Documentos = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [employees, setEmployees] = useState<Employee[]>([]);
@@ -102,7 +116,8 @@ const Documentos = () => {
 
         const response = await fetch(`${API_BASE_URL}employee?active=${activeEmployeeFilter}`, { headers });
         if (!response.ok) {
-          throw new Error("Erro ao buscar funcionários.");
+          await handleApiError(response);
+          return;
         }
         const data = await response.json();
         const formattedEmployees: Employee[] = data.employees.map((emp: any) => ({
@@ -145,7 +160,10 @@ const Documentos = () => {
       });
 
       if (!response.ok) {
-        throw new Error("Erro ao buscar documentos.");
+        await handleApiError(response);
+        setDocuments([]);
+        setFilteredDocuments([]);
+        return;
       }
 
       const data = await response.json();
@@ -217,34 +235,35 @@ const Documentos = () => {
   };
 
   const handleDownload = async (document: Document) => {
-  try {
-    const headers = getAuthHeaders();
-    if (Object.keys(headers).length === 0) return;
+    try {
+      const headers = getAuthHeaders();
+      if (Object.keys(headers).length === 0) return;
 
-    const url = `${API_BASE_URL}documents/${document.id}?employeeId=${selectedEmployeeId}`;
+      const url = `${API_BASE_URL}documents/${document.id}?employeeId=${selectedEmployeeId}`;
 
-    const response = await fetch(url, { headers });
-    if (!response.ok) {
-      throw new Error("Erro ao baixar o documento.");
+      const response = await fetch(url, { headers });
+      if (!response.ok) {
+        await handleApiError(response);
+        return;
+      }
+
+      const blob = await response.blob();
+      const href = window.URL.createObjectURL(blob);
+      const link = window.document.createElement('a'); // Use window.document para ser explícito
+      link.href = href;
+      link.download = document.name;
+      window.document.body.appendChild(link);
+      link.click();
+      window.document.body.removeChild(link);
+      window.URL.revokeObjectURL(href);
+
+      toast.success(`Download de ${document.name} iniciado`);
+
+    } catch (error) {
+      console.error("Erro ao iniciar o download:", error);
+      toast.error(`Falha ao baixar o documento ${document.name}. Tente novamente.`);
     }
-
-    const blob = await response.blob();
-    const href = window.URL.createObjectURL(blob);
-    const link = window.document.createElement('a'); // Use window.document para ser explícito
-    link.href = href;
-    link.download = document.name;
-    window.document.body.appendChild(link);
-    link.click();
-    window.document.body.removeChild(link);
-    window.URL.revokeObjectURL(href);
-
-    toast.success(`Download de ${document.name} iniciado`);
-
-  } catch (error) {
-    console.error("Erro ao iniciar o download:", error);
-    toast.error(`Falha ao baixar o documento ${document.name}. Tente novamente.`);
-  }
-};
+  };
 
   const formatDate = (dateString: string) => {
     try {
@@ -485,8 +504,6 @@ const Documentos = () => {
             </div>
           </Card>
         )}
-
-  
       </main>
     </div>
   );

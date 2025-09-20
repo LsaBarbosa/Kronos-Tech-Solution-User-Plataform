@@ -8,12 +8,10 @@ import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { toast } from "@/hooks/use-toast";
-import { ArrowLeft } from "lucide-react";
+import { ArrowLeft, CheckCircle, XCircle, Loader2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import Header from "@/components/Header";
 import Sidebar from "@/components/Sidebar";
-
-// Importações adicionais para o Select
 import {
   Select,
   SelectContent,
@@ -44,6 +42,9 @@ const CriarColaborador = () => {
   const navigate = useNavigate();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
+  // Novos estados para a validação do username
+  const [usernameAvailability, setUsernameAvailability] = useState<'available' | 'unavailable' | 'checking' | null>(null);
+  const [isCheckingUsername, setIsCheckingUsername] = useState(false);
 
   const form = useForm<FormData>({
     resolver: zodResolver(formSchema),
@@ -96,15 +97,87 @@ const CriarColaborador = () => {
     return formattedValue;
   };
 
-  const onSubmit = async (data: FormData) => {
-    setIsSubmitting(true);
+  const handleCheckUsername = async () => {
+    const username = form.getValues('username');
+    if (!username || username.length < 4) {
+      toast({
+        title: "Erro de validação",
+        description: "O nome de usuário deve ter pelo menos 4 caracteres.",
+        variant: "destructive",
+      });
+      setUsernameAvailability(null);
+      return;
+    }
+
+    setIsCheckingUsername(true);
+    setUsernameAvailability('checking');
+
     try {
       const token = localStorage.getItem("token");
       if (!token) {
         throw new Error("Token de autenticação não encontrado.");
       }
 
-      // **Passo 1: Chamar o endpoint /api/employee**
+      const response = await fetch(`${API_BASE_URL}users/check-username?username=${username}`, {
+        headers: {
+          "Authorization": `Bearer ${token}`,
+        },
+      });
+
+      if (response.ok) {
+        toast({
+          title: "Nome de usuário indisponível",
+          description: "Este nome de usuário já está em uso. Por favor, escolha outro.",
+          variant: "destructive",
+        });
+        setUsernameAvailability('unavailable');
+      } else if (response.status === 404) {
+        toast({
+          title: "Nome de usuário disponível!",
+          description: "Você pode usar este nome de usuário para o registro.",
+        });
+        setUsernameAvailability('available');
+      } else {
+        toast({
+          title: "Erro na verificação",
+          description: "Ocorreu um erro ao verificar o nome de usuário. Tente novamente.",
+          variant: "destructive",
+        });
+        setUsernameAvailability(null);
+      }
+    } catch (error) {
+      console.error("Erro na comunicação com a API:", error);
+      toast({
+        title: "Erro de rede",
+        description: "Falha ao conectar com o servidor. Verifique sua conexão.",
+        variant: "destructive",
+      });
+      setUsernameAvailability(null);
+    } finally {
+      setIsCheckingUsername(false);
+    }
+  };
+
+  const onSubmit = async (data: FormData) => {
+    setIsSubmitting(true);
+    
+    if (usernameAvailability !== 'available') {
+        toast({
+            title: "Erro de validação",
+            description: "Por favor, verifique a disponibilidade do nome de usuário antes de registrar.",
+            variant: "destructive",
+        });
+        setIsSubmitting(false);
+        return;
+    }
+
+    try {
+      const token = localStorage.getItem("token");
+      if (!token) {
+        throw new Error("Token de autenticação não encontrado.");
+      }
+
+      // Passo 1: Chamar o endpoint /api/employee
       const employeePayload = {
         fullName: data.nomeCompleto,
         cpf: data.cpf.replace(/\D/g, ""),
@@ -135,7 +208,7 @@ const CriarColaborador = () => {
       const employeeData = await employeeResponse.json();
       const employeeId = employeeData.employeeId;
 
-      // **Passo 2: Chamar o endpoint /api/users usando o employeeId**
+      // Passo 2: Chamar o endpoint /api/users usando o employeeId
       const userPayload = {
         username: data.username,
         password: data.password,
@@ -165,14 +238,14 @@ const CriarColaborador = () => {
       // Reset form and navigate
       form.reset();
       setTimeout(() => {
-        navigate("/");
+      
       }, 1500);
 
     } catch (error) {
       console.error("Erro no processo de registro:", error);
       toast({
         title: "Erro ao cadastrar colaborador",
-        description: error.message || "Tente novamente mais tarde.",
+        description: (error instanceof Error) ? error.message : "Tente novamente mais tarde.",
         variant: "destructive",
       });
     } finally {
@@ -425,15 +498,35 @@ const CriarColaborador = () => {
                       name="username"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel className="text-base font-semibold">Nome de Usuário</FormLabel>
-                          <FormControl>
-                            <Input
-                              placeholder="Digite o nome de usuário"
-                              className="h-12 text-base"
-                              {...field}
-                            />
-                          </FormControl>
-                          <FormMessage />
+                          <FormLabel className="text-base font-semibold flex items-center">
+                            Nome de Usuário
+                          </FormLabel>
+                          <div className="flex space-x-2">
+                            <FormControl>
+                              <Input
+                                placeholder="Digite o nome de usuário"
+                                className="h-12 text-base"
+                                {...field}
+                                // Reseta o status de disponibilidade quando o usuário altera o campo
+                                onChange={(e) => {
+                                  field.onChange(e);
+                                  setUsernameAvailability(null);
+                                }}
+                              />
+                            </FormControl>
+                            <Button
+                              type="button"
+                              onClick={handleCheckUsername}
+                              disabled={isCheckingUsername || field.value.length < 4}
+                              className="touch-target w-auto h-12"
+                            >
+                              {isCheckingUsername ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Verificar'}
+                            </Button>
+                          </div>
+                          <FormMessage>
+                            {usernameAvailability === 'unavailable' && 'Nome de usuário já existe.'}
+                            {usernameAvailability === 'available' && <span className="text-green-500">Nome de usuário disponível.</span>}
+                          </FormMessage>
                         </FormItem>
                       )}
                     />
@@ -490,7 +583,7 @@ const CriarColaborador = () => {
                       variant="login"
                       size="lg"
                       className="w-full h-14 text-lg font-semibold shadow-button hover:shadow-xl transition-all duration-300 hover:scale-[1.02]"
-                      disabled={isSubmitting}
+                      disabled={isSubmitting || usernameAvailability !== 'available'}
                     >
                       {isSubmitting ? "Registrando..." : "Registrar"}
                     </Button>
