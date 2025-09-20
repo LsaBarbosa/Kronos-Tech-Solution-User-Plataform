@@ -40,6 +40,7 @@ import { useToast } from "@/hooks/use-toast";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { API_BASE_URL } from "@/config/api";
+import { Switch } from "@/components/ui/switch";
 
 interface Address {
   street: string;
@@ -131,6 +132,7 @@ const ListaColaboradores = () => {
             return {
               ...employee,
               ...user,
+              enabled: user.enabled, // Ensure 'enabled' is correctly mapped
             };
           }
           return null;
@@ -168,6 +170,15 @@ const ListaColaboradores = () => {
 
   const formatAddress = (address: Address) => {
     return `${address.street}, ${address.number} - ${address.city}/${address.state} - CEP: ${address.postalCode}`;
+  };
+
+  const formatPhone = (phone: string) => {
+    const cleaned = ('' + phone).replace(/\D/g, '');
+    const match = cleaned.match(/^(\d{2})(\d{5})(\d{4})$/);
+    if (match) {
+      return `(${match[1]}) ${match[2]}-${match[3]}`;
+    }
+    return phone;
   };
 
   const filteredColaboradores = useMemo(() => {
@@ -220,6 +231,16 @@ const ListaColaboradores = () => {
   };
 
   const handleSaveColaborador = async (colaboradorId: string) => {
+    const cleanedPhone = editedData.phone.replace(/\D/g, '');
+    if (editedData.phone && cleanedPhone.length !== 11) {
+      toast({
+        title: "Erro ao salvar",
+        description: "O telefone deve conter exatamente 11 dígitos.",
+        variant: "destructive",
+      });
+      return;
+    }
+    
     setIsLoading(true);
     try {
       const token = localStorage.getItem("token");
@@ -252,7 +273,7 @@ const ListaColaboradores = () => {
       if (editedData.salary !== undefined && editedData.salary !== originalColaborador.salary) {
         bodyDataEmployee.salary = parseFloat(editedData.salary);
       }
-      if (editedData.phone && editedData.phone !== originalColaborador.phone) {
+      if (editedData.phone && editedData.phone.replace(/\D/g, "") !== originalColaborador.phone) {
         bodyDataEmployee.phone = editedData.phone.replace(/\D/g, "");
       }
 
@@ -302,7 +323,7 @@ const ListaColaboradores = () => {
 
       if (Object.keys(bodyDataUser).length > 0) {
         promises.push(
-          fetch(`${API_BASE_URL}users/update/${originalColaborador.userId}`, {
+          fetch(`${API_BASE_URL}users/search/${originalColaborador.userId}`, {
             method: "PATCH",
             headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
             body: JSON.stringify(bodyDataUser),
@@ -377,7 +398,13 @@ const ListaColaboradores = () => {
   };
 
   const handleEditedDataChange = (field: string, value: string | boolean) => {
-    setEditedData((prev) => ({ ...prev, [field]: value }));
+    setEditedData((prev) => {
+        if (field === "phone") {
+            const sanitizedValue = (value as string).replace(/\D/g, '').slice(0, 11);
+            return { ...prev, [field]: sanitizedValue };
+        }
+        return { ...prev, [field]: value };
+    });
   };
 
   return (
@@ -490,7 +517,7 @@ const ListaColaboradores = () => {
                 </span>
                 <Badge
                   variant="secondary"
-                  className="bg-primary/10 text-primary border-primary/20"
+                  className="bg-primary/10 text-primary border-primary/20 hover:bg-primary/20"
                 >
                   {hasActiveFilters ? filteredColaboradores.length : colaboradores.length}
                 </Badge>
@@ -511,6 +538,7 @@ const ListaColaboradores = () => {
                     <Skeleton className="h-4 w-1/2" />
                   </CardHeader>
                   <CardContent className="space-y-4">
+                    <Skeleton className="h-4 w-full" />
                     <Skeleton className="h-4 w-full" />
                     <Skeleton className="h-4 w-full" />
                     <Skeleton className="h-4 w-full" />
@@ -656,9 +684,13 @@ const ListaColaboradores = () => {
                         {/* Enabled Switch */}
                         <div className="flex items-center gap-3 text-sm">
                             <Label htmlFor="enabled-toggle" className="text-muted-foreground w-16">Status Ativo:</Label>
-                            <div className="flex-1">
+                            <div className="flex-1 flex items-center justify-between">
                                 <span className="font-medium text-sm">{editedData.enabled ? 'Ativo' : 'Inativo'}</span>
-                          
+                                <Switch
+                                  id="enabled-toggle"
+                                  checked={editedData.enabled}
+                                  onCheckedChange={(value) => handleEditedDataChange("enabled", value)}
+                                />
                             </div>
                         </div>
 
@@ -696,6 +728,7 @@ const ListaColaboradores = () => {
                             onChange={(e) => handleEditedDataChange("phone", e.target.value)}
                             className="flex-1 h-8 focus:border-primary"
                             placeholder="Telefone"
+                            maxLength={11}
                           />
                         </div>
 
@@ -772,7 +805,7 @@ const ListaColaboradores = () => {
                         <div className="flex items-center gap-3 text-sm">
                           <Phone className="w-4 h-4 text-muted-foreground flex-shrink-0" />
                           <span className="text-muted-foreground">Telefone:</span>
-                          <span className="font-medium">{colaborador.phone}</span>
+                          <span className="font-medium">{formatPhone(colaborador.phone)}</span>
                         </div>
 
                         {/* Salary */}

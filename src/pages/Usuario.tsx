@@ -226,10 +226,11 @@ const Usuario = () => {
   };
 
   const handleSavePhone = async () => {
-    if (!userData?.phone.trim()) {
+    const cleanedPhone = userData?.phone.replace(/\D/g, '');
+    if (!cleanedPhone || cleanedPhone.length !== 11) {
       toast({
         title: "Erro",
-        description: "O telefone não pode ser vazio.",
+        description: "O telefone deve conter exatamente 11 dígitos.",
         variant: "destructive",
       });
       return;
@@ -244,7 +245,7 @@ const Usuario = () => {
           'Content-Type': 'application/json',
           'Authorization': `Bearer ${token}`,
         },
-        body: JSON.stringify({ phone: userData.phone }),
+        body: JSON.stringify({ phone: cleanedPhone }),
       });
       if (!response.ok) throw new Error('Erro ao atualizar o telefone.');
 
@@ -643,8 +644,12 @@ const Usuario = () => {
                             id="phone"
                             type="tel"
                             value={userData?.phone || ''}
-                            onChange={(e) => setUserData({ ...userData!, phone: e.target.value })}
+                            onChange={(e) => {
+                                const sanitizedValue = e.target.value.replace(/\D/g, '').slice(0, 11);
+                                setUserData({ ...userData!, phone: sanitizedValue });
+                            }}
                             className="bg-transparent border-none p-0 focus-visible:ring-0 text-foreground"
+                            maxLength={11}
                           />
                         ) : (
                           <p className="text-foreground flex items-center gap-2">
