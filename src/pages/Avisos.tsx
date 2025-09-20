@@ -152,14 +152,6 @@ const Avisos = () => {
       
       <main className="container mx-auto px-4 pt-20 pb-8">
         <div className="flex items-center gap-4 mb-8">
-          <Button 
-            variant="ghost" 
-            size="icon"
-            onClick={() => navigate("/")}
-            className="hover:bg-primary/10"
-          >
-            <ArrowLeft className="h-5 w-5" />
-          </Button>
           <div className="flex items-center gap-3">
             <Bell className="h-8 w-8 text-primary" />
             <div>

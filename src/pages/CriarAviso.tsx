@@ -10,6 +10,7 @@ import { useNavigate } from "react-router-dom";
 import Header from "@/components/Header";
 import Sidebar from "@/components/Sidebar";
 import { API_BASE_URL } from "@/config/api";
+import { ToastAction } from "@/components/ui/toast";
 
 // Função auxiliar para obter o token de autenticação
 const getAuthHeaders = () => {
@@ -60,16 +61,16 @@ const CriarAviso = () => {
         const errorData = await response.json();
         throw new Error(errorData.message || "Erro ao postar o aviso.");
       }
+      
+      // Limpar formulário
+      setTipo("");
+      setMensagem("");
 
       toast({
         title: "Aviso criado",
         description: "O aviso foi postado com sucesso!",
+        action: <ToastAction altText="Ir para avisos" onClick={() => navigate("/avisos")}>Ir para Avisos</ToastAction>,
       });
-
-      // Limpar formulário e redirecionar
-      setTipo("");
-      setMensagem("");
-      navigate("/avisos");
 
     } catch (error: any) {
       console.error("Erro ao postar aviso:", error);
@@ -116,14 +117,6 @@ const CriarAviso = () => {
       
       <main className="container mx-auto px-4 pt-20 pb-8">
         <div className="flex items-center gap-4 mb-8">
-          <Button 
-            variant="ghost" 
-            size="icon"
-            onClick={() => navigate("/")}
-            className="hover:bg-primary/10"
-          >
-            <ArrowLeft className="h-5 w-5" />
-          </Button>
           <div className="flex items-center gap-3">
             <div className="p-2 bg-primary/10 rounded-lg">
               <MessageSquarePlus className="h-6 w-6 text-primary" />
