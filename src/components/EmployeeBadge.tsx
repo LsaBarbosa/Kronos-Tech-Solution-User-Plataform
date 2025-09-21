@@ -1,9 +1,8 @@
 import { useEffect, useState } from "react";
 import { User, Phone, Mail, Briefcase, DollarSign, Edit, Check, X, Eye, EyeOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
+import { Input } from "@/components/ui/input"; 
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
 import { API_BASE_URL } from "@/config/api";
@@ -130,19 +129,6 @@ const EmployeeBadge = ({ userData, isLoading, onUpdateSuccess }: EmployeeBadgePr
             <h3 className="text-sm font-bold text-primary uppercase tracking-wider">
               {isLoading ? <Skeleton className="w-32 h-4 mx-auto" /> : userData?.companyName}
             </h3>
-          </div>
-          
-          <div className="flex justify-center mt-2">
-            <div className="relative">
-              <Avatar className="h-20 w-20 border-4 border-primary/30 shadow-md">
-                <AvatarFallback className="bg-primary text-primary-foreground font-bold text-2xl">
-                  <User className="h-10 w-10" />
-                </AvatarFallback>
-              </Avatar>
-              <div className="absolute -bottom-1 -right-1 w-6 h-6 bg-primary rounded-full border-2 border-card flex items-center justify-center">
-                <User className="h-3 w-3 text-primary-foreground" />
-              </div>
-            </div>
           </div>
         </CardHeader>
         
