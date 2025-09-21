@@ -1,16 +1,24 @@
-import { useState, useEffect } from "react";
+import { useState, useEffect, useCallback } from "react";
 import Header from "@/components/Header";
 import Sidebar from "@/components/Sidebar";
 import Clock from "@/components/Clock";
 import EmployeeBadge from "@/components/EmployeeBadge";
-import { Button } from "@/components/ui/button";
-import { LogIn, LogOut } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { API_BASE_URL } from "@/config/api";
 
+interface UserProfile {
+  fullName: string;
+  jobPosition: string;
+  email: string;
+  salary: number;
+  phone: string;
+  companyName: string;
+}
+
 const Dashboard = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [companyName, setCompanyName] = useState(""); // Novo estado para o nome da empresa
+  const [userData, setUserData] = useState<UserProfile | null>(null);
+  const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
 
   const getAuthHeaders = () => {
@@ -24,37 +32,36 @@ const Dashboard = () => {
     };
   };
 
-  // useEffect para buscar o nome da empresa quando o componente montar
-  useEffect(() => {
-    const fetchCompanyName = async () => {
-      try {
-        const headers = getAuthHeaders();
-        const response = await fetch(`${API_BASE_URL}employee/own-profile`, {
-          method: "GET",
-          headers: headers,
-        });
+  const fetchProfile = useCallback(async () => {
+    setIsLoading(true);
+    try {
+      const headers = getAuthHeaders();
+      const response = await fetch(`${API_BASE_URL}employee/own-profile`, {
+        method: "GET",
+        headers: headers,
+      });
 
-        if (!response.ok) {
-          throw new Error("Erro ao buscar o nome da empresa.");
-        }
-
-        const data = await response.json();
-        setCompanyName(data.companyName); // Atualiza o estado com o nome da empresa da API
-      } catch (error) {
-        console.error(error);
-        toast({
-          title: "Erro de Conexão",
-          description: error.message,
-          variant: "destructive",
-        });
-        // Opcional: manter um valor padrão ou mensagem de erro
-        setCompanyName("Nome da Empresa não encontrado");
+      if (!response.ok) {
+        throw new Error("Falha ao buscar os dados do perfil do usuário.");
       }
-    };
 
-    fetchCompanyName();
-  }, []); // O array de dependências vazio garante que o useEffect rode apenas uma vez
+      const data = await response.json();
+      setUserData(data);
+    } catch (error: any) {
+      console.error("Erro ao buscar o perfil:", error);
+      toast({
+        title: "Erro de Conexão",
+        description: error.message,
+        variant: "destructive",
+      });
+    } finally {
+      setIsLoading(false);
+    }
+  }, []);
 
+  useEffect(() => {
+    fetchProfile();
+  }, [fetchProfile]);
 
   return (
     <div className="min-h-screen bg-background relative overflow-hidden">
@@ -107,11 +114,9 @@ const Dashboard = () => {
 
       <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
 
-
       <main className="pt-16 px-4 md:px-6 flex items-center justify-center min-h-[calc(100vh-4rem)] relative z-10">
         <div className="max-w-md w-full space-y-6 md:space-y-8 text-center">
           <div className="space-y-4">
-
             <h1 className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-foreground to-primary bg-clip-text text-transparent px-2">
               Bem-vindo ao seu painel
             </h1>
@@ -121,10 +126,12 @@ const Dashboard = () => {
             </div>
             {/* Employee Badge centralizado */}
             <div className="flex justify-center mt-6">
-              <EmployeeBadge />
+              <EmployeeBadge 
+                userData={userData} 
+                isLoading={isLoading} 
+                onUpdateSuccess={fetchProfile} 
+              />
             </div>
-
-
           </div>
         </div>
       </main>

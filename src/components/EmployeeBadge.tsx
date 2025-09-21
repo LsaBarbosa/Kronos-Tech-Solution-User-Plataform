@@ -1,4 +1,4 @@
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
 import { User, Phone, Mail, Briefcase, DollarSign, Edit, Check, X, Eye, EyeOff } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -17,12 +17,13 @@ interface UserProfile {
   companyName: string;
 }
 
-const CACHE_KEY = "userProfileCache";
-const CACHE_TTL = 5 * 60 * 1000;
+interface EmployeeBadgeProps {
+  userData: UserProfile | null;
+  isLoading: boolean;
+  onUpdateSuccess: () => void;
+}
 
-const EmployeeBadge = () => {
-  const [userData, setUserData] = useState<UserProfile | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
+const EmployeeBadge = ({ userData, isLoading, onUpdateSuccess }: EmployeeBadgeProps) => {
   const [isUpdating, setIsUpdating] = useState(false);
   const [isEditing, setIsEditing] = useState({
     contact: false,
@@ -34,86 +35,16 @@ const EmployeeBadge = () => {
     email: "",
     phone: "",
   });
-  const [companyName, setCompanyName] = useState("");
 
-  // Função para buscar e salvar no cache
-  const fetchAndCacheProfile = async () => {
-    try {
-      const token = localStorage.getItem("token");
-      if (!token) {
-        throw new Error("Token de autenticação não encontrado.");
-      }
-
-      const response = await fetch(`${API_BASE_URL}employee/own-profile`, {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-      });
-
-      if (!response.ok) {
-        throw new Error("Falha ao buscar os dados do perfil do usuário.");
-      }
-
-      const data = await response.json();
-      const dataWithTimestamp = { data, timestamp: Date.now() };
-      localStorage.setItem(CACHE_KEY, JSON.stringify(dataWithTimestamp));
-      
-      return data;
-    } catch (error) {
-      console.error("Erro ao buscar e armazenar o perfil:", error);
-      throw error;
-    }
-  };
-
-  // 🚨 ATENÇÃO: A LÓGICA AGORA ESTÁ INTEIRAMENTE NESTE useEffect 🚨
   useEffect(() => {
-    const loadProfile = async () => {
-      let cachedData = null;
-      const cachedItem = localStorage.getItem(CACHE_KEY);
-      const now = Date.now();
-
-      // 1. Tenta carregar do cache
-      if (cachedItem) {
-        const { data, timestamp } = JSON.parse(cachedItem);
-        // Verifica se o cache ainda é válido
-        if (now - timestamp < CACHE_TTL) {
-          console.log("Perfil carregado do cache.");
-          setUserData(data);
-          setTempData({
-            fullName: data.fullName,
-            email: data.email,
-            phone: data.phone,
-          });
-          setCompanyName(data.companyName);
-          setIsLoading(false);
-          return; // 🛑 SAÍDA IMEDIATA. NÃO FAZ A CHAMADA À API.
-        }
-      }
-
-      // 2. Se chegou aqui, o cache é inválido ou não existe.
-      console.log("Cache expirado ou não encontrado. Buscando da API...");
-      setIsLoading(true);
-      try {
-        const newData = await fetchAndCacheProfile();
-        setUserData(newData);
-        setTempData({
-          fullName: newData.fullName,
-          email: newData.email,
-          phone: newData.phone,
-        });
-        setCompanyName(newData.companyName);
-      } catch (error) {
-        toast.error("Erro ao carregar o perfil do usuário.");
-        setCompanyName("Nome da Empresa não encontrado");
-      } finally {
-        setIsLoading(false);
-      }
-    };
-
-    loadProfile();
-  }, []);
+    if (userData) {
+      setTempData({
+        fullName: userData.fullName,
+        email: userData.email,
+        phone: userData.phone,
+      });
+    }
+  }, [userData]);
 
   const handleUpdateProfile = async (field: keyof Omit<UserProfile, 'fullName' | 'jobPosition' | 'salary' | 'companyName'>) => {
     setIsUpdating(true);
@@ -140,15 +71,7 @@ const EmployeeBadge = () => {
 
       toast.success(`Dados do perfil atualizados com sucesso.`);
       
-      // Força a atualização do cache após uma alteração bem-sucedida
-      const updatedData = await fetchAndCacheProfile();
-      setUserData(updatedData);
-      setTempData({
-        fullName: updatedData.fullName,
-        email: updatedData.email,
-        phone: updatedData.phone,
-      });
-      setCompanyName(updatedData.companyName);
+      onUpdateSuccess();
 
     } catch (error) {
       console.error(error);
@@ -205,7 +128,7 @@ const EmployeeBadge = () => {
         <CardHeader className="pb-3">
           <div className="text-center bg-primary/10 -mx-6 -mt-6 pt-4 pb-2 rounded-t-lg border-b border-primary/20">
             <h3 className="text-sm font-bold text-primary uppercase tracking-wider">
-              {isLoading ? <Skeleton className="w-32 h-4 mx-auto" /> : companyName}
+              {isLoading ? <Skeleton className="w-32 h-4 mx-auto" /> : userData?.companyName}
             </h3>
           </div>
           
