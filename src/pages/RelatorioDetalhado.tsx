@@ -521,60 +521,60 @@ const RelatorioDetalhado = () => {
         setEditModalOpen(true);
     };
 
-    const handleSaveRecord = async (data) => {
-        try {
-            const token = localStorage.getItem("token");
-            if (!token) {
-                throw new Error("Token de autenticação não encontrado.");
-            }
-
-            if (!selectedRecord || !selectedRecord.timeRecordId) {
-                throw new Error("Registro selecionado para edição não encontrado.");
-            }
-
-            const requestBody = {
-                startDate: data.startDate,
-                endDate: data.endDate,
-                startHour: data.startHour,
-                endHour: data.endHour,
-                managerId: data.managerId,
-            };
-
-            const endpoint = `${API_BASE_URL}records/update/time-record/${selectedRecord.timeRecordId}`;
-
-            const response = await fetch(endpoint, {
-                method: "PUT",
-                headers: {
-                    "Content-Type": "application/json",
-                    Authorization: `Bearer ${token}`,
-                },
-                body: JSON.stringify(requestBody),
-            });
-
-            if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.message || "Erro ao atualizar o registro.");
-            }
-
-            toast({
-                title: "Sucesso",
-                description: "Registro atualizado com sucesso!",
-            });
-
-            setEditModalOpen(false);
-            setSelectedRecord(null);
-            form.reset();
-
-            handleSearch();
-        } catch (error) {
-            console.error("Erro ao salvar:", error);
-            toast({
-                title: "Erro",
-                description: error.message || "Ocorreu um erro ao salvar o registro.",
-                variant: "destructive",
-            });
+   const handleSaveRecord = async (data) => {
+    try {
+        const token = localStorage.getItem("token");
+        if (!token) {
+            throw new Error("Token de autenticação não encontrado.");
         }
-    };
+
+        if (!selectedRecord || !selectedRecord.timeRecordId) {
+            throw new Error("Registro selecionado para edição não encontrado.");
+        }
+
+        const requestBody = {
+            startDate: format(new Date(data.startDate), "dd-MM-yyyy"),
+            endDate: format(new Date(data.endDate), "dd-MM-yyyy"),
+            startHour: data.startHour,
+            endHour: data.endHour,
+            managerId: data.managerId,
+        };
+
+        const endpoint = `${API_BASE_URL}records/update/time-record/${selectedRecord.timeRecordId}`;
+
+        const response = await fetch(endpoint, {
+            method: "PUT",
+            headers: {
+                "Content-Type": "application/json",
+                Authorization: `Bearer ${token}`,
+            },
+            body: JSON.stringify(requestBody),
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.message || "Erro ao atualizar o registro.");
+        }
+
+        toast({
+            title: "Sucesso",
+            description: "Registro atualizado com sucesso!",
+        });
+
+        setEditModalOpen(false);
+        setSelectedRecord(null);
+        form.reset();
+
+        handleSearch();
+    } catch (error) {
+        console.error("Erro ao salvar:", error);
+        toast({
+            title: "Erro",
+            description: error.message || "Ocorreu um erro ao salvar o registro.",
+            variant: "destructive",
+        });
+    }
+};
 
     return (
         <div className="min-h-screen bg-background relative overflow-hidden">
