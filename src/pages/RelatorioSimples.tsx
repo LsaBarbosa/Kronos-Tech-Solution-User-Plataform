@@ -35,7 +35,7 @@ const decodeToken = (token: string) => {
   try {
     const base64Url = token.split('.')[1];
     const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-    const payload = decodeURIComponent(atob(base64).split('').map(function(c) {
+    const payload = decodeURIComponent(atob(base64).split('').map(function (c) {
       return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
     }).join(''));
     return JSON.parse(payload);
@@ -148,7 +148,7 @@ const RelatorioSimples = () => {
       } else {
         setIsPartner(false);
       }
-      
+
       const endpoint = `${API_BASE_URL}employee?active=${employeeActive === "active"}`;
 
       const response = await fetch(endpoint, {
@@ -337,7 +337,7 @@ const RelatorioSimples = () => {
             halign: 'center'
           }
         },
-        didParseCell: function(data) {
+        didParseCell: function (data) {
           // Colorir saldo positivo/negativo
           if (data.column.index === 2 && data.section === 'body') {
             const balance = data.cell.text[0];
@@ -457,7 +457,7 @@ const RelatorioSimples = () => {
                   Escolha as datas para o relatório
                 </p>
               </div>
-              
+
               <Calendar
                 mode="multiple"
                 selected={selectedDates}
@@ -537,21 +537,21 @@ const RelatorioSimples = () => {
                         {selectedDates
                           .sort((a, b) => a.getTime() - b.getTime())
                           .map((date, index) => (
-                          <div key={index} className="flex items-center justify-between bg-gradient-to-r from-primary/10 to-secondary/10 p-3 rounded-lg border border-primary/20 hover:from-primary/15 hover:to-secondary/15 transition-all duration-200">
-                            <span className="font-semibold text-foreground flex items-center gap-2">
-                              <div className="w-2 h-2 rounded-full bg-primary"></div>
-                              {format(date, "dd/MM/yyyy", { locale: ptBR })}
-                            </span>
-                            <Button
-                              variant="ghost"
-                              size="sm"
-                              onClick={() => removeDateSelection(date)}
-                              className="h-7 w-7 p-0 hover:bg-destructive/20 hover:text-destructive rounded-full"
-                            >
-                              <X className="h-3 w-3" />
-                            </Button>
-                          </div>
-                        ))}
+                            <div key={index} className="flex items-center justify-between bg-gradient-to-r from-primary/10 to-secondary/10 p-3 rounded-lg border border-primary/20 hover:from-primary/15 hover:to-secondary/15 transition-all duration-200">
+                              <span className="font-semibold text-foreground flex items-center gap-2">
+                                <div className="w-2 h-2 rounded-full bg-primary"></div>
+                                {format(date, "dd/MM/yyyy", { locale: ptBR })}
+                              </span>
+                              <Button
+                                variant="ghost"
+                                size="sm"
+                                onClick={() => removeDateSelection(date)}
+                                className="h-7 w-7 p-0 hover:bg-destructive/20 hover:text-destructive rounded-full"
+                              >
+                                <X className="h-3 w-3" />
+                              </Button>
+                            </div>
+                          ))}
                       </div>
                     )}
                   </div>
@@ -559,7 +559,14 @@ const RelatorioSimples = () => {
                   <div className="p-4 bg-primary/5 rounded-lg border border-primary/20">
                     <p className="text-sm text-primary mb-1">💡 Dica de uso:</p>
                     <p className="text-xs text-gray-text">
-                      Clique em qualquer data no calendário para selecioná-la. Os feriados nacionais brasileiros estão destacados automaticamente com sublinhado.
+                      1. Os feriados nacionais brasileiros estão destacados automaticamente com sublinhado.
+                    </p>
+                    <p className="text-xs text-gray-text">
+                      2. O Relatório Simples não filtra os regitros por status. Retorna todos os registros do dia selecionado.
+                    </p>
+                    <p className="text-xs text-gray-text">
+                      3. Ao gerar o relatório todos os registros do dia selecionado são simplificados, 
+                        retornando o total de horas trabalhadas e o saldo de horas baseado na carga horária de trabalho
                     </p>
                   </div>
                 </div>
@@ -568,7 +575,7 @@ const RelatorioSimples = () => {
                 <div className="space-y-3 pt-4 border-t border-gray-border">
                   <div className="space-y-2">
                     <Label htmlFor="reference-time" className="text-sm font-medium text-foreground">
-                      Referência
+                      Carga Horária diária
                     </Label>
                     <Input
                       id="reference-time"
@@ -699,11 +706,10 @@ const RelatorioSimples = () => {
                     <h3 className="text-lg font-semibold text-gray-text mb-2">
                       Saldo Total
                     </h3>
-                    <p className={`text-4xl font-bold ${
-                      reportData.totalBalance.startsWith('-')
-                        ? 'text-destructive-light'
-                        : 'text-success-light'
-                    }`}>
+                    <p className={`text-4xl font-bold ${reportData.totalBalance.startsWith('-')
+                      ? 'text-destructive-light'
+                      : 'text-success-light'
+                      }`}>
                       {reportData.totalBalance}
                     </p>
                   </CardContent>
@@ -744,9 +750,8 @@ const RelatorioSimples = () => {
                           return (
                             <tr
                               key={index}
-                              className={`border-b border-gray-border/50 ${
-                                index % 2 === 0 ? 'bg-gray-light/30' : 'bg-background'
-                              } hover:bg-gray-light/50 transition-colors`}
+                              className={`border-b border-gray-border/50 ${index % 2 === 0 ? 'bg-gray-light/30' : 'bg-background'
+                                } hover:bg-gray-light/50 transition-colors`}
                             >
                               <td className="py-3 px-4 text-foreground font-medium">
                                 <div className="flex items-center gap-2">
@@ -761,11 +766,10 @@ const RelatorioSimples = () => {
                               <td className="py-3 px-4 text-foreground">
                                 {day.totalHours}
                               </td>
-                              <td className={`py-3 px-4 font-medium ${
-                                day.balance.startsWith('-')
-                                  ? 'text-destructive-light'
-                                  : 'text-success-light'
-                              }`}>
+                              <td className={`py-3 px-4 font-medium ${day.balance.startsWith('-')
+                                ? 'text-destructive-light'
+                                : 'text-success-light'
+                                }`}>
                                 {day.balance}
                               </td>
                             </tr>
