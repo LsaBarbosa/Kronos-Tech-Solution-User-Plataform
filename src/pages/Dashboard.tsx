@@ -5,6 +5,7 @@ import Clock from "@/components/Clock";
 import EmployeeBadge from "@/components/EmployeeBadge";
 import { useToast } from "@/hooks/use-toast";
 import { API_BASE_URL } from "@/config/api";
+import { Bell } from "lucide-react"; // Ícone para a notificação
 
 interface UserProfile {
   fullName: string;
@@ -19,6 +20,7 @@ const Dashboard = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [userData, setUserData] = useState<UserProfile | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+  const [pendingApprovalsCount, setPendingApprovalsCount] = useState<number>(0);
   const { toast } = useToast();
 
   const getAuthHeaders = () => {
@@ -57,11 +59,32 @@ const Dashboard = () => {
     } finally {
       setIsLoading(false);
     }
+  }, [toast]);
+
+  const fetchPendingApprovals = useCallback(async () => {
+    try {
+      const headers = getAuthHeaders();
+      const response = await fetch(`${API_BASE_URL}records/pending-approvals`, {
+        method: "GET",
+        headers: headers,
+      });
+
+      if (!response.ok) {
+        console.error("Falha ao buscar aprovações pendentes.");
+        return;
+      }
+
+      const data = await response.json();
+      setPendingApprovalsCount(data.length);
+    } catch (error: any) {
+      console.error("Erro ao buscar aprovações pendentes:", error);
+    }
   }, []);
 
   useEffect(() => {
     fetchProfile();
-  }, [fetchProfile]);
+    fetchPendingApprovals();
+  }, [fetchProfile, fetchPendingApprovals]);
 
   return (
     <div className="min-h-screen bg-background relative overflow-hidden">
@@ -120,16 +143,32 @@ const Dashboard = () => {
             <h1 className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-foreground to-primary bg-clip-text text-transparent px-2">
               Bem-vindo ao seu painel
             </h1>
+
+            {/* Contagem de Aprovações Pendentes */}
+            {pendingApprovalsCount > 0 && (
+              <div className="flex justify-center mt-6">
+                <div className="bg-primary/10 border border-primary/20 text-primary rounded-full px-4 py-2 flex items-center space-x-2 animate-pulse">
+                  <Bell className="h-5 w-5" />
+                  <span className="font-semibold">{pendingApprovalsCount}</span>
+                  <span>
+                    {pendingApprovalsCount === 1
+                      ? "aprovação pendente"
+                      : "aprovações pendentes"}
+                  </span>
+                </div>
+              </div>
+            )}
+
             {/* Clock centralizado embaixo do crachá */}
             <div className="flex justify-center mt-6">
               <Clock />
             </div>
             {/* Employee Badge centralizado */}
             <div className="flex justify-center mt-6">
-              <EmployeeBadge 
-                userData={userData} 
-                isLoading={isLoading} 
-                onUpdateSuccess={fetchProfile} 
+              <EmployeeBadge
+                userData={userData}
+                isLoading={isLoading}
+                onUpdateSuccess={fetchProfile}
               />
             </div>
           </div>
