@@ -533,18 +533,28 @@ const handleDownload = () => {
     };
 
     const handleEditRecord = (record) => {
-        setSelectedRecord(record);
+    setSelectedRecord(record);
 
-        form.reset({
-            startDate: record.startWork,
-            endDate: record.endWork,
-            startHour: record.startHour,
-            endHour: record.endHour,
-            managerId: managers[0]?.id || "",
-        });
-
-        setEditModalOpen(true);
+    const formatDateToInput = (dateString) => {
+        if (!dateString) return "";
+        const parts = dateString.split('-');
+        if (parts.length === 3) {
+            const [day, month, year] = parts;
+            return `${year}-${month}-${day}`;
+        }
+        return dateString;
     };
+
+    form.reset({
+        startDate: formatDateToInput(record.startWork),
+        endDate: formatDateToInput(record.endWork),
+        startHour: record.startHour,
+        endHour: record.endHour,
+        managerId: managers[0]?.id || "",
+    });
+
+    setEditModalOpen(true);
+};
 
   const handleSaveRecord = async (data: EditRecordFormData) => {
      try {
