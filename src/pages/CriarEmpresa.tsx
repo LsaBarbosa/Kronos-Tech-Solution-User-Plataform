@@ -1,19 +1,43 @@
-import { useState } from "react";
+import { useState, useCallback } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import Header from "@/components/Header";
 import Sidebar from "@/components/Sidebar";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Form, FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
+import {
+  Form,
+  FormControl,
+  FormDescription,
+  FormField,
+  FormItem,
+  FormLabel,
+  FormMessage,
+} from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ArrowLeft, Building2, Save, User, Users, Shield } from "lucide-react";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
+import { ArrowLeft, Building2, Save, User, Shield, Loader2, MapPin } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { API_BASE_URL } from "@/config/api";
 
+// Lembre-se de configurar esta variável no seu arquivo .env.local
+const GOOGLE_MAPS_API_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
+
+// Schema de validação que corresponde exatamente ao DTO do backend
 const formSchema = z.object({
   name: z.string().min(2, {
     message: "Nome deve ter pelo menos 2 caracteres.",
@@ -31,6 +55,10 @@ const formSchema = z.object({
     number: z.string().min(1, {
       message: "Número é obrigatório.",
     }),
+  }),
+  location: z.object({
+    latitude: z.number().optional(),
+    longitude: z.number().optional(),
   }),
   employeeRequest: z.object({
     fullName: z.string().min(2, {
@@ -76,6 +104,11 @@ const CriarEmpresa = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
+  const [usernameAvailability, setUsernameAvailability] = useState<
+    "available" | "unavailable" | "checking" | null
+  >(null);
+  const [isCheckingUsername, setIsCheckingUsername] = useState(false);
+  const [isFetchingCoords, setIsFetchingCoords] = useState(false);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -86,6 +119,10 @@ const CriarEmpresa = () => {
       address: {
         postalCode: "",
         number: "",
+      },
+      location: {
+        latitude: undefined,
+        longitude: undefined,
       },
       employeeRequest: {
         fullName: "",
@@ -107,8 +144,156 @@ const CriarEmpresa = () => {
     },
   });
 
+  const getCoordinates = useCallback(async () => {
+    const postalCode = form.getValues("address.postalCode");
+    const number = form.getValues("address.number");
+
+    if (!GOOGLE_MAPS_API_KEY) {
+      toast({
+        title: "Configuração Incompleta",
+        description: "A chave da API do Google Maps não foi configurada.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    if (postalCode.length !== 8 || !number) {
+      toast({
+        title: "Dados incompletos",
+        description: "Forneça um CEP válido e o número para buscar as coordenadas.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    setIsFetchingCoords(true);
+    try {
+      const cepResponse = await fetch(
+        `https://viacep.com.br/ws/${postalCode}/json/`
+      );
+      if (!cepResponse.ok) throw new Error("CEP não encontrado.");
+      const cepData = await cepResponse.json();
+      if (cepData.erro) throw new Error("CEP inválido.");
+
+      const { logradouro } = cepData;
+      const addressString = `${logradouro}, ${number}`;
+      const components = `postal_code:${postalCode}|country:BR`;
+
+      const geoResponse = await fetch(
+        `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(
+          addressString
+        )}&components=${encodeURIComponent(components)}&key=${GOOGLE_MAPS_API_KEY}`
+      );
+      
+      const geoData = await geoResponse.json();
+
+      if (geoData.status === "OK") {
+        const location = geoData.results[0].geometry.location;
+        form.setValue("location.latitude", location.lat);
+        form.setValue("location.longitude", location.lng);
+        toast({
+          title: "Coordenadas obtidas!",
+          description: "Latitude e longitude preenchidas com sucesso.",
+        });
+      } else {
+        if (geoData.status === "ZERO_RESULTS") {
+            throw new Error("Não foi possível encontrar as coordenadas. Verifique o CEP e o número.");
+        }
+        throw new Error(geoData.error_message || "Ocorreu um erro ao buscar as coordenadas.");
+      }
+    } catch (error) {
+      toast({
+        title: "Erro na Geolocalização",
+        description: error.message,
+        variant: "destructive",
+      });
+      form.setValue("location.latitude", undefined);
+      form.setValue("location.longitude", undefined);
+    } finally {
+      setIsFetchingCoords(false);
+    }
+  }, [form, toast]);
+
+
+  const handleCheckUsername = async () => {
+    const username = form.getValues("userRequest.username");
+    if (!username || username.length < 4) {
+      toast({
+        title: "Erro de validação",
+        description: "O nome de usuário deve ter pelo menos 4 caracteres.",
+        variant: "destructive",
+      });
+      setUsernameAvailability(null);
+      return;
+    }
+
+    setIsCheckingUsername(true);
+    setUsernameAvailability("checking");
+
+    try {
+      const token = localStorage.getItem("token");
+      if (!token) {
+        throw new Error("Token de autenticação não encontrado.");
+      }
+
+      const response = await fetch(
+        `${API_BASE_URL}users/check-username?username=${username}`,
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          },
+        }
+      );
+
+      if (response.ok) {
+        toast({
+          title: "Nome de usuário indisponível",
+          description: "Este nome de usuário já está em uso. Por favor, escolha outro.",
+          variant: "destructive",
+        });
+        setUsernameAvailability("unavailable");
+      } else if (response.status === 404) {
+        toast({
+          title: "Nome de usuário disponível!",
+          description: "Você pode usar este nome de usuário para o registro.",
+        });
+        setUsernameAvailability("available");
+      } else {
+        toast({
+          title: "Erro na verificação",
+          description:
+            "Ocorreu um erro ao verificar o nome de usuário. Tente novamente.",
+          variant: "destructive",
+        });
+        setUsernameAvailability(null);
+      }
+    } catch (error) {
+      console.error("Erro na comunicação com a API:", error);
+      toast({
+        title: "Erro de rede",
+        description: "Falha ao conectar com o servidor. Verifique sua conexão.",
+        variant: "destructive",
+      });
+      setUsernameAvailability(null);
+    } finally {
+      setIsCheckingUsername(false);
+    }
+  };
+
   async function onSubmit(values: z.infer<typeof formSchema>) {
     setIsSubmitting(true);
+
+    if (usernameAvailability !== "available") {
+      toast({
+        title: "Erro de validação",
+        description:
+          "Por favor, verifique a disponibilidade do nome de usuário antes de registrar.",
+        variant: "destructive",
+      });
+      setIsSubmitting(false);
+      return;
+    }
+
     try {
       const token = localStorage.getItem("token");
       if (!token) {
@@ -121,20 +306,20 @@ const CriarEmpresa = () => {
         return;
       }
 
-      // 1. Criar a empresa e o funcionário
       const companyPayload = {
         name: values.name,
         cnpj: values.cnpj,
         email: values.email,
         address: values.address,
         employeeRequest: values.employeeRequest,
+        location: values.location,
       };
 
       const companyResponse = await fetch(`${API_BASE_URL}companies`, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "Authorization": `Bearer ${token}`,
+          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify(companyPayload),
       });
@@ -147,7 +332,6 @@ const CriarEmpresa = () => {
       const companyData = await companyResponse.json();
       const employeeId = companyData.employeeId;
 
-      // 2. Criar o usuário usando o employeeId retornado
       const userPayload = {
         username: values.userRequest.username,
         password: values.userRequest.password,
@@ -159,7 +343,7 @@ const CriarEmpresa = () => {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
-          "Authorization": `Bearer ${token}`,
+          Authorization: `Bearer ${token}`,
         },
         body: JSON.stringify(userPayload),
       });
@@ -175,7 +359,6 @@ const CriarEmpresa = () => {
       });
 
       form.reset();
-
     } catch (error) {
       console.error("Erro no processo de criação da empresa:", error);
       toast({
@@ -205,7 +388,9 @@ const CriarEmpresa = () => {
               Voltar
             </Button>
             <div>
-              <h1 className="text-3xl font-bold text-foreground">Criar Empresa</h1>
+              <h1 className="text-3xl font-bold text-foreground">
+                Criar Empresa
+              </h1>
               <p className="text-muted-foreground">
                 Cadastre uma nova empresa no sistema
               </p>
@@ -341,6 +526,58 @@ const CriarEmpresa = () => {
                       )}
                     />
                   </div>
+                  <div className="flex items-end gap-4">
+                    <div className="grid grid-cols-2 gap-6 flex-grow">
+                      <FormField
+                        control={form.control}
+                        name="location.latitude"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel className="text-foreground font-medium">Latitude</FormLabel>
+                            <FormControl>
+                              <Input
+                                placeholder="Automático"
+                                value={field.value || ""}
+                                disabled
+                                className="bg-muted/50"
+                              />
+                            </FormControl>
+                          </FormItem>
+                        )}
+                      />
+                      <FormField
+                        control={form.control}
+                        name="location.longitude"
+                        render={({ field }) => (
+                          <FormItem>
+                            <FormLabel className="text-foreground font-medium">Longitude</FormLabel>
+                            <FormControl>
+                              <Input
+                                placeholder="Automático"
+                                value={field.value || ""}
+                                disabled
+                                className="bg-muted/50"
+                              />
+                            </FormControl>
+                          </FormItem>
+                        )}
+                      />
+                    </div>
+                    <Button
+                      type="button"
+                      onClick={getCoordinates}
+                      disabled={isFetchingCoords}
+                      variant="outline"
+                      className="h-10"
+                    >
+                      {isFetchingCoords ? (
+                        <Loader2 className="h-4 w-4 animate-spin" />
+                      ) : (
+                        <MapPin className="h-4 w-4" />
+                      )}
+                      <span className="ml-2 hidden sm:inline">Buscar</span>
+                    </Button>
+                  </div>
                 </CardContent>
               </Card>
 
@@ -459,7 +696,9 @@ const CriarEmpresa = () => {
                               type="number"
                               className="border-border focus:border-accent focus:ring-accent/20"
                               {...field}
-                              onChange={(e) => field.onChange(parseFloat(e.target.value) || 0)}
+                              onChange={(e) =>
+                                field.onChange(parseFloat(e.target.value) || 0)
+                              }
                             />
                           </FormControl>
                           <FormDescription>
@@ -568,17 +807,45 @@ const CriarEmpresa = () => {
                       render={({ field }) => (
                         <FormItem>
                           <FormLabel className="text-foreground font-medium">Nome de Usuário</FormLabel>
-                          <FormControl>
-                            <Input
-                              placeholder="Digite o nome de usuário"
-                              className="border-border focus:border-secondary focus:ring-secondary/20"
-                              {...field}
-                            />
-                          </FormControl>
+                          <div className="flex space-x-2">
+                            <FormControl>
+                              <Input
+                                placeholder="Digite o nome de usuário"
+                                className="border-border focus:border-secondary focus:ring-secondary/20"
+                                {...field}
+                                onChange={(e) => {
+                                  field.onChange(e);
+                                  setUsernameAvailability(null);
+                                }}
+                              />
+                            </FormControl>
+                            <Button
+                              type="button"
+                              onClick={handleCheckUsername}
+                              disabled={
+                                isCheckingUsername || field.value.length < 4
+                              }
+                              className="touch-target w-auto h-12"
+                            >
+                              {isCheckingUsername ? (
+                                <Loader2 className="h-4 w-4 animate-spin" />
+                              ) : (
+                                "Verificar"
+                              )}
+                            </Button>
+                          </div>
+                          <FormMessage>
+                            {usernameAvailability === "unavailable" &&
+                              "Nome de usuário já existe."}
+                            {usernameAvailability === "available" && (
+                              <span className="text-green-500">
+                                Nome de usuário disponível.
+                              </span>
+                            )}
+                          </FormMessage>
                           <FormDescription>
                             Nome de usuário para acesso ao sistema
                           </FormDescription>
-                          <FormMessage />
                         </FormItem>
                       )}
                     />
@@ -612,7 +879,10 @@ const CriarEmpresa = () => {
                     render={({ field }) => (
                       <FormItem>
                         <FormLabel className="text-foreground font-medium">Cargo no Sistema</FormLabel>
-                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                        <Select
+                          onValueChange={field.onChange}
+                          defaultValue={field.value}
+                        >
                           <FormControl>
                             <SelectTrigger className="border-border focus:border-secondary focus:ring-secondary/20">
                               <SelectValue placeholder="Selecione o cargo" />
@@ -638,7 +908,7 @@ const CriarEmpresa = () => {
                 <Button
                   type="submit"
                   className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground shadow-button"
-                  disabled={isSubmitting}
+                  disabled={isSubmitting || usernameAvailability !== "available"}
                 >
                   <Save className="h-4 w-4 mr-2" />
                   {isSubmitting ? "Criando Empresa..." : "Criar Empresa"}
@@ -662,7 +932,3 @@ const CriarEmpresa = () => {
 };
 
 export default CriarEmpresa;
-
-
-
-
