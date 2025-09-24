@@ -136,7 +136,7 @@ const BuscarEmpresa = () => {
             throw new Error("Token de autenticação não encontrado.");
         }
 
-        const response = await fetch(`${API_BASE_URL}companies/${empresa.cnpj}`, {
+        const response = await fetch(`${API_BASE_URL}companies/${empresa.cnpj}/toggle-activate`, {
             method: 'PATCH',
             headers: {
                 "Content-Type": "application/json",
