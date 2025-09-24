@@ -31,8 +31,12 @@ const LoginForm = () => {
         body: JSON.stringify({ username, password }),
       });
 
+      // --- ALTERAÇÃO AQUI ---
       if (!response.ok) {
-        throw new Error("Credenciais inválidas");
+        // Tenta extrair a mensagem de erro detalhada da API
+        const errorData = await response.json();
+        // Usa a mensagem do campo 'detail' se existir, senão usa uma mensagem padrão
+        throw new Error(errorData.detail || "Usuário ou senha inválidos.");
       }
       
       const data = await response.json();
@@ -54,7 +58,8 @@ const LoginForm = () => {
       navigate("/dashboard");
 
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : "Erro desconhecido";
+      // A mensagem de erro agora virá do 'throw new Error' acima
+      const errorMessage = error instanceof Error ? error.message : "Erro desconhecido ao tentar fazer login.";
       toast.error(errorMessage);
     } finally {
       setIsSubmitting(false);
