@@ -15,6 +15,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { API_BASE_URL } from "@/config/api";
+import { useToast } from "@/hooks/use-toast";
 
 // Schema para edição da empresa
 const editEmpresaSchema = z.object({
@@ -35,7 +36,9 @@ const BuscarEmpresa = () => {
   const [empresas, setEmpresas] = useState([]); // Estado para as empresas da API
   const [loading, setLoading] = useState(true); // Estado de carregamento
   const [error, setError] = useState<string | null>(null); // Estado para erros
+  const [isSubmitting, setIsSubmitting] = useState(false); // Novo estado para o envio do formulário
   const navigate = useNavigate();
+  const { toast } = useToast();
 
   const editForm = useForm({
     resolver: zodResolver(editEmpresaSchema),
@@ -117,17 +120,101 @@ const BuscarEmpresa = () => {
     setIsEditDialogOpen(true);
   };
 
-  const handleToggleStatus = (empresa: any) => {
-    console.log(`Status da empresa ${empresa.name} alterado para: ${!empresa.active ? 'Ativa' : 'Inativa'}`);
-    // Futuramente, esta lógica deve ser uma chamada PUT para a API
-  };
+  const handleToggleStatus = async (empresa: any) => {
+    setIsSubmitting(true);
+    try {
+        const token = localStorage.getItem("token");
+        if (!token) {
+            throw new Error("Token de autenticação não encontrado.");
+        }
 
-  const onSubmitEdit = (data: any) => {
-    console.log('Dados editados:', data);
-    setIsEditDialogOpen(false);
-    setEditingEmpresa(null);
-    // Futuramente, esta lógica deve ser uma chamada PUT para a API
-  };
+        const response = await fetch(`${API_BASE_URL}companies/${empresa.cnpj}`, {
+            method: 'PATCH',
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${token}`,
+            },
+            body: JSON.stringify({ active: !empresa.active })
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.message || "Falha ao alterar o status da empresa.");
+        }
+
+        toast({
+            title: "Sucesso!",
+            description: `Status da empresa ${empresa.name} alterado.`,
+        });
+
+        fetchCompanies();
+    } catch (error: any) {
+        toast({
+            title: 'Erro',
+            description: error.message,
+            variant: 'destructive',
+        });
+    } finally {
+        setIsSubmitting(false);
+    }
+};
+
+const onSubmitEdit = async (data: any) => {
+    if (!editingEmpresa) return;
+
+    setIsSubmitting(true);
+    try {
+        const token = localStorage.getItem("token");
+        if (!token) {
+            throw new Error("Token de autenticação não encontrado.");
+        }
+
+        const { cnpj } = editingEmpresa;
+        const body = {
+            name: data.name,
+            email: data.email,
+            active: data.active,
+            address: {
+                postalCode: data.address.postalCode.replace(/\D/g, ""),
+                number: data.address.number
+            },
+            location: editingEmpresa.location
+        };
+
+        const response = await fetch(`${API_BASE_URL}companies/${cnpj}`, {
+            method: "PATCH",
+            headers: {
+                "Content-Type": "application/json",
+                "Authorization": `Bearer ${token}`,
+            },
+            body: JSON.stringify(body),
+        });
+
+        if (!response.ok) {
+            const errorData = await response.json();
+            throw new Error(errorData.message || "Falha ao atualizar a empresa.");
+        }
+
+        toast({
+            title: "Sucesso!",
+            description: `A empresa ${data.name} foi atualizada.`,
+        });
+
+        setIsEditDialogOpen(false);
+        setEditingEmpresa(null);
+        fetchCompanies();
+
+    } catch (error: any) {
+        console.error("Erro ao atualizar a empresa:", error);
+        toast({
+            title: "Erro ao atualizar",
+            description: error.message,
+            variant: "destructive",
+        });
+    } finally {
+        setIsSubmitting(false);
+    }
+};
 
   return (
     <div className="min-h-screen bg-background">
@@ -383,8 +470,15 @@ const BuscarEmpresa = () => {
                 >
                   Cancelar
                 </Button>
-                <Button type="submit">
-                  Salvar Alterações
+                <Button type="submit" disabled={isSubmitting}>
+                  {isSubmitting ? (
+                    <>
+                      <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                      Salvando...
+                    </>
+                  ) : (
+                    "Salvar Alterações"
+                  )}
                 </Button>
               </div>
             </form>
