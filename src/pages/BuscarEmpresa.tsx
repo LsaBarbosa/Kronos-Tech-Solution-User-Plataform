@@ -1,21 +1,22 @@
 import { useState, useEffect } from "react";
-import Header from "@/components/Header";
-import Sidebar from "@/components/Sidebar";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Badge } from "@/components/ui/badge";
-import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ArrowLeft, Search, Building2, Mail, MapPin, Hash, Eye, Edit, Power, Loader2 } from "lucide-react";
+import Header from "../components/Header";
+import Sidebar from "../components/Sidebar";
+import { Button } from "../components/ui/button";
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "../components/ui/card";
+import { Input } from "../components/ui/input";
+import { Badge } from "../components/ui/badge";
+import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "../components/ui/table";
+import { Dialog, DialogContent, DialogHeader, DialogTitle } from "../components/ui/dialog";
+import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "../components/ui/form";
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../components/ui/select";
+import { ArrowLeft, Search, Building2, Mail, MapPin, Hash, Eye, Edit, Power, Loader2, Info, Users, UserX } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
-import { API_BASE_URL } from "@/config/api";
-import { useToast } from "@/hooks/use-toast";
+import { API_BASE_URL } from "../config/api";
+import { useToast } from "../hooks/use-toast";
+import { Separator } from "../components/ui/separator";
 
 // Schema para edição da empresa
 const editEmpresaSchema = z.object({
@@ -32,7 +33,9 @@ const BuscarEmpresa = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [searchTerm, setSearchTerm] = useState("");
   const [editingEmpresa, setEditingEmpresa] = useState<any>(null);
+  const [viewingEmpresa, setViewingEmpresa] = useState<any>(null);
   const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
+  const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
   const [empresas, setEmpresas] = useState([]); // Estado para as empresas da API
   const [loading, setLoading] = useState(true); // Estado de carregamento
   const [error, setError] = useState<string | null>(null); // Estado para erros
@@ -118,6 +121,11 @@ const BuscarEmpresa = () => {
       },
     });
     setIsEditDialogOpen(true);
+  };
+
+  const handleViewEmpresa = (empresa: any) => {
+    setViewingEmpresa(empresa);
+    setIsViewDialogOpen(true);
   };
 
   const handleToggleStatus = async (empresa: any) => {
@@ -347,7 +355,7 @@ const onSubmitEdit = async (data: any) => {
                             </div>
                           </TableCell>
                           <TableCell className="text-right">
-                            <Button variant="outline" size="sm" onClick={() => navigate(`/empresa/editar/${empresa.id}`)}>
+                          <Button variant="outline" size="sm" onClick={() => handleViewEmpresa(empresa)}>
                               <Eye className="h-3 w-3 mr-1" />
                               Ver
                             </Button>
@@ -485,8 +493,76 @@ const onSubmitEdit = async (data: any) => {
           </Form>
         </DialogContent>
       </Dialog>
+      {/* Modal de Visualização */}
+      <Dialog open={isViewDialogOpen} onOpenChange={setIsViewDialogOpen}>
+        <DialogContent className="max-w-2xl">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2">
+              <Info className="h-5 w-5" />
+              Detalhes da Empresa
+            </DialogTitle>
+          </DialogHeader>
+          {viewingEmpresa && (
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-3">
+                  <Building2 className="h-6 w-6 text-primary" />
+                  {viewingEmpresa.name}
+                </CardTitle>
+                <CardDescription>
+                  <Badge variant={viewingEmpresa.active ? "default" : "secondary"}>
+                    {viewingEmpresa.active ? "Ativa" : "Inativa"}
+                  </Badge>
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="space-y-4">
+                <div className="flex items-center gap-3">
+                  <Hash className="h-4 w-4 text-muted-foreground" />
+                  <span className="text-sm">{formatCNPJ(viewingEmpresa.cnpj)}</span>
+                </div>
+                <div className="flex items-center gap-3">
+                  <Mail className="h-4 w-4 text-muted-foreground" />
+                  <span className="text-sm">{viewingEmpresa.email}</span>
+                </div>
+                <div className="flex items-start gap-3">
+                  <MapPin className="h-4 w-4 text-muted-foreground mt-1" />
+                  <div>
+                    <div className="text-sm">
+                      {viewingEmpresa.address.street}, {viewingEmpresa.address.number}
+                    </div>
+                    <div className="text-sm text-muted-foreground">
+                      {viewingEmpresa.address.neighborhood}, {viewingEmpresa.address.city} - {viewingEmpresa.address.state}
+                    </div>
+                    <div className="text-sm text-muted-foreground">
+                      CEP: {formatCEP(viewingEmpresa.address.postalCode)}
+                    </div>
+                  </div>
+                </div>
+
+                <Separator className="my-4" />
+
+                <div className="space-y-2">
+                    <div className="flex items-center gap-3">
+                        <Users className="h-4 w-4 text-green-500" />
+                        <span className="text-sm font-medium">Funcionários Ativos:</span>
+                        <span className="text-sm font-semibold">{viewingEmpresa.activeEmployees}</span>
+                    </div>
+                    <div className="flex items-center gap-3">
+                        <UserX className="h-4 w-4 text-red-500" />
+                        <span className="text-sm font-medium">Funcionários Inativos:</span>
+                        <span className="text-sm font-semibold">{viewingEmpresa.inactiveEmployees}</span>
+                    </div>
+                </div>
+
+              </CardContent>
+            </Card>
+          )}
+        </DialogContent>
+      </Dialog>
+
     </div>
   );
 };
 
 export default BuscarEmpresa;
+
