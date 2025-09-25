@@ -561,13 +561,16 @@ const RelatorioSimples = () => {
                     <p className="text-xs text-gray-text">
                       1. Os feriados nacionais brasileiros estão destacados automaticamente com sublinhado.
                     </p>
+                    <br/>
                     <p className="text-xs text-gray-text">
                       2. O Relatório Simples não filtra os regitros por status. Retorna todos os registros do dia selecionado.
                     </p>
+                    <br/>
                     <p className="text-xs text-gray-text">
                       3. Ao gerar o relatório todos os registros do dia selecionado são simplificados, 
                         retornando o total de horas trabalhadas e o saldo de horas baseado na carga horária de trabalho
                     </p>
+                    <br/>
                   </div>
                 </div>
 
