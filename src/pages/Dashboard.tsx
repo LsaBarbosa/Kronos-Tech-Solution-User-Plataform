@@ -6,6 +6,7 @@ import EmployeeBadge from "@/components/EmployeeBadge";
 import { useToast } from "@/hooks/use-toast";
 import { API_BASE_URL } from "@/config/api";
 import { Bell } from "lucide-react"; // Ícone para a notificação
+import { useNavigate } from "react-router-dom";
 
 interface UserProfile {
   fullName: string;
@@ -22,6 +23,7 @@ const Dashboard = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [pendingApprovalsCount, setPendingApprovalsCount] = useState<number>(0);
   const { toast } = useToast();
+  const navigate = useNavigate();
 
   const getAuthHeaders = () => {
     const token = localStorage.getItem("token");
@@ -86,6 +88,10 @@ const Dashboard = () => {
     fetchPendingApprovals();
   }, [fetchProfile, fetchPendingApprovals]);
 
+    const handleReminderClick = () => {
+    navigate("/apuracao-horas");
+  };
+
   return (
     <div className="min-h-screen bg-background relative overflow-hidden">
       {/* Animated Background */}
@@ -146,8 +152,12 @@ const Dashboard = () => {
 
             {/* Contagem de Aprovações Pendentes */}
             {pendingApprovalsCount > 0 && (
-              <div className="flex justify-center mt-6">
-                <div className="bg-primary/10 border border-primary/20 text-primary rounded-full px-4 py-2 flex items-center space-x-2 animate-pulse">
+               <div
+                className="flex justify-center mt-6 cursor-pointer"
+                onClick={handleReminderClick} // 4. Adicione o evento de clique
+                title="Ir para Apuração de Horas" // Dica para o usuário
+              >
+                <div className="bg-primary/10 border border-primary/20 text-primary rounded-full px-4 py-2 flex items-center space-x-2 animate-pulse hover:bg-primary/20 transition-colors">
                   <Bell className="h-5 w-5" />
                   <span className="font-semibold">{pendingApprovalsCount}</span>
                   <span>

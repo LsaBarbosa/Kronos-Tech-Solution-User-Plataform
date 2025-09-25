@@ -26,7 +26,6 @@ import ListaUsuarios from "./pages/ListaUsuarios";
 import CriarUsuario from "./pages/CriarUsuario";
 import RelatorioHoras from "./pages/RelatorioHoras";
 import ApuracaoHoras from "./pages/ApuracaoHoras";
-import StatusDoRegistro from "./pages/StatusDoRegistro";
 import Avisos from "./pages/Avisos";
 import CriarAviso from "./pages/CriarAviso";
 
@@ -60,7 +59,6 @@ const App = () => (
           <Route path="/criar-usuario" element={<CriarUsuario />} />
           <Route path="/relatorio-horas" element={<RelatorioHoras />} />
           <Route path="/apuracao-horas" element={<ApuracaoHoras />} />
-          <Route path="/status-do-registro" element={<StatusDoRegistro />} />
           <Route path="/avisos" element={<Avisos />} />
           <Route path="/criar-aviso" element={<CriarAviso />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
