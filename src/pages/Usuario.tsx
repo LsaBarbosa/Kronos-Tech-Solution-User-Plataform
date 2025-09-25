@@ -164,7 +164,7 @@ const Usuario = () => {
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.message || "Erro ao alterar a senha.");
+        throw new Error(errorData.detail || "Erro ao alterar a senha.");
       }
 
       toast({
@@ -179,7 +179,7 @@ const Usuario = () => {
         confirmPassword: "",
       });
       setShowPasswordForm(false);
-    } catch (error) {
+    } catch (error: any) {
       toast({
         title: "Erro ao alterar senha",
         description: error.message || "Tente novamente mais tarde.",
@@ -209,17 +209,20 @@ const Usuario = () => {
         },
         body: JSON.stringify({ email: userData.email }),
       });
-      if (!response.ok) throw new Error('Erro ao atualizar o e-mail.');
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.detail || 'Erro ao atualizar o e-mail.');
+      }
 
       toast({
         title: "E-mail atualizado",
         description: "Seu e-mail foi salvo com sucesso!",
       });
       setIsEditingEmail(false);
-    } catch (error) {
+    } catch (error: any) {
       toast({
         title: "Erro",
-        description: "Não foi possível atualizar o e-mail. Tente novamente.",
+        description: error.message || "Não foi possível atualizar o e-mail. Tente novamente.",
         variant: "destructive",
       });
     }
@@ -247,21 +250,25 @@ const Usuario = () => {
         },
         body: JSON.stringify({ phone: cleanedPhone }),
       });
-      if (!response.ok) throw new Error('Erro ao atualizar o telefone.');
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.detail || 'Erro ao atualizar o telefone.');
+      }
 
       toast({
         title: "Telefone atualizado",
         description: "Seu telefone foi salvo com sucesso!",
       });
       setIsEditingPhone(false);
-    } catch (error) {
+    } catch (error: any) {
       toast({
         title: "Erro",
-        description: "Não foi possível atualizar o telefone. Tente novamente.",
+        description: error.message || "Não foi possível atualizar o telefone. Tente novamente.",
         variant: "destructive",
       });
     }
   };
+
 
   const formatPhone = (phone: string) => {
     const cleaned = ('' + phone).replace(/\D/g, '');

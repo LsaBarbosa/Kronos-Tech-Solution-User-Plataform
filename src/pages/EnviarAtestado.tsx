@@ -2,33 +2,44 @@ import React, { useState, useRef, useEffect } from "react";
 import Header from "@/components/Header";
 import Sidebar from "@/components/Sidebar";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import {
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+} from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
 import { Upload, FileText, X, Ban } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { API_BASE_URL } from "@/config/api";
 
-// Auxiliary function to get authentication headers
+// Função auxiliar para obter os cabeçalhos de autenticação
 const getAuthHeaders = () => {
-  const token = localStorage.getItem('token');
+  const token = localStorage.getItem("token");
   if (!token) {
     console.error("Token não encontrado.");
     return {};
   }
   return {
-    'Authorization': `Bearer ${token}`,
-    'Content-Type': 'application/json',
+    Authorization: `Bearer ${token}`,
+    "Content-Type": "application/json",
   };
 };
 
-// Function to decode JWT token
+// Função para decodificar o token JWT
 const decodeToken = (token: string) => {
   try {
-    const base64Url = token.split('.')[1];
-    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-    const payload = decodeURIComponent(atob(base64).split('').map(function(c) {
-      return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
-    }).join(''));
+    const base64Url = token.split(".")[1];
+    const base64 = base64Url.replace(/-/g, "+").replace(/_/g, "/");
+    const payload = decodeURIComponent(
+      atob(base64)
+        .split("")
+        .map(function (c) {
+          return "%" + ("00" + c.charCodeAt(0).toString(16)).slice(-2);
+        })
+        .join("")
+    );
     return JSON.parse(payload);
   } catch (error) {
     console.error("Falha ao decodificar o token", error);
@@ -46,7 +57,7 @@ export default function EnviarAtestado() {
   const { toast } = useToast();
 
   useEffect(() => {
-    const token = localStorage.getItem('token');
+    const token = localStorage.getItem("token");
     if (!token) {
       return;
     }
@@ -69,7 +80,7 @@ export default function EnviarAtestado() {
   const handleDrop = (e: React.DragEvent) => {
     e.preventDefault();
     setIsDragOver(false);
-    
+
     const files = Array.from(e.dataTransfer.files);
     if (files.length > 0) {
       setSelectedFile(files[0]);
@@ -92,33 +103,35 @@ export default function EnviarAtestado() {
       });
       return;
     }
-    
+
     setIsUploading(true);
 
     try {
       const headers = getAuthHeaders();
       // Remove o Content-Type para permitir que o navegador defina
       // o boundary para o FormData
-      delete headers['Content-Type'];
+      delete headers["Content-Type"];
 
       const formData = new FormData();
       formData.append("file", selectedFile);
-    
 
       const searchParams = new URLSearchParams({
         employeeId: currentUserId,
         type: "DOCTOR_APPOINTMENT",
       });
 
-      const response = await fetch(`${API_BASE_URL}documents?${searchParams.toString()}`, {
-        method: "POST",
-        headers: headers,
-        body: formData,
-      });
+      const response = await fetch(
+        `${API_BASE_URL}documents?${searchParams.toString()}`,
+        {
+          method: "POST",
+          headers: headers,
+          body: formData,
+        }
+      );
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.message || "Erro ao enviar atestado.");
+        throw new Error(errorData.detail || "Erro ao enviar atestado.");
       }
 
       toast({
@@ -135,7 +148,8 @@ export default function EnviarAtestado() {
       console.error("Erro de upload:", error);
       toast({
         title: "Erro",
-        description: error.message || "Erro ao enviar atestado. Tente novamente.",
+        description:
+          error.message || "Erro ao enviar atestado. Tente novamente.",
         variant: "destructive",
       });
     } finally {
@@ -153,14 +167,16 @@ export default function EnviarAtestado() {
   return (
     <div className="min-h-screen bg-background">
       <Header onMenuClick={() => setSidebarOpen(!sidebarOpen)} />
-      
+
       <div className="flex flex-col sm:flex-row min-h-screen">
         <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
-        
+
         <main className="flex-1 mobile-container py-4 sm:py-6">
           <div className="max-w-4xl mx-auto">
             <div className="mb-6 sm:mb-8">
-              <h1 className="text-2xl sm:text-3xl font-bold text-foreground">Enviar Atestado Médico</h1>
+              <h1 className="text-2xl sm:text-3xl font-bold text-foreground">
+                Enviar Atestado Médico
+              </h1>
               <p className="text-sm sm:text-base text-muted-foreground mt-2">
                 Faça o upload do seu atestado médico
               </p>
@@ -168,7 +184,9 @@ export default function EnviarAtestado() {
 
             <Card className="border-primary/20 shadow-lg">
               <CardHeader className="p-4 sm:p-6 bg-gradient-to-r from-primary/5 to-primary/10 rounded-t-lg border-b border-primary/10">
-                <CardTitle className="text-lg sm:text-xl text-primary">Upload de Atestado Médico</CardTitle>
+                <CardTitle className="text-lg sm:text-xl text-primary">
+                  Upload de Atestado Médico
+                </CardTitle>
                 <CardDescription className="text-sm text-muted-foreground">
                   Envie seu atestado médico para registro
                 </CardDescription>
@@ -176,7 +194,9 @@ export default function EnviarAtestado() {
               <CardContent className="p-4 sm:p-6 space-y-6">
                 {/* File Upload Area */}
                 <div className="space-y-2">
-                  <Label className="text-sm font-medium">Arquivo do Atestado Médico</Label>
+                  <Label className="text-sm font-medium">
+                    Arquivo do Atestado Médico
+                  </Label>
                   <div
                     className={`relative border-2 border-dashed rounded-lg p-6 sm:p-8 text-center transition-all duration-300 ${
                       isDragOver
@@ -194,14 +214,16 @@ export default function EnviarAtestado() {
                       onChange={handleFileSelect}
                       accept=".pdf"
                     />
-                    
+
                     {!selectedFile ? (
                       <div className="space-y-3 sm:space-y-4">
                         <Upload className="mx-auto h-10 w-10 sm:h-12 sm:w-12 text-primary transition-colors" />
                         <div>
-                          <p className="text-base sm:text-lg font-medium text-foreground">Clique para selecionar ou arraste um arquivo</p>
+                          <p className="text-base sm:text-lg font-medium text-foreground">
+                            Clique para selecionar ou arraste um arquivo
+                          </p>
                           <p className="text-xs sm:text-sm text-muted-foreground mt-1">
-                           Somente arquivos no formato .PDF
+                            Somente arquivos no formato .PDF
                           </p>
                         </div>
                       </div>
@@ -209,7 +231,9 @@ export default function EnviarAtestado() {
                       <div className="space-y-3 sm:space-y-4">
                         <FileText className="mx-auto h-10 w-10 sm:h-12 sm:w-12 text-primary" />
                         <div>
-                          <p className="text-sm sm:text-lg font-medium break-all text-foreground">{selectedFile.name}</p>
+                          <p className="text-sm sm:text-lg font-medium break-all text-foreground">
+                            {selectedFile.name}
+                          </p>
                           <p className="text-xs sm:text-sm text-muted-foreground">
                             {(selectedFile.size / 1024 / 1024).toFixed(2)} MB
                           </p>
@@ -230,9 +254,13 @@ export default function EnviarAtestado() {
 
                 {/* Document Type Info */}
                 <div className="space-y-2">
-                  <Label className="text-sm font-medium">Tipo de Documento</Label>
+                  <Label className="text-sm font-medium">
+                    Tipo de Documento
+                  </Label>
                   <div className="relative group p-3 bg-muted rounded-lg cursor-not-allowed">
-                    <p className="text-foreground font-medium">Atestado Médico</p>
+                    <p className="text-foreground font-medium">
+                      Atestado Médico
+                    </p>
                     <Ban className="absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity duration-200" />
                   </div>
                 </div>
@@ -245,7 +273,9 @@ export default function EnviarAtestado() {
                     className="w-full bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 text-primary-foreground shadow-lg hover:shadow-xl transition-all duration-300 touch-target disabled:opacity-50 disabled:cursor-not-allowed"
                     size="lg"
                   >
-                    {isUploading ? "Enviando..." : "Enviar Atestado Médico"}
+                    {isUploading
+                      ? "Enviando..."
+                      : "Enviar Atestado Médico"}
                   </Button>
                 </div>
               </CardContent>
