@@ -171,25 +171,20 @@ export default function EnviarAtestado() {
       <div className="flex flex-col sm:flex-row min-h-screen">
         <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
 
-        <main className="flex-1 mobile-container py-4 sm:py-6">
+        <main className="flex-1 mobile-container pt-20 pb-8"> 
           <div className="max-w-4xl mx-auto">
             <div className="mb-6 sm:mb-8">
-              <h1 className="text-2xl sm:text-3xl font-bold text-foreground">
-                Enviar Atestado Médico
+              <h1 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-foreground to-primary bg-clip-text text-transparent page-title">
+                Enviar Documentos
               </h1>
-              <p className="text-sm sm:text-base text-muted-foreground mt-2">
-                Faça o upload do seu atestado médico
-              </p>
             </div>
 
             <Card className="border-primary/20 shadow-lg">
               <CardHeader className="p-4 sm:p-6 bg-gradient-to-r from-primary/5 to-primary/10 rounded-t-lg border-b border-primary/10">
                 <CardTitle className="text-lg sm:text-xl text-primary">
-                  Upload de Atestado Médico
-                </CardTitle>
-                <CardDescription className="text-sm text-muted-foreground">
                   Envie seu atestado médico para registro
-                </CardDescription>
+                </CardTitle>
+
               </CardHeader>
               <CardContent className="p-4 sm:p-6 space-y-6">
                 {/* File Upload Area */}
@@ -198,11 +193,10 @@ export default function EnviarAtestado() {
                     Arquivo do Atestado Médico
                   </Label>
                   <div
-                    className={`relative border-2 border-dashed rounded-lg p-6 sm:p-8 text-center transition-all duration-300 ${
-                      isDragOver
+                    className={`relative border-2 border-dashed rounded-lg p-6 sm:p-8 text-center transition-all duration-300 ${isDragOver
                         ? "border-primary bg-primary/10 shadow-lg scale-105"
                         : "border-primary/25 hover:border-primary/50 hover:bg-primary/5"
-                    }`}
+                      }`}
                     onDragOver={handleDragOver}
                     onDragLeave={handleDragLeave}
                     onDrop={handleDrop}
@@ -253,18 +247,6 @@ export default function EnviarAtestado() {
                 </div>
 
                 {/* Document Type Info */}
-                <div className="space-y-2">
-                  <Label className="text-sm font-medium">
-                    Tipo de Documento
-                  </Label>
-                  <div className="relative group p-3 bg-muted rounded-lg cursor-not-allowed">
-                    <p className="text-foreground font-medium">
-                      Atestado Médico
-                    </p>
-                    <Ban className="absolute right-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground opacity-0 group-hover:opacity-100 transition-opacity duration-200" />
-                  </div>
-                </div>
-
                 {/* Submit Button */}
                 <div className="pt-2 sm:pt-4">
                   <Button

@@ -438,16 +438,16 @@ const RelatorioSimples = () => {
       <main className="pt-16 px-6 py-8 relative z-10">
         <div className="max-w-4xl mx-auto">
           <div className="text-center mb-8">
-            <h1 className="text-3xl font-bold bg-gradient-to-r from-foreground to-primary bg-clip-text text-transparent mb-2">
+            <h1 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-foreground to-primary bg-clip-text text-transparent page-title">
               Relatório Simples
             </h1>
             <p className="text-muted-foreground">
               Selecione o período para gerar seu relatório
             </p>
           </div>
-
           <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
             {/* Calendário */}
+
             <div className="flex flex-col items-center space-y-4">
               <div className="text-center">
                 <h2 className="text-xl font-semibold text-foreground mb-1">
@@ -457,33 +457,34 @@ const RelatorioSimples = () => {
                   Escolha as datas para o relatório
                 </p>
               </div>
-
-              <Calendar
-                mode="multiple"
-                selected={selectedDates}
-                onSelect={setSelectedDates}
-                numberOfMonths={1}
-                locale={ptBR}
-                className="rounded-lg border border-border bg-card shadow-lg pointer-events-auto p-4"
-                modifiers={{
-                  holiday: holidays,
-                  selected: selectedDates
-                }}
-                modifiersStyles={{
-                  holiday: {
-                    color: 'hsl(var(--calendar-selected))',
-                    fontWeight: 'bold',
-                    textDecoration: 'underline'
-                  },
-                  selected: {
-                    backgroundColor: 'hsl(var(--calendar-selected))',
-                    color: 'hsl(var(--calendar-selected-foreground))',
-                    fontWeight: 'bold',
-                    borderRadius: '50%'
-                  }
-                }}
-                disabled={(date) => date > new Date()}
-              />
+              <Card className="border-l-4 border-l-primary shadow-card">
+                <Calendar
+                  mode="multiple"
+                  selected={selectedDates}
+                  onSelect={setSelectedDates}
+                  numberOfMonths={1}
+                  locale={ptBR}
+                  className="rounded-lg border border-border bg-card shadow-lg pointer-events-auto p-4"
+                  modifiers={{
+                    holiday: holidays,
+                    selected: selectedDates
+                  }}
+                  modifiersStyles={{
+                    holiday: {
+                      color: 'hsl(var(--calendar-selected))',
+                      fontWeight: 'bold',
+                      textDecoration: 'underline'
+                    },
+                    selected: {
+                      backgroundColor: 'hsl(var(--calendar-selected))',
+                      color: 'hsl(var(--calendar-selected-foreground))',
+                      fontWeight: 'bold',
+                      borderRadius: '50%'
+                    }
+                  }}
+                  disabled={(date) => date > new Date()}
+                />
+              </Card>
             </div>
 
             {/* Datas Selecionadas */}
@@ -561,16 +562,16 @@ const RelatorioSimples = () => {
                     <p className="text-xs text-gray-text">
                       1. Os feriados nacionais brasileiros estão destacados automaticamente com sublinhado.
                     </p>
-                    <br/>
+                    <br />
                     <p className="text-xs text-gray-text">
                       2. O Relatório Simples não filtra os regitros por status. Retorna todos os registros do dia selecionado.
                     </p>
-                    <br/>
+                    <br />
                     <p className="text-xs text-gray-text">
-                      3. Ao gerar o relatório todos os registros do dia selecionado são simplificados, 
-                        retornando o total de horas trabalhadas e o saldo de horas baseado na carga horária de trabalho
+                      3. Ao gerar o relatório todos os registros do dia selecionado são simplificados,
+                      retornando o total de horas trabalhadas e o saldo de horas baseado na carga horária de trabalho
                     </p>
-                    <br/>
+                    <br />
                   </div>
                 </div>
 

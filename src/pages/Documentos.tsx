@@ -45,7 +45,7 @@ const decodeToken = (token: string) => {
   try {
     const base64Url = token.split('.')[1];
     const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-    const payload = decodeURIComponent(atob(base64).split('').map(function(c) {
+    const payload = decodeURIComponent(atob(base64).split('').map(function (c) {
       return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
     }).join(''));
     return JSON.parse(payload);
@@ -199,7 +199,7 @@ const Documentos = () => {
       if (parts.length === 3) {
         const [day, month, twoDigitYear] = parts;
         if (twoDigitYear.length === 2) {
-          return `20${twoDigitYear}-${month.padStart(2,'0')}-${day.padStart(2,'0')}`;
+          return `20${twoDigitYear}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
         }
       }
       const d = new Date(dateStr);
@@ -330,7 +330,7 @@ const Documentos = () => {
       <Header onMenuClick={() => setSidebarOpen(!sidebarOpen)} />
       <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
 
-      <main className="pt-16 mobile-container py-4 sm:py-8 space-y-6 sm:space-y-8 relative z-10">
+      <main className="pt-16 mobile-container py-4 sm:py-20 space-y-6 sm:space-y-8 relative z-10">
         <div className="space-y-2">
           <h1 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-foreground to-primary bg-clip-text text-transparent page-title">
             Baixar Documentos
@@ -339,85 +339,85 @@ const Documentos = () => {
             Selecione um funcionário e tipo de documento para visualizar e baixar os arquivos disponíveis.
           </p>
         </div>
+        <Card className="border-l-4 border-l-primary shadow-card w-fit mx-auto">
+          <Card className="p-4 sm:p-6 card-hover">
+            <div className="space-y-4 sm:space-y-6">
+              <h3 className="text-lg sm:text-xl font-semibold text-foreground orange-underline">
+                Filtros de Busca
+              </h3>
 
-        <Card className="p-4 sm:p-6 card-hover">
-          <div className="space-y-4 sm:space-y-6">
-            <h3 className="text-lg sm:text-xl font-semibold text-foreground orange-underline">
-              Filtros de Busca
-            </h3>
-
-            <div className="mobile-form-grid lg:grid-cols-3 gap-4 sm:gap-6">
-              <div className="space-y-2">
-                <Label htmlFor="employee-status" className="text-sm font-medium">Status do Funcionário</Label>
-                <Select value={activeEmployeeFilter} onValueChange={setActiveEmployeeFilter} disabled={isPartner}>
-                  <SelectTrigger className="touch-target">
-                    <SelectValue placeholder={isFetchingEmployees ? "Carregando..." : "Status"} />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="true">
-                      <div className="flex items-center">
-                        <UserCheck className="w-4 h-4 mr-2 text-green-500" />
-                        <span>Ativo</span>
-                      </div>
-                    </SelectItem>
-                    <SelectItem value="false">
-                      <div className="flex items-center">
-                        <UserX className="w-4 h-4 mr-2 text-red-500" />
-                        <span>Inativo</span>
-                      </div>
-                    </SelectItem>
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="employee" className="text-sm font-medium">Funcionário</Label>
-                <Select
-                  value={selectedEmployeeId}
-                  onValueChange={setSelectedEmployeeId}
-                  disabled={isPartner}
-                >
-                  <SelectTrigger className="touch-target">
-                    <SelectValue placeholder={isPartner ? currentUserName : "Selecione um funcionário"} />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {employees.map((employee) => (
-                      <SelectItem key={employee.id} value={employee.id}>
-                        {employee.name}
+              <div className="mobile-form-grid lg:grid-cols-3 gap-4 sm:gap-6">
+                <div className="space-y-2">
+                  <Label htmlFor="employee-status" className="text-sm font-medium">Status do Funcionário</Label>
+                  <Select value={activeEmployeeFilter} onValueChange={setActiveEmployeeFilter} disabled={isPartner}>
+                    <SelectTrigger className="touch-target">
+                      <SelectValue placeholder={isFetchingEmployees ? "Carregando..." : "Status"} />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="true">
+                        <div className="flex items-center">
+                          <UserCheck className="w-4 h-4 mr-2 text-green-500" />
+                          <span>Ativo</span>
+                        </div>
                       </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
+                      <SelectItem value="false">
+                        <div className="flex items-center">
+                          <UserX className="w-4 h-4 mr-2 text-red-500" />
+                          <span>Inativo</span>
+                        </div>
+                      </SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="employee" className="text-sm font-medium">Funcionário</Label>
+                  <Select
+                    value={selectedEmployeeId}
+                    onValueChange={setSelectedEmployeeId}
+                    disabled={isPartner}
+                  >
+                    <SelectTrigger className="touch-target">
+                      <SelectValue placeholder={isPartner ? currentUserName : "Selecione um funcionário"} />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {employees.map((employee) => (
+                        <SelectItem key={employee.id} value={employee.id}>
+                          {employee.name}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2">
+                  <Label htmlFor="document-type" className="text-sm font-medium">Tipo de Documento</Label>
+                  <Select value={selectedDocumentType} onValueChange={setSelectedDocumentType}>
+                    <SelectTrigger className="touch-target">
+                      <SelectValue placeholder="Selecione o tipo" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="PAYSLIP">Contracheque</SelectItem>
+                      <SelectItem value="DOCTOR_APPOINTMENT">Atestado</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="document-type" className="text-sm font-medium">Tipo de Documento</Label>
-                <Select value={selectedDocumentType} onValueChange={setSelectedDocumentType}>
-                  <SelectTrigger className="touch-target">
-                    <SelectValue placeholder="Selecione o tipo" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="PAYSLIP">Contracheque</SelectItem>
-                    <SelectItem value="DOCTOR_APPOINTMENT">Atestado</SelectItem>
-                  </SelectContent>
-                </Select>
+              <div className="pt-2">
+                <Button
+                  onClick={handleSearch}
+                  disabled={!selectedEmployeeId || !selectedDocumentType || isSearching || isFetchingEmployees}
+                  className="w-full sm:w-auto bg-primary hover:bg-primary/90 text-white touch-target"
+                  size="lg"
+                >
+                  <Search className="w-4 h-4 mr-2" />
+                  {isSearching ? "Buscando..." : "Buscar Documentos"}
+                </Button>
               </div>
             </div>
-
-            <div className="pt-2">
-              <Button
-                onClick={handleSearch}
-                disabled={!selectedEmployeeId || !selectedDocumentType || isSearching || isFetchingEmployees}
-                className="w-full sm:w-auto bg-primary hover:bg-primary/90 text-white touch-target"
-                size="lg"
-              >
-                <Search className="w-4 h-4 mr-2" />
-                {isSearching ? "Buscando..." : "Buscar Documentos"}
-              </Button>
-            </div>
-          </div>
+          </Card>
         </Card>
-
         {hasSearched && (
           <Card className="p-4 sm:p-6 card-hover">
             <div className="space-y-4 sm:space-y-6">

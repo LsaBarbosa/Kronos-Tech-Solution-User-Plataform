@@ -21,9 +21,9 @@ const Empresa = () => {
             <div className="flex justify-center mb-4">
               <Building2 className="h-12 w-12 text-primary" />
             </div>
-            <h1 className="text-3xl font-bold mb-2">Gestão de Empresas</h1>
+            <h1 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-foreground to-primary bg-clip-text text-transparent page-title">Gestão de Empresas</h1>
             <p className="text-muted-foreground">
-              Gerencie as informações das empresas do sistema
+              Gerencie as empresas do sistema
             </p>
           </div>
 

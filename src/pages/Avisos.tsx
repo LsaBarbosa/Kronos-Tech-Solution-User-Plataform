@@ -149,13 +149,14 @@ const Avisos = () => {
     <div className="min-h-screen bg-gradient-to-br from-background to-secondary/10">
       <Header onMenuClick={() => setSidebarOpen(true)} />
       <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
-      
+
       <main className="container mx-auto px-4 pt-20 pb-8">
         <div className="flex items-center gap-4 mb-8">
           <div className="flex items-center gap-3">
             <Bell className="h-8 w-8 text-primary" />
             <div>
-              <h1 className="text-3xl font-bold text-foreground">Avisos</h1>
+              <h1 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-foreground to-primary bg-clip-text text-transparent page-title">
+                Avisos</h1>
               <p className="text-muted-foreground">Visualize todas as comunicações importantes</p>
             </div>
           </div>
@@ -184,13 +185,12 @@ const Avisos = () => {
         {!loading && !error && messages.length > 0 && (
           <div className="grid gap-4">
             {messages.map((message) => (
-              <Card 
-                key={message.messageId} 
-                className={`cursor-pointer transition-all duration-200 hover:shadow-md border-l-4 ${
-                  message.priority === 'NORMAL' ? 'border-l-muted-foreground' : 
-                  message.priority === 'ALERT' ? 'border-l-yellow-600' : 
-                  'border-l-destructive'
-                }`}
+              <Card
+                key={message.messageId}
+                className={`cursor-pointer transition-all duration-200 hover:shadow-md border-l-4 ${message.priority === 'NORMAL' ? 'border-l-muted-foreground' :
+                    message.priority === 'ALERT' ? 'border-l-yellow-600' :
+                      'border-l-destructive'
+                  }`}
                 onClick={() => handleOpenMessage(message)}
               >
                 <CardHeader className="pb-3">
@@ -242,7 +242,6 @@ const Avisos = () => {
           </Card>
         )}
       </main>
-
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
         <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
           <DialogHeader>
@@ -251,7 +250,7 @@ const Avisos = () => {
               {selectedMessage && getTituloPorTipo(selectedMessage.priority)}
             </DialogTitle>
           </DialogHeader>
-          
+
           {selectedMessage && (
             <div className="space-y-4">
               <div className="flex items-center justify-between">
@@ -261,7 +260,7 @@ const Avisos = () => {
                   {formatarData(selectedMessage.createdAt)}
                 </div>
               </div>
-              
+
               <div className="prose prose-sm max-w-none">
                 <p className="text-foreground leading-relaxed whitespace-pre-wrap">
                   {selectedMessage.messageText}
@@ -281,6 +280,7 @@ const Avisos = () => {
           </DialogFooter>
         </DialogContent>
       </Dialog>
+              
     </div>
   );
 };

@@ -61,7 +61,7 @@ const CriarAviso = () => {
         const errorData = await response.json();
         throw new Error(errorData.message || "Erro ao postar o aviso.");
       }
-      
+
       // Limpar formulário
       setTipo("");
       setMensagem("");
@@ -114,7 +114,7 @@ const CriarAviso = () => {
     <div className="min-h-screen bg-gradient-to-br from-background to-secondary/10">
       <Header onMenuClick={() => setSidebarOpen(true)} />
       <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
-      
+
       <main className="container mx-auto px-4 pt-20 pb-8">
         <div className="flex items-center gap-4 mb-8">
           <div className="flex items-center gap-3">
@@ -122,8 +122,9 @@ const CriarAviso = () => {
               <MessageSquarePlus className="h-6 w-6 text-primary" />
             </div>
             <div>
-              <h1 className="text-3xl font-bold text-foreground">Criar Aviso</h1>
-              <p className="text-muted-foreground">Crie um novo aviso para os colaboradores</p>
+              <h1 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-foreground to-primary bg-clip-text text-transparent page-title">
+                Criar Aviso</h1>
+              <p className="text-muted-foreground"></p>
             </div>
           </div>
         </div>
@@ -132,7 +133,7 @@ const CriarAviso = () => {
           <CardHeader className="bg-gradient-to-r from-primary/5 to-primary/10 border-b border-border">
             <CardTitle className="text-xl text-foreground">Novo Aviso</CardTitle>
             <CardDescription className="text-muted-foreground">
-              Preencha as informações do aviso que será enviado aos colaboradores
+             Crie comunicados que serão vistos por todos os colaboradores
             </CardDescription>
           </CardHeader>
           <CardContent className="p-6 space-y-6">

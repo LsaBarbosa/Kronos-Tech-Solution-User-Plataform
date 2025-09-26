@@ -32,7 +32,7 @@ const decodeToken = (token: string) => {
   try {
     const base64Url = token.split('.')[1];
     const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-    const payload = decodeURIComponent(atob(base64).split('').map(function(c) {
+    const payload = decodeURIComponent(atob(base64).split('').map(function (c) {
       return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
     }).join(''));
     return JSON.parse(payload);
@@ -109,7 +109,7 @@ export default function EnviarDocumentos() {
         setIsFetchingEmployees(false);
       }
     };
-    
+
     fetchEmployees();
   }, [activeEmployeeFilter]);
 
@@ -126,7 +126,7 @@ export default function EnviarDocumentos() {
   const handleDrop = (e: React.DragEvent) => {
     e.preventDefault();
     setIsDragOver(false);
-    
+
     const files = Array.from(e.dataTransfer.files);
     if (files.length > 0) {
       setSelectedFile(files[0]);
@@ -149,7 +149,7 @@ export default function EnviarDocumentos() {
       });
       return;
     }
-    
+
     setIsUploading(true);
 
     try {
@@ -160,7 +160,7 @@ export default function EnviarDocumentos() {
 
       const formData = new FormData();
       formData.append("file", selectedFile);
-    
+
 
       const searchParams = new URLSearchParams({
         employeeId: selectedEmployeeId,
@@ -211,16 +211,17 @@ export default function EnviarDocumentos() {
   return (
     <div className="min-h-screen bg-background">
       <Header onMenuClick={() => setSidebarOpen(!sidebarOpen)} />
-      
+
       <div className="flex flex-col sm:flex-row min-h-screen">
         <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
-        
-        <main className="flex-1 mobile-container py-4 sm:py-6">
+
+        <main className="flex-1 mobile-container py-4 pt-20 pb-8">
           <div className="max-w-4xl mx-auto">
             <div className="mb-6 sm:mb-8">
-              <h1 className="text-2xl sm:text-3xl font-bold text-foreground">Enviar Documentos</h1>
+              <h1 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-foreground to-primary bg-clip-text text-transparent page-title">
+                Enviar Documentos</h1>
               <p className="text-sm sm:text-base text-muted-foreground mt-2">
-                Faça o upload de documentos de folha de pagamento para funcionários
+                Faça o upload de documentos para um funcionário
               </p>
             </div>
 
@@ -228,33 +229,33 @@ export default function EnviarDocumentos() {
               <CardHeader className="p-4 sm:p-6 bg-gradient-to-r from-primary/5 to-primary/10 rounded-t-lg border-b border-primary/10">
                 <CardTitle className="text-lg sm:text-xl text-primary">Upload de Documento</CardTitle>
                 <CardDescription className="text-sm text-muted-foreground">
-                  Selecione o funcionário e envie o arquivo da folha de pagamento
+                  Selecione o funcionário e envie o arquivo.
                 </CardDescription>
               </CardHeader>
               <CardContent className="p-4 sm:p-6 space-y-6">
                 {/* Employee Status Selection */}
                 <div className="space-y-2">
-                    <Label htmlFor="employee-status" className="text-sm font-medium">Status do Funcionário</Label>
-                    <Select value={activeEmployeeFilter} onValueChange={setActiveEmployeeFilter} disabled={isPartner}>
-                      <SelectTrigger className="touch-target">
-                        <SelectValue placeholder={isFetchingEmployees ? "Carregando..." : "Status"} />
-                      </SelectTrigger>
-                      <SelectContent>
-                        <SelectItem value="true">
-                          <div className="flex items-center">
-                            <UserCheck className="w-4 h-4 mr-2 text-green-500" />
-                            <span>Ativo</span>
-                          </div>
-                        </SelectItem>
-                        <SelectItem value="false">
-                          <div className="flex items-center">
-                            <UserX className="w-4 h-4 mr-2 text-red-500" />
-                            <span>Inativo</span>
-                          </div>
-                        </SelectItem>
-                      </SelectContent>
-                    </Select>
-                  </div>
+                  <Label htmlFor="employee-status" className="text-sm font-medium">Status do Funcionário</Label>
+                  <Select value={activeEmployeeFilter} onValueChange={setActiveEmployeeFilter} disabled={isPartner}>
+                    <SelectTrigger className="touch-target">
+                      <SelectValue placeholder={isFetchingEmployees ? "Carregando..." : "Status"} />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="true">
+                        <div className="flex items-center">
+                          <UserCheck className="w-4 h-4 mr-2 text-green-500" />
+                          <span>Ativo</span>
+                        </div>
+                      </SelectItem>
+                      <SelectItem value="false">
+                        <div className="flex items-center">
+                          <UserX className="w-4 h-4 mr-2 text-red-500" />
+                          <span>Inativo</span>
+                        </div>
+                      </SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
 
                 {/* Employee Selection */}
                 <div className="space-y-2">
@@ -281,11 +282,10 @@ export default function EnviarDocumentos() {
                 <div className="space-y-2">
                   <Label className="text-sm font-medium">Arquivo da Folha de Pagamento</Label>
                   <div
-                    className={`relative border-2 border-dashed rounded-lg p-6 sm:p-8 text-center transition-all duration-300 ${
-                      isDragOver
+                    className={`relative border-2 border-dashed rounded-lg p-6 sm:p-8 text-center transition-all duration-300 ${isDragOver
                         ? "border-primary bg-primary/10 shadow-lg scale-105"
                         : "border-primary/25 hover:border-primary/50 hover:bg-primary/5"
-                    }`}
+                      }`}
                     onDragOver={handleDragOver}
                     onDragLeave={handleDragLeave}
                     onDrop={handleDrop}
@@ -297,14 +297,14 @@ export default function EnviarDocumentos() {
                       onChange={handleFileSelect}
                       accept=".pdf"
                     />
-                    
+
                     {!selectedFile ? (
                       <div className="space-y-3 sm:space-y-4">
                         <Upload className="mx-auto h-10 w-10 sm:h-12 sm:w-12 text-primary transition-colors" />
                         <div>
                           <p className="text-base sm:text-lg font-medium text-foreground">Clique para selecionar ou arraste um arquivo</p>
                           <p className="text-xs sm:text-sm text-muted-foreground mt-1">
-                           Somente arquivos no formato .PDF
+                            Somente arquivos no formato .PDF
                           </p>
                         </div>
                       </div>

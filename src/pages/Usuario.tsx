@@ -331,7 +331,9 @@ const Usuario = () => {
       <main className="pt-16 px-6 relative z-10">
         <div className="max-w-4xl mx-auto space-y-8">
           <div className="text-center space-y-4">
-            <h1 className="text-4xl font-bold bg-gradient-to-r from-foreground to-primary bg-clip-text text-transparent">Configurações do Usuário</h1>
+                         <h1 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-foreground to-primary bg-clip-text text-transparent page-title">
+
+              Configurações do Usuário</h1>
             <p className="text-lg text-muted-foreground">
               Gerencie suas informações pessoais e configurações de segurança
             </p>
@@ -358,6 +360,7 @@ const Usuario = () => {
                   </div>
                 ) : (
                   <div className="space-y-4">
+                    
                     <div>
                       <Label htmlFor="username" className="text-sm font-medium text-muted-foreground">
                         Nome de Usuário

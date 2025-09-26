@@ -446,7 +446,7 @@ const ListaColaboradores = () => {
         <div className="max-w-7xl mx-auto">
           {/* Header */}
           <div className="mb-8 text-center md:text-left">
-            <h1 className="text-4xl font-bold bg-gradient-to-r from-foreground to-primary bg-clip-text text-transparent mb-2">
+              <h1 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-foreground to-primary bg-clip-text text-transparent page-title">
               Lista de Colaboradores
             </h1>
             <p className="text-muted-foreground text-lg">

@@ -28,7 +28,7 @@ const decodeToken = (token) => {
     try {
         const base64Url = token.split('.')[1];
         const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-        const payload = decodeURIComponent(atob(base64).split('').map(function(c) {
+        const payload = decodeURIComponent(atob(base64).split('').map(function (c) {
             return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
         }).join(''));
         return JSON.parse(payload);
@@ -148,7 +148,7 @@ const RelatorioDetalhado = () => {
     const [managers, setManagers] = useState([]);
     const reportTableRef = useRef(null);
     const [isPartner, setIsPartner] = useState(false);
-    
+
     const form = useForm({
         resolver: zodResolver(editRecordSchema),
         defaultValues: {
@@ -362,152 +362,152 @@ const RelatorioDetalhado = () => {
         }
     };
 
-const handleDownload = () => {
-    // Função auxiliar para converter "dd-MM-yyyy" para um objeto Date válido.
-    const parseDate = (dateString) => {
-      if (!dateString) return null;
+    const handleDownload = () => {
+        // Função auxiliar para converter "dd-MM-yyyy" para um objeto Date válido.
+        const parseDate = (dateString) => {
+            if (!dateString) return null;
 
-      // Verifica e trata o formato dd-MM-yyyy
-      const parts = dateString.split('-');
-      if (parts.length === 3) {
-        const [day, month, year] = parts;
-        // Cria um objeto Date usando o formato YYYY/MM/DD, que é universalmente reconhecido
-        const date = new Date(`${year}/${month}/${day}`);
-        // Retorna a data apenas se for um valor válido
-        if (!isNaN(date.getTime())) {
-          return date;
-        }
-      }
-      return null;
-    };
-  
-    if (reportData.length === 0) {
-      toast({
-        title: "Erro",
-        description: "Gere o relatório primeiro para poder fazer o download.",
-        variant: "destructive"
-      });
-      return;
-    }
-
-    try {
-      const doc = new jsPDF({
-        orientation: 'landscape',
-        unit: 'mm',
-        format: 'a4'
-      });
-
-      doc.setFont("helvetica", "bold");
-      doc.setFontSize(18);
-      doc.text('RELATÓRIO DETALHADO DE PONTO', 20, 25);
-
-      doc.setFontSize(12);
-      doc.setFont("helvetica", "normal");
-
-      let yPosition = 40;
-
-      if (reportData.length > 0 && reportData[0].employeeData) {
-        doc.text(`Funcionário: ${reportData[0].employeeData.employeeName}`, 20, yPosition);
-        yPosition += 7;
-        doc.text(`Empresa: ${reportData[0].employeeData.companyName}`, 20, yPosition);
-        yPosition += 7;
-      }
-
-      if (status) {
-        const statusLabel = statusOptions.find(opt => opt.value === status)?.label || status;
-        doc.text(`Status: ${statusLabel}`, 20, yPosition);
-        yPosition += 7;
-      }
-
-      doc.text(`Referência: ${referenceTime}`, 20, yPosition);
-      yPosition += 7;
-
-      if (selectedDates.length > 0) {
-        const validDates = selectedDates.filter(date => date && !isNaN(date.getTime()));
-        const datesList = validDates
-          .map(date => format(date, "dd/MM/yyyy", { locale: ptBR }))
-          .join(", ");
-        doc.text(`Datas: ${datesList}`, 20, yPosition);
-        yPosition += 10;
-      }
-
-      const tableData = reportData.map(item => {
-        const startDate = parseDate(item.startWork);
-        const endDate = parseDate(item.endWork);
-
-        return [
-          startDate ? format(startDate, "dd/MM/yyyy") : 'N/A',
-          item.startHour,
-          endDate ? format(endDate, "dd/MM/yyyy") : 'N/A',
-          item.endHour,
-          item.hoursWork,
-          item.balance,
-          statusOptions.find(opt => opt.value === item.statusRecord)?.label || item.statusRecord
-        ];
-      });
-
-      autoTable(doc, {
-        head: [['Data Entrada', 'Hora Entrada', 'Data Saída', 'Hora Saída', 'Horas Trabalhadas', 'Saldo', 'Status']],
-        body: tableData,
-        startY: yPosition,
-        margin: { left: 20, right: 20 },
-        styles: {
-          fontSize: 9,
-          cellPadding: 3,
-          halign: 'center'
-        },
-        headStyles: {
-          fillColor: [41, 128, 185],
-          textColor: [255, 255, 255],
-          fontSize: 10,
-          fontStyle: 'bold'
-        },
-        columnStyles: {
-          5: {
-            cellWidth: 20,
-            halign: 'center'
-          }
-        },
-        didParseCell: function(data) {
-          if (data.column.index === 5 && data.section === 'body') {
-            const balance = data.cell.text[0];
-            if (balance && balance.toString().startsWith('-')) {
-              data.cell.styles.textColor = [220, 53, 69];
-              data.cell.styles.fontStyle = 'bold';
-            } else if (balance && !balance.toString().startsWith('-') && balance !== '00:00') {
-              data.cell.styles.textColor = [40, 167, 69];
-              data.cell.styles.fontStyle = 'bold';
+            // Verifica e trata o formato dd-MM-yyyy
+            const parts = dateString.split('-');
+            if (parts.length === 3) {
+                const [day, month, year] = parts;
+                // Cria um objeto Date usando o formato YYYY/MM/DD, que é universalmente reconhecido
+                const date = new Date(`${year}/${month}/${day}`);
+                // Retorna a data apenas se for um valor válido
+                if (!isNaN(date.getTime())) {
+                    return date;
+                }
             }
-          }
+            return null;
+        };
+
+        if (reportData.length === 0) {
+            toast({
+                title: "Erro",
+                description: "Gere o relatório primeiro para poder fazer o download.",
+                variant: "destructive"
+            });
+            return;
         }
-      });
 
-      const pageCount = doc.getNumberOfPages();
-      for (let i = 1; i <= pageCount; i++) {
-        doc.setPage(i);
-        doc.setFontSize(8);
-        doc.setTextColor(128, 128, 128);
-        doc.text(`Página ${i} de ${pageCount}`, doc.internal.pageSize.width - 30, doc.internal.pageSize.height - 10);
-        doc.text(`Gerado em: ${format(new Date(), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}`, 20, doc.internal.pageSize.height - 10);
-      }
+        try {
+            const doc = new jsPDF({
+                orientation: 'landscape',
+                unit: 'mm',
+                format: 'a4'
+            });
 
-      const fileName = `relatorio_detalhado_${format(new Date(), "yyyyMMdd_HHmmss")}.pdf`;
-      doc.save(fileName);
+            doc.setFont("helvetica", "bold");
+            doc.setFontSize(18);
+            doc.text('RELATÓRIO DETALHADO DE PONTO', 20, 25);
 
-      toast({
-        title: "PDF Gerado",
-        description: "Relatório detalhado baixado com sucesso!",
-      });
+            doc.setFontSize(12);
+            doc.setFont("helvetica", "normal");
 
-    } catch (error) {
-      console.error("Erro ao gerar PDF:", error);
-      toast({
-        title: "Erro",
-        description: "Não foi possível gerar o PDF. Tente novamente.",
-        variant: "destructive",
-      });
-    }
-  };
+            let yPosition = 40;
+
+            if (reportData.length > 0 && reportData[0].employeeData) {
+                doc.text(`Funcionário: ${reportData[0].employeeData.employeeName}`, 20, yPosition);
+                yPosition += 7;
+                doc.text(`Empresa: ${reportData[0].employeeData.companyName}`, 20, yPosition);
+                yPosition += 7;
+            }
+
+            if (status) {
+                const statusLabel = statusOptions.find(opt => opt.value === status)?.label || status;
+                doc.text(`Status: ${statusLabel}`, 20, yPosition);
+                yPosition += 7;
+            }
+
+            doc.text(`Referência: ${referenceTime}`, 20, yPosition);
+            yPosition += 7;
+
+            if (selectedDates.length > 0) {
+                const validDates = selectedDates.filter(date => date && !isNaN(date.getTime()));
+                const datesList = validDates
+                    .map(date => format(date, "dd/MM/yyyy", { locale: ptBR }))
+                    .join(", ");
+                doc.text(`Datas: ${datesList}`, 20, yPosition);
+                yPosition += 10;
+            }
+
+            const tableData = reportData.map(item => {
+                const startDate = parseDate(item.startWork);
+                const endDate = parseDate(item.endWork);
+
+                return [
+                    startDate ? format(startDate, "dd/MM/yyyy") : 'N/A',
+                    item.startHour,
+                    endDate ? format(endDate, "dd/MM/yyyy") : 'N/A',
+                    item.endHour,
+                    item.hoursWork,
+                    item.balance,
+                    statusOptions.find(opt => opt.value === item.statusRecord)?.label || item.statusRecord
+                ];
+            });
+
+            autoTable(doc, {
+                head: [['Data Entrada', 'Hora Entrada', 'Data Saída', 'Hora Saída', 'Horas Trabalhadas', 'Saldo', 'Status']],
+                body: tableData,
+                startY: yPosition,
+                margin: { left: 20, right: 20 },
+                styles: {
+                    fontSize: 9,
+                    cellPadding: 3,
+                    halign: 'center'
+                },
+                headStyles: {
+                    fillColor: [41, 128, 185],
+                    textColor: [255, 255, 255],
+                    fontSize: 10,
+                    fontStyle: 'bold'
+                },
+                columnStyles: {
+                    5: {
+                        cellWidth: 20,
+                        halign: 'center'
+                    }
+                },
+                didParseCell: function (data) {
+                    if (data.column.index === 5 && data.section === 'body') {
+                        const balance = data.cell.text[0];
+                        if (balance && balance.toString().startsWith('-')) {
+                            data.cell.styles.textColor = [220, 53, 69];
+                            data.cell.styles.fontStyle = 'bold';
+                        } else if (balance && !balance.toString().startsWith('-') && balance !== '00:00') {
+                            data.cell.styles.textColor = [40, 167, 69];
+                            data.cell.styles.fontStyle = 'bold';
+                        }
+                    }
+                }
+            });
+
+            const pageCount = doc.getNumberOfPages();
+            for (let i = 1; i <= pageCount; i++) {
+                doc.setPage(i);
+                doc.setFontSize(8);
+                doc.setTextColor(128, 128, 128);
+                doc.text(`Página ${i} de ${pageCount}`, doc.internal.pageSize.width - 30, doc.internal.pageSize.height - 10);
+                doc.text(`Gerado em: ${format(new Date(), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}`, 20, doc.internal.pageSize.height - 10);
+            }
+
+            const fileName = `relatorio_detalhado_${format(new Date(), "yyyyMMdd_HHmmss")}.pdf`;
+            doc.save(fileName);
+
+            toast({
+                title: "PDF Gerado",
+                description: "Relatório detalhado baixado com sucesso!",
+            });
+
+        } catch (error) {
+            console.error("Erro ao gerar PDF:", error);
+            toast({
+                title: "Erro",
+                description: "Não foi possível gerar o PDF. Tente novamente.",
+                variant: "destructive",
+            });
+        }
+    };
     const getStatusBadgeVariant = (status) => {
         switch (status) {
             case "CREATED": return "default";
@@ -533,88 +533,88 @@ const handleDownload = () => {
     };
 
     const handleEditRecord = (record) => {
-    setSelectedRecord(record);
+        setSelectedRecord(record);
 
-    const formatDateToInput = (dateString) => {
-        if (!dateString) return "";
-        const parts = dateString.split('-');
-        if (parts.length === 3) {
-            const [day, month, year] = parts;
-            return `${year}-${month}-${day}`;
-        }
-        return dateString;
+        const formatDateToInput = (dateString) => {
+            if (!dateString) return "";
+            const parts = dateString.split('-');
+            if (parts.length === 3) {
+                const [day, month, year] = parts;
+                return `${year}-${month}-${day}`;
+            }
+            return dateString;
+        };
+
+        form.reset({
+            startDate: formatDateToInput(record.startWork),
+            endDate: formatDateToInput(record.endWork),
+            startHour: record.startHour,
+            endHour: record.endHour,
+            managerId: managers[0]?.id || "",
+        });
+
+        setEditModalOpen(true);
     };
 
-    form.reset({
-        startDate: formatDateToInput(record.startWork),
-        endDate: formatDateToInput(record.endWork),
-        startHour: record.startHour,
-        endHour: record.endHour,
-        managerId: managers[0]?.id || "",
-    });
+    const handleSaveRecord = async (data: EditRecordFormData) => {
+        try {
+            const token = localStorage.getItem("token");
+            if (!token) {
+                throw new Error("Token de autenticação não encontrado.");
+            }
 
-    setEditModalOpen(true);
-};
+            if (!selectedRecord || !selectedRecord.timeRecordId) {
+                throw new Error("Registro selecionado para edição não encontrado.");
+            }
 
-  const handleSaveRecord = async (data: EditRecordFormData) => {
-     try {
-         const token = localStorage.getItem("token");
-         if (!token) {
-             throw new Error("Token de autenticação não encontrado.");
-         }
+            const formatDate = (dateString: string) => {
+                const [year, month, day] = dateString.split('-');
+                return `${day}-${month}-${year}`;
+            };
 
-         if (!selectedRecord || !selectedRecord.timeRecordId) {
-             throw new Error("Registro selecionado para edição não encontrado.");
-         }
+            const requestBody = {
+                startDate: formatDate(data.startDate),
+                endDate: formatDate(data.endDate),
+                startHour: data.startHour,
+                endHour: data.endHour,
+                managerId: data.managerId,
+            };
 
-         const formatDate = (dateString: string) => {
-             const [year, month, day] = dateString.split('-');
-             return `${day}-${month}-${year}`;
-         };
+            const endpoint = `${API_BASE_URL}records/update/time-record/${selectedRecord.timeRecordId}`;
 
-         const requestBody = {
-             startDate: formatDate(data.startDate),
-             endDate: formatDate(data.endDate),
-             startHour: data.startHour,
-             endHour: data.endHour,
-             managerId: data.managerId,
-         };
+            const response = await fetch(endpoint, {
+                method: "PUT",
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${token}`,
+                },
+                body: JSON.stringify(requestBody),
+            });
 
-         const endpoint = `${API_BASE_URL}records/update/time-record/${selectedRecord.timeRecordId}`;
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.message || "Erro ao atualizar o registro.");
+            }
 
-         const response = await fetch(endpoint, {
-             method: "PUT",
-             headers: {
-                 "Content-Type": "application/json",
-                 Authorization: `Bearer ${token}`,
-             },
-             body: JSON.stringify(requestBody),
-         });
+            toast({
+                title: "Sucesso",
+                description: "Registro atualizado com sucesso!",
+            });
 
-         if (!response.ok) {
-             const errorData = await response.json();
-             throw new Error(errorData.message || "Erro ao atualizar o registro.");
-         }
+            setEditModalOpen(false);
+            setSelectedRecord(null);
+            form.reset();
 
-         toast({
-             title: "Sucesso",
-             description: "Registro atualizado com sucesso!",
-         });
-
-         setEditModalOpen(false);
-         setSelectedRecord(null);
-         form.reset();
-
-         handleSearch();
-     } catch (error) {
-         console.error("Erro ao salvar:", error);
-         toast({
-             title: "Erro",
-             description: error.message || "Ocorreu um erro ao salvar o registro.",
-             variant: "destructive",
-         });
-     }
-};
+            handleSearch();
+        } catch (error) {
+            console.error("Erro ao salvar:", error);
+            toast({
+                title: "Erro",
+                description: error.message || "Ocorreu um erro ao salvar o registro.",
+                variant: "destructive",
+            });
+        }
+    };
 
     return (
         <div className="min-h-screen bg-background relative overflow-hidden">
@@ -658,9 +658,9 @@ const handleDownload = () => {
             <Header onMenuClick={() => setSidebarOpen(true)} />
             <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
 
-            <main className="container mx-auto px-4 py-8 relative z-10">
+            <main className="container mx-auto px-4 py-20 relative z-10">
                 <div className="mb-8">
-                    <h1 className="text-3xl font-bold bg-gradient-to-r from-foreground to-primary bg-clip-text text-transparent mb-2">
+                    <h1 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-foreground to-primary bg-clip-text text-transparent page-title">
                         Relatório Detalhado
                     </h1>
                     <p className="text-muted-foreground">
@@ -682,37 +682,41 @@ const handleDownload = () => {
                             </CardDescription>
                         </CardHeader>
                         <CardContent className="pt-6">
-                            <Calendar
-                                mode="multiple"
-                                selected={selectedDates}
-                                onSelect={setSelectedDates}
-                                className="w-full pointer-events-auto"
-                                classNames={{
-                                    day: "h-9 w-9 p-0 font-normal aria-selected:opacity-100 hover:bg-calendar-selected-hover/20 hover:text-calendar-selected transition-colors duration-200 relative",
-                                    day_selected: "bg-calendar-selected text-calendar-selected-foreground hover:bg-calendar-selected-hover hover:text-calendar-selected-foreground focus:bg-calendar-selected focus:text-calendar-selected-foreground font-semibold shadow-sm z-10",
-                                    day_today: "bg-calendar-today text-calendar-today-foreground font-medium border border-border",
-                                    day_outside: "text-muted-foreground opacity-50 aria-selected:bg-calendar-selected/50 aria-selected:text-calendar-selected-foreground aria-selected:opacity-80",
-                                    day_disabled: "text-muted-foreground opacity-50",
-                                    day_range_middle: "aria-selected:bg-calendar-selected/20 aria-selected:text-calendar-selected",
-                                    day_hidden: "invisible",
-                                }}
-                                modifiers={{
-                                    selected: selectedDates,
-                                    holiday: holidays,
-                                }}
-                                modifiersClassNames={{
-                                    selected: "bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground z-10",
-                                    holiday: "bg-destructive/10 text-destructive font-semibold border border-destructive/20 hover:bg-destructive/20 hover:text-destructive",
-                                }}
-                            />
-
+                            <Card className="border-l-4 border-l-primary shadow-card w-fit mx-auto">
+                                <Calendar
+                                    mode="multiple"
+                                    selected={selectedDates}
+                                    onSelect={setSelectedDates}
+                                    className="w-full pointer-events-auto"
+                                    classNames={{
+                                        day: "h-9 w-9 p-0 font-normal aria-selected:opacity-100 hover:bg-calendar-selected-hover/20 hover:text-calendar-selected transition-colors duration-200 relative",
+                                        day_selected: "bg-calendar-selected text-calendar-selected-foreground hover:bg-calendar-selected-hover hover:text-calendar-selected-foreground focus:bg-calendar-selected focus:text-calendar-selected-foreground font-semibold shadow-sm z-10",
+                                        day_today: "bg-calendar-today text-calendar-today-foreground font-medium border border-border",
+                                        day_outside: "text-muted-foreground opacity-50 aria-selected:bg-calendar-selected/50 aria-selected:text-calendar-selected-foreground aria-selected:opacity-80",
+                                        day_disabled: "text-muted-foreground opacity-50",
+                                        day_range_middle: "aria-selected:bg-calendar-selected/20 aria-selected:text-calendar-selected",
+                                        day_hidden: "invisible",
+                                    }}
+                                    modifiers={{
+                                        selected: selectedDates,
+                                        holiday: holidays,
+                                    }}
+                                    modifiersClassNames={{
+                                        selected: "bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground z-10",
+                                        holiday: "bg-destructive/10 text-destructive font-semibold border border-destructive/20 hover:bg-destructive/20 hover:text-destructive",
+                                    }}
+                                />
+                            </Card>
                             <div className="mt-4 p-4 bg-gradient-to-br from-primary/5 to-secondary/5 rounded-lg border border-primary/20 backdrop-blur-sm">
                                 <h4 className="text-sm font-semibold text-foreground mb-2 flex items-center gap-2">
                                     <div className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse"></div>
                                     💡 Dica de uso:
                                 </h4>
                                 <p className="text-xs text-muted-foreground mb-4">
-                                    Clique em qualquer data no calendário para selecioná-la. Os feriados nacionais brasileiros estão destacados automaticamente.
+                                    1. Clique em qualquer data no calendário para selecioná-la.
+                                </p>
+                                <p className="text-xs text-muted-foreground mb-4">
+                                    2. Os feriados nacionais brasileiros estão destacados automaticamente.
                                 </p>
                                 <div className="grid grid-cols-1 gap-3 text-xs">
                                     <div className="flex items-center gap-3">
@@ -722,9 +726,11 @@ const handleDownload = () => {
                                     <div className="flex items-center gap-3">
                                         <div className="w-4 h-4 rounded bg-destructive/10 border-2 border-destructive/30"></div>
                                         <span className="text-muted-foreground">Feriado nacional</span>
+
                                     </div>
+
                                     <div className="flex items-center gap-3">
-                                        <div className="w-4 h-4 rounded bg-gradient-to-br from-accent to-accent/80"></div>
+                                        <div className="w-4 h-4 rounded border-2 border-primary/50 bg-transparent"></div>
                                         <span className="text-muted-foreground">Hoje</span>
                                     </div>
                                 </div>
@@ -772,7 +778,7 @@ const handleDownload = () => {
                                 <div className="absolute top-4 right-4 w-8 h-8 bg-gradient-to-br from-primary to-primary/60 rounded-full blur-sm"></div>
                                 <div className="absolute bottom-4 left-4 w-6 h-6 bg-gradient-to-br from-secondary to-secondary/60 rounded-full blur-sm"></div>
                             </div>
-                            
+
                             <div className="space-y-3 relative">
                                 <Label htmlFor="reference-time" className="text-sm font-semibold text-foreground flex items-center gap-2">
                                     <div className="w-1.5 h-1.5 rounded-full bg-primary"></div>
@@ -892,7 +898,7 @@ const handleDownload = () => {
 
                             <div className="space-y-3 pt-6 border-t border-primary/20 relative">
                                 <div className="absolute -top-px left-1/2 transform -translate-x-1/2 w-12 h-px bg-gradient-to-r from-transparent via-primary to-transparent"></div>
-                                
+
                                 <Button
                                     onClick={handleSearch}
                                     size="lg"
@@ -953,11 +959,10 @@ const handleDownload = () => {
                                         {reportData.map((item, index) => (
                                             <tr
                                                 key={index}
-                                                className={`border-b border-border/50 cursor-pointer hover:bg-gradient-to-r hover:from-primary/10 hover:to-secondary/5 transition-all duration-200 ${
-                                                    index % 2 === 0
-                                                        ? 'bg-gradient-to-r from-background to-background'
-                                                        : 'bg-gradient-to-r from-muted/10 to-primary/5'
-                                                }`}
+                                                className={`border-b border-border/50 cursor-pointer hover:bg-gradient-to-r hover:from-primary/10 hover:to-secondary/5 transition-all duration-200 ${index % 2 === 0
+                                                    ? 'bg-gradient-to-r from-background to-background'
+                                                    : 'bg-gradient-to-r from-muted/10 to-primary/5'
+                                                    }`}
                                                 onClick={() => handleEditRecord(item)}
                                             >
                                                 <td className="p-4 text-sm text-foreground">{item.startWork}</td>

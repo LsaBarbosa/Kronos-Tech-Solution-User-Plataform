@@ -304,7 +304,7 @@ const CriarColaborador = () => {
         <div className="w-full max-w-2xl">
           {/* Header */}
           <div className="mb-8 text-center">
-            <h1 className="text-4xl font-bold bg-gradient-to-r from-foreground to-primary bg-clip-text text-transparent mb-2">
+              <h1 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-foreground to-primary bg-clip-text text-transparent page-title">
               Criar Colaborador
             </h1>
             <p className="text-muted-foreground">

@@ -379,16 +379,9 @@ const CriarEmpresa = () => {
       <main className="pt-16 px-4 md:px-6">
         <div className="max-w-4xl mx-auto py-8">
           <div className="flex items-center gap-4 mb-6">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => navigate("/empresa")}
-            >
-              <ArrowLeft className="h-4 w-4 mr-2" />
-              Voltar
-            </Button>
+          
             <div>
-              <h1 className="text-3xl font-bold text-foreground">
+             <h1 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-foreground to-primary bg-clip-text text-transparent page-title">
                 Criar Empresa
               </h1>
               <p className="text-muted-foreground">
@@ -785,7 +778,7 @@ const CriarEmpresa = () => {
               </Card>
 
               {/* Dados do Usuário */}
-              <Card className="border-l-4 border-l-secondary shadow-card">
+             <Card className="border-l-4 border-l-primary shadow-card">
                 <CardHeader className="bg-gradient-to-r from-secondary/5 to-transparent">
                   <div className="flex items-center gap-3">
                     <div className="p-2 rounded-lg bg-secondary/20">

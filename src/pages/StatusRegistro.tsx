@@ -25,7 +25,7 @@ const decodeToken = (token: string) => {
     try {
         const base64Url = token.split('.')[1];
         const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-        const payload = decodeURIComponent(atob(base64).split('').map(function(c) {
+        const payload = decodeURIComponent(atob(base64).split('').map(function (c) {
             return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
         }).join(''));
         return JSON.parse(payload);
@@ -90,7 +90,7 @@ const statusOptions = [
 // Interface para os dados detalhados
 interface DetailedReportItem {
     id?: string;
-    timeRecordId: string; 
+    timeRecordId: string;
     startWork: string;
     startHour: string;
     endWork: string;
@@ -113,7 +113,7 @@ interface Employee {
 const RelatorioDetalhado = () => {
     const [sidebarOpen, setSidebarOpen] = useState(false);
     // Alterado para aceitar um array de Date, conforme o modo "multiple" do Calendar
-    const [selectedDates, setSelectedDates] = useState<Date[]>([]); 
+    const [selectedDates, setSelectedDates] = useState<Date[]>([]);
     const [referenceTime, setReferenceTime] = useState("08:00");
     const [selectedEmployee, setSelectedEmployee] = useState("");
     const [employeeActive, setEmployeeActive] = useState("active");
@@ -127,7 +127,7 @@ const RelatorioDetalhado = () => {
     // O estado 'managers' e o hook 'useForm' foram removidos
     const reportTableRef = useRef(null);
     const [isPartner, setIsPartner] = useState(false);
-    
+
     // Estado para a edição de status
     const [statusUpdate, setStatusUpdate] = useState<{
         timeRecordId: string;
@@ -291,83 +291,84 @@ const RelatorioDetalhado = () => {
     };
 
     const handleEditRecord = (record: DetailedReportItem) => {
-    // Captura os IDs e o status atual para o modal de edição de status
-    const recordId = record.timeRecordId;
-    const empId = selectedEmployee; 
+        // Captura os IDs e o status atual para o modal de edição de status
+        const recordId = record.timeRecordId;
+        const empId = selectedEmployee;
 
-    setSelectedRecord({ ...record, timeRecordId: recordId, employeeId: empId });
+        setSelectedRecord({ ...record, timeRecordId: recordId, employeeId: empId });
 
-    setStatusUpdate({
-        timeRecordId: recordId,
-        employeeId: empId,
-        statusRecord: record.statusRecord,
-    });
-    
-    setEditModalOpen(true);
-};
-
-// Função para atualizar apenas o status do registro
-const handleUpdateStatus = async () => {
-    const { timeRecordId, employeeId, statusRecord } = statusUpdate;
-    
-    if (!statusRecord) {
-        toast({ title: "Erro", description: "Selecione um status para atualizar.", variant: "destructive" });
-        return;
-    }
-    if (!timeRecordId || !employeeId) {
-        toast({ title: "Erro", description: "Dados de registro incompletos. Verifique se um funcionário foi selecionado no filtro.", variant: "destructive" });
-        return;
-    }
-
-    try {
-        const token = localStorage.getItem("token");
-        if (!token) {
-            throw new Error("Token de autenticação não encontrado.");
-        }
-
-        const endpoint = `${API_BASE_URL}records/update/status/${employeeId}/${timeRecordId}`;
-        
-        const response = await fetch(endpoint, {
-            method: "PUT", 
-            headers: {
-                "Content-Type": "application/json",
-                Authorization: `Bearer ${token}`,
-            },
-            body: JSON.stringify({ statusRecord: statusRecord }),
+        setStatusUpdate({
+            timeRecordId: recordId,
+            employeeId: empId,
+            statusRecord: record.statusRecord,
         });
 
-       
-        if (!response.ok) {
-            const errorData = await response.json();
-            // ALTERAÇÃO AQUI: Usa 'errorData.detail' para pegar a mensagem do backend.
-            throw new Error(errorData.detail || "Erro ao atualizar o status do registro.");
-        }
+        setEditModalOpen(true);
+    };
 
-        toast({
-            title: "Sucesso",
-            description: `Status do registro alterado para ${statusOptions.find(s => s.value === statusRecord)?.label || statusRecord}.`,
-        });
+    // Função para atualizar apenas o status do registro
+    const handleUpdateStatus = async () => {
+        const { timeRecordId, employeeId, statusRecord } = statusUpdate;
 
-        setEditModalOpen(false);
-        setStatusUpdate({ timeRecordId: "", employeeId: "", statusRecord: "" });
-        
-        // Recarrega os dados para mostrar o status atualizado
-        handleSearch();
-        
-    } catch (error: any) {
-        console.error("Erro ao atualizar status:", error);
-        toast({
-            title: "Erro",
-            // A mensagem de erro agora é o 'detail' do backend
-            description: error.message || "Ocorreu um erro ao salvar o status.",
-            variant: "destructive",
-        });
-    }
-}
+        if (!statusRecord) {
+            toast({ title: "Erro", description: "Selecione um status para atualizar.", variant: "destructive" });
+            return;
+        }
+        if (!timeRecordId || !employeeId) {
+            toast({ title: "Erro", description: "Dados de registro incompletos. Verifique se um funcionário foi selecionado no filtro.", variant: "destructive" });
+            return;
+        }
+
+        try {
+            const token = localStorage.getItem("token");
+            if (!token) {
+                throw new Error("Token de autenticação não encontrado.");
+            }
+
+            const endpoint = `${API_BASE_URL}records/update/status/${employeeId}/${timeRecordId}`;
+
+            const response = await fetch(endpoint, {
+                method: "PUT",
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${token}`,
+                },
+                body: JSON.stringify({ statusRecord: statusRecord }),
+            });
+
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                // ALTERAÇÃO AQUI: Usa 'errorData.detail' para pegar a mensagem do backend.
+                throw new Error(errorData.detail || "Erro ao atualizar o status do registro.");
+            }
+
+            toast({
+                title: "Sucesso",
+                description: `Status do registro alterado para ${statusOptions.find(s => s.value === statusRecord)?.label || statusRecord}.`,
+            });
+
+            setEditModalOpen(false);
+            setStatusUpdate({ timeRecordId: "", employeeId: "", statusRecord: "" });
+
+            // Recarrega os dados para mostrar o status atualizado
+            handleSearch();
+
+        } catch (error: any) {
+            console.error("Erro ao atualizar status:", error);
+            toast({
+                title: "Erro",
+                // A mensagem de erro agora é o 'detail' do backend
+                description: error.message || "Ocorreu um erro ao salvar o status.",
+                variant: "destructive",
+            });
+        }
+    }
 
     // A função handleSaveRecord (edição de tempo) foi removida.
 
     return (
+        
         <div className="min-h-screen bg-background relative overflow-hidden">
             <div className="fixed inset-0 z-0">
                 <div
@@ -409,13 +410,14 @@ const handleUpdateStatus = async () => {
             <Header onMenuClick={() => setSidebarOpen(true)} />
             <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
 
-            <main className="container mx-auto px-4 py-8 relative z-10">
+            <main className="container mx-auto px-4 py-20 relative z-10">
                 <div className="mb-8">
-                    <h1 className="text-3xl font-bold bg-gradient-to-r from-foreground to-primary bg-clip-text text-transparent mb-2">
-                        Relatório Detalhado
+                                <h1 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-foreground to-primary bg-clip-text text-transparent page-title">
+
+                        Alterar Status do Registro
                     </h1>
                     <p className="text-muted-foreground">
-                        Gere relatórios detalhados com informações completas de registros de ponto
+                       ALtere o status de um registro.
                     </p>
                 </div>
 
@@ -438,7 +440,7 @@ const handleUpdateStatus = async () => {
                                 mode="multiple"
                                 selected={selectedDates}
                                 // Corrigido para passar o setter de estado diretamente, para array de datas
-                                onSelect={setSelectedDates} 
+                                onSelect={setSelectedDates}
                                 className="w-full pointer-events-auto"
                                 classNames={{
                                     day: "h-9 w-9 p-0 font-normal aria-selected:opacity-100 hover:bg-calendar-selected-hover/20 hover:text-calendar-selected transition-colors duration-200 relative",
@@ -465,8 +467,15 @@ const handleUpdateStatus = async () => {
                                     💡 Dica de uso:
                                 </h4>
                                 <p className="text-xs text-muted-foreground mb-4">
-                                    Clique em qualquer data no calendário para selecioná-la. Os feriados nacionais brasileiros estão destacados automaticamente.
-                                </p>
+                                    1. Clique em qualquer data no calendário para selecioná-la. </p>
+                                <p className="text-xs text-muted-foreground mb-4">
+                                    2. Os feriados nacionais brasileiros estão destacados automaticamente.</p>
+                                <p className="text-xs text-muted-foreground mb-4">
+                                    3. Status Atualizado e Aguardando Aprovação não pode ser alterados. </p>
+                                <p className="text-xs text-muted-foreground mb-4">
+                                    4 Folgas são geradas automaticamente no dia em que nao houver registro.</p>
+                                <p className="text-xs text-muted-foreground mb-4">
+                                    5. Em caso de falta, busque por registros com folga e altere para ausência.</p>
                                 <div className="grid grid-cols-1 gap-3 text-xs">
                                     <div className="flex items-center gap-3">
                                         <div className="w-4 h-4 rounded bg-gradient-to-br from-primary to-primary/80 shadow-sm"></div>
@@ -477,7 +486,7 @@ const handleUpdateStatus = async () => {
                                         <span className="text-muted-foreground">Feriado nacional</span>
                                     </div>
                                     <div className="flex items-center gap-3">
-                                        <div className="w-4 h-4 rounded bg-gradient-to-br from-accent to-accent/80"></div>
+                                        <div className="w-4 h-4 rounded border-2 border-primary/50 bg-transparent"></div>
                                         <span className="text-muted-foreground">Hoje</span>
                                     </div>
                                 </div>
@@ -527,7 +536,7 @@ const handleUpdateStatus = async () => {
                                 <div className="absolute top-4 right-4 w-8 h-8 bg-gradient-to-br from-primary to-primary/60 rounded-full blur-sm"></div>
                                 <div className="absolute bottom-4 left-4 w-6 h-6 bg-gradient-to-br from-secondary to-secondary/60 rounded-full blur-sm"></div>
                             </div>
-                            
+
                             <div className="space-y-3 relative">
                                 <Label htmlFor="reference-time" className="text-sm font-semibold text-foreground flex items-center gap-2">
                                     <div className="w-1.5 h-1.5 rounded-full bg-primary"></div>
@@ -647,7 +656,7 @@ const handleUpdateStatus = async () => {
 
                             <div className="space-y-3 pt-6 border-t border-primary/20 relative">
                                 <div className="absolute -top-px left-1/2 transform -translate-x-1/2 w-12 h-px bg-gradient-to-r from-transparent via-primary to-transparent"></div>
-                                
+
                                 <Button
                                     onClick={handleSearch}
                                     size="lg"
@@ -658,7 +667,7 @@ const handleUpdateStatus = async () => {
                                     <span className="relative z-10">Buscar</span>
                                 </Button>
 
-                              
+
                             </div>
                         </CardContent>
                     </Card>
@@ -701,11 +710,10 @@ const handleUpdateStatus = async () => {
                                         {reportData.map((item, index) => (
                                             <tr
                                                 key={item.timeRecordId || index}
-                                                className={`border-b border-border/50 cursor-pointer hover:bg-gradient-to-r hover:from-primary/10 hover:to-secondary/5 transition-all duration-200 ${
-                                                    index % 2 === 0
-                                                        ? 'bg-gradient-to-r from-background to-background'
-                                                        : 'bg-gradient-to-r from-muted/10 to-primary/5'
-                                                }`}
+                                                className={`border-b border-border/50 cursor-pointer hover:bg-gradient-to-r hover:from-primary/10 hover:to-secondary/5 transition-all duration-200 ${index % 2 === 0
+                                                    ? 'bg-gradient-to-r from-background to-background'
+                                                    : 'bg-gradient-to-r from-muted/10 to-primary/5'
+                                                    }`}
                                                 onClick={() => handleEditRecord(item)}
                                             >
                                                 <td className="p-4 text-sm text-foreground">{item.startWork}</td>
@@ -749,18 +757,18 @@ const handleUpdateStatus = async () => {
 
                         <div className="space-y-4 pt-4">
                             <Label className="text-base font-semibold text-foreground flex flex-col gap-2">
-                                Status Atual: 
-                                <Badge 
+                                Status Atual:
+                                <Badge
                                     className={`${getStatusColor(statusUpdate.statusRecord)} text-base`}
                                 >
                                     {statusOptions.find(s => s.value === statusUpdate.statusRecord)?.label || statusUpdate.statusRecord}
                                 </Badge>
                             </Label>
-                            
+
                             <div className="space-y-2">
                                 <Label htmlFor="new-status">Novo Status</Label>
-                                <Select 
-                                    value={statusUpdate.statusRecord} 
+                                <Select
+                                    value={statusUpdate.statusRecord}
                                     onValueChange={(value) => setStatusUpdate(prev => ({ ...prev, statusRecord: value }))}
                                 >
                                     <SelectTrigger id="new-status" className="h-10 focus:border-primary">
