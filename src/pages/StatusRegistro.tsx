@@ -279,147 +279,6 @@ const RelatorioDetalhado = () => {
         }
     };
 
-const handleDownload = () => {
-    const parseDate = (dateString: string) => {
-      if (!dateString) return null;
-      const parts = dateString.split('-');
-      if (parts.length === 3) {
-        const [day, month, year] = parts;
-        const date = new Date(`${year}/${month}/${day}`);
-        if (!isNaN(date.getTime())) {
-          return date;
-        }
-      }
-      return null;
-    };
-  
-    if (reportData.length === 0) {
-      toast({
-        title: "Erro",
-        description: "Gere o relatório primeiro para poder fazer o download.",
-        variant: "destructive"
-      });
-      return;
-    }
-
-    try {
-      const doc = new jsPDF({
-        orientation: 'landscape',
-        unit: 'mm',
-        format: 'a4'
-      });
-
-      doc.setFont("helvetica", "bold");
-      doc.setFontSize(18);
-      doc.text('RELATÓRIO DETALHADO DE PONTO', 20, 25);
-
-      doc.setFontSize(12);
-      doc.setFont("helvetica", "normal");
-
-      let yPosition = 40;
-
-      if (reportData.length > 0 && reportData[0].employeeData) {
-        doc.text(`Funcionário: ${reportData[0].employeeData.employeeName}`, 20, yPosition);
-        yPosition += 7;
-        doc.text(`Empresa: ${reportData[0].employeeData.companyName}`, 20, yPosition);
-        yPosition += 7;
-      }
-
-      if (status) {
-        const statusLabel = statusOptions.find(opt => opt.value === status)?.label || status;
-        doc.text(`Status: ${statusLabel}`, 20, yPosition);
-        yPosition += 7;
-      }
-
-      doc.text(`Referência: ${referenceTime}`, 20, yPosition);
-      yPosition += 7;
-
-      if (selectedDates.length > 0) {
-        const validDates = selectedDates.filter(date => date && !isNaN(date.getTime()));
-        const datesList = validDates
-          .map(date => format(date, "dd/MM/yyyy", { locale: ptBR }))
-          .join(", ");
-        doc.text(`Datas: ${datesList}`, 20, yPosition);
-        yPosition += 10;
-      }
-
-      const tableData = reportData.map(item => {
-        const startDate = parseDate(item.startWork);
-        const endDate = parseDate(item.endWork);
-
-        return [
-          startDate ? format(startDate, "dd/MM/yyyy") : 'N/A',
-          item.startHour,
-          endDate ? format(endDate, "dd/MM/yyyy") : 'N/A',
-          item.endHour,
-          item.hoursWork,
-          item.balance,
-          statusOptions.find(opt => opt.value === item.statusRecord)?.label || item.statusRecord
-        ];
-      });
-
-      autoTable(doc, {
-        head: [['Data Entrada', 'Hora Entrada', 'Data Saída', 'Hora Saída', 'Horas Trabalhadas', 'Saldo', 'Status']],
-        body: tableData,
-        startY: yPosition,
-        margin: { left: 20, right: 20 },
-        styles: {
-          fontSize: 9,
-          cellPadding: 3,
-          halign: 'center'
-        },
-        headStyles: {
-          fillColor: [41, 128, 185],
-          textColor: [255, 255, 255],
-          fontSize: 10,
-          fontStyle: 'bold'
-        },
-        columnStyles: {
-          5: {
-            cellWidth: 20,
-            halign: 'center'
-          }
-        },
-        didParseCell: function(data) {
-          if (data.column.index === 5 && data.section === 'body') {
-            const balance = data.cell.text[0];
-            if (balance && balance.toString().startsWith('-')) {
-              data.cell.styles.textColor = [220, 53, 69];
-              data.cell.styles.fontStyle = 'bold';
-            } else if (balance && !balance.toString().startsWith('-') && balance !== '00:00') {
-              data.cell.styles.textColor = [40, 167, 69];
-              data.cell.styles.fontStyle = 'bold';
-            }
-          }
-        }
-      });
-
-      const pageCount = doc.getNumberOfPages();
-      for (let i = 1; i <= pageCount; i++) {
-        doc.setPage(i);
-        doc.setFontSize(8);
-        doc.setTextColor(128, 128, 128);
-        doc.text(`Página ${i} de ${pageCount}`, doc.internal.pageSize.width - 30, doc.internal.pageSize.height - 10);
-        doc.text(`Gerado em: ${format(new Date(), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}`, 20, doc.internal.pageSize.height - 10);
-      }
-
-      const fileName = `relatorio_detalhado_${format(new Date(), "yyyyMMdd_HHmmss")}.pdf`;
-      doc.save(fileName);
-
-      toast({
-        title: "PDF Gerado",
-        description: "Relatório detalhado baixado com sucesso!",
-      });
-
-    } catch (error) {
-      console.error("Erro ao gerar PDF:", error);
-      toast({
-        title: "Erro",
-        description: "Não foi possível gerar o PDF. Tente novamente.",
-        variant: "destructive",
-      });
-    }
-  };
 
     const getStatusColor = (status: string) => {
         const baseClass = "text-white";
@@ -477,30 +336,33 @@ const handleUpdateStatus = async () => {
             body: JSON.stringify({ statusRecord: statusRecord }),
         });
 
-        if (!response.ok) {
-            const errorData = await response.json();
-            throw new Error(errorData.message || "Erro ao atualizar o status do registro.");
-        }
+       
+        if (!response.ok) {
+            const errorData = await response.json();
+            // ALTERAÇÃO AQUI: Usa 'errorData.detail' para pegar a mensagem do backend.
+            throw new Error(errorData.detail || "Erro ao atualizar o status do registro.");
+        }
 
-        toast({
-            title: "Sucesso",
-            description: `Status do registro alterado para ${statusOptions.find(s => s.value === statusRecord)?.label || statusRecord}.`,
-        });
+        toast({
+            title: "Sucesso",
+            description: `Status do registro alterado para ${statusOptions.find(s => s.value === statusRecord)?.label || statusRecord}.`,
+        });
 
-        setEditModalOpen(false);
-        setStatusUpdate({ timeRecordId: "", employeeId: "", statusRecord: "" });
-        
-        // Recarrega os dados para mostrar o status atualizado
-        handleSearch();
-        
-    } catch (error: any) {
-        console.error("Erro ao atualizar status:", error);
-        toast({
-            title: "Erro",
-            description: error.message || "Ocorreu um erro ao salvar o status.",
-            variant: "destructive",
-        });
-    }
+        setEditModalOpen(false);
+        setStatusUpdate({ timeRecordId: "", employeeId: "", statusRecord: "" });
+        
+        // Recarrega os dados para mostrar o status atualizado
+        handleSearch();
+        
+    } catch (error: any) {
+        console.error("Erro ao atualizar status:", error);
+        toast({
+            title: "Erro",
+            // A mensagem de erro agora é o 'detail' do backend
+            description: error.message || "Ocorreu um erro ao salvar o status.",
+            variant: "destructive",
+        });
+    }
 }
 
     // A função handleSaveRecord (edição de tempo) foi removida.
@@ -796,16 +658,7 @@ const handleUpdateStatus = async () => {
                                     <span className="relative z-10">Buscar</span>
                                 </Button>
 
-                                <Button
-                                    onClick={handleDownload}
-                                    size="lg"
-                                    variant="outline"
-                                    className="w-full font-semibold border-2 border-primary/30 bg-gradient-to-r from-primary/10 to-secondary/10 hover:from-primary/20 hover:to-secondary/20 text-foreground hover:text-primary shadow-md hover:shadow-primary/20 transition-all duration-200 relative overflow-hidden"
-                                >
-                                    <div className="absolute inset-0 bg-gradient-to-r from-primary/5 to-transparent opacity-0 hover:opacity-100 transition-opacity duration-200"></div>
-                                    <Download className="mr-2 h-4 w-4" />
-                                    <span className="relative z-10">Download</span>
-                                </Button>
+                              
                             </div>
                         </CardContent>
                     </Card>

@@ -21,9 +21,17 @@ interface PendingApproval {
   newEndWork: string;
 }
 
+// Interface para padronizar o objeto de erro da API
+interface ApiErrorResponse {
+    status: number;
+    title: string;
+    detail: string;
+    timestamp: string;
+    message?: string; // Adicionado para compatibilidade, caso outros endpoints usem 'message'
+}
+
 const ApuracaoHoras = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  // Renomeado para 'pendingApprovals' para refletir o conteúdo
   const [pendingApprovals, setPendingApprovals] = useState<PendingApproval[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const { toast } = useToast();
@@ -46,8 +54,10 @@ const ApuracaoHoras = () => {
       });
 
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || "Erro ao buscar as solicitações pendentes.");
+        const errorData: ApiErrorResponse = await response.json();
+        // >> ALTERAÇÃO 1: Prioriza 'detail' para mensagens de erro da API
+        const errorMessage = errorData.detail || errorData.message || "Erro ao buscar as solicitações pendentes.";
+        throw new Error(errorMessage);
       }
 
       const data: PendingApproval[] = await response.json();
@@ -59,7 +69,7 @@ const ApuracaoHoras = () => {
         className: "border-success bg-success text-white font-medium shadow-lg"
       });
 
-    } catch (error) {
+    } catch (error: any) {
       console.error("Erro ao buscar solicitações:", error);
       toast({
         title: "Erro",
@@ -93,8 +103,10 @@ const ApuracaoHoras = () => {
       });
 
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || "Ocorreu um erro ao aprovar a solicitação.");
+        const errorData: ApiErrorResponse = await response.json();
+        // >> ALTERAÇÃO 2: Prioriza 'detail' para mensagens de erro da API
+        const errorMessage = errorData.detail || errorData.message || "Ocorreu um erro ao aprovar a solicitação.";
+        throw new Error(errorMessage);
       }
 
       // Remove da lista após aprovação bem-sucedida
@@ -105,7 +117,7 @@ const ApuracaoHoras = () => {
         description: `A alteração de registro de ${partnerName} foi aprovada com sucesso.`,
         className: "border-success bg-success text-white font-medium shadow-lg"
       });
-    } catch (error) {
+    } catch (error: any) {
       console.error("Erro ao aprovar:", error);
       toast({
         title: "Erro ao Aprovar",
@@ -132,8 +144,10 @@ const ApuracaoHoras = () => {
       });
 
       if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || "Ocorreu um erro ao rejeitar a solicitação.");
+        const errorData: ApiErrorResponse = await response.json();
+        // >> ALTERAÇÃO 3: Prioriza 'detail' para mensagens de erro da API
+        const errorMessage = errorData.detail || errorData.message || "Ocorreu um erro ao rejeitar a solicitação.";
+        throw new Error(errorMessage);
       }
 
       // Remove da lista após rejeição bem-sucedida
@@ -144,7 +158,7 @@ const ApuracaoHoras = () => {
         description: `A alteração de registro de ${partnerName} foi rejeitada.`,
         className: "border-destructive bg-destructive text-white font-medium shadow-lg"
       });
-    } catch (error) {
+    } catch (error: any) {
       console.error("Erro ao rejeitar:", error);
       toast({
         title: "Erro ao Rejeitar",

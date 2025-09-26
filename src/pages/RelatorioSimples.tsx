@@ -240,7 +240,7 @@ const RelatorioSimples = () => {
 
       toast({
         title: "Busca realizada",
-        description: `Relatório gerado para as datas: ${datesList} (Referência: ${referenceTime})`,
+        description: `Relatório gerado para as datas: ${datesList} (Carga Horária diária: ${referenceTime})`,
       });
     } catch (error) {
       console.error("Erro na busca:", error);
