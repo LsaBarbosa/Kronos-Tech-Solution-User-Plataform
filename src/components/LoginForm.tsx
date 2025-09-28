@@ -21,7 +21,7 @@ const LoginForm = () => {
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
-    
+
     try {
       const response = await fetch(API_URL, {
         method: "POST",
@@ -38,12 +38,12 @@ const LoginForm = () => {
         // Usa a mensagem do campo 'detail' se existir, senão usa uma mensagem padrão
         throw new Error(errorData.detail || "Usuário ou senha inválidos.");
       }
-      
+
       const data = await response.json();
-      
+
       // Persistir o token no localStorage
       localStorage.setItem("token", data.token);
-      
+
       // Exibir aviso importante por 10 segundos
       setTimeout(() => {
         toast.warning("Atenção!!\nAjuste sua folha de ponto antes do fechamento da folha !", {
@@ -51,7 +51,7 @@ const LoginForm = () => {
           dismissible: true,
         });
       }, 500);
-      
+
       // Navegar para o dashboard
       navigate("/dashboard");
 
@@ -69,7 +69,7 @@ const LoginForm = () => {
       {/* Animated Background */}
       <div className="fixed inset-0 z-0">
         {/* Gradient Background */}
-        <div 
+        <div
           className="absolute inset-0 opacity-5"
           style={{
             background: 'linear-gradient(-45deg, hsl(var(--black-primary)), hsl(var(--primary)), hsl(var(--black-primary)), hsl(var(--primary)))',
@@ -77,10 +77,10 @@ const LoginForm = () => {
             animation: 'gradient-flow 15s ease-in-out infinite'
           }}
         />
-        
+
         {/* Floating Geometric Shapes */}
         <div className="absolute inset-0">
-          <div 
+          <div
             className="absolute top-1/4 left-1/4 w-32 h-32 opacity-3"
             style={{
               background: 'linear-gradient(135deg, hsl(var(--primary) / 0.1), transparent)',
@@ -88,7 +88,7 @@ const LoginForm = () => {
               animation: 'float-shapes 20s ease-in-out infinite'
             }}
           />
-          <div 
+          <div
             className="absolute top-3/4 right-1/4 w-48 h-48 opacity-2"
             style={{
               background: 'linear-gradient(45deg, hsl(var(--black-primary) / 0.05), transparent)',
@@ -96,7 +96,7 @@ const LoginForm = () => {
               animation: 'float-shapes 25s ease-in-out infinite reverse'
             }}
           />
-          <div 
+          <div
             className="absolute top-1/2 right-1/3 w-24 h-24 opacity-4"
             style={{
               background: 'radial-gradient(circle, hsl(var(--primary) / 0.08), transparent)',
@@ -130,7 +130,7 @@ const LoginForm = () => {
                 disabled={isSubmitting}
               />
             </div>
-            
+
             <div className="space-y-2">
               <Label htmlFor="password" className="text-sm font-medium text-black-primary">
                 Senha
@@ -172,12 +172,13 @@ const LoginForm = () => {
           </form>
 
           <div className="text-center">
-            <a
-              href="#"
+            <Button
+              variant="link" // Usa o estilo de link, mas com a semântica de botão
+              onClick={() => navigate("/esqueci-a-senha")} // Chama a nova rota
               className="text-sm text-gray-text hover:text-primary transition-smooth"
             >
               Esqueci a senha
-            </a>
+            </Button>
           </div>
         </CardContent>
       </Card>

@@ -74,7 +74,7 @@ const NotFound = () => {
             A página que você está procurando não existe ou foi movida.
           </p>
           <Button
-            onClick={() => navigate("/")}
+            onClick={() => navigate("/dashboard")}
             variant="login"
             size="lg"
             className="px-8"

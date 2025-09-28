@@ -29,6 +29,8 @@ import ApuracaoHoras from "./pages/ApuracaoHoras";
 import Avisos from "./pages/Avisos";
 import CriarAviso from "./pages/CriarAviso";
 import StatusRegistro from "./pages/StatusRegistro";
+import EsqueciSenha from "./pages/EsqueciSenha";
+import ResetPassword from "./pages/ResetPassword";
 
 const queryClient = new QueryClient();
 
@@ -62,6 +64,8 @@ const App = () => (
           <Route path="/apuracao-horas" element={<ApuracaoHoras />} />
           <Route path="/status-do-registro" element={<StatusRegistro />} />
           <Route path="/avisos" element={<Avisos />} />
+          <Route path="/esqueci-a-senha" element={<EsqueciSenha />} />
+          <Route path="/resetar-senha" element={<ResetPassword />} />
           <Route path="/criar-aviso" element={<CriarAviso />} />
           {/* ADD ALL CUSTOM ROUTES ABOVE THE CATCH-ALL "*" ROUTE */}
           <Route path="*" element={<NotFound />} />
