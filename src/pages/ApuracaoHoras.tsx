@@ -331,7 +331,7 @@ const ApuracaoHoras = () => {
                 </div>
 
                 {/* 2. VISUALIZAÇÃO EM CARTÕES (Mobile) */}
-                <div className="md:hidden space-y-4">
+                <div className=" space-y-4">
                     {pendingApprovals.map((request) => (
                         <Card key={request.timeRecordId} className="card-hover border-l-4 border-l-primary/50">
                             <CardContent className="p-4 mobile-stack space-y-3">
@@ -342,7 +342,7 @@ const ApuracaoHoras = () => {
                                       <span className="font-bold text-foreground">{request.partnerName}</span>
                                   </div>
                                   <Badge variant="secondary" className="bg-success/10 text-success">
-                                      {request.managerUsername}
+                                      Administrador : {request.managerUsername}
                                   </Badge>
                                 </div>
                                 

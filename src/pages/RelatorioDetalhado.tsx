@@ -419,7 +419,7 @@ const RelatorioDetalhado = () => {
                 yPosition += 7;
             }
 
-            doc.text(`Referência: ${referenceTime}`, 20, yPosition);
+            doc.text(`Carga horária diária: ${referenceTime}`, 20, yPosition);
             yPosition += 7;
 
             if (selectedDates.length > 0) {
