@@ -18,6 +18,20 @@ interface Message {
   senderEmployeeId: string;
 }
 
+const decodeToken = (token: string) => {
+  try {
+    const base64Url = token.split('.')[1];
+    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
+    const payload = decodeURIComponent(atob(base64).split('').map(function (c) {
+      return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
+    }).join(''));
+    return JSON.parse(payload);
+  } catch (error) {
+    console.error("Falha ao decodificar o token", error);
+    return null;
+  }
+};
+
 const getAuthHeaders = () => {
   const token = localStorage.getItem('token');
   if (!token) {
@@ -36,10 +50,17 @@ const Avisos = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [userRole, setUserRole] = useState<'MANAGER' | 'PARTNER' | ''>('');
   const navigate = useNavigate();
   const { toast } = useToast();
 
   useEffect(() => {
+       const token = localStorage.getItem("token");
+    if (token) {
+        const decoded = decodeToken(token);
+        setUserRole(decoded?.role === 'MANAGER' || decoded?.role === 'PARTNER' ? decoded.role : '');
+    }
+
     const fetchMessages = async () => {
       try {
         setLoading(true);
@@ -243,9 +264,10 @@ const Avisos = () => {
         )}
       </main>
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
-        <DialogContent className="max-w-2xl max-h-[80vh] overflow-y-auto">
+      <DialogContent className="max-w-xl sm:max-w-2xl md:max-w-3xl max-h-[90vh] overflow-y-auto rounded-xl shadow-2xl">
           <DialogHeader>
-            <DialogTitle className="flex items-center gap-3 text-xl">
+            {/* Título com destaque */}
+            <DialogTitle className="flex items-center gap-3 text-xl sm:text-2xl font-bold text-foreground">
               {selectedMessage && getIconePorTipo(selectedMessage.priority)}
               {selectedMessage && getTituloPorTipo(selectedMessage.priority)}
             </DialogTitle>
@@ -253,7 +275,7 @@ const Avisos = () => {
 
           {selectedMessage && (
             <div className="space-y-4">
-              <div className="flex items-center justify-between">
+              <div className="flex items-center justify-between border-b pb-3 border-border/50">
                 {getBadgePorTipo(selectedMessage.priority)}
                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
                   <Calendar className="h-4 w-4" />
@@ -261,15 +283,17 @@ const Avisos = () => {
                 </div>
               </div>
 
-              <div className="prose prose-sm max-w-none">
-                <p className="text-foreground leading-relaxed whitespace-pre-wrap">
+              {/* Área de conteúdo da mensagem com melhor espaçamento e legibilidade */}
+              <div className="p-4 bg-muted/20 rounded-lg border border-border/50">
+                <p className="text-foreground leading-relaxed whitespace-pre-wrap text-base">
                   {selectedMessage.messageText}
                 </p>
               </div>
             </div>
           )}
           <DialogFooter>
-            {selectedMessage && (
+            {/* O botão 'Deletar Mensagem' só é renderizado se o usuário for um 'MANAGER' */}
+            {selectedMessage && userRole === 'MANAGER' && ( 
               <Button
                 variant="destructive"
                 onClick={() => handleDeleteMessage(selectedMessage.messageId)}

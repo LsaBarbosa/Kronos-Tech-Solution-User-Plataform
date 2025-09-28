@@ -43,13 +43,11 @@ const LoginForm = () => {
       
       // Persistir o token no localStorage
       localStorage.setItem("token", data.token);
-
-      toast.success("Login realizado com sucesso!");
       
       // Exibir aviso importante por 10 segundos
       setTimeout(() => {
         toast.warning("Atenção!!\nAjuste sua folha de ponto antes do fechamento da folha !", {
-          duration: 10000,
+          duration: 5000,
           dismissible: true,
         });
       }, 500);
