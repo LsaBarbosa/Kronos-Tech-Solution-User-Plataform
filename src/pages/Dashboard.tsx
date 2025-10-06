@@ -5,7 +5,7 @@ import Clock from "@/components/Clock";
 import EmployeeBadge from "@/components/EmployeeBadge";
 import { useToast } from "@/hooks/use-toast";
 import { API_BASE_URL } from "@/config/api";
-import { Bell } from "lucide-react"; // Ícone para a notificação
+import { Bell, MessageSquareWarning } from "lucide-react"; // Ícone para a notificação
 import { useNavigate } from "react-router-dom";
 
 interface UserProfile {
@@ -24,6 +24,7 @@ const Dashboard = () => {
   const [pendingApprovalsCount, setPendingApprovalsCount] = useState<number>(0);
   const { toast } = useToast();
   const navigate = useNavigate();
+  const [unreadWarnings, setUnreadWarnings] = useState<any[]>([]);
 
   const getAuthHeaders = () => {
     const token = localStorage.getItem("token");
@@ -71,6 +72,7 @@ const Dashboard = () => {
         headers: headers,
       });
 
+
       if (!response.ok) {
         console.error("Falha ao buscar aprovações pendentes.");
         return;
@@ -83,13 +85,37 @@ const Dashboard = () => {
     }
   }, []);
 
+  const fetchUnreadWarnings = useCallback(async () => {
+    try {
+      const headers = getAuthHeaders();
+      const response = await fetch(`${API_BASE_URL}messages`, {
+        method: "GET",
+        headers: headers,
+      });
+
+      if (!response.ok) {
+        console.error("Falha ao buscar novos avisos.");
+        return;
+      }
+
+      const data = await response.json();
+      setUnreadWarnings(data); // Armazena o array de avisos
+    } catch (error: any) {
+      console.error("Erro ao buscar novos avisos:", error);
+    }
+  }, []);
+
   useEffect(() => {
     fetchProfile();
     fetchPendingApprovals();
-  }, [fetchProfile, fetchPendingApprovals]);
+    fetchUnreadWarnings();
+  }, [fetchProfile, fetchPendingApprovals, fetchUnreadWarnings]);
 
-    const handleReminderClick = () => {
+  const handleReminderClick = () => {
     navigate("/apuracao-horas");
+  };
+  const handleWarningClick = () => {
+    navigate("/avisos");
   };
 
   return (
@@ -152,7 +178,7 @@ const Dashboard = () => {
 
             {/* Contagem de Aprovações Pendentes */}
             {pendingApprovalsCount > 0 && (
-               <div
+              <div
                 className="flex justify-center mt-6 cursor-pointer"
                 onClick={handleReminderClick} // 4. Adicione o evento de clique
                 title="Ir para Apuração de Horas" // Dica para o usuário
@@ -164,6 +190,23 @@ const Dashboard = () => {
                     {pendingApprovalsCount === 1
                       ? "aprovação pendente"
                       : "aprovações pendentes"}
+                  </span>
+                </div>
+              </div>
+            )}
+            {unreadWarnings.length > 0 && (
+              <div
+                className="flex justify-center mt-4 cursor-pointer"
+                onClick={handleWarningClick}
+                title="Ir para Avisos"
+              >
+                <div className="bg-yellow-500/10 border border-yellow-500/20 text-yellow-600 dark:text-yellow-400 rounded-full px-4 py-2 flex items-center space-x-2 animate-pulse hover:bg-yellow-500/20 transition-colors">
+                  <MessageSquareWarning className="h-5 w-5" />
+                  <span className="font-semibold">{unreadWarnings.length}</span>
+                  <span>
+                    {unreadWarnings.length === 1
+                      ? "novo aviso"
+                      : "novos avisos"}
                   </span>
                 </div>
               </div>
