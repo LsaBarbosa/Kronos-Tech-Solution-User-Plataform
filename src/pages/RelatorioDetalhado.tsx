@@ -81,16 +81,15 @@ const getEasterDate = (year) => {
 
 const statusOptions = [
     { value: "CREATED", label: "Criado" },
-    { value: "PENDING", label: "Pendente" },
-    { value: "UPDATED", label: "Atualizado" },
-    { value: "UPDATE_REJECTED", label: "Atualização Rejeitada" },
+    { value: "PENDING", label: "Saída Pendente" },
+    { value: "UPDATED", label: "Atualizado por ADM" },
+    { value: "UPDATE_REJECTED", label: "Atualização Rejeitada Por ADM" },
     { value: "DAY_OFF", label: "Folga" },
-    { value: "ABSENCE", label: "Ausência" },
+    { value: "ABSENCE", label: "Falta" },
     { value: "PENDING_APPROVAL", label: "Aguardando Aprovação" },
     { value: "DOCTOR_APPOINTMENT", label: "Consulta Médica" },
 ];
 
-// Interface para os dados detalhados
 interface DetailedReportItem {
     id?: string;
     startWork: string;
@@ -107,7 +106,6 @@ interface DetailedReportItem {
     };
 }
 
-// Interface para os dados do usuário
 interface UserItem {
     userId: string;
     username: string;
@@ -121,7 +119,6 @@ interface Employee {
     fullName: string;
 }
 
-// Schema para validação do formulário de edição
 const editRecordSchema = z.object({
     startDate: z.string().min(1, "Data de início é obrigatória"),
     endDate: z.string().min(1, "Data de fim é obrigatória"),
@@ -225,8 +222,9 @@ const RelatorioDetalhado = () => {
             });
 
             if (!response.ok) {
+                // CORREÇÃO: Trata erro com 'detail'
                 const errorData = await response.json();
-                throw new Error(errorData.message || "Erro ao buscar usuários.");
+                throw new Error(errorData.detail || "Erro ao buscar usuários.");
             }
 
             const data = await response.json();
@@ -326,8 +324,9 @@ const RelatorioDetalhado = () => {
             });
 
             if (!response.ok) {
+                // CORREÇÃO: Tenta extrair 'detail' da resposta de erro do back-end
                 const errorData = await response.json();
-                throw new Error(errorData.message || "Erro ao buscar o relatório. Tente novamente mais tarde.");
+                throw new Error(errorData.detail || "Erro ao buscar o relatório. Tente novamente mais tarde.");
             }
 
             const data = await response.json();
@@ -363,17 +362,12 @@ const RelatorioDetalhado = () => {
     };
 
     const handleDownload = () => {
-        // Função auxiliar para converter "dd-MM-yyyy" para um objeto Date válido.
         const parseDate = (dateString) => {
             if (!dateString) return null;
-
-            // Verifica e trata o formato dd-MM-yyyy
             const parts = dateString.split('-');
             if (parts.length === 3) {
                 const [day, month, year] = parts;
-                // Cria um objeto Date usando o formato YYYY/MM/DD, que é universalmente reconhecido
                 const date = new Date(`${year}/${month}/${day}`);
-                // Retorna a data apenas se for um valor válido
                 if (!isNaN(date.getTime())) {
                     return date;
                 }
@@ -592,8 +586,9 @@ const RelatorioDetalhado = () => {
             });
 
             if (!response.ok) {
+                // CORREÇÃO: Tenta extrair 'detail' da resposta de erro do back-end
                 const errorData = await response.json();
-                throw new Error(errorData.message || "Erro ao atualizar o registro.");
+                throw new Error(errorData.detail || "Erro ao atualizar o registro.");
             }
 
             toast({
@@ -923,200 +918,133 @@ const RelatorioDetalhado = () => {
                         </CardContent>
                     </Card>
                 </div>
-
                 {reportData.length > 0 && (
-                    <Card className="mt-8 border-2 border-primary/20 shadow-lg bg-gradient-to-br from-card via-card to-primary/5">
-                        <CardHeader className="border-b border-primary/20 bg-gradient-to-r from-primary/10 via-primary/5 to-transparent">
-                            <CardTitle className="text-foreground flex items-center gap-2">
-                                <div className="p-1.5 rounded-lg bg-primary/10">
-                                    <div className="w-3 h-3 rounded bg-primary"></div>
-                                </div>
-                                Resultados do Relatório Detalhado
-                            </CardTitle>
-                            <CardDescription className="text-muted-foreground flex items-center gap-2">
-                                <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-primary/10 text-primary">
-                                    {reportData.length} registro(s)
-                                </span>
-                                encontrado(s)
-                            </CardDescription>
+                    <Card className="mt-8 border-2 border-primary/20 shadow-lg bg-card/80 backdrop-blur-sm">
+                        <CardHeader>
+                            <CardTitle>Resultados do Relatório</CardTitle>
+                            <CardDescription>{reportData.length} registro(s) encontrado(s).</CardDescription>
                         </CardHeader>
-                        <CardContent className="p-0">
-                            <div className="overflow-x-auto">
+                        <CardContent className="p-4">
+                            {/* Layout de Cards para Todos os Tamanhos de Tela */}
+                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                                {reportData.map((item, index) => (
+                                    <Card
+                                        key={item.id || index}
+                                        className="border-l-4 border-primary shadow-md cursor-pointer hover:shadow-lg hover:border-primary/80 transition-all duration-300 group"
+                                        onClick={() => handleEditRecord(item)}
+                                    >
+                                        <CardContent className="p-4 space-y-3">
+                                            <div className="flex justify-between items-center pb-2 border-b">
+                                                <div className="flex items-center gap-2">
+                                                    <CalendarIcon className="h-4 w-4 text-primary" />
+                                                    <span className="font-bold text-lg text-foreground">{item.startWork}</span>
+                                                </div>
+                                                <Badge className={`${getStatusColor(item.statusRecord)}`}>
+                                                    {statusOptions.find(opt => opt.value === item.statusRecord)?.label || item.statusRecord}
+                                                </Badge>
+                                            </div>
+                                            <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
+                                                <div className="font-medium text-muted-foreground">Entrada:</div>
+                                                <div className="text-right font-semibold text-foreground">{item.startHour}</div>
 
-                                <table className="w-full">
-                                    <thead>
-                                        <tr className="border-b border-primary/20 bg-gradient-to-r from-primary/10 via-primary/5 to-secondary/5">
-                                            <th className="text-left p-4 text-sm font-semibold text-foreground">Data Entrada</th>
-                                            <th className="text-left p-4 text-sm font-semibold text-foreground">Hora Entrada</th>
-                                            <th className="text-left p-4 text-sm font-semibold text-foreground">Data Saída</th>
-                                            <th className="text-left p-4 text-sm font-semibold text-foreground">Hora Saída</th>
-                                            <th className="text-left p-4 text-sm font-semibold text-foreground">Horas Trabalhadas</th>
-                                            <th className="text-left p-4 text-sm font-semibold text-foreground">Saldo</th>
-                                            <th className="text-left p-4 text-sm font-semibold text-foreground">Status</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        {reportData.map((item, index) => (
-                                            <tr
-                                                key={index}
-                                                className={`border-b border-border/50 cursor-pointer hover:bg-gradient-to-r hover:from-primary/10 hover:to-secondary/5 transition-all duration-200 ${index % 2 === 0
-                                                    ? 'bg-gradient-to-r from-background to-background'
-                                                    : 'bg-gradient-to-r from-muted/10 to-primary/5'
-                                                    }`}
-                                                onClick={() => handleEditRecord(item)}
-                                            >
-                                                <td className="p-4 text-sm text-foreground">{item.startWork}</td>
-                                                <td className="p-4 text-sm text-foreground">{item.startHour}</td>
-                                                <td className="p-4 text-sm text-foreground">{item.endWork}</td>
-                                                <td className="p-4 text-sm text-foreground">{item.endHour}</td>
-                                                <td className="p-4 text-sm text-foreground font-medium">{item.hoursWork}</td>
-                                                <td className={`p-4 text-sm font-medium ${item.balance.startsWith('-') ? 'text-destructive' : 'text-success'
-                                                    }`}>
-                                                    {item.balance}
-                                                </td>
-                                                <td className="p-4">
-                                                    <div className="flex items-center justify-between">
-                                                        <Badge
-                                                            className={`${getStatusColor(item.statusRecord)} text-xs border-0`}
-                                                        >
-                                                            {statusOptions.find(opt => opt.value === item.statusRecord)?.label || item.statusRecord}
-                                                        </Badge>
-                                                        <Edit className="h-4 w-4 text-muted-foreground" />
-                                                    </div>
-                                                </td>
-                                            </tr>
-                                        ))}
-                                    </tbody>
-                                </table>
+                                                <div className="font-medium text-muted-foreground">Saída:</div>
+                                                <div className="text-right font-semibold text-foreground">{item.endHour}</div>
+
+                                                <div className="font-medium text-muted-foreground">Horas Trab.:</div>
+                                                <div className="text-right font-semibold text-foreground">{item.hoursWork}</div>
+
+                                                <div className="font-medium text-muted-foreground">Saldo:</div>
+                                                <div className={`text-right font-bold ${item.balance.startsWith('-') ? 'text-destructive' : 'text-green-600'}`}>{item.balance}</div>
+                                            </div>
+                                            <div className="flex justify-end pt-2 text-primary opacity-0 group-hover:opacity-100 transition-opacity">
+                                                <Edit className="h-4 w-4" />
+                                            </div>
+                                        </CardContent>
+                                    </Card>
+                                ))}
                             </div>
                         </CardContent>
                     </Card>
                 )}
 
-                <Dialog open={editModalOpen} onOpenChange={setEditModalOpen}>
-                    <DialogContent className="sm:max-w-md">
-                        <DialogHeader>
-                            <DialogTitle>Editar Registro</DialogTitle>
+ <Dialog open={editModalOpen} onOpenChange={setEditModalOpen}>
+                    <DialogContent className="sm:max-w-md bg-card/90 backdrop-blur-sm border-primary/30">
+                        <DialogHeader className="border-b border-primary/20 pb-4">
+                            <DialogTitle className="flex items-center gap-2 text-xl font-semibold bg-gradient-to-r from-foreground to-primary bg-clip-text text-transparent">
+                                <Edit className="h-5 w-5 text-primary" />
+                                Editar Registro
+                            </DialogTitle>
                             <DialogDescription>
-                                Edite as informações do registro selecionado
+                                Modifique as informações do registro e solicite a aprovação.
                             </DialogDescription>
                         </DialogHeader>
 
                         <Form {...form}>
-                            <form onSubmit={form.handleSubmit(handleSaveRecord)} className="space-y-4">
-                                <div className="grid grid-cols-2 gap-4">
-                                    <FormField
-                                        control={form.control}
-                                        name="startDate"
-                                        render={({ field }) => (
-                                            <FormItem>
-                                                <FormLabel>Data de Início</FormLabel>
-                                                <FormControl>
-                                                    <Input
-                                                        type="date"
-                                                        {...field}
-                                                        className="focus:border-primary"
-                                                    />
-                                                </FormControl>
-                                                <FormMessage />
-                                            </FormItem>
-                                        )}
-                                    />
-
-                                    <FormField
-                                        control={form.control}
-                                        name="endDate"
-                                        render={({ field }) => (
-                                            <FormItem>
-                                                <FormLabel>Data de Fim</FormLabel>
-                                                <FormControl>
-                                                    <Input
-                                                        type="date"
-                                                        {...field}
-                                                        className="focus:border-primary"
-                                                    />
-                                                </FormControl>
-                                                <FormMessage />
-                                            </FormItem>
-                                        )}
-                                    />
-                                </div>
-
-                                <div className="grid grid-cols-2 gap-4">
-                                    <FormField
-                                        control={form.control}
-                                        name="startHour"
-                                        render={({ field }) => (
-                                            <FormItem>
-                                                <FormLabel>Hora de Início</FormLabel>
-                                                <FormControl>
-                                                    <Input
-                                                        type="time"
-                                                        {...field}
-                                                        className="focus:border-primary"
-                                                    />
-                                                </FormControl>
-                                                <FormMessage />
-                                            </FormItem>
-                                        )}
-                                    />
-
-                                    <FormField
-                                        control={form.control}
-                                        name="endHour"
-                                        render={({ field }) => (
-                                            <FormItem>
-                                                <FormLabel>Hora de Fim</FormLabel>
-                                                <FormControl>
-                                                    <Input
-                                                        type="time"
-                                                        {...field}
-                                                        className="focus:border-primary"
-                                                    />
-                                                </FormControl>
-                                                <FormMessage />
-                                            </FormItem>
-                                        )}
-                                    />
-                                </div>
-
-                                <FormField
-                                    control={form.control}
-                                    name="managerId"
-                                    render={({ field }) => (
+                            <form onSubmit={form.handleSubmit(handleSaveRecord)} className="space-y-6 pt-4">
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                    <FormField control={form.control} name="startDate" render={({ field }) => (
                                         <FormItem>
-                                            <FormLabel>Administrador</FormLabel>
-                                            <Select onValueChange={field.onChange} value={field.value}>
-                                                <FormControl>
-                                                    <SelectTrigger className="focus:border-primary">
-                                                        <SelectValue placeholder="Selecione um administrador" />
-                                                    </SelectTrigger>
-                                                </FormControl>
-                                                <SelectContent>
-                                                    {managers.map((manager) => (
-                                                        <SelectItem key={manager.id} value={manager.id}>
-                                                            {manager.name}
-                                                        </SelectItem>
-                                                    ))}
-                                                </SelectContent>
-                                            </Select>
+                                            <FormLabel>Data de Início</FormLabel>
+                                            <FormControl>
+                                                <Input type="date" {...field} className="focus:border-primary focus:ring-primary/20" />
+                                            </FormControl>
                                             <FormMessage />
                                         </FormItem>
-                                    )}
-                                />
-
-                                <div className="flex justify-end space-x-2 pt-4">
-                                    <Button
-                                        type="button"
-                                        variant="outline"
-                                        onClick={() => setEditModalOpen(false)}
-                                    >
+                                    )} />
+                                    <FormField control={form.control} name="endDate" render={({ field }) => (
+                                        <FormItem>
+                                            <FormLabel>Data de Fim</FormLabel>
+                                            <FormControl>
+                                                <Input type="date" {...field} className="focus:border-primary focus:ring-primary/20" />
+                                            </FormControl>
+                                            <FormMessage />
+                                        </FormItem>
+                                    )} />
+                                </div>
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                    <FormField control={form.control} name="startHour" render={({ field }) => (
+                                        <FormItem>
+                                            <FormLabel>Hora de Início</FormLabel>
+                                            <FormControl>
+                                                <Input type="time" {...field} className="focus:border-primary focus:ring-primary/20" />
+                                            </FormControl>
+                                            <FormMessage />
+                                        </FormItem>
+                                    )} />
+                                    <FormField control={form.control} name="endHour" render={({ field }) => (
+                                        <FormItem>
+                                            <FormLabel>Hora de Fim</FormLabel>
+                                            <FormControl>
+                                                <Input type="time" {...field} className="focus:border-primary focus:ring-primary/20" />
+                                            </FormControl>
+                                            <FormMessage />
+                                        </FormItem>
+                                    )} />
+                                </div>
+                                <FormField control={form.control} name="managerId" render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Aprovador</FormLabel>
+                                        <Select onValueChange={field.onChange} value={field.value}>
+                                            <FormControl>
+                                                <SelectTrigger className="focus:border-primary focus:ring-primary/20">
+                                                    <SelectValue placeholder="Selecione um administrador" />
+                                                </SelectTrigger>
+                                            </FormControl>
+                                            <SelectContent>
+                                                {managers.map((manager) => (
+                                                    <SelectItem key={manager.id} value={manager.id}>{manager.name}</SelectItem>
+                                                ))}
+                                            </SelectContent>
+                                        </Select>
+                                        <FormMessage />
+                                    </FormItem>
+                                )} />
+                                <div className="flex justify-end space-x-4 pt-4">
+                                    <Button type="button" variant="outline" onClick={() => setEditModalOpen(false)}>
                                         Cancelar
                                     </Button>
-                                    <Button
-                                        type="submit"
-                                    >
-                                        Salvar
+                                    <Button type="submit" className="bg-primary hover:bg-primary/90">
+                                        Solicitar Aprovação
                                     </Button>
                                 </div>
                             </form>

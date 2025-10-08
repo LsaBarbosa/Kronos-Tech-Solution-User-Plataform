@@ -17,7 +17,8 @@ const Header = ({ onMenuClick }: HeaderProps) => {
             variant="ghost"
             size="icon"
             onClick={onMenuClick}
-            className="hover:bg-accent hover:text-accent-foreground transition-colors"
+            // MODIFICADO: text-primary para destaque fixo + hover e focus temáticos
+            className="text-primary hover:bg-primary/10 hover:text-primary transition-colors focus-visible:ring-primary/20"
           >
             <Menu className="h-6 w-6" />
           </Button>

@@ -283,8 +283,8 @@ export default function EnviarDocumentos() {
                   <Label className="text-sm font-medium">Arquivo da Folha de Pagamento</Label>
                   <div
                     className={`relative border-2 border-dashed rounded-lg p-6 sm:p-8 text-center transition-all duration-300 ${isDragOver
-                        ? "border-primary bg-primary/10 shadow-lg scale-105"
-                        : "border-primary/25 hover:border-primary/50 hover:bg-primary/5"
+                      ? "border-primary bg-primary/10 shadow-lg scale-105"
+                      : "border-primary/25 hover:border-primary/50 hover:bg-primary/5"
                       }`}
                     onDragOver={handleDragOver}
                     onDragLeave={handleDragLeave}
@@ -341,10 +341,17 @@ export default function EnviarDocumentos() {
                     <SelectContent>
                       <SelectItem value="PAYSLIP">Contracheque</SelectItem>
                       <SelectItem value="DOCTOR_APPOINTMENT">Atestado</SelectItem>
+                      <SelectItem value="EMPLOYEE_DOCUMENTS">Documentos Pessoais</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
-
+                <div className="p-4 bg-primary/5 rounded-lg border border-primary/20">
+                  <p className="text-sm text-primary mb-1">💡 Dica de uso:</p>
+                  <p className="text-xs text-gray-text">
+                    1. Selecione um colaborador para enviar o arquivo<br />
+                    2. Apenas os Administradores e o colaborador selecionado podem ver os seus documentos.<br />
+                  </p>
+                </div>
                 {/* Submit Button */}
                 <div className="pt-2 sm:pt-4">
                   <Button

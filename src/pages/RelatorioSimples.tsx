@@ -287,7 +287,7 @@ const RelatorioSimples = () => {
         yPosition += 7;
       }
 
-      doc.text(`Referência: ${referenceTime}`, 20, yPosition);
+      doc.text(`Carga horária diária: ${referenceTime}`, 20, yPosition);
       yPosition += 7;
 
       if (selectedDates.length > 0) {
@@ -560,16 +560,16 @@ const RelatorioSimples = () => {
                   <div className="p-4 bg-primary/5 rounded-lg border border-primary/20">
                     <p className="text-sm text-primary mb-1">💡 Dica de uso:</p>
                     <p className="text-xs text-gray-text">
-                      1. Os feriados nacionais brasileiros estão destacados automaticamente com sublinhado.
+                      1. Os feriados nacionais brasileiros estão destacados sublinhado.
                     </p>
                     <br />
                     <p className="text-xs text-gray-text">
-                      2. O Relatório Simples não filtra os regitros por status. Retorna todos os registros do dia selecionado.
+                      2. O Relatório Simples não filtra os regitros por status, apenas retorna todos os registros do dia selecionado.
                     </p>
                     <br />
                     <p className="text-xs text-gray-text">
-                      3. Ao gerar o relatório todos os registros do dia selecionado são simplificados,
-                      retornando o total de horas trabalhadas e o saldo de horas baseado na carga horária de trabalho
+                      3. Ao gerar o relatório, todos os registros do dia selecionado são simplificados,
+                      retornando: <br/> - Total de horas trabalhadas. <br/> - Saldo de horas baseado na carga horária de trabalho.
                     </p>
                     <br />
                   </div>

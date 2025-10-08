@@ -18,7 +18,7 @@ import RelatorioDetalhado from "./pages/RelatorioDetalhado";
 import Documentos from "./pages/Documentos";
 import AtestadoMedico from "./pages/AtestadoMedico";
 import EnviarDocumentos from "./pages/EnviarDocumentos";
-import EnviarAtestado from "./pages/EnviarAtestado";
+import EnviarAtestado from "./pages/DocumentoColaborador";
 import Usuario from "./pages/Usuario";
 import CriarColaborador from "./pages/CriarColaborador";
 import ListaColaboradores from "./pages/ListaColaboradores";
@@ -31,6 +31,7 @@ import CriarAviso from "./pages/CriarAviso";
 import StatusRegistro from "./pages/StatusRegistro";
 import EsqueciSenha from "./pages/EsqueciSenha";
 import ResetPassword from "./pages/ResetPassword";
+import DocumentoColaborador from "./pages/DocumentoColaborador";
 
 const queryClient = new QueryClient();
 
@@ -53,7 +54,7 @@ const App = () => (
           <Route path="/relatorio-detalhado" element={<RelatorioDetalhado />} />
           <Route path="/documentos" element={<Documentos />} />
           <Route path="/enviar-documentos" element={<EnviarDocumentos />} />
-          <Route path="/enviar-atestado" element={<EnviarAtestado />} />
+          <Route path="/enviar-documento-colaborador" element={<DocumentoColaborador />} />
           <Route path="/atestado-medico" element={<AtestadoMedico />} />
           <Route path="/usuario" element={<Usuario />} />
           <Route path="/criar-colaborador" element={<CriarColaborador />} />

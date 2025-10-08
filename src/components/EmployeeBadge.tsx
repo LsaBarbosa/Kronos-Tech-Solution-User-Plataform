@@ -22,6 +22,11 @@ interface EmployeeBadgeProps {
   onUpdateSuccess: () => void;
 }
 
+const isValidEmail = (email: string) => {
+  const emailRegex = /^[^\s@]+@[^\s@]+\.[^\s@]+$/;
+  return emailRegex.test(email);
+};
+
 const EmployeeBadge = ({ userData, isLoading, onUpdateSuccess }: EmployeeBadgeProps) => {
   const [isUpdating, setIsUpdating] = useState(false);
   const [isEditing, setIsEditing] = useState({
@@ -46,6 +51,15 @@ const EmployeeBadge = ({ userData, isLoading, onUpdateSuccess }: EmployeeBadgePr
   }, [userData]);
 
   const handleUpdateProfile = async (field: keyof Omit<UserProfile, 'fullName' | 'jobPosition' | 'salary' | 'companyName'>) => {
+     if (field === 'email' && !isValidEmail(tempData.email)) {
+      toast.error("Por favor, insira um e-mail válido (email@exemplo.com).");
+      return; 
+    }
+    if (field === 'phone' && tempData.phone.length !== 11) {
+      toast.error("O telefone deve ter exatamente 11 dígitos.");
+      return; 
+    }
+
     setIsUpdating(true);
     try {
       const token = localStorage.getItem("token");
@@ -122,7 +136,7 @@ const EmployeeBadge = ({ userData, isLoading, onUpdateSuccess }: EmployeeBadgePr
   };
 
   return (
-    <div className="w-64">
+    <div className="w-96">
       <Card className="bg-gradient-to-b from-card to-card/95 shadow-lg border-2 border-primary/20">
         <CardHeader className="pb-3">
           <div className="text-center bg-primary/10 -mx-6 -mt-6 pt-4 pb-2 rounded-t-lg border-b border-primary/20">
@@ -152,7 +166,10 @@ const EmployeeBadge = ({ userData, isLoading, onUpdateSuccess }: EmployeeBadgePr
                 <div className="flex items-center gap-2">
                   <Input
                     value={tempData.phone}
-                    onChange={(e) => setTempData({ ...tempData, phone: e.target.value })}
+                   onChange={(e) => {
+                      const numericValue = e.target.value.replace(/\D/g, '');
+                      setTempData({ ...tempData, phone: numericValue.slice(0, 11) });
+                    }}
                     className="h-8 text-sm"
                     autoFocus
                   />
