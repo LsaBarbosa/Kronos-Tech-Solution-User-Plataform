@@ -14,6 +14,7 @@ import { Upload, FileText, X, Ban } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { API_BASE_URL } from "@/config/api";
 
+type DocumentType = "DOCTOR_APPOINTMENT" | "EMPLOYEE_DOCUMENTS";
 // Função auxiliar para obter os cabeçalhos de autenticação
 const getAuthHeaders = () => {
   const token = localStorage.getItem("token");
@@ -47,13 +48,14 @@ const decodeToken = (token: string) => {
   }
 };
 
-export default function EnviarAtestado() {
+export default function DocumentoColaborador() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [isDragOver, setIsDragOver] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
   const [currentUserId, setCurrentUserId] = useState("");
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const [documentType, setDocumentType] = useState<DocumentType>("DOCTOR_APPOINTMENT");
   const { toast } = useToast();
 
   useEffect(() => {
@@ -136,7 +138,7 @@ export default function EnviarAtestado() {
 
       toast({
         title: "Sucesso",
-        description: "Atestado médico enviado com sucesso!",
+        description: "Arquivo enviado com sucesso!",
       });
 
       // Reset form
@@ -171,7 +173,7 @@ export default function EnviarAtestado() {
       <div className="flex flex-col sm:flex-row min-h-screen">
         <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
 
-        <main className="flex-1 mobile-container pt-20 pb-8"> 
+        <main className="flex-1 mobile-container pt-20 pb-8">
           <div className="max-w-4xl mx-auto">
             <div className="mb-6 sm:mb-8">
               <h1 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-foreground to-primary bg-clip-text text-transparent page-title">
@@ -182,7 +184,7 @@ export default function EnviarAtestado() {
             <Card className="border-primary/20 shadow-lg">
               <CardHeader className="p-4 sm:p-6 bg-gradient-to-r from-primary/5 to-primary/10 rounded-t-lg border-b border-primary/10">
                 <CardTitle className="text-lg sm:text-xl text-primary">
-                  Envie seu atestado médico para registro
+                  Envie seus documentos para registro
                 </CardTitle>
 
               </CardHeader>
@@ -190,12 +192,12 @@ export default function EnviarAtestado() {
                 {/* File Upload Area */}
                 <div className="space-y-2">
                   <Label className="text-sm font-medium">
-                    Arquivo do Atestado Médico
+                    Arquivo do Colaborador
                   </Label>
                   <div
                     className={`relative border-2 border-dashed rounded-lg p-6 sm:p-8 text-center transition-all duration-300 ${isDragOver
-                        ? "border-primary bg-primary/10 shadow-lg scale-105"
-                        : "border-primary/25 hover:border-primary/50 hover:bg-primary/5"
+                      ? "border-primary bg-primary/10 shadow-lg scale-105"
+                      : "border-primary/25 hover:border-primary/50 hover:bg-primary/5"
                       }`}
                     onDragOver={handleDragOver}
                     onDragLeave={handleDragLeave}
@@ -206,7 +208,7 @@ export default function EnviarAtestado() {
                       type="file"
                       className="absolute inset-0 w-full h-full opacity-0 cursor-pointer touch-target"
                       onChange={handleFileSelect}
-                      accept=".pdf"
+                      accept=".pdf, .jpg, .jpeg, .png, .docx, .doc"
                     />
 
                     {!selectedFile ? (
@@ -217,7 +219,8 @@ export default function EnviarAtestado() {
                             Clique para selecionar ou arraste um arquivo
                           </p>
                           <p className="text-xs sm:text-sm text-muted-foreground mt-1">
-                            Somente arquivos no formato .PDF
+                            Envie aqui os arquivos de texto ou imagem<br />
+                            .pdf, .jpg, .jpeg, .png, .docx, .doc
                           </p>
                         </div>
                       </div>
@@ -245,7 +248,58 @@ export default function EnviarAtestado() {
                     )}
                   </div>
                 </div>
+                {/* Document Type Selector (Radio Buttons) */}
+                <div className="space-y-3">
+    <Label className="text-sm font-medium">
+        Tipo de Documento
+    </Label>
+    <div className="flex flex-col sm:flex-row gap-4">
 
+        {/* Opção 1: DOCTOR_APPOINTMENT (Atestado Médico) */}
+        <Label htmlFor="doctor_appointment" className="flex items-center space-x-2 cursor-pointer transition-colors">
+            <input
+                type="radio"
+                id="doctor_appointment"
+                name="documentType"
+                value="DOCTOR_APPOINTMENT"
+                checked={documentType === "DOCTOR_APPOINTMENT"}
+                onChange={() => setDocumentType("DOCTOR_APPOINTMENT")}
+                // Classes para garantir a cor e REMOVER o contorno/fundo
+                className="h-4 w-4 border-gray-300 transition-colors
+                           focus:ring-0 focus:ring-offset-0 focus:outline-none 
+                           checked:bg-primary checked:border-primary 
+                           appearance-none checked:border-none" 
+                style={{ accentColor: 'var(--primary)', outline: 'none' }} // Força a cor primária via CSS inline
+            />
+            <span className="font-medium">Atestado Médico</span>
+        </Label>
+
+        {/* Opção 2: EMPLOYEE_DOCUMENTS (Documentos Pessoais) */}
+        <Label htmlFor="employee_documents" className="flex items-center space-x-2 cursor-pointer transition-colors">
+            <input
+                type="radio"
+                id="employee_documents"
+                name="documentType"
+                value="EMPLOYEE_DOCUMENTS"
+                checked={documentType === "EMPLOYEE_DOCUMENTS"}
+                onChange={() => setDocumentType("EMPLOYEE_DOCUMENTS")}
+                className="h-4 w-4 border-gray-300 transition-colors
+                           focus:ring-0 focus:ring-offset-0 focus:outline-none 
+                           checked:bg-primary checked:border-primary 
+                           appearance-none checked:border-none" 
+                style={{ accentColor: 'var(--primary)', outline: 'none' }} // Força a cor primária via CSS inline
+            />
+            <span className="font-medium">Documentos Pessoais</span>
+        </Label>
+    </div>
+</div>
+                <div className="p-4 bg-primary/5 rounded-lg border border-primary/20">
+                  <p className="text-sm text-primary mb-1">💡 Dica de uso:</p>
+                  <p className="text-xs text-gray-text">
+                    1. Selecione a classificação do arquivo, para uma melhor organização<br/>
+                    2. Apenas você e seus Administradores podem ver os seus documentos
+                  </p>
+                </div>
                 {/* Document Type Info */}
                 {/* Submit Button */}
                 <div className="pt-2 sm:pt-4">
@@ -257,7 +311,7 @@ export default function EnviarAtestado() {
                   >
                     {isUploading
                       ? "Enviando..."
-                      : "Enviar Atestado Médico"}
+                      : "Enviar Documento Médico"}
                   </Button>
                 </div>
               </CardContent>

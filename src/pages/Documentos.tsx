@@ -1,7 +1,7 @@
 import { useState, useEffect } from "react";
 import Header from "@/components/Header";
 import Sidebar from "@/components/Sidebar";
-import { Download, FileText, Calendar, Search, UserCheck, UserX } from "lucide-react";
+import { Download, FileText, Calendar, Search, UserCheck, UserX, Trash2 } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
@@ -45,7 +45,7 @@ const decodeToken = (token: string) => {
   try {
     const base64Url = token.split('.')[1];
     const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-    const payload = decodeURIComponent(atob(base64).split('').map(function(c) {
+    const payload = decodeURIComponent(atob(base64).split('').map(function (c) {
       return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
     }).join(''));
     return JSON.parse(payload);
@@ -189,6 +189,46 @@ const Documentos = () => {
     }
   };
 
+  const handleDeleteDocument = async (documentId: string, documentName: string) => {
+    if (!selectedEmployeeId) {
+        toast.error("Funcionário não selecionado. Não é possível deletar.");
+        return;
+    }
+
+    // Confirmação (Opcional, mas altamente recomendado para DELETE)
+    if (!window.confirm(`Você tem certeza que deseja excluir o documento "${documentName}"?`)) {
+        return;
+    }
+
+    try {
+        const headers = getAuthHeaders();
+        if (Object.keys(headers).length === 0) return;
+
+        // Constrói a URL do DELETE: /documents/{documentId}?employeeId={employeeId}
+        const url = `${API_BASE_URL}documents/${documentId}?employeeId=${selectedEmployeeId}`;
+
+        const response = await fetch(url, {
+            method: "DELETE",
+            headers: headers,
+        });
+
+        if (!response.ok) {
+            await handleApiError(response);
+            return;
+        }
+
+        // Se o DELETE foi um sucesso (status 204 No Content ou 200 OK), atualiza o estado local
+        setDocuments(prev => prev.filter(doc => doc.id !== documentId));
+        setFilteredDocuments(prev => prev.filter(doc => doc.id !== documentId));
+
+        toast.success(`Documento "${documentName}" excluído com sucesso!`);
+
+    } catch (error) {
+        console.error("Erro ao deletar documento:", error);
+        toast.error(`Falha ao excluir o documento ${documentName}. Tente novamente.`);
+    }
+};
+
   // Normalize document date string to 'yyyy-MM-dd'
   const toISODate = (dateStr: string): string => {
     if (!dateStr) return "";
@@ -199,7 +239,7 @@ const Documentos = () => {
       if (parts.length === 3) {
         const [day, month, twoDigitYear] = parts;
         if (twoDigitYear.length === 2) {
-          return `20${twoDigitYear}-${month.padStart(2,'0')}-${day.padStart(2,'0')}`;
+          return `20${twoDigitYear}-${month.padStart(2, '0')}-${day.padStart(2, '0')}`;
         }
       }
       const d = new Date(dateStr);
@@ -333,7 +373,7 @@ const Documentos = () => {
       <main className="pt-16 mobile-container py-4 sm:py-20 space-y-6 sm:space-y-8 relative z-10">
         <div className="space-y-2">
           <h1 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-foreground to-primary bg-clip-text text-transparent page-title">
-            Baixar Documentos
+            Buscar Documentos
           </h1>
           <p className="text-sm sm:text-base text-muted-foreground">
             Selecione um funcionário e tipo de documento para visualizar e baixar os arquivos disponíveis.
@@ -399,11 +439,20 @@ const Documentos = () => {
                   <SelectContent>
                     <SelectItem value="PAYSLIP">Contracheque</SelectItem>
                     <SelectItem value="DOCTOR_APPOINTMENT">Atestado</SelectItem>
+                    <SelectItem value="EMPLOYEE_DOCUMENTS">Documentos Pessoais</SelectItem>
                   </SelectContent>
                 </Select>
               </div>
             </div>
-
+            <div className="p-4 bg-primary/5 rounded-lg border border-primary/20">
+              <p className="text-sm text-primary mb-1">💡 Dica de uso:</p>
+              <p className="text-xs text-gray-text">
+                1. Se você não é um administrador, não se preocupe, o sistema automaticamente seleciona seu cadastro<br />
+                2. Apenas você e seus Administradores podem ver os seus documentos.<br />
+                3. Após a geração dos documentos, é possivel filtrar para selecionar uma data específica.<br />
+                4. Clique no arquivo desejado para que se inicie o Download.
+              </p>
+            </div>
             <div className="pt-2">
               <Button
                 onClick={handleSearch}
@@ -497,6 +546,15 @@ const Documentos = () => {
                         </div>
                         <Download className="w-4 h-4 opacity-0 group-hover:opacity-100 transition-opacity" />
                       </a>
+                       <Button
+                          variant="ghost"
+                          size="icon"
+                          onClick={() => handleDeleteDocument(document.id, document.name)}
+                          className="h-8 w-8 text-destructive hover:bg-destructive/10"
+                          title="Excluir"
+                        >
+                          <Trash2 className="w-4 h-4" />
+                        </Button>
                     </div>
                   ))}
                 </div>

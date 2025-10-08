@@ -71,7 +71,13 @@ interface UserData {
   employeeId: string;
 }
 
-interface CombinedColaborator extends Employee, UserData {}
+interface CombinedColaborator extends Employee, UserData { }
+
+// NOVO: Função auxiliar para validação de formato de email
+const isValidEmail = (email: string) => {
+  // Regex simples para formato de email (ex: a@b.com)
+  return /\S+@\S+\.\S+/.test(email);
+};
 
 const ListaColaboradores = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -231,6 +237,54 @@ const ListaColaboradores = () => {
   };
 
   const handleSaveColaborador = async (colaboradorId: string) => {
+    const originalColaborador = colaboradores.find(
+      (c) => c.employeeId === colaboradorId
+    );
+    if (!originalColaborador) {
+      toast({
+        title: "Erro",
+        description: "Colaborador não encontrado para edição.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // INÍCIO DAS VALIDAÇÕES OBRIGATÓRIAS
+    const editedCpf = editedData.maskedCpf ? editedData.maskedCpf.replace(/\D/g, "") : null;
+    const editedCep = editedData.postalCode ? editedData.postalCode.replace(/\D/g, "") : null;
+    const editedEmail = editedData.email;
+
+    // 1. Validação do CPF
+    if (editedCpf && (editedCpf.length !== 11)) {
+      toast({
+        title: "Erro ao salvar",
+        description: "O CPF deve conter exatamente 11 dígitos.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // 2. Validação do Email (apenas se foi alterado e não for o valor original)
+    if (editedEmail && editedEmail !== originalColaborador.email && !isValidEmail(editedEmail)) {
+      toast({
+        title: "Erro ao salvar",
+        description: "O formato do e-mail é inválido.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // 3. Validação do CEP
+    if (editedCep && (editedCep.length !== 8)) {
+      toast({
+        title: "Erro ao salvar",
+        description: "O CEP deve conter exatamente 8 dígitos.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    // Validação do Telefone (mantida)
     const cleanedPhone = editedData.phone.replace(/\D/g, '');
     if (editedData.phone && cleanedPhone.length !== 11) {
       toast({
@@ -240,19 +294,13 @@ const ListaColaboradores = () => {
       });
       return;
     }
-    
+    // FIM DAS VALIDAÇÕES OBRIGATÓRIAS
+
     setIsLoading(true);
     try {
       const token = localStorage.getItem("token");
       if (!token) {
         throw new Error("Token de autenticação não encontrado.");
-      }
-
-      const originalColaborador = colaboradores.find(
-        (c) => c.employeeId === colaboradorId
-      );
-      if (!originalColaborador) {
-        throw new Error("Colaborador não encontrado para edição.");
       }
 
       const bodyDataEmployee: { [key: string]: any } = {};
@@ -261,12 +309,14 @@ const ListaColaboradores = () => {
       if (editedData.fullName && editedData.fullName !== originalColaborador.fullName) {
         bodyDataEmployee.fullName = editedData.fullName;
       }
-      if (editedData.maskedCpf && editedData.maskedCpf.trim() !== "") {
-        bodyDataEmployee.cpf = editedData.maskedCpf.replace(/\D/g, "");
+      // Verifica se CPF foi alterado e usa a versão limpa
+      if (editedCpf && editedCpf !== originalColaborador.maskedCpf.replace(/\D/g, "")) {
+        bodyDataEmployee.cpf = editedCpf;
       }
       if (editedData.jobPosition && editedData.jobPosition !== originalColaborador.jobPosition) {
         bodyDataEmployee.jobPosition = editedData.jobPosition;
       }
+      // Verifica se Email foi alterado
       if (editedData.email && editedData.email !== originalColaborador.email) {
         bodyDataEmployee.email = editedData.email;
       }
@@ -278,13 +328,15 @@ const ListaColaboradores = () => {
       }
 
       const hasAddressChange =
-        (editedData.postalCode &&
-          editedData.postalCode !== originalColaborador.address.postalCode) ||
+        (editedCep &&
+          editedCep !== originalColaborador.address.postalCode) ||
         (editedData.number && editedData.number !== originalColaborador.address.number);
+
       if (hasAddressChange) {
         bodyDataEmployee.address = {
-          postalCode: editedData.postalCode ? editedData.postalCode.replace(/\D/g, "") : undefined,
-          number: editedData.number || undefined,
+          // Usa a versão limpa e validada do CEP
+          postalCode: editedCep || originalColaborador.address.postalCode,
+          number: editedData.number || originalColaborador.address.number,
         };
       }
 
@@ -357,53 +409,65 @@ const ListaColaboradores = () => {
   const handleDeleteColaborador = (colaboradorId: string) => {
     setColaboradores((prev) => prev.filter((c) => c.employeeId !== colaboradorId));
   };
-  
+
   // Nova função para deletar o usuário
   const handleDeleteUser = async (userId: string) => {
-      try {
-          const token = localStorage.getItem("token");
-          if (!token) {
-              throw new Error("Token de autenticação não encontrado.");
-          }
-
-          const response = await fetch(`${API_BASE_URL}users/${userId}`, {
-              method: "DELETE",
-              headers: {
-                  "Content-Type": "application/json",
-                  "Authorization": `Bearer ${token}`,
-              },
-          });
-
-          if (!response.ok) {
-              const errorData = await response.json();
-              throw new Error(errorData.message || "Falha ao deletar o usuário.");
-          }
-
-          toast({
-              title: "Sucesso",
-              description: "Usuário deletado com sucesso.",
-          });
-
-          // Recarrega a lista de colaboradores após a exclusão
-          await fetchColaboradores();
-
-      } catch (error: any) {
-          console.error("Erro ao deletar usuário:", error);
-          toast({
-              title: "Erro",
-              description: error.message || "Não foi possível deletar o usuário.",
-              variant: "destructive",
-          });
+    try {
+      const token = localStorage.getItem("token");
+      if (!token) {
+        throw new Error("Token de autenticação não encontrado.");
       }
+
+      const response = await fetch(`${API_BASE_URL}users/${userId}`, {
+        method: "DELETE",
+        headers: {
+          "Content-Type": "application/json",
+          "Authorization": `Bearer ${token}`,
+        },
+      });
+
+      if (!response.ok) {
+        const errorData = await response.json();
+        throw new Error(errorData.message || "Falha ao deletar o usuário.");
+      }
+
+      toast({
+        title: "Sucesso",
+        description: "Usuário deletado com sucesso.",
+      });
+
+      // Recarrega a lista de colaboradores após a exclusão
+      await fetchColaboradores();
+
+    } catch (error: any) {
+      console.error("Erro ao deletar usuário:", error);
+      toast({
+        title: "Erro",
+        description: error.message || "Não foi possível deletar o usuário.",
+        variant: "destructive",
+      });
+    }
   };
 
   const handleEditedDataChange = (field: string, value: string | boolean) => {
     setEditedData((prev) => {
-        if (field === "phone") {
-            const sanitizedValue = (value as string).replace(/\D/g, '').slice(0, 11);
-            return { ...prev, [field]: sanitizedValue };
+      // Lógica de sanitização e limitação para campos que aceitam apenas números
+      if (field === "maskedCpf" || field === "postalCode" || field === "phone") {
+        const sanitizedValue = (value as string).replace(/\D/g, '');
+        let finalValue = sanitizedValue;
+
+        if (field === "maskedCpf") {
+          finalValue = sanitizedValue.slice(0, 11);
+        } else if (field === "postalCode") {
+          finalValue = sanitizedValue.slice(0, 8);
+        } else if (field === "phone") {
+          finalValue = sanitizedValue.slice(0, 11);
         }
-        return { ...prev, [field]: value };
+        return { ...prev, [field]: finalValue };
+      }
+
+      // Retorna o valor original para os outros campos
+      return { ...prev, [field]: value };
     });
   };
 
@@ -418,10 +482,6 @@ const ListaColaboradores = () => {
         <div className="absolute top-40 right-20 w-24 h-24 bg-primary/15 rounded-full blur-lg animate-float-delayed"></div>
         <div className="absolute bottom-32 left-1/4 w-40 h-40 bg-primary/8 rounded-full blur-2xl animate-float-slow"></div>
         <div className="absolute bottom-20 right-1/3 w-28 h-28 bg-primary/12 rounded-full blur-xl animate-float"></div>
-
-        {/* Geometric Shapes */}
-        <div className="absolute top-1/3 left-5 w-16 h-16 border border-primary/20 rotate-45 animate-spin-slow"></div>
-        <div className="absolute bottom-1/4 right-10 w-12 h-12 bg-primary/10 transform rotate-12 animate-pulse"></div>
 
         {/* Grid Pattern */}
         <div className="absolute inset-0 opacity-[0.015]">
@@ -446,7 +506,7 @@ const ListaColaboradores = () => {
         <div className="max-w-7xl mx-auto">
           {/* Header */}
           <div className="mb-8 text-center md:text-left">
-              <h1 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-foreground to-primary bg-clip-text text-transparent page-title">
+            <h1 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-foreground to-primary bg-clip-text text-transparent page-title">
               Lista de Colaboradores
             </h1>
             <p className="text-muted-foreground text-lg">
@@ -635,7 +695,7 @@ const ListaColaboradores = () => {
                               <AlertDialogFooter>
                                 <AlertDialogCancel>Cancelar</AlertDialogCancel>
                                 <AlertDialogAction
-                                  onClick={() => handleDeleteUser(colaborador.userId)}
+                                  onClick={() => handleDeleteUser(colaborador.userId)} // <-- Função de deleção só é chamada AQUI
                                   className="bg-destructive hover:bg-destructive/90 text-destructive-foreground"
                                 >
                                   Excluir
@@ -680,18 +740,18 @@ const ListaColaboradores = () => {
                             </SelectContent>
                           </Select>
                         </div>
-                        
+
                         {/* Enabled Switch */}
                         <div className="flex items-center gap-3 text-sm">
-                            <Label htmlFor="enabled-toggle" className="text-muted-foreground w-16">Status Ativo:</Label>
-                            <div className="flex-1 flex items-center justify-between">
-                                <span className="font-medium text-sm">{editedData.enabled ? 'Ativo' : 'Inativo'}</span>
-                                <Switch
-                                  id="enabled-toggle"
-                                  checked={editedData.enabled}
-                                  onCheckedChange={(value) => handleEditedDataChange("enabled", value)}
-                                />
-                            </div>
+                          <Label htmlFor="enabled-toggle" className="text-muted-foreground w-16">Status Ativo:</Label>
+                          <div className="flex-1 flex items-center justify-between">
+                            <span className="font-medium text-sm">{editedData.enabled ? 'Ativo' : 'Inativo'}</span>
+                            <Switch
+                              id="enabled-toggle"
+                              checked={editedData.enabled}
+                              onCheckedChange={(value) => handleEditedDataChange("enabled", value)}
+                            />
+                          </div>
                         </div>
 
                         {/* CPF */}
@@ -699,10 +759,13 @@ const ListaColaboradores = () => {
                           <IdCard className="w-4 h-4 text-muted-foreground flex-shrink-0" />
                           <span className="text-muted-foreground w-16">CPF:</span>
                           <Input
+                            // Atualizado o tipo para 'tel' para melhor usabilidade em mobile
+                            type="tel"
                             value={editedData.maskedCpf || ""}
                             onChange={(e) => handleEditedDataChange("maskedCpf", e.target.value)}
                             className="flex-1 h-8 focus:border-primary"
-                            placeholder="CPF"
+                            placeholder="CPF (apenas números)"
+                            maxLength={11} // Mantido para feedback visual
                           />
                         </div>
 
@@ -724,10 +787,11 @@ const ListaColaboradores = () => {
                           <Phone className="w-4 h-4 text-muted-foreground flex-shrink-0" />
                           <span className="text-muted-foreground w-16">Telefone:</span>
                           <Input
+                            type="tel"
                             value={editedData.phone || ""}
                             onChange={(e) => handleEditedDataChange("phone", e.target.value)}
                             className="flex-1 h-8 focus:border-primary"
-                            placeholder="Telefone"
+                            placeholder="Telefone (apenas números)"
                             maxLength={11}
                           />
                         </div>
@@ -751,10 +815,13 @@ const ListaColaboradores = () => {
                           <div className="flex-1 space-y-2">
                             <div className="flex gap-2">
                               <Input
+                                // Atualizado o tipo para 'tel'
+                                type="tel"
                                 value={editedData.postalCode || ""}
                                 onChange={(e) => handleEditedDataChange("postalCode", e.target.value)}
                                 className="flex-1 h-8 focus:border-primary"
-                                placeholder="CEP"
+                                placeholder="CEP (apenas números)"
+                                maxLength={8} // Mantido para feedback visual
                               />
                               <Input
                                 value={editedData.number || ""}

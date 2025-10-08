@@ -81,11 +81,11 @@ const getEasterDate = (year) => {
 
 const statusOptions = [
     { value: "CREATED", label: "Criado" },
-    { value: "PENDING", label: "Pendente" },
-    { value: "UPDATED", label: "Atualizado" },
-    { value: "UPDATE_REJECTED", label: "Atualização Rejeitada" },
+    { value: "PENDING", label: "Saída Pendente" },
+    { value: "UPDATED", label: "Atualizado por ADM" },
+    { value: "UPDATE_REJECTED", label: "Atualização Rejeitada Por ADM" },
     { value: "DAY_OFF", label: "Folga" },
-    { value: "ABSENCE", label: "Ausência" },
+    { value: "ABSENCE", label: "Falta" },
     { value: "PENDING_APPROVAL", label: "Aguardando Aprovação" },
     { value: "DOCTOR_APPOINTMENT", label: "Consulta Médica" },
 ];
@@ -918,7 +918,7 @@ const RelatorioDetalhado = () => {
                         </CardContent>
                     </Card>
                 </div>
-{reportData.length > 0 && (
+                {reportData.length > 0 && (
                     <Card className="mt-8 border-2 border-primary/20 shadow-lg bg-card/80 backdrop-blur-sm">
                         <CardHeader>
                             <CardTitle>Resultados do Relatório</CardTitle>
@@ -966,132 +966,85 @@ const RelatorioDetalhado = () => {
                         </CardContent>
                     </Card>
                 )}
-                
 
-                <Dialog open={editModalOpen} onOpenChange={setEditModalOpen}>
-                    <DialogContent className="sm:max-w-md">
-                        <DialogHeader>
-                            <DialogTitle>Editar Registro</DialogTitle>
+ <Dialog open={editModalOpen} onOpenChange={setEditModalOpen}>
+                    <DialogContent className="sm:max-w-md bg-card/90 backdrop-blur-sm border-primary/30">
+                        <DialogHeader className="border-b border-primary/20 pb-4">
+                            <DialogTitle className="flex items-center gap-2 text-xl font-semibold bg-gradient-to-r from-foreground to-primary bg-clip-text text-transparent">
+                                <Edit className="h-5 w-5 text-primary" />
+                                Editar Registro
+                            </DialogTitle>
                             <DialogDescription>
-                                Edite as informações do registro selecionado
+                                Modifique as informações do registro e solicite a aprovação.
                             </DialogDescription>
                         </DialogHeader>
 
                         <Form {...form}>
-                            <form onSubmit={form.handleSubmit(handleSaveRecord)} className="space-y-4">
-                                <div className="grid grid-cols-2 gap-4">
-                                    <FormField
-                                        control={form.control}
-                                        name="startDate"
-                                        render={({ field }) => (
-                                            <FormItem>
-                                                <FormLabel>Data de Início</FormLabel>
-                                                <FormControl>
-                                                    <Input
-                                                        type="date"
-                                                        {...field}
-                                                        className="focus:border-primary"
-                                                    />
-                                                </FormControl>
-                                                <FormMessage />
-                                            </FormItem>
-                                        )}
-                                    />
-
-                                    <FormField
-                                        control={form.control}
-                                        name="endDate"
-                                        render={({ field }) => (
-                                            <FormItem>
-                                                <FormLabel>Data de Fim</FormLabel>
-                                                <FormControl>
-                                                    <Input
-                                                        type="date"
-                                                        {...field}
-                                                        className="focus:border-primary"
-                                                    />
-                                                </FormControl>
-                                                <FormMessage />
-                                            </FormItem>
-                                        )}
-                                    />
-                                </div>
-
-                                <div className="grid grid-cols-2 gap-4">
-                                    <FormField
-                                        control={form.control}
-                                        name="startHour"
-                                        render={({ field }) => (
-                                            <FormItem>
-                                                <FormLabel>Hora de Início</FormLabel>
-                                                <FormControl>
-                                                    <Input
-                                                        type="time"
-                                                        {...field}
-                                                        className="focus:border-primary"
-                                                    />
-                                                </FormControl>
-                                                <FormMessage />
-                                            </FormItem>
-                                        )}
-                                    />
-
-                                    <FormField
-                                        control={form.control}
-                                        name="endHour"
-                                        render={({ field }) => (
-                                            <FormItem>
-                                                <FormLabel>Hora de Fim</FormLabel>
-                                                <FormControl>
-                                                    <Input
-                                                        type="time"
-                                                        {...field}
-                                                        className="focus:border-primary"
-                                                    />
-                                                </FormControl>
-                                                <FormMessage />
-                                            </FormItem>
-                                        )}
-                                    />
-                                </div>
-
-                                <FormField
-                                    control={form.control}
-                                    name="managerId"
-                                    render={({ field }) => (
+                            <form onSubmit={form.handleSubmit(handleSaveRecord)} className="space-y-6 pt-4">
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                    <FormField control={form.control} name="startDate" render={({ field }) => (
                                         <FormItem>
-                                            <FormLabel>Administrador</FormLabel>
-                                            <Select onValueChange={field.onChange} value={field.value}>
-                                                <FormControl>
-                                                    <SelectTrigger className="focus:border-primary">
-                                                        <SelectValue placeholder="Selecione um administrador" />
-                                                    </SelectTrigger>
-                                                </FormControl>
-                                                <SelectContent>
-                                                    {managers.map((manager) => (
-                                                        <SelectItem key={manager.id} value={manager.id}>
-                                                            {manager.name}
-                                                        </SelectItem>
-                                                    ))}
-                                                </SelectContent>
-                                            </Select>
+                                            <FormLabel>Data de Início</FormLabel>
+                                            <FormControl>
+                                                <Input type="date" {...field} className="focus:border-primary focus:ring-primary/20" />
+                                            </FormControl>
                                             <FormMessage />
                                         </FormItem>
-                                    )}
-                                />
-
-                                <div className="flex justify-end space-x-2 pt-4">
-                                    <Button
-                                        type="button"
-                                        variant="outline"
-                                        onClick={() => setEditModalOpen(false)}
-                                    >
+                                    )} />
+                                    <FormField control={form.control} name="endDate" render={({ field }) => (
+                                        <FormItem>
+                                            <FormLabel>Data de Fim</FormLabel>
+                                            <FormControl>
+                                                <Input type="date" {...field} className="focus:border-primary focus:ring-primary/20" />
+                                            </FormControl>
+                                            <FormMessage />
+                                        </FormItem>
+                                    )} />
+                                </div>
+                                <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
+                                    <FormField control={form.control} name="startHour" render={({ field }) => (
+                                        <FormItem>
+                                            <FormLabel>Hora de Início</FormLabel>
+                                            <FormControl>
+                                                <Input type="time" {...field} className="focus:border-primary focus:ring-primary/20" />
+                                            </FormControl>
+                                            <FormMessage />
+                                        </FormItem>
+                                    )} />
+                                    <FormField control={form.control} name="endHour" render={({ field }) => (
+                                        <FormItem>
+                                            <FormLabel>Hora de Fim</FormLabel>
+                                            <FormControl>
+                                                <Input type="time" {...field} className="focus:border-primary focus:ring-primary/20" />
+                                            </FormControl>
+                                            <FormMessage />
+                                        </FormItem>
+                                    )} />
+                                </div>
+                                <FormField control={form.control} name="managerId" render={({ field }) => (
+                                    <FormItem>
+                                        <FormLabel>Aprovador</FormLabel>
+                                        <Select onValueChange={field.onChange} value={field.value}>
+                                            <FormControl>
+                                                <SelectTrigger className="focus:border-primary focus:ring-primary/20">
+                                                    <SelectValue placeholder="Selecione um administrador" />
+                                                </SelectTrigger>
+                                            </FormControl>
+                                            <SelectContent>
+                                                {managers.map((manager) => (
+                                                    <SelectItem key={manager.id} value={manager.id}>{manager.name}</SelectItem>
+                                                ))}
+                                            </SelectContent>
+                                        </Select>
+                                        <FormMessage />
+                                    </FormItem>
+                                )} />
+                                <div className="flex justify-end space-x-4 pt-4">
+                                    <Button type="button" variant="outline" onClick={() => setEditModalOpen(false)}>
                                         Cancelar
                                     </Button>
-                                    <Button
-                                        type="submit"
-                                    >
-                                        Salvar
+                                    <Button type="submit" className="bg-primary hover:bg-primary/90">
+                                        Solicitar Aprovação
                                     </Button>
                                 </div>
                             </form>

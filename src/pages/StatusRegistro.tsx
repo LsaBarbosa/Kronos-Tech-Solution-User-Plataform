@@ -78,11 +78,11 @@ const getEasterDate = (year: number) => {
 
 const statusOptions = [
     { value: "CREATED", label: "Criado" },
-    { value: "PENDING", label: "Pendente" },
-    { value: "UPDATED", label: "Atualizado" },
-    { value: "UPDATE_REJECTED", label: "Atualização Rejeitada" },
+    { value: "PENDING", label: "Saída Pendente" },
+    { value: "UPDATED", label: "Atualizado por ADM" },
+    { value: "UPDATE_REJECTED", label: "Atualização Rejeitada por ADM" },
     { value: "DAY_OFF", label: "Folga" },
-    { value: "ABSENCE", label: "Ausência" },
+    { value: "ABSENCE", label: "Falta" },
     { value: "PENDING_APPROVAL", label: "Aguardando Aprovação" },
     { value: "DOCTOR_APPOINTMENT", label: "Consulta Médica" },
 ];

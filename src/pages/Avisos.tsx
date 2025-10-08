@@ -1,7 +1,8 @@
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog";
+// Importei o DialogFooter aqui para usá-lo no novo Dialog
+import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog"; 
 import { Badge } from "@/components/ui/badge";
 import { ArrowLeft, Bell, Calendar, Eye, AlertTriangle, Info, CheckCircle, Loader2, Trash2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
@@ -10,8 +11,10 @@ import Sidebar from "@/components/Sidebar";
 import { useToast } from "@/hooks/use-toast";
 import { API_BASE_URL } from "@/config/api";
 
+// ALTERAÇÃO 1: Atualização da Interface Message
 interface Message {
   messageId: string;
+  title: string; // NOVO CAMPO: Adicionado o título
   messageText: string;
   priority: 'NORMAL' | 'ALERT' | 'CRITICAL';
   createdAt: string;
@@ -47,6 +50,9 @@ const Avisos = () => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [selectedMessage, setSelectedMessage] = useState<Message | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  // NOVO ESTADO: Para controlar o diálogo de confirmação de exclusão
+  const [isConfirmDeleteDialogOpen, setIsConfirmDeleteDialogOpen] = useState(false); 
+  const [isDeleting, setIsDeleting] = useState(false); // NOVO ESTADO: Para feedback visual durante a exclusão
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -55,7 +61,7 @@ const Avisos = () => {
   const { toast } = useToast();
 
   useEffect(() => {
-       const token = localStorage.getItem("token");
+         const token = localStorage.getItem("token");
     if (token) {
         const decoded = decodeToken(token);
         setUserRole(decoded?.role === 'MANAGER' || decoded?.role === 'PARTNER' ? decoded.role : '');
@@ -95,9 +101,21 @@ const Avisos = () => {
     setSelectedMessage(message);
     setIsDialogOpen(true);
   };
+  
+  // NOVA FUNÇÃO: Abre o diálogo de confirmação
+  const handleConfirmDelete = () => { 
+    if (selectedMessage) {
+      setIsConfirmDeleteDialogOpen(true);
+    }
+  };
 
-  const handleDeleteMessage = async (messageId: string) => {
+  // FUNÇÃO DE EXCLUSÃO MODIFICADA
+  const handleDeleteMessage = async () => {
+    if (!selectedMessage) return;
+
     try {
+      setIsDeleting(true); // Inicia o loading
+      const messageId = selectedMessage.messageId;
       const headers = getAuthHeaders();
       const response = await fetch(`${API_BASE_URL}messages/${messageId}`, {
         method: "DELETE",
@@ -109,7 +127,8 @@ const Avisos = () => {
       }
 
       setMessages(messages.filter(msg => msg.messageId !== messageId));
-      setIsDialogOpen(false);
+      setIsDialogOpen(false); // Fecha o diálogo principal
+      setIsConfirmDeleteDialogOpen(false); // Fecha o diálogo de confirmação
       toast({
         title: "Sucesso!",
         description: "Mensagem deletada com sucesso.",
@@ -120,6 +139,8 @@ const Avisos = () => {
         description: err.message,
         variant: "destructive",
       });
+    } finally {
+      setIsDeleting(false); // Finaliza o loading
     }
   };
 
@@ -130,7 +151,8 @@ const Avisos = () => {
       case 'ALERT':
         return <AlertTriangle className="h-4 w-4 text-yellow-600" />;
       case 'CRITICAL':
-        return <CheckCircle className="h-4 w-4 text-destructive" />;
+      // Modifiquei para um ícone que talvez faça mais sentido para "Crítico" se CheckCircle era usado para outra coisa
+        return <AlertTriangle className="h-4 w-4 text-destructive" />; 
       default:
         return <Bell className="h-4 w-4" />;
     }
@@ -219,19 +241,24 @@ const Avisos = () => {
                     <div className="flex items-center gap-3">
                       {getIconePorTipo(message.priority)}
                       <div className="flex-1">
+                        {/* Exibir o título do aviso */}
                         <CardTitle className={`text-lg font-semibold`}>
-                          {getTituloPorTipo(message.priority)}
+                          {message.title} 
                         </CardTitle>
+                        {/* Adicionar o tipo/prioridade como um subtítulo */}
+                        <p className="text-sm text-muted-foreground/80 mt-1">
+                            {getTituloPorTipo(message.priority)}
+                        </p>
                       </div>
                     </div>
                     {getBadgePorTipo(message.priority)}
                   </div>
                 </CardHeader>
-                <CardContent>
-                  <div className="flex items-center justify-between">
-                    <p className="text-muted-foreground line-clamp-2 flex-1">
-                      {message.messageText.substring(0, 100)}...
-                    </p>
+                {/* ALTERAÇÃO CHAVE: Modificando CardContent para remover a prévia */}
+                <CardContent className="pt-2 pb-4">
+                  <div className="flex items-center justify-end">
+                    
+                    {/* Movemos a data e o botão para cá, removendo a prévia da mensagem */}
                     <div className="flex items-center gap-4 ml-4">
                       <div className="flex items-center gap-2 text-sm text-muted-foreground">
                         <Calendar className="h-4 w-4" />
@@ -244,6 +271,7 @@ const Avisos = () => {
                     </div>
                   </div>
                 </CardContent>
+                {/* FIM DA ALTERAÇÃO CHAVE */}
               </Card>
             ))}
           </div>
@@ -263,14 +291,20 @@ const Avisos = () => {
           </Card>
         )}
       </main>
+      
+      {/* DIALOG PRINCIPAL - Detalhes do Aviso (Mantido inalterado) */}
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
       <DialogContent className="max-w-xl sm:max-w-2xl md:max-w-3xl max-h-[90vh] overflow-y-auto rounded-xl shadow-2xl">
           <DialogHeader>
-            {/* Título com destaque */}
+            {/* Exibir o Título real do aviso na Dialog */}
             <DialogTitle className="flex items-center gap-3 text-xl sm:text-2xl font-bold text-foreground">
               {selectedMessage && getIconePorTipo(selectedMessage.priority)}
-              {selectedMessage && getTituloPorTipo(selectedMessage.priority)}
+              {selectedMessage && selectedMessage.title}
             </DialogTitle>
+            {/* Adicionar o Tipo/Prioridade como subtítulo da Dialog */}
+            <p className="text-sm text-muted-foreground/80 -mt-1 ml-9">
+              {selectedMessage && getTituloPorTipo(selectedMessage.priority)}
+            </p>
           </DialogHeader>
 
           {selectedMessage && (
@@ -292,15 +326,58 @@ const Avisos = () => {
             </div>
           )}
           <DialogFooter>
-            {/* O botão 'Deletar Mensagem' só é renderizado se o usuário for um 'MANAGER' */}
+            {/* O botão 'Deletar Mensagem' agora chama a função de confirmação */}
             {selectedMessage && userRole === 'MANAGER' && ( 
               <Button
                 variant="destructive"
-                onClick={() => handleDeleteMessage(selectedMessage.messageId)}
+                onClick={handleConfirmDelete} // Chama o novo handler
               >
                 <Trash2 className="mr-2 h-4 w-4" /> Deletar Mensagem
               </Button>
             )}
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+      
+      {/* NOVO DIALOG - Confirmação de Exclusão (Mantido inalterado) */}
+      <Dialog open={isConfirmDeleteDialogOpen} onOpenChange={setIsConfirmDeleteDialogOpen}>
+        <DialogContent className="sm:max-w-md">
+          <DialogHeader>
+            <DialogTitle className="flex items-center gap-2 text-xl text-destructive">
+              <AlertTriangle className="h-6 w-6" /> Confirmação de Exclusão
+            </DialogTitle>
+          </DialogHeader>
+          <div className="py-4">
+            <p className="text-muted-foreground">
+              Você tem certeza que deseja excluir este aviso? Esta ação é irreversível.
+            </p>
+            {selectedMessage && (
+              <p className="mt-2 text-sm font-medium text-foreground">
+                {/* Exibir o Título na confirmação de exclusão */}
+                Aviso: <span className="italic line-clamp-1 font-bold">{selectedMessage.title}</span>
+              </p>
+            )}
+          </div>
+          <DialogFooter className="sm:justify-between gap-2">
+            <Button
+              variant="outline"
+              onClick={() => setIsConfirmDeleteDialogOpen(false)}
+              disabled={isDeleting}
+            >
+              Cancelar
+            </Button>
+            <Button
+              variant="destructive"
+              onClick={handleDeleteMessage}
+              disabled={isDeleting}
+            >
+              {isDeleting ? (
+                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+              ) : (
+                <Trash2 className="mr-2 h-4 w-4" />
+              )}
+              {isDeleting ? 'Excluindo...' : 'Confirmar Exclusão'}
+            </Button>
           </DialogFooter>
         </DialogContent>
       </Dialog>

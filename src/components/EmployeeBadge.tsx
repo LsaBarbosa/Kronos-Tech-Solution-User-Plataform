@@ -136,7 +136,7 @@ const EmployeeBadge = ({ userData, isLoading, onUpdateSuccess }: EmployeeBadgePr
   };
 
   return (
-    <div className="w-64">
+    <div className="w-96">
       <Card className="bg-gradient-to-b from-card to-card/95 shadow-lg border-2 border-primary/20">
         <CardHeader className="pb-3">
           <div className="text-center bg-primary/10 -mx-6 -mt-6 pt-4 pb-2 rounded-t-lg border-b border-primary/20">

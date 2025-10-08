@@ -4,6 +4,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
+import { Input } from "@/components/ui/input"; // NOVO: Importando Input para o campo de título
 import { useToast } from "@/hooks/use-toast";
 import { MessageSquarePlus, Send, ArrowLeft } from "lucide-react";
 import { useNavigate } from "react-router-dom";
@@ -25,6 +26,8 @@ const getAuthHeaders = () => {
 };
 
 const CriarAviso = () => {
+  // NOVO ESTADO: Para o título
+  const [title, setTitle] = useState(""); 
   const [tipo, setTipo] = useState("");
   const [mensagem, setMensagem] = useState("");
   const [isPosting, setIsPosting] = useState(false);
@@ -33,10 +36,11 @@ const CriarAviso = () => {
   const navigate = useNavigate();
 
   const handlePostar = async () => {
-    if (!tipo || !mensagem.trim()) {
+    // VALIDAÇÃO ATUALIZADA: Incluindo a verificação do campo 'title'
+    if (!tipo || !title.trim() || !mensagem.trim()) { 
       toast({
-        title: "Erro",
-        description: "Por favor, preencha todos os campos.",
+        title: "Erro de Validação",
+        description: "Por favor, preencha o Título, o Tipo e a Mensagem do aviso.",
         variant: "destructive",
       });
       return;
@@ -47,7 +51,9 @@ const CriarAviso = () => {
     try {
       const headers = getAuthHeaders();
       const payload = {
-        messageText: mensagem,
+        // NOVO CAMPO NO PAYLOAD
+        title: title.trim(),
+        messageText: mensagem.trim(),
         priority: tipo.toUpperCase(), // Converte para o formato do ENUM do backend
       };
 
@@ -63,6 +69,7 @@ const CriarAviso = () => {
       }
 
       // Limpar formulário
+      setTitle(""); // Limpar campo de título
       setTipo("");
       setMensagem("");
 
@@ -124,7 +131,7 @@ const CriarAviso = () => {
             <div>
               <h1 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-foreground to-primary bg-clip-text text-transparent page-title">
                 Criar Aviso</h1>
-              <p className="text-muted-foreground"></p>
+              <p className="text-muted-foreground">Comunique-se de forma clara e objetiva com a equipe.</p>
             </div>
           </div>
         </div>
@@ -137,6 +144,24 @@ const CriarAviso = () => {
             </CardDescription>
           </CardHeader>
           <CardContent className="p-6 space-y-6">
+            
+            {/* NOVO CAMPO: Título do Aviso */}
+            <div className="space-y-2">
+              <Label htmlFor="title" className="text-sm font-medium text-foreground">
+                Título do Aviso
+              </Label>
+              <Input
+                id="title"
+                placeholder="Ex: Mudança no Horário de Verão"
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                className="bg-background border-input"
+              />
+              <span className="text-xs text-muted-foreground">
+                Recomendado um título curto e direto.
+              </span>
+            </div>
+            
             <div className="space-y-2">
               <Label htmlFor="tipo" className="text-sm font-medium text-foreground">
                 Tipo do Aviso
@@ -149,7 +174,7 @@ const CriarAviso = () => {
                   <SelectItem value="normal" className="hover:bg-accent">
                     <div className="flex items-center gap-2">
                       <div className="w-2 h-2 rounded-full bg-muted-foreground"></div>
-                      <span>Normal</span>
+                      <span>Informativo</span>
                     </div>
                   </SelectItem>
                   <SelectItem value="alert" className="hover:bg-accent">
@@ -182,7 +207,7 @@ const CriarAviso = () => {
               </Label>
               <Textarea
                 id="mensagem"
-                placeholder="Digite aqui a mensagem do aviso..."
+                placeholder="Digite aqui a mensagem detalhada do aviso..."
                 value={mensagem}
                 onChange={(e) => setMensagem(e.target.value)}
                 className="min-h-[200px] bg-background border-input resize-none"
@@ -203,7 +228,8 @@ const CriarAviso = () => {
               <Button
                 onClick={handlePostar}
                 className="px-6 py-2 bg-primary hover:bg-primary/90 text-primary-foreground font-medium transition-colors"
-                disabled={!tipo || !mensagem.trim() || isPosting}
+                // VALIDAÇÃO NO BOTÃO ATUALIZADA
+                disabled={!tipo || !title.trim() || !mensagem.trim() || isPosting}
               >
                 {isPosting ? (
                   <>
