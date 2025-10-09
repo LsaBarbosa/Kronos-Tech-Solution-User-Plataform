@@ -622,15 +622,19 @@ const RelatorioDetalhado = () => {
 
     return (
         <div className="min-h-screen bg-background relative overflow-hidden">
+            {/* Animated Background */}
             <div className="fixed inset-0 z-0">
+                {/* Gradient Background */}
                 <div
                     className="absolute inset-0 opacity-5"
                     style={{
-                        background: 'linear-gradient(-45deg, hsl(var(--background)), hsl(var(--primary)), hsl(var(--background)), hsl(var(--primary)))',
+                        background: 'linear-gradient(-45deg, hsl(var(--black-primary)), hsl(var(--primary)), hsl(var(--black-primary)), hsl(var(--primary)))',
                         backgroundSize: '400% 400%',
                         animation: 'gradient-flow 15s ease-in-out infinite'
                     }}
                 />
+
+                {/* Floating Geometric Shapes */}
                 <div className="absolute inset-0">
                     <div
                         className="absolute top-1/4 left-1/4 w-32 h-32 opacity-3"
@@ -643,7 +647,7 @@ const RelatorioDetalhado = () => {
                     <div
                         className="absolute top-3/4 right-1/4 w-48 h-48 opacity-2"
                         style={{
-                            background: 'linear-gradient(45deg, hsl(var(--primary) / 0.05), transparent)',
+                            background: 'linear-gradient(45deg, hsl(var(--black-primary) / 0.05), transparent)',
                             borderRadius: '70% 30% 30% 70% / 70% 70% 30% 30%',
                             animation: 'float-shapes 25s ease-in-out infinite reverse'
                         }}
@@ -658,6 +662,7 @@ const RelatorioDetalhado = () => {
                     />
                 </div>
             </div>
+           
 
             <Header onMenuClick={() => setSidebarOpen(true)} />
             <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />

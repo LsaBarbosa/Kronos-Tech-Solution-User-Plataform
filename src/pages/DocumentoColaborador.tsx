@@ -10,14 +10,19 @@ import {
   CardTitle,
 } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
-import { Checkbox } from "@/components/ui/checkbox"; // <--- NOVO IMPORT
+import { Checkbox } from "@/components/ui/checkbox";
 import { Upload, FileText, X, Ban } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { API_BASE_URL } from "@/config/api";
 
 type DocumentType = "DOCTOR_APPOINTMENT" | "EMPLOYEE_DOCUMENTS";
+
+// Constante para o limite máximo de upload (5MB)
+const MAX_UPLOAD_SIZE_BYTES = 5 * 1024 * 1024; 
+
 // Função auxiliar para obter os cabeçalhos de autenticação
 const getAuthHeaders = () => {
+// ... (getAuthHeaders implementation)
   const token = localStorage.getItem("token");
   if (!token) {
     console.error("Token não encontrado.");
@@ -31,6 +36,7 @@ const getAuthHeaders = () => {
 
 // Função para decodificar o token JWT
 const decodeToken = (token: string) => {
+// ... (decodeToken implementation)
   try {
     const base64Url = token.split(".")[1];
     const base64 = base64Url.replace(/-/g, "+").replace(/_/g, "/");
@@ -49,8 +55,9 @@ const decodeToken = (token: string) => {
   }
 };
 
-// FUNÇÃO PARA COMPRESSÃO DE IMAGEM (com alvo de 3MB)
+// FUNÇÃO PARA COMPRESSÃO DE IMAGEM (Target 3MB)
 const compressImage = (file: File, maxSizeMB: number = 3): Promise<File> => {
+// ... (compressImage implementation)
   return new Promise((resolve, reject) => {
     // Se não for imagem, ou se já for menor que o limite (3MB), retorna o original.
     if (!file.type.startsWith('image/') || file.size <= maxSizeMB * 1024 * 1024) {
@@ -115,6 +122,8 @@ export default function DocumentoColaborador() {
   const [documentType, setDocumentType] = useState<DocumentType>("DOCTOR_APPOINTMENT");
   const { toast } = useToast();
 
+// ... (useEffect, handleDragOver, handleDragLeave, handleDrop, handleFileSelect implementations)
+
   useEffect(() => {
     const token = localStorage.getItem("token");
     if (!token) {
@@ -163,23 +172,25 @@ export default function DocumentoColaborador() {
       return;
     }
 
+    // VALIDAÇÃO DE 5MB (FRENTE): Evita a chamada desnecessária ao backend
+    if (selectedFile.size > MAX_UPLOAD_SIZE_BYTES) {
+        toast({
+            title: "Arquivo muito grande",
+            description: `O arquivo "${selectedFile.name}" excede o limite máximo de 5MB. Por favor, utilize um arquivo menor.`,
+            variant: "destructive",
+        });
+        return; // Interrompe o processo aqui.
+    }
+
     setIsUploading(true);
 
     try {
       const headers = getAuthHeaders();
-      // Remove o Content-Type para permitir que o navegador defina
-      // o boundary para o FormData
       delete headers["Content-Type"];
       
-      // 1. Aplica a compressão com target de 3MB
+      // 1. Aplica a compressão com target de 3MB
       const compressedFile = await compressImage(selectedFile, 3)
-      const MAX_SERVER_SIZE = 5 * 1024 * 1024; // 5MB, limite do backend
-
-      // 2. Checa o limite máximo do servidor
-      if (compressedFile.size > MAX_SERVER_SIZE) {
-        throw new Error("O arquivo ainda é muito grande (acima de 5MB) mesmo após a compressão. Por favor, utilize um arquivo menor.");
-      }
-      
+      
       const formData = new FormData();
       formData.append("file", compressedFile); // Usa o arquivo comprimido
 
@@ -225,9 +236,9 @@ export default function DocumentoColaborador() {
     }
   };
 
-  // FUNÇÃO CORRIGIDA: Adicionado e.stopPropagation() e o tipo de evento
+  // FUNÇÃO PARA REMOVER O ARQUIVO (com correção de bug de clique)
   const removeFile = (e: React.MouseEvent<HTMLButtonElement>) => {
-    e.stopPropagation(); // <--- CORREÇÃO: Impede o clique de propagar para o div que contém o input file
+    e.stopPropagation(); // Impede que o clique suba para o div pai/input file
     setSelectedFile(null);
     if (fileInputRef.current) {
       fileInputRef.current.value = "";
@@ -235,7 +246,47 @@ export default function DocumentoColaborador() {
   };
 
   return (
-    <div className="min-h-screen bg-background">
+    <div className="min-h-screen bg-background relative overflow-hidden">
+      {/* Animated Background */}
+      <div className="fixed inset-0 z-0">
+        {/* Gradient Background */}
+        <div 
+          className="absolute inset-0 opacity-5"
+          style={{
+            background: 'linear-gradient(-45deg, hsl(var(--black-primary)), hsl(var(--primary)), hsl(var(--black-primary)), hsl(var(--primary)))',
+            backgroundSize: '400% 400%',
+            animation: 'gradient-flow 15s ease-in-out infinite'
+          }}
+        />
+        
+        {/* Floating Geometric Shapes */}
+        <div className="absolute inset-0">
+          <div 
+            className="absolute top-1/4 left-1/4 w-32 h-32 opacity-3"
+            style={{
+              background: 'linear-gradient(135deg, hsl(var(--primary) / 0.1), transparent)',
+              borderRadius: '30% 70% 70% 30% / 30% 30% 70% 70%',
+              animation: 'float-shapes 20s ease-in-out infinite'
+            }}
+          />
+          <div 
+            className="absolute top-3/4 right-1/4 w-48 h-48 opacity-2"
+            style={{
+              background: 'linear-gradient(45deg, hsl(var(--black-primary) / 0.05), transparent)',
+              borderRadius: '70% 30% 30% 70% / 70% 70% 30% 30%',
+              animation: 'float-shapes 25s ease-in-out infinite reverse'
+            }}
+          />
+          <div 
+            className="absolute top-1/2 right-1/3 w-24 h-24 opacity-4"
+            style={{
+              background: 'radial-gradient(circle, hsl(var(--primary) / 0.08), transparent)',
+              borderRadius: '50%',
+              animation: 'float-shapes 18s ease-in-out infinite 5s'
+            }}
+          />
+        </div>
+      </div>
       <Header onMenuClick={() => setSidebarOpen(!sidebarOpen)} />
 
       <div className="flex flex-col sm:flex-row min-h-screen">
@@ -274,7 +325,7 @@ export default function DocumentoColaborador() {
                       <input
                         ref={fileInputRef}
                         type="file"
-                        className="absolute inset-0 w-full h-full opacity-0 cursor-pointer touch-target"
+                        className={`absolute inset-0 w-full h-full opacity-0 cursor-pointer touch-target ${selectedFile ? 'hidden' : ''}`} // CORREÇÃO: Esconde o input para que o botão de remover seja clicável
                         onChange={handleFileSelect}
                         accept=".pdf, .jpg, .jpeg, .png, .docx, .doc"
                       />
@@ -306,7 +357,7 @@ export default function DocumentoColaborador() {
                           <Button
                             variant="outline"
                             size="sm"
-                            onClick={removeFile} // Chama a função corrigida
+                            onClick={removeFile}
                             className="mt-2 touch-target"
                           >
                             <X className="h-4 w-4 mr-2" />

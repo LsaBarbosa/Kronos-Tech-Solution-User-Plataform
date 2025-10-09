@@ -716,41 +716,6 @@ const Usuario = () => {
               </CardContent>
             </Card>
           </div>
-          <div className="grid md:grid-cols-3 gap-6">
-            <Card className="text-center">
-              <CardContent className="pt-6">
-                <div className="bg-primary/10 w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-3">
-                  <User className="h-6 w-6 text-primary" />
-                </div>
-                <h3 className="font-semibold mb-2">Perfil Seguro</h3>
-                <p className="text-sm text-muted-foreground">
-                  Suas informações estão protegidas e criptografadas
-                </p>
-              </CardContent>
-            </Card>
-            <Card className="text-center">
-              <CardContent className="pt-6">
-                <div className="bg-primary/10 w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-3">
-                  <Lock className="h-6 w-6 text-primary" />
-                </div>
-                <h3 className="font-semibold mb-2">Senha Forte</h3>
-                <p className="text-sm text-muted-foreground">
-                  Use senhas complexas para maior segurança
-                </p>
-              </CardContent>
-            </Card>
-            <Card className="text-center">
-              <CardContent className="pt-6">
-                <div className="bg-primary/10 w-12 h-12 rounded-full flex items-center justify-center mx-auto mb-3">
-                  <Save className="h-6 w-6 text-primary" />
-                </div>
-                <h3 className="font-semibold mb-2">Backup Automático</h3>
-                <p className="text-sm text-muted-foreground">
-                  Seus dados são salvos automaticamente
-                </p>
-              </CardContent>
-            </Card>
-          </div>
         </div>
       </main>
     </div>

@@ -313,6 +313,8 @@ const CriarColaborador = () => {
           </div>
 
           {/* Form Card */}
+                               <Card className="border-l-4 border-l-primary shadow-card">
+          
           <Card className="shadow-2xl border-0 bg-card/80 backdrop-blur-sm">
             <CardHeader>
               <CardTitle className="text-2xl text-center">Dados do Colaborador</CardTitle>
@@ -591,6 +593,7 @@ const CriarColaborador = () => {
                 </form>
               </Form>
             </CardContent>
+          </Card>
           </Card>
         </div>
       </div>

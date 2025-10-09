@@ -475,26 +475,42 @@ const ListaColaboradores = () => {
     <div className="min-h-screen bg-background relative overflow-hidden">
       {/* Animated Background */}
       <div className="fixed inset-0 z-0">
-        <div className="absolute inset-0 bg-gradient-to-br from-background via-background to-primary/5"></div>
-
-        {/* Floating Elements */}
-        <div className="absolute top-20 left-10 w-32 h-32 bg-primary/10 rounded-full blur-xl animate-float"></div>
-        <div className="absolute top-40 right-20 w-24 h-24 bg-primary/15 rounded-full blur-lg animate-float-delayed"></div>
-        <div className="absolute bottom-32 left-1/4 w-40 h-40 bg-primary/8 rounded-full blur-2xl animate-float-slow"></div>
-        <div className="absolute bottom-20 right-1/3 w-28 h-28 bg-primary/12 rounded-full blur-xl animate-float"></div>
-
-        {/* Grid Pattern */}
-        <div className="absolute inset-0 opacity-[0.015]">
-          <div
-            className="h-full w-full"
+        {/* Gradient Background */}
+        <div 
+          className="absolute inset-0 opacity-5"
+          style={{
+            background: 'linear-gradient(-45deg, hsl(var(--black-primary)), hsl(var(--primary)), hsl(var(--black-primary)), hsl(var(--primary)))',
+            backgroundSize: '400% 400%',
+            animation: 'gradient-flow 15s ease-in-out infinite'
+          }}
+        />
+        
+        {/* Floating Geometric Shapes */}
+        <div className="absolute inset-0">
+          <div 
+            className="absolute top-1/4 left-1/4 w-32 h-32 opacity-3"
             style={{
-              backgroundImage: `
-              linear-gradient(hsl(var(--primary) / 0.1) 1px, transparent 1px),
-              linear-gradient(90deg, hsl(var(--primary) / 0.1) 1px, transparent 1px)
-            `,
-              backgroundSize: "50px 50px",
+              background: 'linear-gradient(135deg, hsl(var(--primary) / 0.1), transparent)',
+              borderRadius: '30% 70% 70% 30% / 30% 30% 70% 70%',
+              animation: 'float-shapes 20s ease-in-out infinite'
             }}
-          ></div>
+          />
+          <div 
+            className="absolute top-3/4 right-1/4 w-48 h-48 opacity-2"
+            style={{
+              background: 'linear-gradient(45deg, hsl(var(--black-primary) / 0.05), transparent)',
+              borderRadius: '70% 30% 30% 70% / 70% 70% 30% 30%',
+              animation: 'float-shapes 25s ease-in-out infinite reverse'
+            }}
+          />
+          <div 
+            className="absolute top-1/2 right-1/3 w-24 h-24 opacity-4"
+            style={{
+              background: 'radial-gradient(circle, hsl(var(--primary) / 0.08), transparent)',
+              borderRadius: '50%',
+              animation: 'float-shapes 18s ease-in-out infinite 5s'
+            }}
+          />
         </div>
       </div>
 
@@ -515,7 +531,7 @@ const ListaColaboradores = () => {
           </div>
 
           {/* Search Filters */}
-          <Card className="mb-8">
+                     <Card className="border-l-4 border-l-primary shadow-card">
             <CardHeader>
               <CardTitle className="text-lg flex items-center gap-2">
                 <Search className="w-5 h-5 text-primary" />
@@ -565,10 +581,9 @@ const ListaColaboradores = () => {
                 </div>
               )}
             </CardContent>
-          </Card>
-
+             <div className="mb-2"></div>
           {/* Stats */}
-          <div className="mb-8">
+          <div className="mb-8 ml-6">
             <Card className="w-fit">
               <CardContent className="flex items-center gap-2 p-4">
                 <User className="w-5 h-5 text-primary" />
@@ -584,7 +599,9 @@ const ListaColaboradores = () => {
               </CardContent>
             </Card>
           </div>
+          </Card>
 
+<div className="mb-4"></div>
           {/* Collaborators Grid */}
           <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
             {isLoading ? (
