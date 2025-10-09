@@ -124,7 +124,7 @@ const EsqueciSenha = () => {
           />
         </div>
       </div>
-
+<Card className="border-l-4 border-l-primary shadow-card">
       <Card className="w-full max-w-md shadow-card border-0 relative z-10">
         <CardHeader className="space-y-1 text-center pb-8">
           <CardTitle className="text-3xl font-semibold bg-gradient-to-r from-foreground to-primary bg-clip-text text-transparent flex items-center justify-center gap-3">
@@ -222,6 +222,7 @@ const EsqueciSenha = () => {
             </Button>
           </div>
         </CardContent>
+      </Card>
       </Card>
     </div>
   );
