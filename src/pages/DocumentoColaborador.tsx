@@ -180,7 +180,8 @@ export default function DocumentoColaborador() {
                 Enviar Documentos
               </h1>
             </div>
-
+ <Card className="border-l-4 border-l-primary shadow-card">
+                <CardHeader className="bg-gradient-to-r from-primary/5 to-transparent"></CardHeader>
             <Card className="border-primary/20 shadow-lg">
               <CardHeader className="p-4 sm:p-6 bg-gradient-to-r from-primary/5 to-primary/10 rounded-t-lg border-b border-primary/10">
                 <CardTitle className="text-lg sm:text-xl text-primary">
@@ -316,6 +317,8 @@ export default function DocumentoColaborador() {
                 </div>
               </CardContent>
             </Card>
+            </Card>
+
           </div>
         </main>
       </div>

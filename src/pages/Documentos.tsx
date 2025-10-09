@@ -379,7 +379,8 @@ const Documentos = () => {
             Selecione um funcionário e tipo de documento para visualizar e baixar os arquivos disponíveis.
           </p>
         </div>
-
+ <Card className="border-l-4 border-l-primary shadow-card">
+               
         <Card className="p-4 sm:p-6 card-hover">
           <div className="space-y-4 sm:space-y-6">
             <h3 className="text-lg sm:text-xl font-semibold text-foreground orange-underline">
@@ -447,7 +448,7 @@ const Documentos = () => {
             <div className="p-4 bg-primary/5 rounded-lg border border-primary/20">
               <p className="text-sm text-primary mb-1">💡 Dica de uso:</p>
               <p className="text-xs text-gray-text">
-                1. Se você não é um administrador, não se preocupe, o sistema automaticamente seleciona seu cadastro<br />
+                1. Se você não é um administrador, não se preocupe, o sistema automaticamente seleciona seu cadastro.<br />
                 2. Apenas você e seus Administradores podem ver os seus documentos.<br />
                 3. Após a geração dos documentos, é possivel filtrar para selecionar uma data específica.<br />
                 4. Clique no arquivo desejado para que se inicie o Download.
@@ -465,6 +466,7 @@ const Documentos = () => {
               </Button>
             </div>
           </div>
+        </Card>
         </Card>
 
         {hasSearched && (
