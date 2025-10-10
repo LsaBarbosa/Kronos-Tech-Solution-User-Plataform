@@ -1,24 +1,24 @@
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-// Importei o DialogFooter aqui para usá-lo no novo Dialog
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog"; 
 import { Badge } from "@/components/ui/badge";
-import { ArrowLeft, Bell, Calendar, Eye, AlertTriangle, Info, CheckCircle, Loader2, Trash2 } from "lucide-react";
+import { ArrowLeft, Bell, Calendar, Eye, AlertTriangle, Info, Loader2, Trash2, Users, User } from "lucide-react"; 
 import { useNavigate } from "react-router-dom";
 import Header from "@/components/Header";
 import Sidebar from "@/components/Sidebar";
 import { useToast } from "@/hooks/use-toast";
 import { API_BASE_URL } from "@/config/api";
 
-// ALTERAÇÃO 1: Atualização da Interface Message
+// ALTERAÇÃO 1: Atualização da Interface Message para incluir o destinatário
 interface Message {
   messageId: string;
-  title: string; // NOVO CAMPO: Adicionado o título
+  title: string;
   messageText: string;
   priority: 'NORMAL' | 'ALERT' | 'CRITICAL';
   createdAt: string;
   senderEmployeeId: string;
+  recipientEmployeeId?: string; // Se null, é visível apenas para o remetente (Manager)
 }
 
 const decodeToken = (token: string) => {
@@ -50,21 +50,45 @@ const Avisos = () => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [selectedMessage, setSelectedMessage] = useState<Message | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
-  // NOVO ESTADO: Para controlar o diálogo de confirmação de exclusão
   const [isConfirmDeleteDialogOpen, setIsConfirmDeleteDialogOpen] = useState(false); 
-  const [isDeleting, setIsDeleting] = useState(false); // NOVO ESTADO: Para feedback visual durante a exclusão
+  const [isDeleting, setIsDeleting] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
-  const [userRole, setUserRole] = useState<'MANAGER' | 'PARTNER' | ''>('');
+  // Incluindo 'CTO' por ser um papel de administrador/gestor também.
+  const [userRole, setUserRole] = useState<'MANAGER' | 'PARTNER' | 'CTO' | ''>(''); 
   const navigate = useNavigate();
   const { toast } = useToast();
+
+  // NOVO: Verifica se a mensagem é visível apenas para o remetente
+  const isSenderOnly = (message: Message) => !message.recipientEmployeeId;
+  
+  // NOVO: Retorna o indicador visual de destinatário (ajustado para a nova lógica)
+  const getRecipientIndicator = (message: Message) => {
+    if (isSenderOnly(message)) {
+      // Se for nulo, significa que a mensagem não tem destinatário, logo, só o remetente a vê.
+      return (
+        <div className="flex items-center gap-2 text-sm text-yellow-700 font-medium bg-yellow-100/50 px-2 py-1 rounded-full border border-yellow-200">
+          <User className="h-4 w-4" />
+          <span>Visível Apenas para o Remetente</span>
+        </div>
+      );
+    }
+    // Mensagem direcionada a um ou mais colaboradores específicos (o usuário logado é um deles)
+    return (
+      <div className="flex items-center gap-2 text-sm text-foreground/80 font-medium bg-muted/50 px-2 py-1 rounded-full border border-border/50">
+        <User className="h-4 w-4" />
+        <span>Mensagem Direcionada</span>
+      </div>
+    );
+  };
+
 
   useEffect(() => {
          const token = localStorage.getItem("token");
     if (token) {
         const decoded = decodeToken(token);
-        setUserRole(decoded?.role === 'MANAGER' || decoded?.role === 'PARTNER' ? decoded.role : '');
+        setUserRole(decoded?.role === 'MANAGER' || decoded?.role === 'PARTNER' || decoded?.role === 'CTO' ? decoded.role : '');
     }
 
     const fetchMessages = async () => {
@@ -72,6 +96,7 @@ const Avisos = () => {
         setLoading(true);
         setError(null);
         const headers = getAuthHeaders();
+        // A API agora usa a nova lógica de filtragem (Remetente OU Destinatário Específico)
         const response = await fetch(`${API_BASE_URL}messages`, {
           method: "GET",
           headers: headers,
@@ -102,19 +127,17 @@ const Avisos = () => {
     setIsDialogOpen(true);
   };
   
-  // NOVA FUNÇÃO: Abre o diálogo de confirmação
   const handleConfirmDelete = () => { 
     if (selectedMessage) {
       setIsConfirmDeleteDialogOpen(true);
     }
   };
 
-  // FUNÇÃO DE EXCLUSÃO MODIFICADA
   const handleDeleteMessage = async () => {
     if (!selectedMessage) return;
 
     try {
-      setIsDeleting(true); // Inicia o loading
+      setIsDeleting(true); 
       const messageId = selectedMessage.messageId;
       const headers = getAuthHeaders();
       const response = await fetch(`${API_BASE_URL}messages/${messageId}`, {
@@ -123,12 +146,13 @@ const Avisos = () => {
       });
 
       if (!response.ok) {
-        throw new Error("Falha ao deletar a mensagem.");
+        const errorData = await response.json();
+        throw new Error(errorData.detail || errorData.message || "Falha ao deletar a mensagem.");
       }
 
       setMessages(messages.filter(msg => msg.messageId !== messageId));
-      setIsDialogOpen(false); // Fecha o diálogo principal
-      setIsConfirmDeleteDialogOpen(false); // Fecha o diálogo de confirmação
+      setIsDialogOpen(false);
+      setIsConfirmDeleteDialogOpen(false);
       toast({
         title: "Sucesso!",
         description: "Mensagem deletada com sucesso.",
@@ -140,7 +164,7 @@ const Avisos = () => {
         variant: "destructive",
       });
     } finally {
-      setIsDeleting(false); // Finaliza o loading
+      setIsDeleting(false);
     }
   };
 
@@ -151,7 +175,6 @@ const Avisos = () => {
       case 'ALERT':
         return <AlertTriangle className="h-4 w-4 text-yellow-600" />;
       case 'CRITICAL':
-      // Modifiquei para um ícone que talvez faça mais sentido para "Crítico" se CheckCircle era usado para outra coisa
         return <AlertTriangle className="h-4 w-4 text-destructive" />; 
       default:
         return <Bell className="h-4 w-4" />;
@@ -178,7 +201,7 @@ const Avisos = () => {
   const getTituloPorTipo = (priority: string) => {
     switch (priority) {
       case 'NORMAL':
-        return "Aviso Normal";
+        return "Aviso Informativo";
       case 'ALERT':
         return "Aviso de Alerta";
       case 'CRITICAL':
@@ -241,11 +264,9 @@ const Avisos = () => {
                     <div className="flex items-center gap-3">
                       {getIconePorTipo(message.priority)}
                       <div className="flex-1">
-                        {/* Exibir o título do aviso */}
                         <CardTitle className={`text-lg font-semibold`}>
                           {message.title} 
                         </CardTitle>
-                        {/* Adicionar o tipo/prioridade como um subtítulo */}
                         <p className="text-sm text-muted-foreground/80 mt-1">
                             {getTituloPorTipo(message.priority)}
                         </p>
@@ -254,11 +275,13 @@ const Avisos = () => {
                     {getBadgePorTipo(message.priority)}
                   </div>
                 </CardHeader>
-                {/* ALTERAÇÃO CHAVE: Modificando CardContent para remover a prévia */}
+                
                 <CardContent className="pt-2 pb-4">
-                  <div className="flex items-center justify-end">
+                  <div className="flex items-center justify-between">
                     
-                    {/* Movemos a data e o botão para cá, removendo a prévia da mensagem */}
+                    {/* INDICADOR DE DESTINATÁRIO NA LISTA */}
+                    {getRecipientIndicator(message)}
+
                     <div className="flex items-center gap-4 ml-4">
                       <div className="flex items-center gap-2 text-sm text-muted-foreground">
                         <Calendar className="h-4 w-4" />
@@ -271,7 +294,6 @@ const Avisos = () => {
                     </div>
                   </div>
                 </CardContent>
-                {/* FIM DA ALTERAÇÃO CHAVE */}
               </Card>
             ))}
           </div>
@@ -292,16 +314,14 @@ const Avisos = () => {
         )}
       </main>
       
-      {/* DIALOG PRINCIPAL - Detalhes do Aviso (Mantido inalterado) */}
+      {/* DIALOG PRINCIPAL - Detalhes do Aviso */}
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
       <DialogContent className="max-w-xl sm:max-w-2xl md:max-w-3xl max-h-[90vh] overflow-y-auto rounded-xl shadow-2xl">
           <DialogHeader>
-            {/* Exibir o Título real do aviso na Dialog */}
             <DialogTitle className="flex items-center gap-3 text-xl sm:text-2xl font-bold text-foreground">
               {selectedMessage && getIconePorTipo(selectedMessage.priority)}
               {selectedMessage && selectedMessage.title}
             </DialogTitle>
-            {/* Adicionar o Tipo/Prioridade como subtítulo da Dialog */}
             <p className="text-sm text-muted-foreground/80 -mt-1 ml-9">
               {selectedMessage && getTituloPorTipo(selectedMessage.priority)}
             </p>
@@ -309,6 +329,11 @@ const Avisos = () => {
 
           {selectedMessage && (
             <div className="space-y-4">
+              {/* INDICADOR DE DESTINATÁRIO NO MODAL */}
+               <div className="pb-3 border-b border-border/50">
+                    {getRecipientIndicator(selectedMessage)}
+               </div>
+
               <div className="flex items-center justify-between border-b pb-3 border-border/50">
                 {getBadgePorTipo(selectedMessage.priority)}
                 <div className="flex items-center gap-2 text-sm text-muted-foreground">
@@ -317,7 +342,6 @@ const Avisos = () => {
                 </div>
               </div>
   
-              {/* Área de conteúdo da mensagem com melhor espaçamento e legibilidade */}
               <div className="p-4 bg-muted/20 rounded-lg border border-border/50">
                 <p className="text-foreground leading-relaxed whitespace-pre-wrap text-base">
                   {selectedMessage.messageText}
@@ -326,11 +350,11 @@ const Avisos = () => {
             </div>
           )}
           <DialogFooter>
-            {/* O botão 'Deletar Mensagem' agora chama a função de confirmação */}
-            {selectedMessage && userRole === 'MANAGER' && ( 
+            {/* Permite deletar se for MANAGER ou CTO */}
+            {selectedMessage && (userRole === 'MANAGER' || userRole === 'CTO') && ( 
               <Button
                 variant="destructive"
-                onClick={handleConfirmDelete} // Chama o novo handler
+                onClick={handleConfirmDelete}
               >
                 <Trash2 className="mr-2 h-4 w-4" /> Deletar Mensagem
               </Button>
@@ -339,7 +363,7 @@ const Avisos = () => {
         </DialogContent>
       </Dialog>
       
-      {/* NOVO DIALOG - Confirmação de Exclusão (Mantido inalterado) */}
+      {/* DIALOG - Confirmação de Exclusão */}
       <Dialog open={isConfirmDeleteDialogOpen} onOpenChange={setIsConfirmDeleteDialogOpen}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
@@ -353,7 +377,6 @@ const Avisos = () => {
             </p>
             {selectedMessage && (
               <p className="mt-2 text-sm font-medium text-foreground">
-                {/* Exibir o Título na confirmação de exclusão */}
                 Aviso: <span className="italic line-clamp-1 font-bold">{selectedMessage.title}</span>
               </p>
             )}

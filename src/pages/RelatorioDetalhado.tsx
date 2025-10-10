@@ -938,7 +938,7 @@ const RelatorioDetalhado = () => {
                                     classNames={{
                                         day: "h-9 w-9 p-0 font-normal aria-selected:opacity-100 hover:bg-calendar-selected-hover/20 hover:text-calendar-selected transition-colors duration-200 relative",
                                         day_selected: "bg-calendar-selected text-calendar-selected-foreground hover:bg-calendar-selected-hover hover:text-calendar-selected-foreground focus:bg-calendar-selected focus:text-calendar-selected-foreground font-semibold shadow-sm z-10",
-                                        day_today: "bg-calendar-today text-calendar-today-foreground font-medium border border-border",
+                                        day_today: "bg-transparent text-foreground font-bold border-2 border-primary hover:bg-primary/10",
                                         day_outside: "text-muted-foreground opacity-50 aria-selected:bg-calendar-selected/50 aria-selected:text-calendar-selected-foreground aria-selected:opacity-80",
                                         day_disabled: "text-muted-foreground opacity-50",
                                         day_range_middle: "aria-selected:bg-calendar-selected/20 aria-selected:text-calendar-selected",
@@ -951,6 +951,7 @@ const RelatorioDetalhado = () => {
                                     modifiersClassNames={{
                                         selected: "bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground z-10",
                                         holiday: "bg-destructive/10 text-destructive font-semibold border border-destructive/20 hover:bg-destructive/20 hover:text-destructive",
+                                        
                                     }}
                                 />
                             </Card>
