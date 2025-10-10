@@ -316,7 +316,7 @@ const Avisos = () => {
                   {formatarData(selectedMessage.createdAt)}
                 </div>
               </div>
-
+  
               {/* Área de conteúdo da mensagem com melhor espaçamento e legibilidade */}
               <div className="p-4 bg-muted/20 rounded-lg border border-border/50">
                 <p className="text-foreground leading-relaxed whitespace-pre-wrap text-base">

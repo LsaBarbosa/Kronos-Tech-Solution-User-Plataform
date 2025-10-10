@@ -136,7 +136,7 @@ const CriarAviso = () => {
           </div>
         </div>
 
-        <Card className="border-border shadow-lg">
+          <Card className="border-l-4 border-l-primary shadow-card">
           <CardHeader className="bg-gradient-to-r from-primary/5 to-primary/10 border-b border-border">
             <CardTitle className="text-xl text-foreground">Novo Aviso</CardTitle>
             <CardDescription className="text-muted-foreground">
