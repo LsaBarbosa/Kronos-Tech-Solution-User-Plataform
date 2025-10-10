@@ -121,18 +121,7 @@ const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
                 </Button>
               </CollapsibleTrigger>
               <CollapsibleContent className="space-y-1">
-                <Button
-                  variant="ghost"
-                  // CORREÇÃO APLICADA: Hover sutil e texto foreground
-                  className="w-full justify-start sidebar-fixed-height-sm px-4 pl-12 text-left sidebar-text-sm hover:bg-primary/10 hover:text-foreground transition-colors"
-                  onClick={() => {
-                    navigate("/relatorio-simples");
-                    onClose();
-                  }}
-                >
-                  <FileText className="mr-2 sidebar-icon-xs" />
-                  <span>Relatório Simples</span>
-                </Button>
+                
                 <Button
                   variant="ghost"
                   // CORREÇÃO APLICADA: Hover sutil e texto foreground
@@ -143,7 +132,7 @@ const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
                   }}
                 >
                   <BarChart3 className="mr-2 sidebar-icon-xs" />
-                  <span>Relatório Detalhado</span>
+                  <span>Relatório de Horas</span>
                 </Button>
               </CollapsibleContent>
             </Collapsible>

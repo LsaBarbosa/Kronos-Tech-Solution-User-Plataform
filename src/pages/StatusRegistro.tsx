@@ -465,13 +465,18 @@ const RelatorioDetalhado = () => {
                                     💡 Dica de uso:
                                 </h4>
                                 <p className="text-xs text-muted-foreground mb-4">
-                                    1. Clique em qualquer data no calendário para selecioná-la.
-                                </p>
-                                <p className="text-xs text-muted-foreground mb-4">
+                                    1. Clique em qualquer data no calendário para selecioná-la.<br/>
+                                <p/>
+                                 <p className="text-xs text-muted-foreground mb-4"></p>
                                     2. Os feriados nacionais brasileiros estão destacados automaticamente.
                                 </p>
                                 <p className="text-xs text-muted-foreground mb-4">
-                                    3. .
+                                    3. Para registrar a falta de um colaborador siga os seguintes passos.<br/>
+                                         - Selecione o dia, o colaborador e o Status FOLGA.<br/>
+                                         - Selecione o registro e mude o status para FALTA.
+                                </p>
+                                <p className="text-xs text-muted-foreground mb-4">
+                                    4. Status Atualizado por ADM e Rejeitado por ADM não podem ser alterados. 
                                 </p>
                                 <div className="grid grid-cols-1 gap-3 text-xs">
                                     <div className="flex items-center gap-3">

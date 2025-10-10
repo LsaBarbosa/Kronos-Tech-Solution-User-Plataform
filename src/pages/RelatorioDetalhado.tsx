@@ -106,6 +106,20 @@ interface DetailedReportItem {
     };
 }
 
+interface ReportDay {
+    startDate: string;
+    totalHours: string;
+    balance: string;
+}
+
+interface ReportData {
+    totalHoursWorked: string;
+    totalBalance: string;
+    days: ReportDay[];
+    employeeName?: string;
+    companyName?: string;
+}
+
 interface UserItem {
     userId: string;
     username: string;
@@ -134,12 +148,12 @@ const RelatorioDetalhado = () => {
     const [selectedDates, setSelectedDates] = useState([]);
     const [referenceTime, setReferenceTime] = useState("08:00");
     const [selectedEmployee, setSelectedEmployee] = useState("");
-    // Estado para o filtro de status do funcionário: "active", "inactive" ou "" (se permitir desmarcar tudo)
     const [employeeActive, setEmployeeActive] = useState("active");
-    // Estado para o filtro de status do registro (checkbox normal)
     const [isActive, setIsActive] = useState(true);
     const [status, setStatus] = useState("");
-    const [reportData, setReportData] = useState([]);
+    const [reportType, setReportType] = useState("detailed"); // NOVO ESTADO: "detailed" ou "simple"
+    const [reportData, setReportData] = useState<DetailedReportItem[]>([]);
+    const [reportDataSimple, setReportDataSimple] = useState<ReportData | null>(null); // NOVO ESTADO: Para relatório simples
     const [editModalOpen, setEditModalOpen] = useState(false);
     const [selectedRecord, setSelectedRecord] = useState(null);
     const [employees, setEmployees] = useState([]);
@@ -148,7 +162,7 @@ const RelatorioDetalhado = () => {
     const reportTableRef = useRef(null);
     const [isPartner, setIsPartner] = useState(false);
 
-    const form = useForm({
+    const form = useForm<EditRecordFormData>({
         resolver: zodResolver(editRecordSchema),
         defaultValues: {
             startDate: "",
@@ -183,9 +197,7 @@ const RelatorioDetalhado = () => {
                 setIsPartner(false);
             }
 
-            // Usa o estado employeeActive para a requisição
             const activeStatus = employeeActive === "active";
-            // Adiciona a verificação para que a requisição só ocorra se um status for selecionado
             const url = employeeActive ? `${API_BASE_URL}employee?active=${activeStatus}` : `${API_BASE_URL}employee`;
 
 
@@ -226,7 +238,6 @@ const RelatorioDetalhado = () => {
             });
 
             if (!response.ok) {
-                // CORREÇÃO: Trata erro com 'detail'
                 const errorData = await response.json();
                 throw new Error(errorData.detail || "Erro ao buscar usuários.");
             }
@@ -288,12 +299,27 @@ const RelatorioDetalhado = () => {
         });
     };
 
-    // NOVO: Função para alternar o status do funcionário (Lógica Radio Check)
     const handleEmployeeStatusChange = (statusValue) => {
         setEmployeeActive(prev => (prev === statusValue ? "" : statusValue));
     };
 
+    // NOVO: Função para alternar o tipo de relatório (Radio Check)
+    const handleReportTypeChange = (typeValue) => {
+        if (reportType !== typeValue) {
+            setReportType(typeValue);
+            // Limpa o status se for para o simples
+            if (typeValue === "simple") {
+                setStatus("");
+            }
+            // Limpa os dados do relatório anterior
+            setReportData([]);
+            setReportDataSimple(null);
+        }
+    };
+
+    // FUNÇÃO DE BUSCA DETALHADA (EXISTENTE)
     const handleSearch = async () => {
+        setReportDataSimple(null); // Limpa dados simples
 
         if (!status) {
             toast({
@@ -333,9 +359,8 @@ const RelatorioDetalhado = () => {
             });
 
             if (!response.ok) {
-                // CORREÇÃO: Tenta extrair 'detail' da resposta de erro do back-end
                 const errorData = await response.json();
-                throw new Error(errorData.detail || "Erro ao buscar o relatório. Tente novamente mais tarde.");
+                throw new Error(errorData.detail || "Erro ao buscar o relatório detalhado. Tente novamente mais tarde.");
             }
 
             const data = await response.json();
@@ -351,6 +376,7 @@ const RelatorioDetalhado = () => {
             }
 
             setReportData(data);
+            setReportDataSimple(null); // Garante que o simples esteja vazio
 
             const datesList = selectedDates
                 .map(date => format(date, "dd/MM/yyyy", { locale: ptBR }))
@@ -370,6 +396,86 @@ const RelatorioDetalhado = () => {
         }
     };
 
+    // NOVO: FUNÇÃO DE BUSCA SIMPLES
+    const handleSimpleSearch = async () => {
+        setReportData([]); // Limpa dados detalhados
+
+        if (selectedDates.length === 0) {
+            toast({
+                title: "Erro",
+                description: "Por favor, selecione pelo menos uma data.",
+                variant: "destructive",
+            });
+            return;
+        }
+
+        try {
+            const token = localStorage.getItem("token");
+            if (!token) {
+                throw new Error("Token de autenticação não encontrado.");
+            }
+
+            const formattedDates = selectedDates.map(date => format(date, "dd-MM-yyyy"));
+            const requestBody = {
+                reference: referenceTime,
+                dates: formattedDates,
+                employeeActive: employeeActive === "active",
+                active: isActive,
+            };
+
+            const apiUrl = new URL(`${API_BASE_URL}records/report/simple`, window.location.origin);
+            if (selectedEmployee) {
+                apiUrl.searchParams.append("employeeId", selectedEmployee);
+            }
+
+            const response = await fetch(apiUrl.toString(), {
+                method: "POST",
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${token}`,
+                },
+                body: JSON.stringify(requestBody),
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.detail || "Erro ao buscar o relatório simples. Tente novamente mais tarde.");
+            }
+
+            const data = await response.json();
+
+            if (data.days.length === 0) {
+                setReportDataSimple(null);
+                toast({
+                    title: "Aviso",
+                    description: "Não há registro para as datas selecionadas com os filtros aplicados.",
+                    variant: "default",
+                });
+                return;
+            }
+
+            setReportDataSimple(data);
+            setReportData([]); // Garante que o detalhado esteja vazio
+
+            const datesList = selectedDates
+                .map(date => format(date, "dd/MM/yyyy", { locale: ptBR }))
+                .join(", ");
+
+            toast({
+                title: "Busca realizada",
+                description: `Relatório simples gerado para as datas: ${datesList}`,
+            });
+        } catch (error) {
+            console.error("Erro na busca simples:", error);
+            toast({
+                title: "Erro",
+                description: error.message || "Ocorreu um erro ao buscar o relatório simples.",
+                variant: "destructive",
+            });
+        }
+    };
+
+    // FUNÇÃO DE DOWNLOAD DETALHADA (EXISTENTE)
     const handleDownload = () => {
         const parseDate = (dateString) => {
             if (!dateString) return null;
@@ -511,6 +617,138 @@ const RelatorioDetalhado = () => {
             });
         }
     };
+
+    // NOVO: FUNÇÃO DE DOWNLOAD SIMPLES
+    const handleSimpleDownload = () => {
+        if (!reportDataSimple || reportDataSimple.days.length === 0) {
+            toast({
+                title: "Erro",
+                description: "Gere o relatório primeiro para poder fazer o download.",
+                variant: "destructive"
+            });
+            return;
+        }
+
+        try {
+            const doc = new jsPDF({
+                orientation: 'portrait',
+                unit: 'mm',
+                format: 'a4'
+            });
+
+            doc.setFont("helvetica", "bold");
+            doc.setFontSize(18);
+            doc.text('RELATÓRIO SIMPLES DE PONTO', 20, 25);
+
+            doc.setFontSize(12);
+            doc.setFont("helvetica", "normal");
+            let yPosition = 40;
+
+            if (reportDataSimple.employeeName) {
+                doc.text(`Funcionário: ${reportDataSimple.employeeName}`, 20, yPosition);
+                yPosition += 7;
+            }
+
+            if (reportDataSimple.companyName) {
+                doc.text(`Empresa: ${reportDataSimple.companyName}`, 20, yPosition);
+                yPosition += 7;
+            }
+
+            doc.text(`Carga horária diária: ${referenceTime}`, 20, yPosition);
+            yPosition += 7;
+
+            if (selectedDates.length > 0) {
+                const validDates = selectedDates.filter(date => date && !isNaN(date.getTime()));
+                const datesList = validDates
+                    .map(date => format(date, "dd/MM/yyyy", { locale: ptBR }))
+                    .join(", ");
+                doc.text(`Datas: ${datesList}`, 20, yPosition);
+                yPosition += 10;
+            }
+
+            // Adicionando os totais antes da tabela
+            doc.setFont("helvetica", "bold");
+            doc.text(`Total de Horas Trabalhadas: ${reportDataSimple.totalHoursWorked}`, 20, yPosition);
+            yPosition += 7;
+            doc.text(`Saldo Total: ${reportDataSimple.totalBalance}`, 20, yPosition);
+            yPosition += 10;
+            doc.setFont("helvetica", "normal"); // Volta para normal
+
+            const tableData = reportDataSimple.days.map(day => {
+                const parts = day.startDate.split('/');
+                const dayDate = new Date(`${parts[2]}-${parts[1]}-${parts[0]}`);
+                const holiday = isHoliday(dayDate) ? ' 🎉' : '';
+                return [
+                    `${day.startDate}${holiday}`,
+                    day.totalHours,
+                    day.balance,
+                ];
+            });
+
+            autoTable(doc, {
+                head: [['Data', 'Total de Horas', 'Saldo do Dia']],
+                body: tableData,
+                startY: yPosition,
+                margin: { left: 20, right: 20 },
+                styles: {
+                    fontSize: 9,
+                    cellPadding: 3,
+                    halign: 'center'
+                },
+                headStyles: {
+                    fillColor: [41, 128, 185],
+                    textColor: [255, 255, 255],
+                    fontSize: 10,
+                    fontStyle: 'bold'
+                },
+                columnStyles: {
+                    2: { // Coluna do saldo
+                        cellWidth: 25,
+                        halign: 'center'
+                    }
+                },
+                didParseCell: function (data) {
+                    // Colorir saldo positivo/negativo
+                    if (data.column.index === 2 && data.section === 'body') {
+                        const balance = data.cell.text[0];
+                        if (balance && balance.startsWith('-')) {
+                            data.cell.styles.textColor = [220, 53, 69]; // Vermelho para negativo
+                            data.cell.styles.fontStyle = 'bold';
+                        } else if (balance && !balance.startsWith('-') && balance !== '00:00') {
+                            data.cell.styles.textColor = [40, 167, 69]; // Verde para positivo
+                            data.cell.styles.fontStyle = 'bold';
+                        }
+                    }
+                }
+            });
+
+            const pageCount = doc.getNumberOfPages();
+            for (let i = 1; i <= pageCount; i++) {
+                doc.setPage(i);
+                doc.setFontSize(8);
+                doc.setTextColor(128, 128, 128);
+                doc.text(`Página ${i} de ${pageCount}`, doc.internal.pageSize.width - 30, doc.internal.pageSize.height - 10);
+                doc.text(`Gerado em: ${format(new Date(), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}`, 20, doc.internal.pageSize.height - 10);
+            }
+
+            const fileName = `relatorio_simples_${format(new Date(), "yyyyMMdd_HHmmss")}.pdf`;
+            doc.save(fileName);
+
+            toast({
+                title: "PDF Gerado",
+                description: "Relatório simples baixado com sucesso!",
+            });
+
+        } catch (error) {
+            console.error("Erro ao gerar PDF:", error);
+            toast({
+                title: "Erro",
+                description: "Não foi possível gerar o PDF. Tente novamente.",
+                variant: "destructive",
+            });
+        }
+    };
+
     const getStatusBadgeVariant = (status) => {
         switch (status) {
             case "CREATED": return "default";
@@ -595,7 +833,6 @@ const RelatorioDetalhado = () => {
             });
 
             if (!response.ok) {
-                // CORREÇÃO: Tenta extrair 'detail' da resposta de erro do back-end
                 const errorData = await response.json();
                 throw new Error(errorData.detail || "Erro ao atualizar o registro.");
             }
@@ -609,6 +846,7 @@ const RelatorioDetalhado = () => {
             setSelectedRecord(null);
             form.reset();
 
+            // Atualiza o relatório após a edição (sempre busca o detalhado após edição de um registro detalhado)
             handleSearch();
         } catch (error) {
             console.error("Erro ao salvar:", error);
@@ -662,7 +900,7 @@ const RelatorioDetalhado = () => {
                     />
                 </div>
             </div>
-           
+
 
             <Header onMenuClick={() => setSidebarOpen(true)} />
             <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
@@ -670,7 +908,7 @@ const RelatorioDetalhado = () => {
             <main className="container mx-auto px-4 py-20 relative z-10">
                 <div className="mb-8">
                     <h1 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-foreground to-primary bg-clip-text text-transparent page-title">
-                        Relatório Detalhado
+                        Relatório De Horas
                     </h1>
                     <p className="text-muted-foreground">
                         Gere relatórios detalhados com informações completas de registros de ponto
@@ -722,10 +960,27 @@ const RelatorioDetalhado = () => {
                                     💡 Dica de uso:
                                 </h4>
                                 <p className="text-xs text-muted-foreground mb-4">
-                                    1. Clique em qualquer data no calendário para selecioná-la.
+                                    1. Clique em qualquer data no calendário para selecioná-la.<br />
+                                    2. Os feriados nacionais brasileiros estão destacados automaticamente.
                                 </p>
                                 <p className="text-xs text-muted-foreground mb-4">
-                                    2. Os feriados nacionais brasileiros estão destacados automaticamente.
+                                    3. O status FOLGA é atribuido automaticamente no dia que não houver registro<br />
+                                    4. Em caso de FALTA, navegue até a pagina  <a
+                                        href="status-do-registro"
+                                        className="text-primary hover:text-primary/80 underline font-semibold transition-colors duration-150 ml-1"
+                                    >
+                                        Status do registro
+                                    </a>  para realizar a mudança
+                                </p>
+                                <p className="text-xs text-muted-foreground mb-4">
+                                    5.Relatorio Simples:<br />
+                                    - Retorna o data dia trabalhado, as horas trabalhadas e o saldo do dia selecionado.
+                                </p>
+                                <p className="text-xs text-muted-foreground mb-4">
+                                    5.Relatorio Detalhado:<br />
+                                    - Retorna todos os registros realizados na data selecionada.<br />
+                                    - Retorna o status do registros também.
+                                    - Ao cliclar no registro é possivel solicitar a alteração (data e hora).
                                 </p>
                                 <div className="grid grid-cols-1 gap-3 text-xs">
                                     <div className="flex items-center gap-3">
@@ -787,6 +1042,42 @@ const RelatorioDetalhado = () => {
                                 <div className="absolute top-4 right-4 w-8 h-8 bg-gradient-to-br from-primary to-primary/60 rounded-full blur-sm"></div>
                                 <div className="absolute bottom-4 left-4 w-6 h-6 bg-gradient-to-br from-secondary to-secondary/60 rounded-full blur-sm"></div>
                             </div>
+
+                            {/* NOVO: SEÇÃO DE TIPO DE RELATÓRIO (Radio Check) */}
+                            <div className="space-y-3 relative border-b border-primary/20 pb-4">
+                                <Label className="text-sm font-semibold text-foreground flex items-center gap-2">
+                                    <div className="w-1.5 h-1.5 rounded-full bg-primary"></div>
+                                    Tipo de Relatório
+                                </Label>
+                                <div className="p-3 rounded-lg bg-gradient-to-r from-primary/5 to-secondary/5 border border-primary/20 flex space-x-6">
+                                    {/* Checkbox Detalhado (Radio Check 1) */}
+                                    <div className="flex items-center space-x-3 p-2 rounded-md hover:bg-primary/10 transition-colors">
+                                        <Checkbox
+                                            id="report-detailed"
+                                            checked={reportType === "detailed"}
+                                            onCheckedChange={() => handleReportTypeChange("detailed")}
+                                            className="data-[state=checked]:bg-primary data-[state=checked]:border-primary border-primary/50"
+                                        />
+                                        <Label htmlFor="report-detailed" className="text-sm cursor-pointer font-medium">
+                                            Detalhado
+                                        </Label>
+                                    </div>
+
+                                    {/* Checkbox Simples (Radio Check 2) */}
+                                    <div className="flex items-center space-x-3 p-2 rounded-md hover:bg-primary/10 transition-colors">
+                                        <Checkbox
+                                            id="report-simple"
+                                            checked={reportType === "simple"}
+                                            onCheckedChange={() => handleReportTypeChange("simple")}
+                                            className="data-[state=checked]:bg-primary data-[state=checked]:border-primary border-primary/50"
+                                        />
+                                        <Label htmlFor="report-simple" className="text-sm cursor-pointer font-medium">
+                                            Simples
+                                        </Label>
+                                    </div>
+                                </div>
+                            </div>
+                            {/* FIM: SEÇÃO DE TIPO DE RELATÓRIO */}
 
                             <div className="space-y-3 relative">
                                 <Label htmlFor="reference-time" className="text-sm font-semibold text-foreground flex items-center gap-2">
@@ -871,7 +1162,7 @@ const RelatorioDetalhado = () => {
                             <div className="space-y-3 relative">
                                 <Label className="text-sm font-semibold text-foreground flex items-center gap-2">
                                     <div className="w-1.5 h-1.5 rounded-full bg-primary"></div>
-                                    Ativo
+                                    Registro Ativo/Inativo
                                 </Label>
                                 <div className="p-3 rounded-lg bg-gradient-to-r from-primary/5 to-secondary/5 border border-primary/20">
                                     <div className="flex items-center space-x-3 p-2 rounded-md hover:bg-primary/10 transition-colors">
@@ -892,12 +1183,12 @@ const RelatorioDetalhado = () => {
                             </div>
 
                             <div className="space-y-3 relative">
-                                <Label className="text-sm font-semibold text-foreground flex items-center gap-2">
+                                <Label className={`text-sm font-semibold text-foreground flex items-center gap-2 ${reportType === "simple" ? 'opacity-50' : ''}`}>
                                     <div className="w-1.5 h-1.5 rounded-full bg-primary"></div>
                                     Status
                                 </Label>
-                                <Select value={status} onValueChange={setStatus}>
-                                    <SelectTrigger className="focus:border-primary focus:ring-2 focus:ring-primary/20 border-primary/20 bg-gradient-to-r from-background to-primary/5 hover:bg-primary/10 transition-all duration-200">
+                                <Select value={status} onValueChange={setStatus} disabled={reportType === "simple"}>
+                                    <SelectTrigger className={`focus:border-primary focus:ring-2 focus:ring-primary/20 border-primary/20 bg-gradient-to-r from-background to-primary/5 hover:bg-primary/10 transition-all duration-200 ${reportType === "simple" ? 'opacity-50' : ''}`}>
                                         <SelectValue placeholder="Selecione um status" />
                                     </SelectTrigger>
                                     <SelectContent className="border-primary/20">
@@ -922,9 +1213,10 @@ const RelatorioDetalhado = () => {
                                 <div className="absolute -top-px left-1/2 transform -translate-x-1/2 w-12 h-px bg-gradient-to-r from-transparent via-primary to-transparent"></div>
 
                                 <Button
-                                    onClick={handleSearch}
+                                    onClick={reportType === "detailed" ? handleSearch : handleSimpleSearch} // Ação condicional
                                     size="lg"
                                     className="w-full font-semibold bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary shadow-lg hover:shadow-primary/25 transition-all duration-200 relative overflow-hidden"
+                                    disabled={reportType === "detailed" && !status} // Se detalhado, exige status
                                 >
                                     <div className="absolute inset-0 bg-gradient-to-r from-white/10 to-transparent opacity-0 hover:opacity-100 transition-opacity duration-200"></div>
                                     <Search className="mr-2 h-4 w-4" />
@@ -932,7 +1224,7 @@ const RelatorioDetalhado = () => {
                                 </Button>
 
                                 <Button
-                                    onClick={handleDownload}
+                                    onClick={reportType === "detailed" ? handleDownload : handleSimpleDownload} // Ação condicional
                                     size="lg"
                                     variant="outline"
                                     className="w-full font-semibold border-2 border-primary/30 bg-gradient-to-r from-primary/10 to-secondary/10 hover:from-primary/20 hover:to-secondary/20 text-foreground hover:text-primary shadow-md hover:shadow-primary/20 transition-all duration-200 relative overflow-hidden"
@@ -945,14 +1237,17 @@ const RelatorioDetalhado = () => {
                         </CardContent>
                     </Card>
                 </div>
-                {reportData.length > 0 && (
+
+                {/* EXIBIÇÃO CONDICIONAL DOS RESULTADOS */}
+
+                {/* 1. RELATÓRIO DETALHADO */}
+                {(reportType === "detailed" && reportData.length > 0) && (
                     <Card className="mt-8 border-2 border-primary/20 shadow-lg bg-card/80 backdrop-blur-sm">
                         <CardHeader>
-                            <CardTitle>Resultados do Relatório</CardTitle>
-                            <CardDescription>{reportData.length} registro(s) encontrado(s).</CardDescription>
+                            <CardTitle>Resultados do Relatório Detalhado</CardTitle>
+                            <CardDescription>{reportData.length} registro(s) detalhado(s) encontrado(s).</CardDescription>
                         </CardHeader>
                         <CardContent className="p-4">
-                            {/* Layout de Cards para Todos os Tamanhos de Tela */}
                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                                 {reportData.map((item, index) => (
                                     <Card
@@ -993,6 +1288,70 @@ const RelatorioDetalhado = () => {
                         </CardContent>
                     </Card>
                 )}
+
+                {/* 2. RELATÓRIO SIMPLES */}
+                {(reportType === "simple" && reportDataSimple && reportDataSimple.days.length > 0) && (
+                    <Card className="mt-8 border-2 border-primary/20 shadow-lg bg-card/80 backdrop-blur-sm">
+                        <CardHeader>
+                            <CardTitle>Resultados do Relatório Simples</CardTitle>
+                            <CardDescription>Resumo de saldo para {reportDataSimple.days.length} dias.</CardDescription>
+                        </CardHeader>
+                        <CardContent className="p-4">
+                            <div className="mb-4 p-4 rounded-lg border-2 border-primary/30 bg-primary/5">
+                                <h3 className="text-xl font-bold mb-2 text-foreground">Totais do Período</h3>
+                                <div className="grid grid-cols-2 gap-3">
+                                    <div className="font-medium text-muted-foreground">Total de Horas Trabalhadas:</div>
+                                    <div className="text-right font-bold text-foreground">{reportDataSimple.totalHoursWorked}</div>
+
+                                    <div className="font-medium text-muted-foreground">Saldo Total:</div>
+                                    <div className={`text-right font-bold ${reportDataSimple.totalBalance.startsWith('-') ? 'text-destructive' : 'text-green-600'}`}>
+                                        {reportDataSimple.totalBalance}
+                                    </div>
+                                </div>
+                            </div>
+
+                            <div className="overflow-x-auto">
+                                <table className="min-w-full divide-y divide-primary/20 rounded-lg overflow-hidden border border-primary/20">
+                                    <thead className="bg-primary/10">
+                                        <tr>
+                                            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-primary uppercase tracking-wider">
+                                                Data
+                                            </th>
+                                            <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-primary uppercase tracking-wider">
+                                                Horas Trabalhadas
+                                            </th>
+                                            <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-primary uppercase tracking-wider">
+                                                Saldo do Dia
+                                            </th>
+                                        </tr>
+                                    </thead>
+                                    <tbody className="bg-card divide-y divide-primary/10">
+                                        {reportDataSimple.days.map((day, index) => {
+                                            const parts = day.startDate.split('/');
+                                            const dayDate = new Date(`${parts[2]}-${parts[1]}-${parts[0]}`);
+                                            const isDayOffOrHoliday = isHoliday(dayDate) || day.totalHours === '00:00';
+
+                                            return (
+                                                <tr key={index} className={`hover:bg-primary/5 transition-colors ${isDayOffOrHoliday ? 'bg-secondary/5 text-muted-foreground/80' : ''}`}>
+                                                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-foreground flex items-center gap-2">
+                                                        <CalendarIcon className="h-4 w-4 text-primary/70" />
+                                                        {day.startDate}
+                                                        {isHoliday(dayDate) && <Badge variant="outline" className="text-destructive border-destructive/50 bg-destructive/5">Feriado</Badge>}
+                                                    </td>
+                                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-right font-medium">{day.totalHours}</td>
+                                                    <td className={`px-6 py-4 whitespace-nowrap text-sm text-right font-bold ${day.balance.startsWith('-') ? 'text-destructive' : 'text-green-600'}`}>
+                                                        {day.balance}
+                                                    </td>
+                                                </tr>
+                                            );
+                                        })}
+                                    </tbody>
+                                </table>
+                            </div>
+                        </CardContent>
+                    </Card>
+                )}
+
                 <Card className="border-l-4 border-l-primary shadow-card">
                     <div>
                         <Dialog open={editModalOpen} onOpenChange={setEditModalOpen}>
