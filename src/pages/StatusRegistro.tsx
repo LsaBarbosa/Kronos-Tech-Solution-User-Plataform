@@ -368,7 +368,7 @@ const RelatorioDetalhado = () => {
     // A função handleSaveRecord (edição de tempo) foi removida.
 
     return (
-        
+
         <div className="min-h-screen bg-background relative overflow-hidden">
             <div className="fixed inset-0 z-0">
                 <div
@@ -412,13 +412,11 @@ const RelatorioDetalhado = () => {
 
             <main className="container mx-auto px-4 py-20 relative z-10">
                 <div className="mb-8">
-                                <h1 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-foreground to-primary bg-clip-text text-transparent page-title">
+                    <h1 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-foreground to-primary bg-clip-text text-transparent page-title">
 
                         Alterar Status do Registro
                     </h1>
-                    <p className="text-muted-foreground">
-                       ALtere o status de um registro.
-                    </p>
+                   
                 </div>
 
                 <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
@@ -436,46 +434,45 @@ const RelatorioDetalhado = () => {
                             </CardDescription>
                         </CardHeader>
                         <CardContent className="pt-6">
-                            <Calendar
-                                mode="multiple"
-                                selected={selectedDates}
-                                // Corrigido para passar o setter de estado diretamente, para array de datas
-                                onSelect={setSelectedDates}
-                                className="w-full pointer-events-auto"
-                                classNames={{
-                                    day: "h-9 w-9 p-0 font-normal aria-selected:opacity-100 hover:bg-calendar-selected-hover/20 hover:text-calendar-selected transition-colors duration-200 relative",
-                                    day_selected: "bg-calendar-selected text-calendar-selected-foreground hover:bg-calendar-selected-hover hover:text-calendar-selected-foreground focus:bg-calendar-selected focus:text-calendar-selected-foreground font-semibold shadow-sm z-10",
-                                    day_today: "bg-calendar-today text-calendar-today-foreground font-medium border border-border",
-                                    day_outside: "text-muted-foreground opacity-50 aria-selected:bg-calendar-selected/50 aria-selected:text-calendar-selected-foreground aria-selected:opacity-80",
-                                    day_disabled: "text-muted-foreground opacity-50",
-                                    day_range_middle: "aria-selected:bg-calendar-selected/20 aria-selected:text-calendar-selected",
-                                    day_hidden: "invisible",
-                                }}
-                                modifiers={{
-                                    selected: selectedDates,
-                                    holiday: holidays,
-                                }}
-                                modifiersClassNames={{
-                                    selected: "bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground z-10",
-                                    holiday: "bg-destructive/10 text-destructive font-semibold border border-destructive/20 hover:bg-destructive/20 hover:text-destructive",
-                                }}
-                            />
-
+                            <Card className="border-l-4 border-l-primary shadow-card w-fit mx-auto">
+                                <Calendar
+                                    mode="multiple"
+                                    selected={selectedDates}
+                                    onSelect={setSelectedDates}
+                                    className="w-full pointer-events-auto"
+                                    classNames={{
+                                        day: "h-9 w-9 p-0 font-normal aria-selected:opacity-100 hover:bg-calendar-selected-hover/20 hover:text-calendar-selected transition-colors duration-200 relative",
+                                        day_selected: "bg-calendar-selected text-calendar-selected-foreground hover:bg-calendar-selected-hover hover:text-calendar-selected-foreground focus:bg-calendar-selected focus:text-calendar-selected-foreground font-semibold shadow-sm z-10",
+                                        day_today: "bg-calendar-today text-calendar-today-foreground font-medium border border-border",
+                                        day_outside: "text-muted-foreground opacity-50 aria-selected:bg-calendar-selected/50 aria-selected:text-calendar-selected-foreground aria-selected:opacity-80",
+                                        day_disabled: "text-muted-foreground opacity-50",
+                                        day_range_middle: "aria-selected:bg-calendar-selected/20 aria-selected:text-calendar-selected",
+                                        day_hidden: "invisible",
+                                    }}
+                                    modifiers={{
+                                        selected: selectedDates,
+                                        holiday: holidays,
+                                    }}
+                                    modifiersClassNames={{
+                                        selected: "bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground z-10",
+                                        holiday: "bg-destructive/10 text-destructive font-semibold border border-destructive/20 hover:bg-destructive/20 hover:text-destructive",
+                                    }}
+                                />
+                            </Card>
                             <div className="mt-4 p-4 bg-gradient-to-br from-primary/5 to-secondary/5 rounded-lg border border-primary/20 backdrop-blur-sm">
                                 <h4 className="text-sm font-semibold text-foreground mb-2 flex items-center gap-2">
                                     <div className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse"></div>
                                     💡 Dica de uso:
                                 </h4>
                                 <p className="text-xs text-muted-foreground mb-4">
-                                    1. Clique em qualquer data no calendário para selecioná-la. </p>
+                                    1. Clique em qualquer data no calendário para selecioná-la.
+                                </p>
                                 <p className="text-xs text-muted-foreground mb-4">
-                                    2. Os feriados nacionais brasileiros estão destacados automaticamente.</p>
+                                    2. Os feriados nacionais brasileiros estão destacados automaticamente.
+                                </p>
                                 <p className="text-xs text-muted-foreground mb-4">
-                                    3. Status Atualizado e Aguardando Aprovação não pode ser alterados. </p>
-                                <p className="text-xs text-muted-foreground mb-4">
-                                    4 Folgas são geradas automaticamente no dia em que nao houver registro.</p>
-                                <p className="text-xs text-muted-foreground mb-4">
-                                    5. Em caso de falta, busque por registros com folga e altere para ausência.</p>
+                                    3. .
+                                </p>
                                 <div className="grid grid-cols-1 gap-3 text-xs">
                                     <div className="flex items-center gap-3">
                                         <div className="w-4 h-4 rounded bg-gradient-to-br from-primary to-primary/80 shadow-sm"></div>
@@ -484,7 +481,9 @@ const RelatorioDetalhado = () => {
                                     <div className="flex items-center gap-3">
                                         <div className="w-4 h-4 rounded bg-destructive/10 border-2 border-destructive/30"></div>
                                         <span className="text-muted-foreground">Feriado nacional</span>
+
                                     </div>
+
                                     <div className="flex items-center gap-3">
                                         <div className="w-4 h-4 rounded border-2 border-primary/50 bg-transparent"></div>
                                         <span className="text-muted-foreground">Hoje</span>

@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+// Importei o DialogFooter aqui para usá-lo no novo Dialog
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog"; 
 import { Badge } from "@/components/ui/badge";
 import { ArrowLeft, Bell, Calendar, Eye, AlertTriangle, Info, CheckCircle, Loader2, Trash2 } from "lucide-react";
@@ -10,9 +11,10 @@ import Sidebar from "@/components/Sidebar";
 import { useToast } from "@/hooks/use-toast";
 import { API_BASE_URL } from "@/config/api";
 
+// ALTERAÇÃO 1: Atualização da Interface Message
 interface Message {
   messageId: string;
-  title: string;
+  title: string; // NOVO CAMPO: Adicionado o título
   messageText: string;
   priority: 'NORMAL' | 'ALERT' | 'CRITICAL';
   createdAt: string;
@@ -48,8 +50,9 @@ const Avisos = () => {
   const [messages, setMessages] = useState<Message[]>([]);
   const [selectedMessage, setSelectedMessage] = useState<Message | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
+  // NOVO ESTADO: Para controlar o diálogo de confirmação de exclusão
   const [isConfirmDeleteDialogOpen, setIsConfirmDeleteDialogOpen] = useState(false); 
-  const [isDeleting, setIsDeleting] = useState(false);
+  const [isDeleting, setIsDeleting] = useState(false); // NOVO ESTADO: Para feedback visual durante a exclusão
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
@@ -94,23 +97,24 @@ const Avisos = () => {
     fetchMessages();
   }, [toast]);
 
-  // FUNÇÃO CHAVE: Abre o modal e armazena a mensagem
   const handleOpenMessage = (message: Message) => {
     setSelectedMessage(message);
     setIsDialogOpen(true);
   };
   
+  // NOVA FUNÇÃO: Abre o diálogo de confirmação
   const handleConfirmDelete = () => { 
     if (selectedMessage) {
       setIsConfirmDeleteDialogOpen(true);
     }
   };
 
+  // FUNÇÃO DE EXCLUSÃO MODIFICADA
   const handleDeleteMessage = async () => {
     if (!selectedMessage) return;
 
     try {
-      setIsDeleting(true);
+      setIsDeleting(true); // Inicia o loading
       const messageId = selectedMessage.messageId;
       const headers = getAuthHeaders();
       const response = await fetch(`${API_BASE_URL}messages/${messageId}`, {
@@ -123,8 +127,8 @@ const Avisos = () => {
       }
 
       setMessages(messages.filter(msg => msg.messageId !== messageId));
-      setIsDialogOpen(false);
-      setIsConfirmDeleteDialogOpen(false);
+      setIsDialogOpen(false); // Fecha o diálogo principal
+      setIsConfirmDeleteDialogOpen(false); // Fecha o diálogo de confirmação
       toast({
         title: "Sucesso!",
         description: "Mensagem deletada com sucesso.",
@@ -136,7 +140,7 @@ const Avisos = () => {
         variant: "destructive",
       });
     } finally {
-      setIsDeleting(false);
+      setIsDeleting(false); // Finaliza o loading
     }
   };
 
@@ -147,6 +151,7 @@ const Avisos = () => {
       case 'ALERT':
         return <AlertTriangle className="h-4 w-4 text-yellow-600" />;
       case 'CRITICAL':
+      // Modifiquei para um ícone que talvez faça mais sentido para "Crítico" se CheckCircle era usado para outra coisa
         return <AlertTriangle className="h-4 w-4 text-destructive" />; 
       default:
         return <Bell className="h-4 w-4" />;
@@ -184,47 +189,7 @@ const Avisos = () => {
   };
 
   return (
-    <div className="min-h-screen bg-background relative overflow-hidden">
-      {/* Animated Background */}
-      <div className="fixed inset-0 z-0">
-        {/* Gradient Background */}
-        <div 
-          className="absolute inset-0 opacity-5"
-          style={{
-            background: 'linear-gradient(-45deg, hsl(var(--black-primary)), hsl(var(--primary)), hsl(var(--black-primary)), hsl(var(--primary)))',
-            backgroundSize: '400% 400%',
-            animation: 'gradient-flow 15s ease-in-out infinite'
-          }}
-        />
-        
-        {/* Floating Geometric Shapes */}
-        <div className="absolute inset-0">
-          <div 
-            className="absolute top-1/4 left-1/4 w-32 h-32 opacity-3"
-            style={{
-              background: 'linear-gradient(135deg, hsl(var(--primary) / 0.1), transparent)',
-              borderRadius: '30% 70% 70% 30% / 30% 30% 70% 70%',
-              animation: 'float-shapes 20s ease-in-out infinite'
-            }}
-          />
-          <div 
-            className="absolute top-3/4 right-1/4 w-48 h-48 opacity-2"
-            style={{
-              background: 'linear-gradient(45deg, hsl(var(--black-primary) / 0.05), transparent)',
-              borderRadius: '70% 30% 30% 70% / 70% 70% 30% 30%',
-              animation: 'float-shapes 25s ease-in-out infinite reverse'
-            }}
-          />
-          <div 
-            className="absolute top-1/2 right-1/3 w-24 h-24 opacity-4"
-            style={{
-              background: 'radial-gradient(circle, hsl(var(--primary) / 0.08), transparent)',
-              borderRadius: '50%',
-              animation: 'float-shapes 18s ease-in-out infinite 5s'
-            }}
-          />
-        </div>
-      </div>
+    <div className="min-h-screen bg-gradient-to-br from-background to-secondary/10">
       <Header onMenuClick={() => setSidebarOpen(true)} />
       <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
 
@@ -265,11 +230,10 @@ const Avisos = () => {
             {messages.map((message) => (
               <Card
                 key={message.messageId}
-                className={`cursor-pointer transition-all duration-200 hover:shadow-md border-l-4 group ${message.priority === 'NORMAL' ? 'border-l-muted-foreground' :
+                className={`cursor-pointer transition-all duration-200 hover:shadow-md border-l-4 ${message.priority === 'NORMAL' ? 'border-l-muted-foreground' :
                     message.priority === 'ALERT' ? 'border-l-yellow-600' :
                       'border-l-destructive'
                   }`}
-                // IMPLEMENTAÇÃO CHAVE: O clique está no CARD
                 onClick={() => handleOpenMessage(message)}
               >
                 <CardHeader className="pb-3">
@@ -277,9 +241,11 @@ const Avisos = () => {
                     <div className="flex items-center gap-3">
                       {getIconePorTipo(message.priority)}
                       <div className="flex-1">
+                        {/* Exibir o título do aviso */}
                         <CardTitle className={`text-lg font-semibold`}>
                           {message.title} 
                         </CardTitle>
+                        {/* Adicionar o tipo/prioridade como um subtítulo */}
                         <p className="text-sm text-muted-foreground/80 mt-1">
                             {getTituloPorTipo(message.priority)}
                         </p>
@@ -288,20 +254,24 @@ const Avisos = () => {
                     {getBadgePorTipo(message.priority)}
                   </div>
                 </CardHeader>
-                
-                {/* MODIFICAÇÃO APLICADA AQUI: Estrutura mais limpa */}
+                {/* ALTERAÇÃO CHAVE: Modificando CardContent para remover a prévia */}
                 <CardContent className="pt-2 pb-4">
-                  <div className="flex items-center justify-between">
-                    {/* Data de Criação */}
-                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                      <Calendar className="h-4 w-4" />
-                      {formatarData(message.createdAt)}
+                  <div className="flex items-center justify-end">
+                    
+                    {/* Movemos a data e o botão para cá, removendo a prévia da mensagem */}
+                    <div className="flex items-center gap-4 ml-4">
+                      <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                        <Calendar className="h-4 w-4" />
+                        {formatarData(message.createdAt)}
+                      </div>
+                      <Button variant="ghost" size="sm" className="hover:bg-primary/10">
+                        <Eye className="h-4 w-4 mr-2" />
+                        Ver detalhes
+                      </Button>
                     </div>
-                    {/* Indicador visual de "Ver detalhes" */}
-                    <Eye className="h-4 w-4 text-muted-foreground group-hover:text-primary transition-colors" />
                   </div>
                 </CardContent>
-                {/* FIM DA MODIFICAÇÃO */}
+                {/* FIM DA ALTERAÇÃO CHAVE */}
               </Card>
             ))}
           </div>
@@ -322,14 +292,16 @@ const Avisos = () => {
         )}
       </main>
       
-      {/* DIALOG PRINCIPAL - Detalhes do Aviso */}
+      {/* DIALOG PRINCIPAL - Detalhes do Aviso (Mantido inalterado) */}
       <Dialog open={isDialogOpen} onOpenChange={setIsDialogOpen}>
       <DialogContent className="max-w-xl sm:max-w-2xl md:max-w-3xl max-h-[90vh] overflow-y-auto rounded-xl shadow-2xl">
           <DialogHeader>
+            {/* Exibir o Título real do aviso na Dialog */}
             <DialogTitle className="flex items-center gap-3 text-xl sm:text-2xl font-bold text-foreground">
               {selectedMessage && getIconePorTipo(selectedMessage.priority)}
               {selectedMessage && selectedMessage.title}
             </DialogTitle>
+            {/* Adicionar o Tipo/Prioridade como subtítulo da Dialog */}
             <p className="text-sm text-muted-foreground/80 -mt-1 ml-9">
               {selectedMessage && getTituloPorTipo(selectedMessage.priority)}
             </p>
@@ -345,6 +317,7 @@ const Avisos = () => {
                 </div>
               </div>
 
+              {/* Área de conteúdo da mensagem com melhor espaçamento e legibilidade */}
               <div className="p-4 bg-muted/20 rounded-lg border border-border/50">
                 <p className="text-foreground leading-relaxed whitespace-pre-wrap text-base">
                   {selectedMessage.messageText}
@@ -353,10 +326,11 @@ const Avisos = () => {
             </div>
           )}
           <DialogFooter>
+            {/* O botão 'Deletar Mensagem' agora chama a função de confirmação */}
             {selectedMessage && userRole === 'MANAGER' && ( 
               <Button
                 variant="destructive"
-                onClick={handleConfirmDelete}
+                onClick={handleConfirmDelete} // Chama o novo handler
               >
                 <Trash2 className="mr-2 h-4 w-4" /> Deletar Mensagem
               </Button>
@@ -365,7 +339,7 @@ const Avisos = () => {
         </DialogContent>
       </Dialog>
       
-      {/* DIALOG - Confirmação de Exclusão */}
+      {/* NOVO DIALOG - Confirmação de Exclusão (Mantido inalterado) */}
       <Dialog open={isConfirmDeleteDialogOpen} onOpenChange={setIsConfirmDeleteDialogOpen}>
         <DialogContent className="sm:max-w-md">
           <DialogHeader>
@@ -379,6 +353,7 @@ const Avisos = () => {
             </p>
             {selectedMessage && (
               <p className="mt-2 text-sm font-medium text-foreground">
+                {/* Exibir o Título na confirmação de exclusão */}
                 Aviso: <span className="italic line-clamp-1 font-bold">{selectedMessage.title}</span>
               </p>
             )}

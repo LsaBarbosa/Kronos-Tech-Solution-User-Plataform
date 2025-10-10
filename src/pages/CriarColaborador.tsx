@@ -202,7 +202,8 @@ const CriarColaborador = () => {
 
       if (!employeeResponse.ok) {
         const errorData = await employeeResponse.json();
-        throw new Error(errorData.message || "Falha ao criar o colaborador.");
+        // -> IMPLEMENTAÇÃO DO BACK-END AQUI: Prioriza 'detail' para mensagens de erro específicas
+        throw new Error(errorData.detail || errorData.message || "Falha ao criar o colaborador.");
       }
       
       const employeeData = await employeeResponse.json();
@@ -227,7 +228,8 @@ const CriarColaborador = () => {
 
       if (!userResponse.ok) {
         const errorData = await userResponse.json();
-        throw new Error(errorData.message || "Falha ao criar o usuário.");
+        // -> IMPLEMENTAÇÃO DO BACK-END AQUI: Prioriza 'detail' para mensagens de erro específicas
+        throw new Error(errorData.detail || errorData.message || "Falha ao criar o usuário.");
       }
 
       toast({
