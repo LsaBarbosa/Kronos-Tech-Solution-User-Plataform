@@ -428,7 +428,7 @@ const ListaColaboradores = () => {
 
       if (!response.ok) {
         const errorData = await response.json();
-        throw new Error(errorData.message || "Falha ao deletar o usuário.");
+        throw new Error(errorData.detail || "Falha ao deletar o usuário.");
       }
 
       toast({

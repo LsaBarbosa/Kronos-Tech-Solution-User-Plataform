@@ -88,7 +88,8 @@ const PendingApprovals = () => {
       });
 
       if (!response.ok) {
-        throw new Error("Erro ao buscar as solicitações pendentes.");
+        const errorData = await response.json();
+        throw new Error(errorData.detail ||"Erro ao buscar as solicitações pendentes.");
       }
 
       const data: PendingApproval[] = await response.json();

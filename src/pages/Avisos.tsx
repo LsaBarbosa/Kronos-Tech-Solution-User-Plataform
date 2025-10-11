@@ -103,7 +103,8 @@ const Avisos = () => {
         });
 
         if (!response.ok) {
-          throw new Error("Falha ao carregar as mensagens.");
+        const errorData = await response.json();
+        throw new Error(errorData.detail ||"Falha ao carregar as mensagens.");
         }
 
         const data: Message[] = await response.json();

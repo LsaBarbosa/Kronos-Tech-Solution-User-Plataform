@@ -79,7 +79,8 @@ const EmployeeBadge = ({ userData, isLoading, onUpdateSuccess }: EmployeeBadgePr
       });
 
       if (!response.ok) {
-        throw new Error("Falha ao atualizar o perfil.");
+        const errorData = await response.json();
+        throw new Error(errorData.detail ||"Falha ao atualizar o perfil.");
       }
 
       toast.success(`Dados do perfil atualizados com sucesso.`);

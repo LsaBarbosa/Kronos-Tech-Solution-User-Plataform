@@ -50,18 +50,20 @@ const Dashboard = () => {
     };
   }, []);
 
-  const fetchProfile = useCallback(async () => {
+ const fetchProfile = useCallback(async () => {
     setIsLoading(true);
     try {
       const headers = getAuthHeaders();
       const response = await fetch(`${API_BASE_URL}employee/own-profile`, {
         method: "GET",
-        headers,
+        headers: headers,
       });
 
       if (!response.ok) {
-        throw new Error("Falha ao buscar os dados do perfil.");
+        const errorData = await response.json();
+        throw new Error(errorData.detail || "Falha ao buscar os dados do perfil do usuário.");
       }
+
       const data = await response.json();
       setUserData(data);
     } catch (error: any) {
@@ -74,7 +76,7 @@ const Dashboard = () => {
     } finally {
       setIsLoading(false);
     }
-  }, [toast, getAuthHeaders]);
+  }, []);
 
   const fetchPendingApprovals = useCallback(async () => {
     try {
@@ -85,8 +87,8 @@ const Dashboard = () => {
       });
 
       if (!response.ok) {
-        console.error("Falha ao buscar aprovações pendentes.");
-        return;
+        const errorData = await response.json();
+        throw new Error(errorData.detail ||"Falha ao buscar aprovações pendentes.");
       }
       const data = await response.json();
       setPendingApprovalsCount(data.length);
@@ -105,9 +107,9 @@ const Dashboard = () => {
       });
 
       if (!response.ok) {
-        console.error("Falha ao buscar os avisos.");
-        return;
-      }
+        const errorData = await response.json();
+        throw new Error(errorData.detail ||"Falha ao buscar os avisos.");
+       }
       const data = await response.json();
       setAllCompanyWarnings(data);
     } catch (error: any) {
@@ -155,7 +157,8 @@ const Dashboard = () => {
 
       // Se a chamada para marcar como visto falhar, exibe um erro e não continua.
       if (!response.ok) {
-        throw new Error("Falha ao marcar avisos como vistos.");
+        const errorData = await response.json();
+        throw new Error(errorData.detail || "Falha ao marcar avisos como vistos.");
       }
       
       // --- CORREÇÃO PRINCIPAL AQUI ---

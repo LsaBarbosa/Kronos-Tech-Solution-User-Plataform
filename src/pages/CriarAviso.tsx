@@ -99,7 +99,8 @@ const CriarAviso = () => {
       const response = await fetch(`${API_BASE_URL}employee?active=true`, { headers });
       
       if (!response.ok) {
-        throw new Error("Falha ao buscar a lista de colaboradores.");
+        const errorData = await response.json();
+        throw new Error(errorData.detail || "Falha ao buscar a lista de colaboradores.");
       }
       
       const data = await response.json();

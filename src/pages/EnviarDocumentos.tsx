@@ -153,7 +153,8 @@ export default function EnviarDocumentos() {
 
         const response = await fetch(`${API_BASE_URL}employee?active=${activeEmployeeFilter}`, { headers });
         if (!response.ok) {
-          throw new Error("Erro ao buscar funcionários.");
+        const errorData = await response.json();
+        throw new Error(errorData.detail || "Erro ao buscar funcionários.");
         }
         const data = await response.json();
         const formattedEmployees: Employee[] = data.employees.map((emp: any) => ({
@@ -281,9 +282,9 @@ export default function EnviarDocumentos() {
         body: formData,
       });
 
-      if (!response.ok) {
+      if (!response.ok){
         const errorData = await response.json();
-        throw new Error(errorData.message || "Erro ao enviar documento.");
+        throw new Error(errorData.detail || "Erro ao enviar documento.");
       }
 
       toast({

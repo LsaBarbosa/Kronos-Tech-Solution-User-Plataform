@@ -77,7 +77,8 @@ const BuscarEmpresa = () => {
       });
 
       if (!response.ok) {
-        throw new Error(`Erro: ${response.status} ${response.statusText}`);
+        const errorData = await response.json();
+        throw new Error(errorData.detail ||`Erro: ${response.status} ${response.statusText}`);
       }
 
       const data = await response.json();
@@ -146,8 +147,8 @@ const BuscarEmpresa = () => {
         });
 
         if (!response.ok) {
-            const errorData = await response.json();
-            throw new Error(errorData.message || "Falha ao alterar o status da empresa.");
+        const errorData = await response.json();
+        throw new Error(errorData.detail || "Falha ao alterar o status da empresa.");
         }
 
         toast({
@@ -199,8 +200,8 @@ const onSubmitEdit = async (data: any) => {
         });
 
         if (!response.ok) {
-            const errorData = await response.json();
-            throw new Error(errorData.message || "Falha ao atualizar a empresa.");
+        const errorData = await response.json();
+        throw new Error(errorData.detail || "Falha ao atualizar a empresa.");
         }
 
         toast({

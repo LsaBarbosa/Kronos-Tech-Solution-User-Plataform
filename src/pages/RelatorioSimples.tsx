@@ -226,8 +226,9 @@ const RelatorioSimples = () => {
         body: JSON.stringify(requestBody), // Mantenha o corpo da requisição
       });
 
-      if (!response.ok) {
-        throw new Error("Erro ao buscar o relatório. Tente novamente mais tarde.");
+      if (!response.ok){
+        const errorData = await response.json();
+        throw new Error(errorData.detail || "Erro ao buscar o relatório. Tente novamente mais tarde.");
       }
 
       const data = await response.json();

@@ -283,8 +283,8 @@ const Documentos = () => {
 
       const response = await fetch(url, { headers });
       if (!response.ok) {
-        await handleApiError(response);
-        return;
+        const errorData = await response.json();
+        throw new Error(errorData.detail || "Não foi possível realizar o download")
       }
 
       const blob = await response.blob();
