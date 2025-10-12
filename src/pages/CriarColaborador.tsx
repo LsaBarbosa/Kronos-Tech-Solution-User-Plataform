@@ -316,7 +316,7 @@ const CriarColaborador = () => {
             setStepCompleted(false);
             setUsernameAvailability(null);
             
-            navigate("/empresa"); 
+          
 
         } catch (error) {
             console.error("Erro no Passo 2 (Usuário):", error);

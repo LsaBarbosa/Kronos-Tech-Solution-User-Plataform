@@ -30,7 +30,7 @@ interface Company {
 
 // Esquema para validação rigorosa dos campos do Passo 1 (Employee)
 const employeeSchema = z.object({
-    companyId: z.string().min(1, "Selecione a empresa do colaborador"), // NOVO CAMPO OBRIGATÓRIO
+    companyId: z.string().min(1, "Selecione a empresa do colaborador"),
     nomeCompleto: z.string().min(2, "Nome deve ter pelo menos 2 caracteres"),
     cpf: z.string().length(14, "CPF deve ter 11 dígitos"),
     cargo: z.string().min(2, "Cargo deve ter pelo menos 2 caracteres"),
@@ -66,7 +66,6 @@ const CriarColaborador = () => {
     // --- ESTADOS PARA EMPRESAS ---
     const [companies, setCompanies] = useState<Company[]>([]);
     const [isFetchingCompanies, setIsFetchingCompanies] = useState(true);
-    // ----------------------------
     
     // Estados para controle de fluxo
     const [savedEmployeeId, setSavedEmployeeId] = useState<string | null>(null);
@@ -75,11 +74,17 @@ const CriarColaborador = () => {
     // Estados para verificação de username
     const [usernameAvailability, setUsernameAvailability] = useState<'available' | 'unavailable' | 'checking' | null>(null);
     const [isCheckingUsername, setIsCheckingUsername] = useState(false);
+    
+    // --- NOVOS ESTADOS PARA VERIFICAÇÃO DE CPF ---
+    const [cpfAvailability, setCpfAvailability] = useState<'available' | 'unavailable' | 'checking' | null>(null);
+    const [isCheckingCPF, setIsCheckingCPF] = useState(false);
+    // ----------------------------------------------
+
 
     const form = useForm<FormData>({
         resolver: zodResolver(formSchema),
         defaultValues: {
-            companyId: "", // NOVO DEFAULT VALUE
+            companyId: "",
             nomeCompleto: "",
             cpf: "",
             cargo: "",
@@ -94,7 +99,7 @@ const CriarColaborador = () => {
         },
     });
 
-    // --- FUNÇÃO PARA BUSCAR EMPRESAS (CORRIGIDA) ---
+    // --- FUNÇÃO PARA BUSCAR EMPRESAS ---
     const fetchCompanies = useCallback(async () => {
         setIsFetchingCompanies(true);
         try {
@@ -113,7 +118,7 @@ const CriarColaborador = () => {
             }
             
             const data = await response.json();
-            // 💡 CORREÇÃO APLICADA: Mapeando 'id' (UUID) da empresa, e não o 'cnpj'.
+            // CORREÇÃO: Mapeando 'id' (UUID) da empresa, e não o 'cnpj'.
             setCompanies(data.companies.map((c: any) => ({ companyId: c.id, name: c.name })));
             
         } catch (error) {
@@ -164,8 +169,60 @@ const CriarColaborador = () => {
         return formattedValue;
     };
     // -----------------------
+    
+    // --- FUNÇÃO PARA VERIFICAR CPF (NOVA) ---
+    const handleCheckCPF = async () => {
+        const cpfWithMask = form.getValues('cpf');
+        const cpf = cpfWithMask.replace(/\D/g, "");
+
+        // Validação básica de comprimento sem a máscara (11 dígitos)
+        if (cpf.length !== 11) {
+            toast({
+                title: "Erro de validação",
+                description: "O CPF deve ter 11 dígitos.",
+                variant: "destructive",
+            });
+            setCpfAvailability(null);
+            return;
+        }
+
+        setIsCheckingCPF(true);
+        setCpfAvailability('checking');
+
+        try {
+            const token = localStorage.getItem("token");
+            if (!token) throw new Error("Token de autenticação não encontrado.");
+
+            // Chamada à API para verificação de CPF
+            const response = await fetch(`${API_BASE_URL}employee/check-cpf?cpf=${cpf}`, {
+                headers: { "Authorization": `Bearer ${token}` },
+            });
+
+            if (response.ok) {
+                // Se o status for 200/OK, o CPF existe (indisponível)
+                toast({ title: "CPF indisponível", description: "Este CPF já está cadastrado no sistema.", variant: "destructive" });
+                setCpfAvailability('unavailable');
+            } else if (response.status === 404) {
+                // Se o status for 404, o CPF não existe (disponível)
+                toast({ title: "CPF disponível!", description: "Você pode usar este CPF para o registro." });
+                setCpfAvailability('available');
+            } else {
+                // Outros erros
+                toast({ title: "Erro na verificação", description: "Ocorreu um erro ao verificar o CPF.", variant: "destructive" });
+                setCpfAvailability(null);
+            }
+        } catch (error) {
+            console.error("Erro na comunicação com a API:", error);
+            toast({ title: "Erro de rede", description: "Falha ao conectar com o servidor.", variant: "destructive" });
+            setCpfAvailability(null);
+        } finally {
+            setIsCheckingCPF(false);
+        }
+    };
+    // ------------------------------------------
 
     const handleCheckUsername = async () => {
+        // Bloqueia se o Passo 1 não estiver completo
         if (!stepCompleted) {
             toast({
                 title: "Passo Incompleto",
@@ -232,6 +289,18 @@ const CriarColaborador = () => {
             setIsSubmitting(false);
             return;
         }
+        
+        // --- VALIDAÇÃO DE CHECK NO CPF (NOVA) ---
+        if (cpfAvailability !== 'available') {
+            toast({
+                title: "Ação Pendente",
+                description: "É necessário verificar a disponibilidade do CPF antes de continuar.",
+                variant: "destructive",
+            });
+            setIsSubmitting(false);
+            return;
+        }
+        // -----------------------------------------
 
         try {
             const token = localStorage.getItem("token");
@@ -239,7 +308,6 @@ const CriarColaborador = () => {
 
             // Removendo máscaras para envio ao backend
             const employeePayload = {
-                // 🚀 companyId: O UUID correto da empresa (ajustado em fetchCompanies)
                 companyId: data.companyId, 
                 fullName: data.nomeCompleto,
                 cpf: data.cpf.replace(/\D/g, ""),
@@ -302,6 +370,7 @@ const CriarColaborador = () => {
             return;
         }
 
+        // Validação da checagem do username (mantida)
         if (usernameAvailability !== 'available') {
             toast({
                 title: "Ação Pendente",
@@ -355,6 +424,7 @@ const CriarColaborador = () => {
             setSavedEmployeeId(null);
             setStepCompleted(false);
             setUsernameAvailability(null);
+            setCpfAvailability(null); // Resetar CPF também
 
             navigate("/empresa");
 
@@ -454,7 +524,7 @@ const CriarColaborador = () => {
                                 <CardContent>
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
 
-                                        {/* NOVO CAMPO: SELEÇÃO DE EMPRESA */}
+                                        {/* CAMPO: SELEÇÃO DE EMPRESA */}
                                         <FormField
                                             control={form.control}
                                             name="companyId"
@@ -495,14 +565,40 @@ const CriarColaborador = () => {
                                                 <FormMessage />
                                             </FormItem>
                                         )} />
-
+                                        
+                                        {/* CAMPO: CPF COM VERIFICAÇÃO */}
                                         <FormField control={form.control} name="cpf" render={({ field }) => (
                                             <FormItem>
                                                 <FormLabel className="text-base font-semibold">CPF</FormLabel>
-                                                <FormControl><Input placeholder="000.000.000-00" className="h-12 text-base" {...field} onChange={(e) => field.onChange(maskCPF(e.target.value))} maxLength={14} /></FormControl>
-                                                <FormMessage />
+                                                <div className="flex space-x-2">
+                                                    <FormControl>
+                                                        <Input
+                                                            placeholder="000.000.000-00"
+                                                            className="h-12 text-base"
+                                                            {...field}
+                                                            onChange={(e) => {
+                                                                field.onChange(maskCPF(e.target.value));
+                                                                setCpfAvailability(null); // Resetar status ao digitar
+                                                            }}
+                                                            maxLength={14}
+                                                        />
+                                                    </FormControl>
+                                                    <Button
+                                                        type="button"
+                                                        onClick={handleCheckCPF}
+                                                        disabled={isCheckingCPF || field.value.length < 14}
+                                                        className="touch-target w-auto h-12"
+                                                    >
+                                                        {isCheckingCPF ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Verificar'}
+                                                    </Button>
+                                                </div>
+                                                <FormMessage>
+                                                    {cpfAvailability === 'unavailable' && 'CPF já existe no sistema.'}
+                                                    {cpfAvailability === 'available' && <span className="text-green-500">CPF disponível para cadastro.</span>}
+                                                </FormMessage>
                                             </FormItem>
                                         )} />
+                                        {/* FIM: CPF COM VERIFICAÇÃO */}
 
                                         <FormField control={form.control} name="cargo" render={({ field }) => (
                                             <FormItem>
@@ -650,7 +746,7 @@ const CriarColaborador = () => {
                                                 variant="login"
                                                 size="lg"
                                                 className="w-full h-14 text-lg font-semibold shadow-button hover:shadow-xl transition-all duration-300 hover:scale-[1.02]"
-                                                // Botão Final agora exige tanto a submissão, quanto a checagem de username
+                                                // Botão Final exige submissão, checagem de username e validação de password.
                                                 disabled={isSubmitting || usernameAvailability !== 'available'}
                                             >
                                                 {isSubmitting ? <Loader2 className="h-6 w-6 animate-spin mr-2" /> : "Concluir Cadastro"}
