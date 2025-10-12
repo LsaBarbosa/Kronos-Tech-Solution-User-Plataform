@@ -23,7 +23,6 @@ import Usuario from "./pages/Usuario";
 import CriarColaborador from "./pages/CriarColaborador";
 import ListaColaboradores from "./pages/ListaColaboradores";
 import ListaUsuarios from "./pages/ListaUsuarios";
-import CriarUsuario from "./pages/CriarUsuario";
 import RelatorioHoras from "./pages/RelatorioHoras";
 import ApuracaoHoras from "./pages/ApuracaoHoras";
 import Avisos from "./pages/Avisos";
@@ -33,6 +32,7 @@ import EsqueciSenha from "./pages/EsqueciSenha";
 import ResetPassword from "./pages/ResetPassword";
 import DocumentoColaborador from "./pages/DocumentoColaborador";
 import ProtectedRoute from "./components/ProtectedRoute";
+import CriarManager from "./pages/CriarManager";
 
 const queryClient = new QueryClient();
 
@@ -70,9 +70,9 @@ const App = () => (
             <Route path="/atestado-medico" element={<AtestadoMedico />} />
             <Route path="/usuario" element={<Usuario />} />
             <Route path="/criar-colaborador" element={<CriarColaborador />} />
+            <Route path="/criar-administrador" element={<CriarManager />} />
             <Route path="/lista-colaboradores" element={<ListaColaboradores />} />
             <Route path="/lista-usuarios" element={<ListaUsuarios />} />
-            <Route path="/criar-usuario" element={<CriarUsuario />} />
             <Route path="/relatorio-horas" element={<RelatorioHoras />} />
             <Route path="/apuracao-horas" element={<ApuracaoHoras />} />
             <Route path="/status-do-registro" element={<StatusRegistro />} />

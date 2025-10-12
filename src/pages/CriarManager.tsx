@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { toast } from "@/hooks/use-toast";
-import { ArrowLeft, User, Shield, Loader2, MapPin, CheckCircle } from "lucide-react";
+import { ArrowLeft, User, Shield, Loader2, MapPin, CheckCircle, Building2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import Header from "@/components/Header";
 import Sidebar from "@/components/Sidebar";
@@ -20,17 +20,24 @@ import {
 } from "@/components/ui/select";
 import { API_BASE_URL } from "@/config/api";
 
+// --- NOVAS INTERFACES ---
+interface Company {
+    companyId: string; // Agora armazena o UUID (campo 'id' da API)
+    name: string;
+}
+
 // --- ESQUEMAS DE VALIDAÇÃO REVISADOS ---
 
 // Esquema para validação rigorosa dos campos do Passo 1 (Employee)
 const employeeSchema = z.object({
+    companyId: z.string().min(1, "Selecione a empresa do colaborador"), // NOVO CAMPO OBRIGATÓRIO
     nomeCompleto: z.string().min(2, "Nome deve ter pelo menos 2 caracteres"),
-    cpf: z.string().length(14, "CPF deve ter 11 dígitos"), 
+    cpf: z.string().length(14, "CPF deve ter 11 dígitos"),
     cargo: z.string().min(2, "Cargo deve ter pelo menos 2 caracteres"),
     email: z.string().email("Email inválido"),
     salario: z.string().min(1, "Salário é obrigatório"),
-    telefone: z.string().length(15, "Telefone deve ter 11 dígitos"), 
-    cep: z.string().length(9, "CEP deve ter 8 dígitos"), 
+    telefone: z.string().length(15, "Telefone deve ter 11 dígitos"),
+    cep: z.string().length(9, "CEP deve ter 8 dígitos"),
     numero: z.string().min(1, "Número é obrigatório"),
 });
 
@@ -42,7 +49,6 @@ const userSchema = z.object({
 });
 
 // Esquema de Formulário Completo (Usado no useForm)
-// Tornamos os campos do Passo 2 opcionais/default para que o form.handleSubmit não falhe no Passo 1
 const formSchema = employeeSchema.extend({
     username: z.string().optional(),
     password: z.string().optional(),
@@ -56,19 +62,24 @@ const CriarColaborador = () => {
     const navigate = useNavigate();
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [sidebarOpen, setSidebarOpen] = useState(false);
+
+    // --- ESTADOS PARA EMPRESAS ---
+    const [companies, setCompanies] = useState<Company[]>([]);
+    const [isFetchingCompanies, setIsFetchingCompanies] = useState(true);
+    // ----------------------------
     
     // Estados para controle de fluxo
     const [savedEmployeeId, setSavedEmployeeId] = useState<string | null>(null);
-    const [stepCompleted, setStepCompleted] = useState(false); 
-    
+    const [stepCompleted, setStepCompleted] = useState(false);
+
     // Estados para verificação de username
     const [usernameAvailability, setUsernameAvailability] = useState<'available' | 'unavailable' | 'checking' | null>(null);
     const [isCheckingUsername, setIsCheckingUsername] = useState(false);
 
     const form = useForm<FormData>({
-        // O resolver usa o formSchema com os campos de usuário opcionais
-        resolver: zodResolver(formSchema), 
+        resolver: zodResolver(formSchema),
         defaultValues: {
+            companyId: "", // NOVO DEFAULT VALUE
             nomeCompleto: "",
             cpf: "",
             cargo: "",
@@ -82,6 +93,42 @@ const CriarColaborador = () => {
             role: "PARTNER",
         },
     });
+
+    // --- FUNÇÃO PARA BUSCAR EMPRESAS (CORRIGIDA) ---
+    const fetchCompanies = useCallback(async () => {
+        setIsFetchingCompanies(true);
+        try {
+            const token = localStorage.getItem("token");
+            if (!token) {
+                toast({ title: "Erro", description: "Token não encontrado.", variant: "destructive" });
+                return;
+            }
+
+            const response = await fetch(`${API_BASE_URL}companies`, {
+                headers: { "Authorization": `Bearer ${token}` },
+            });
+
+            if (!response.ok) {
+                throw new Error("Falha ao buscar a lista de empresas.");
+            }
+            
+            const data = await response.json();
+            // 💡 CORREÇÃO APLICADA: Mapeando 'id' (UUID) da empresa, e não o 'cnpj'.
+            setCompanies(data.companies.map((c: any) => ({ companyId: c.id, name: c.name })));
+            
+        } catch (error) {
+            console.error("Erro ao buscar empresas:", error);
+            toast({ title: "Erro", description: "Não foi possível carregar a lista de empresas.", variant: "destructive" });
+        } finally {
+            setIsFetchingCompanies(false);
+        }
+    }, [toast]);
+
+    useEffect(() => {
+        fetchCompanies();
+    }, [fetchCompanies]);
+    // -----------------------------------
+
 
     // --- Mask functions (Mantidas) ---
     const maskCPF = (value: string) => {
@@ -119,7 +166,6 @@ const CriarColaborador = () => {
     // -----------------------
 
     const handleCheckUsername = async () => {
-        // Bloqueia se o Passo 1 não estiver completo
         if (!stepCompleted) {
             toast({
                 title: "Passo Incompleto",
@@ -129,9 +175,8 @@ const CriarColaborador = () => {
             setUsernameAvailability(null);
             return;
         }
-        
+
         const username = form.getValues('username');
-        // Usamos o userSchema para validar o campo username separadamente.
         const usernameValidation = userSchema.pick({ username: true }).safeParse({ username });
 
         if (!usernameValidation.success) {
@@ -147,7 +192,6 @@ const CriarColaborador = () => {
         setIsCheckingUsername(true);
         setUsernameAvailability('checking');
 
-        // Lógica de chamada à API para verificação (Mantida)
         try {
             const token = localStorage.getItem("token");
             if (!token) throw new Error("Token de autenticação não encontrado.");
@@ -177,11 +221,9 @@ const CriarColaborador = () => {
 
     const handleCreateEmployee = async (data: FormData) => {
         setIsSubmitting(true);
-        
-        // 💡 CORREÇÃO APLICADA: Validação explícita dos campos do Passo 1 (Employee)
+
         const employeeValidation = employeeSchema.safeParse(data);
         if (!employeeValidation.success) {
-            // Se falhar, as mensagens de erro do RHF já aparecerão no formulário.
             toast({
                 title: "Erro de validação",
                 description: "Preencha corretamente os Dados do Colaborador (Passo 1).",
@@ -190,19 +232,20 @@ const CriarColaborador = () => {
             setIsSubmitting(false);
             return;
         }
-        
+
         try {
             const token = localStorage.getItem("token");
             if (!token) throw new Error("Token de autenticação não encontrado.");
 
             // Removendo máscaras para envio ao backend
             const employeePayload = {
+                // 🚀 companyId: O UUID correto da empresa (ajustado em fetchCompanies)
+                companyId: data.companyId, 
                 fullName: data.nomeCompleto,
                 cpf: data.cpf.replace(/\D/g, ""),
                 jobPosition: data.cargo,
                 email: data.email,
-                // Garantimos que o salário seja enviado como float/number
-                salary: parseFloat(data.salario.replace(/[R$\s.]/g, "").replace(",", ".")), 
+                salary: parseFloat(data.salario.replace(/[R$\s.]/g, "").replace(",", ".")),
                 phone: data.telefone.replace(/\D/g, ""),
                 address: {
                     postalCode: data.cep.replace(/\D/g, ""),
@@ -220,14 +263,14 @@ const CriarColaborador = () => {
                 const errorData = await employeeResponse.json();
                 throw new Error(errorData.detail || errorData.message || "Falha ao criar o colaborador.");
             }
-            
+
             const employeeData = await employeeResponse.json();
             const employeeId = employeeData.employeeId;
-            
+
             // SUCESSO DO PASSO 1: Salva o ID e avança o passo
             setSavedEmployeeId(employeeId);
             setStepCompleted(true);
-            
+
             toast({
                 title: "Colaborador criado!",
                 description: `O registro de ${data.nomeCompleto} foi salvo. Prossiga para as credenciais de usuário.`,
@@ -247,8 +290,7 @@ const CriarColaborador = () => {
 
     const handleCreateUser = async (data: FormData) => {
         setIsSubmitting(true);
-        
-        // 💡 CORREÇÃO APLICADA: Validação explícita dos campos do Passo 2 (User)
+
         const userValidation = userSchema.safeParse(data);
         if (!userValidation.success) {
             toast({
@@ -260,7 +302,6 @@ const CriarColaborador = () => {
             return;
         }
 
-        // Validação da checagem do username (mantida e necessária para o Passo 2)
         if (usernameAvailability !== 'available') {
             toast({
                 title: "Ação Pendente",
@@ -270,22 +311,21 @@ const CriarColaborador = () => {
             setIsSubmitting(false);
             return;
         }
-        
+
         if (!savedEmployeeId) {
-             toast({
-                 title: "Erro de Fluxo",
-                 description: "O ID do Colaborador não foi encontrado. Por favor, reinicie o cadastro.",
-                 variant: "destructive",
-             });
-             setIsSubmitting(false);
-             return;
-         }
+            toast({
+                title: "Erro de Fluxo",
+                description: "O ID do Colaborador não foi encontrado. Por favor, reinicie o cadastro.",
+                variant: "destructive",
+            });
+            setIsSubmitting(false);
+            return;
+        }
 
         try {
             const token = localStorage.getItem("token");
             if (!token) throw new Error("Token de autenticação não encontrado.");
 
-            // Aqui, usamos data.username, data.password e data.role que foram validados pelo userSchema
             const userPayload = {
                 username: data.username,
                 password: data.password,
@@ -315,8 +355,8 @@ const CriarColaborador = () => {
             setSavedEmployeeId(null);
             setStepCompleted(false);
             setUsernameAvailability(null);
-            
-            navigate("/empresa"); 
+
+            navigate("/empresa");
 
         } catch (error) {
             console.error("Erro no Passo 2 (Usuário):", error);
@@ -329,16 +369,12 @@ const CriarColaborador = () => {
             setIsSubmitting(false);
         }
     };
-    
+
     // Roteador de submissão
     const onSubmit = (data: FormData) => {
-        // Se o Passo 1 não foi completado, tenta criar o Employee.
         if (!stepCompleted) {
-            // A validação completa é ignorada graças ao formSchema modificado,
-            // e a validação real do Passo 1 ocorre dentro de handleCreateEmployee.
             handleCreateEmployee(data);
         } else {
-            // Se o Passo 1 foi completado, tenta criar o User.
             handleCreateUser(data);
         }
     };
@@ -347,7 +383,7 @@ const CriarColaborador = () => {
         <div className="min-h-screen bg-background relative overflow-hidden">
             {/* Animated Background (Mantido) */}
             <div className="fixed inset-0 z-0">
-                <div 
+                <div
                     className="absolute inset-0 opacity-5"
                     style={{
                         background: 'linear-gradient(-45deg, hsl(var(--black-primary)), hsl(var(--primary)), hsl(var(--black-primary)), hsl(var(--primary)))',
@@ -355,9 +391,9 @@ const CriarColaborador = () => {
                         animation: 'gradient-flow 15s ease-in-out infinite'
                     }}
                 />
-                
+
                 <div className="absolute inset-0">
-                    <div 
+                    <div
                         className="absolute top-1/4 left-1/4 w-32 h-32 opacity-3"
                         style={{
                             background: 'linear-gradient(135deg, hsl(var(--primary) / 0.1), transparent)',
@@ -365,7 +401,7 @@ const CriarColaborador = () => {
                             animation: 'float-shapes 20s ease-in-out infinite'
                         }}
                     />
-                    <div 
+                    <div
                         className="absolute top-3/4 right-1/4 w-48 h-48 opacity-2"
                         style={{
                             background: 'linear-gradient(45deg, hsl(var(--black-primary) / 0.05), transparent)',
@@ -373,7 +409,7 @@ const CriarColaborador = () => {
                             animation: 'float-shapes 25s ease-in-out infinite reverse'
                         }}
                     />
-                    <div 
+                    <div
                         className="absolute top-1/2 right-1/3 w-24 h-24 opacity-4"
                         style={{
                             background: 'radial-gradient(circle, hsl(var(--primary) / 0.08), transparent)',
@@ -417,14 +453,48 @@ const CriarColaborador = () => {
                                 </CardHeader>
                                 <CardContent>
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                        
+
+                                        {/* NOVO CAMPO: SELEÇÃO DE EMPRESA */}
+                                        <FormField
+                                            control={form.control}
+                                            name="companyId"
+                                            render={({ field }) => (
+                                                <FormItem className="md:col-span-2">
+                                                    <FormLabel className="text-base font-semibold flex items-center gap-2">
+                                                        <Building2 className="h-4 w-4" /> Empresa
+                                                    </FormLabel>
+                                                    <Select
+                                                        onValueChange={field.onChange}
+                                                        value={field.value}
+                                                        disabled={isFetchingCompanies || companies.length === 0}
+                                                    >
+                                                        <FormControl>
+                                                            <SelectTrigger className="h-12 text-base">
+                                                                <SelectValue
+                                                                    placeholder={isFetchingCompanies ? "Carregando empresas..." : "Selecione a empresa"}
+                                                                />
+                                                            </SelectTrigger>
+                                                        </FormControl>
+                                                        <SelectContent>
+                                                            {companies.map((company) => (
+                                                                <SelectItem key={company.companyId} value={company.companyId}>
+                                                                    {company.name}
+                                                                </SelectItem>
+                                                            ))}
+                                                        </SelectContent>
+                                                    </Select>
+                                                    <FormMessage />
+                                                </FormItem>
+                                            )}
+                                        />
+
                                         <FormField control={form.control} name="nomeCompleto" render={({ field }) => (
                                             <FormItem className="md:col-span-2">
                                                 <FormLabel className="text-base font-semibold">Nome Completo</FormLabel>
                                                 <FormControl><Input placeholder="Digite o nome completo" className="h-12 text-base" {...field} /></FormControl>
                                                 <FormMessage />
                                             </FormItem>
-                                        )}/>
+                                        )} />
 
                                         <FormField control={form.control} name="cpf" render={({ field }) => (
                                             <FormItem>
@@ -432,7 +502,7 @@ const CriarColaborador = () => {
                                                 <FormControl><Input placeholder="000.000.000-00" className="h-12 text-base" {...field} onChange={(e) => field.onChange(maskCPF(e.target.value))} maxLength={14} /></FormControl>
                                                 <FormMessage />
                                             </FormItem>
-                                        )}/>
+                                        )} />
 
                                         <FormField control={form.control} name="cargo" render={({ field }) => (
                                             <FormItem>
@@ -440,15 +510,15 @@ const CriarColaborador = () => {
                                                 <FormControl><Input placeholder="Ex: Padeiro, Atendente" className="h-12 text-base" {...field} /></FormControl>
                                                 <FormMessage />
                                             </FormItem>
-                                        )}/>
-                                        
+                                        )} />
+
                                         <FormField control={form.control} name="email" render={({ field }) => (
                                             <FormItem>
                                                 <FormLabel className="text-base font-semibold">Email</FormLabel>
                                                 <FormControl><Input type="email" placeholder="email@exemplo.com" className="h-12 text-base" {...field} /></FormControl>
                                                 <FormMessage />
                                             </FormItem>
-                                        )}/>
+                                        )} />
 
                                         <FormField control={form.control} name="salario" render={({ field }) => (
                                             <FormItem>
@@ -456,7 +526,7 @@ const CriarColaborador = () => {
                                                 <FormControl><Input placeholder="R$ 0,00" className="h-12 text-base" {...field} onChange={(e) => field.onChange(maskCurrency(e.target.value))} /></FormControl>
                                                 <FormMessage />
                                             </FormItem>
-                                        )}/>
+                                        )} />
 
                                         <FormField control={form.control} name="telefone" render={({ field }) => (
                                             <FormItem>
@@ -464,7 +534,7 @@ const CriarColaborador = () => {
                                                 <FormControl><Input placeholder="(00) 00000-0000" className="h-12 text-base" {...field} onChange={(e) => field.onChange(maskPhone(e.target.value))} maxLength={15} /></FormControl>
                                                 <FormMessage />
                                             </FormItem>
-                                        )}/>
+                                        )} />
                                     </div>
                                     <div className="grid grid-cols-2 gap-6 pt-6">
                                         <FormField control={form.control} name="cep" render={({ field }) => (
@@ -473,7 +543,7 @@ const CriarColaborador = () => {
                                                 <FormControl><Input placeholder="00000-000" className="h-12 text-base" {...field} onChange={(e) => field.onChange(maskCEP(e.target.value))} maxLength={9} /></FormControl>
                                                 <FormMessage />
                                             </FormItem>
-                                        )}/>
+                                        )} />
 
                                         <FormField control={form.control} name="numero" render={({ field }) => (
                                             <FormItem>
@@ -481,9 +551,9 @@ const CriarColaborador = () => {
                                                 <FormControl><Input placeholder="Ex: 123, 45A" className="h-12 text-base" {...field} /></FormControl>
                                                 <FormMessage />
                                             </FormItem>
-                                        )}/>
+                                        )} />
                                     </div>
-                                    
+
                                     {/* Botão de Submissão do Passo 1 */}
                                     {!stepCompleted && (
                                         <Button
@@ -491,8 +561,8 @@ const CriarColaborador = () => {
                                             variant="default"
                                             size="lg"
                                             className="w-full h-14 text-lg font-semibold mt-6 shadow-md"
-                                            // Botão agora depende APENAS do estado de submissão.
-                                            disabled={isSubmitting} 
+                                            // Desabilita se estiver submetendo ou se ainda estiver buscando as empresas
+                                            disabled={isSubmitting || isFetchingCompanies}
                                         >
                                             {isSubmitting ? <Loader2 className="h-6 w-6 animate-spin mr-2" /> : "Salvar Dados e Continuar"}
                                         </Button>
@@ -521,18 +591,18 @@ const CriarColaborador = () => {
                                 </CardHeader>
                                 <CardContent>
                                     <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                                        
+
                                         <FormField control={form.control} name="username" render={({ field }) => (
                                             <FormItem>
                                                 <FormLabel className="text-base font-semibold flex items-center">Nome de Usuário</FormLabel>
                                                 <div className="flex space-x-2">
                                                     <FormControl><Input placeholder="Digite o nome de usuário" className="h-12 text-base" {...field} onChange={(e) => { field.onChange(e); setUsernameAvailability(null); }} /></FormControl>
-                                                    
+
                                                     {/* BLOQUEIO DO BOTÃO DE VERIFICAR */}
-                                                    <Button 
-                                                        type="button" 
-                                                        onClick={handleCheckUsername} 
-                                                        disabled={isCheckingUsername || field.value.length < 4 || !stepCompleted} 
+                                                    <Button
+                                                        type="button"
+                                                        onClick={handleCheckUsername}
+                                                        disabled={isCheckingUsername || field.value.length < 4 || !stepCompleted}
                                                         className="touch-target w-auto h-12"
                                                     >
                                                         {isCheckingUsername ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Verificar'}
@@ -543,15 +613,15 @@ const CriarColaborador = () => {
                                                     {usernameAvailability === 'available' && <span className="text-green-500">Nome de usuário disponível.</span>}
                                                 </FormMessage>
                                             </FormItem>
-                                        )}/>
-                                        
+                                        )} />
+
                                         <FormField control={form.control} name="password" render={({ field }) => (
                                             <FormItem>
                                                 <FormLabel className="text-base font-semibold">Senha</FormLabel>
                                                 <FormControl><Input type="password" placeholder="Digite a senha" className="h-12 text-base" {...field} /></FormControl>
                                                 <FormMessage />
                                             </FormItem>
-                                        )}/>
+                                        )} />
 
                                         <FormField control={form.control} name="role" render={({ field }) => (
                                             <FormItem className="md:col-span-2">
@@ -569,7 +639,7 @@ const CriarColaborador = () => {
                                                 </Select>
                                                 <FormMessage />
                                             </FormItem>
-                                        )}/>
+                                        )} />
                                     </div>
 
                                     {/* Botão de Submissão do Passo 2 (Final) */}

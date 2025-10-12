@@ -1,4 +1,4 @@
-import { useState, useCallback } from "react";
+import { useState, useCallback, useEffect } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -22,22 +22,17 @@ import {
   FormMessage,
 } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "@/components/ui/select";
-import { ArrowLeft, Building2, Save, User, Shield, Loader2, MapPin } from "lucide-react";
+// Select, SelectContent, SelectItem, SelectTrigger, SelectValue REMOVIDOS (porque não há mais campo Role/Usuário)
+import { ArrowLeft, Building2, Save, MapPin, Loader2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { API_BASE_URL } from "@/config/api";
 
-// Lembre-se de configurar esta variável no seu arquivo .env.local
-const GOOGLE_MAPS_API_KEY = import.meta.env.VITE_GOOGLE_MAPS_API_KEY;
+// NOVO: Variável de ambiente para o HERE API Key
+//const HERE_API_KEY = import.meta.env.VITE_HERE_API_KEY;
+const HERE_API_KEY = "4BOpnro1zHzBBh9olurKhD4aWIw9I-gcY6VRox9wSXU";
 
-// Schema de validação que corresponde exatamente ao DTO do backend
+// Schema de validação (AGORA SÓ COM DADOS DA EMPRESA)
 const formSchema = z.object({
   name: z.string().min(2, {
     message: "Nome deve ter pelo menos 2 caracteres.",
@@ -60,43 +55,6 @@ const formSchema = z.object({
     latitude: z.number().optional(),
     longitude: z.number().optional(),
   }),
-  employeeRequest: z.object({
-    fullName: z.string().min(2, {
-      message: "Nome completo deve ter pelo menos 2 caracteres.",
-    }),
-    cpf: z.string().length(11, {
-      message: "CPF deve ter 11 dígitos.",
-    }),
-    jobPosition: z.string().min(2, {
-      message: "Cargo deve ter pelo menos 2 caracteres.",
-    }),
-    email: z.string().email({
-      message: "Email deve ser válido.",
-    }),
-    salary: z.number().min(0, {
-      message: "Salário deve ser um valor positivo.",
-    }),
-    phone: z.string().min(10, {
-      message: "Telefone deve ter pelo menos 10 dígitos.",
-    }),
-    address: z.object({
-      postalCode: z.string().length(8, {
-        message: "CEP deve ter 8 caracteres.",
-      }),
-      number: z.string().min(1, {
-        message: "Número é obrigatório.",
-      }),
-    }),
-  }),
-  userRequest: z.object({
-    username: z.string().min(3, {
-      message: "Nome de usuário deve ter pelo menos 3 caracteres.",
-    }),
-    password: z.string().min(6, {
-      message: "Senha deve ter pelo menos 6 caracteres.",
-    }),
-    role: z.enum(["MANAGER", "PARTNER"]),
-  }),
 });
 
 const CriarEmpresa = () => {
@@ -104,11 +62,8 @@ const CriarEmpresa = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const navigate = useNavigate();
   const { toast } = useToast();
-  const [usernameAvailability, setUsernameAvailability] = useState<
-    "available" | "unavailable" | "checking" | null
-  >(null);
-  const [isCheckingUsername, setIsCheckingUsername] = useState(false);
-  const [isFetchingCoords, setIsFetchingCoords] = useState(false);
+  // usernameAvailability, isCheckingUsername, savedEmployeeId, step1Completed, step2Completed REMOVIDOS
+  const [isGeocoding, setIsGeocoding] = useState(false);
 
   const form = useForm<z.infer<typeof formSchema>>({
     resolver: zodResolver(formSchema),
@@ -124,170 +79,108 @@ const CriarEmpresa = () => {
         latitude: undefined,
         longitude: undefined,
       },
-      employeeRequest: {
-        fullName: "",
-        cpf: "",
-        jobPosition: "",
-        email: "",
-        salary: 0,
-        phone: "",
-        address: {
-          postalCode: "",
-          number: "",
-        },
-      },
-      userRequest: {
-        username: "",
-        password: "",
-        role: "MANAGER" as const,
-      },
+      // employeeRequest e userRequest REMOVIDOS dos defaultValues
     },
   });
 
-  const getCoordinates = useCallback(async () => {
-    const postalCode = form.getValues("address.postalCode");
-    const number = form.getValues("address.number");
+  // Watch fields para o Geocoding
+  const cep = form.watch("address.postalCode");
+  const numero = form.watch("address.number");
+  const currentLatitude = form.watch("location.latitude");
 
-    if (!GOOGLE_MAPS_API_KEY) {
+  // handleCheckUsername REMOVIDA
+
+  // ===============================================
+  // 📍 LÓGICA DE GEOLOCALIZAÇÃO AUTOMÁTICA (MANTIDA)
+  // ===============================================
+  const handleGeocodeAddress = useCallback(async (postalCode: string, number: string) => {
+    if (postalCode.length !== 8 || number.length < 1) return;
+
+    if (!HERE_API_KEY) {
       toast({
-        title: "Configuração Incompleta",
-        description: "A chave da API do Google Maps não foi configurada.",
-        variant: "destructive",
+          title: "Erro de Configuração",
+          description: "A chave VITE_HERE_API_KEY não foi definida.",
+          variant: "destructive",
       });
       return;
     }
 
-    if (postalCode.length !== 8 || !number) {
-      toast({
-        title: "Dados incompletos",
-        description: "Forneça um CEP válido e o número para buscar as coordenadas.",
-        variant: "destructive",
-      });
-      return;
-    }
+    setIsGeocoding(true);
+    form.setValue("location.latitude", undefined);
+    form.setValue("location.longitude", undefined);
 
-    setIsFetchingCoords(true);
     try {
-      const cepResponse = await fetch(
-        `https://viacep.com.br/ws/${postalCode}/json/`
-      );
-      if (!cepResponse.ok) throw new Error("CEP não encontrado.");
-      const cepData = await cepResponse.json();
-      if (cepData.erro) throw new Error("CEP inválido.");
+        // 1. Busca Endereço completo pelo ViaCEP (MANTIDO)
+        const cepResponse = await fetch(`https://viacep.com.br/ws/${postalCode}/json/`);
+        const cepData = await cepResponse.json();
 
-      const { logradouro } = cepData;
-      const addressString = `${logradouro}, ${number}`;
-      const components = `postal_code:${postalCode}|country:BR`;
-
-      const geoResponse = await fetch(
-        `https://maps.googleapis.com/maps/api/geocode/json?address=${encodeURIComponent(
-          addressString
-        )}&components=${encodeURIComponent(components)}&key=${GOOGLE_MAPS_API_KEY}`
-      );
-      
-      const geoData = await geoResponse.json();
-
-      if (geoData.status === "OK") {
-        const location = geoData.results[0].geometry.location;
-        form.setValue("location.latitude", location.lat);
-        form.setValue("location.longitude", location.lng);
-        toast({
-          title: "Coordenadas obtidas!",
-          description: "Latitude e longitude preenchidas com sucesso.",
-        });
-      } else {
-        if (geoData.status === "ZERO_RESULTS") {
-            throw new Error("Não foi possível encontrar as coordenadas. Verifique o CEP e o número.");
+        if (cepData.erro) {
+            throw new Error("CEP não encontrado ou inválido.");
         }
-        throw new Error(geoData.error_message || "Ocorreu um erro ao buscar as coordenadas.");
-      }
-    } catch (error) {
-      toast({
-        title: "Erro na Geolocalização",
-        description: error.message,
-        variant: "destructive",
-      });
-      form.setValue("location.latitude", undefined);
-      form.setValue("location.longitude", undefined);
+
+        // Monta o endereço completo
+        const fullAddress = `${cepData.logradouro}, ${number}, ${cepData.localidade}, ${cepData.uf}, Brasil`;
+
+        // 2. Geocodificação pelo HERE Maps API
+        const geocodeResponse = await fetch(
+            `https://geocode.search.hereapi.com/v1/geocode?q=${encodeURIComponent(fullAddress)}&apiKey=${HERE_API_KEY}&in=countryCode:BRA`,
+        );
+
+        const geocodeData = await geocodeResponse.json();
+
+        if (!geocodeResponse.ok || geocodeData.items.length === 0) {
+            throw new Error(`Erro na API HERE: ${geocodeData.error || "Localização não encontrada."}`);
+        }
+        
+        const position = geocodeData.items[0].position;
+        const lat = position.lat;
+        const lon = position.lng;
+
+        // 3. Atualiza os campos do formulário
+        form.setValue("location.latitude", lat);
+        form.setValue("location.longitude", lon);
+
+        toast({
+            title: "Localização Capturada",
+            description: `Coordenadas obtidas com sucesso.`,
+        });
+
+    } catch (error: any) {
+        console.error("Erro na geocodificação:", error);
+        toast({
+            title: "Erro na Geolocalização",
+            description: error.message || "Falha ao consultar a API de localização.",
+            variant: "destructive",
+        });
+        form.setValue("location.latitude", undefined);
+        form.setValue("location.longitude", undefined);
     } finally {
-      setIsFetchingCoords(false);
+        setIsGeocoding(false);
     }
   }, [form, toast]);
 
 
-  const handleCheckUsername = async () => {
-    const username = form.getValues("userRequest.username");
-    if (!username || username.length < 4) {
-      toast({
-        title: "Erro de validação",
-        description: "O nome de usuário deve ter pelo menos 4 caracteres.",
-        variant: "destructive",
-      });
-      setUsernameAvailability(null);
-      return;
+  // Efeito para disparar a geocodificação automaticamente (MANTIDO)
+  useEffect(() => {
+    const isAddressReady = cep.replace(/\D/g, '').length === 8 && numero.length > 0;
+    const isGeocodingNeeded = isAddressReady && !isGeocoding && currentLatitude === undefined;
+
+    if (isGeocodingNeeded) {
+        handleGeocodeAddress(cep.replace(/\D/g, ''), numero);
     }
+  }, [cep, numero, isGeocoding, currentLatitude, handleGeocodeAddress]); 
 
-    setIsCheckingUsername(true);
-    setUsernameAvailability("checking");
-
-    try {
-      const token = localStorage.getItem("token");
-      if (!token) {
-        throw new Error("Token de autenticação não encontrado.");
-      }
-
-      const response = await fetch(
-        `${API_BASE_URL}users/check-username?username=${username}`,
-        {
-          headers: {
-            Authorization: `Bearer ${token}`,
-          },
-        }
-      );
-
-      if (response.ok) {
-        toast({
-          title: "Nome de usuário indisponível",
-          description: "Este nome de usuário já está em uso. Por favor, escolha outro.",
-          variant: "destructive",
-        });
-        setUsernameAvailability("unavailable");
-      } else if (response.status === 404) {
-        toast({
-          title: "Nome de usuário disponível!",
-          description: "Você pode usar este nome de usuário para o registro.",
-        });
-        setUsernameAvailability("available");
-      } else {
-        toast({
-          title: "Erro na verificação",
-          description:
-            "Ocorreu um erro ao verificar o nome de usuário. Tente novamente.",
-          variant: "destructive",
-        });
-        setUsernameAvailability(null);
-      }
-    } catch (error) {
-      console.error("Erro na comunicação com a API:", error);
-      toast({
-        title: "Erro de rede",
-        description: "Falha ao conectar com o servidor. Verifique sua conexão.",
-        variant: "destructive",
-      });
-      setUsernameAvailability(null);
-    } finally {
-      setIsCheckingUsername(false);
-    }
-  };
-
+  // ===============================================
+  // 💾 LÓGICA DE SUBMISSÃO (SIMPLIFICADA)
+  // ===============================================
   async function onSubmit(values: z.infer<typeof formSchema>) {
     setIsSubmitting(true);
-
-    if (usernameAvailability !== "available") {
+    
+    // 1. Validação da Geolocalização
+    if (values.location.latitude === undefined || values.location.longitude === undefined) {
       toast({
-        title: "Erro de validação",
-        description:
-          "Por favor, verifique a disponibilidade do nome de usuário antes de registrar.",
+        title: "Erro de Validação",
+        description: "Aguarde a geolocalização automática ser concluída (Latitude/Longitude).",
         variant: "destructive",
       });
       setIsSubmitting(false);
@@ -298,24 +191,29 @@ const CriarEmpresa = () => {
       const token = localStorage.getItem("token");
       if (!token) {
         toast({
-          title: "Erro de autenticação",
-          description: "Token não encontrado. Faça login novamente.",
+          title: "Sessão Expirada",
+          description: "O token de autenticação não foi encontrado. Faça login novamente.",
           variant: "destructive",
         });
         navigate("/login");
         return;
       }
 
+      // 2. Monta o Payload APENAS com os dados da Empresa
       const companyPayload = {
         name: values.name,
-        cnpj: values.cnpj,
+        cnpj: values.cnpj.replace(/\D/g, ''), // Limpeza de CNPJ
         email: values.email,
-        address: values.address,
-        employeeRequest: values.employeeRequest,
+        address: {
+          ...values.address,
+          postalCode: values.address.postalCode.replace(/\D/g, ''), // Limpeza de CEP
+        },
         location: values.location,
+        // employeeRequest e userRequest REMOVIDOS do payload
       };
 
-      const companyResponse = await fetch(`${API_BASE_URL}companies`, {
+      // 3. Chamada da API para CRIAR A EMPRESA
+      const companyResponse = await fetch(`${API_BASE_URL}companies`, { // Ajuste o endpoint se for necessário
         method: "POST",
         headers: {
           "Content-Type": "application/json",
@@ -326,40 +224,25 @@ const CriarEmpresa = () => {
 
       if (!companyResponse.ok) {
         const errorData = await companyResponse.json();
-        throw new Error(errorData.message || "Erro ao criar empresa.");
+        throw new Error(errorData.detail || "Erro ao criar empresa.");
       }
 
       const companyData = await companyResponse.json();
-      const employeeId = companyData.employeeId;
+      const newCompanyId = companyData.id; // Supondo que a API retorne o ID da nova empresa
 
-      const userPayload = {
-        username: values.userRequest.username,
-        password: values.userRequest.password,
-        role: values.userRequest.role,
-        employeeId: employeeId,
-      };
-
-      const userResponse = await fetch(`${API_BASE_URL}users`, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify(userPayload),
-      });
-
-      if (!userResponse.ok) {
-        const errorData = await userResponse.json();
-        throw new Error(errorData.message || "Erro ao criar usuário.");
-      }
-
+      // 4. SUCESSO e REDIRECIONAMENTO para a próxima etapa
       toast({
-        title: "Empresa e usuário criados com sucesso!",
-        description: `A empresa ${values.name} foi cadastrada no sistema.`,
+        title: "Empresa Criada com Sucesso!",
+        description: `Agora, crie o primeiro Administrador da ${values.name}.`,
       });
 
       form.reset();
-    } catch (error) {
+      
+      // Redireciona para a nova tela/fluxo de criação de usuário/admin
+      // Passamos o ID da empresa como state/parametro para a proxima tela
+      navigate(`/criar-administrador/${newCompanyId}`, { state: { companyName: values.name } });
+
+    } catch (error: any) {
       console.error("Erro no processo de criação da empresa:", error);
       toast({
         title: "Erro ao cadastrar empresa",
@@ -371,6 +254,9 @@ const CriarEmpresa = () => {
     }
   }
 
+  // ===============================================
+  // 🎨 RENDERIZAÇÃO (REMOÇÃO DOS CAMPOS DE FUNCIONÁRIO/USUÁRIO)
+  // ===============================================
   return (
     <div className="min-h-screen bg-background">
       <Header onMenuClick={() => setSidebarOpen(!sidebarOpen)} />
@@ -379,20 +265,22 @@ const CriarEmpresa = () => {
       <main className="pt-16 px-4 md:px-6">
         <div className="max-w-4xl mx-auto py-8">
           <div className="flex items-center gap-4 mb-6">
-          
+            <Button variant="ghost" size="icon" onClick={() => navigate(-1)} aria-label="Voltar">
+              <ArrowLeft className="h-6 w-6 text-foreground" />
+            </Button>
             <div>
-             <h1 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-foreground to-primary bg-clip-text text-transparent page-title">
+              <h1 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-foreground to-primary bg-clip-text text-transparent page-title">
                 Criar Empresa
               </h1>
               <p className="text-muted-foreground">
-                Cadastre uma nova empresa no sistema
+                Cadastre as informações básicas da nova empresa.
               </p>
             </div>
           </div>
 
           <Form {...form}>
             <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-8">
-              {/* Dados da Empresa */}
+              {/* Dados da Empresa (MANTIDO) */}
               <Card className="border-l-4 border-l-primary shadow-card">
                 <CardHeader className="bg-gradient-to-r from-primary/5 to-transparent">
                   <div className="flex items-center gap-3">
@@ -409,6 +297,7 @@ const CriarEmpresa = () => {
                 </CardHeader>
                 <CardContent className="pt-6 space-y-6">
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {/* CAMPO NOME */}
                     <FormField
                       control={form.control}
                       name="name"
@@ -430,6 +319,7 @@ const CriarEmpresa = () => {
                       )}
                     />
 
+                    {/* CAMPO CNPJ */}
                     <FormField
                       control={form.control}
                       name="cnpj"
@@ -441,7 +331,9 @@ const CriarEmpresa = () => {
                               placeholder="12345678000123"
                               maxLength={14}
                               className="border-border focus:border-primary focus:ring-primary/20"
-                              {...field}
+                              // Limpeza para garantir apenas números
+                              onChange={(e) => field.onChange(e.target.value.replace(/\D/g, ''))}
+                              value={field.value}
                             />
                           </FormControl>
                           <FormDescription>
@@ -453,12 +345,13 @@ const CriarEmpresa = () => {
                     />
                   </div>
 
+                  {/* CAMPO EMAIL */}
                   <FormField
                     control={form.control}
                     name="email"
                     render={({ field }) => (
                       <FormItem>
-                        <FormLabel className="text-foreground font-medium">Email</FormLabel>
+                        <FormLabel className="text-foreground font-medium">Email Corporativo</FormLabel>
                         <FormControl>
                           <Input
                             placeholder="contato@empresa.com"
@@ -475,7 +368,9 @@ const CriarEmpresa = () => {
                     )}
                   />
 
+                  {/* CAMPOS DE ENDEREÇO E COORDENADAS (MANTIDOS) */}
                   <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                    {/* CEP */}
                     <FormField
                       control={form.control}
                       name="address.postalCode"
@@ -487,7 +382,13 @@ const CriarEmpresa = () => {
                               placeholder="12345678"
                               maxLength={8}
                               className="border-border focus:border-primary focus:ring-primary/20"
-                              {...field}
+                              onChange={(e) => {
+                                field.onChange(e.target.value.replace(/\D/g, '').slice(0, 8));
+                                // Limpa coordenadas se o CEP for alterado
+                                form.setValue("location.latitude", undefined);
+                                form.setValue("location.longitude", undefined);
+                              }}
+                              value={field.value}
                             />
                           </FormControl>
                           <FormDescription>
@@ -498,6 +399,7 @@ const CriarEmpresa = () => {
                       )}
                     />
 
+                    {/* NÚMERO */}
                     <FormField
                       control={form.control}
                       name="address.number"
@@ -509,6 +411,12 @@ const CriarEmpresa = () => {
                               placeholder="123"
                               className="border-border focus:border-primary focus:ring-primary/20"
                               {...field}
+                               // Limpa coordenadas se o Número for alterado
+                              onChange={(e) => {
+                                field.onChange(e.target.value);
+                                form.setValue("location.latitude", undefined);
+                                form.setValue("location.longitude", undefined);
+                              }}
                             />
                           </FormControl>
                           <FormDescription>
@@ -519,398 +427,85 @@ const CriarEmpresa = () => {
                       )}
                     />
                   </div>
-                  <div className="flex items-end gap-4">
-                    <div className="grid grid-cols-2 gap-6 flex-grow">
-                      <FormField
-                        control={form.control}
-                        name="location.latitude"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel className="text-foreground font-medium">Latitude</FormLabel>
-                            <FormControl>
-                              <Input
-                                placeholder="Automático"
-                                value={field.value || ""}
-                                disabled
-                                className="bg-muted/50"
-                              />
-                            </FormControl>
-                          </FormItem>
-                        )}
-                      />
-                      <FormField
-                        control={form.control}
-                        name="location.longitude"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel className="text-foreground font-medium">Longitude</FormLabel>
-                            <FormControl>
-                              <Input
-                                placeholder="Automático"
-                                value={field.value || ""}
-                                disabled
-                                className="bg-muted/50"
-                              />
-                            </FormControl>
-                          </FormItem>
-                        )}
-                      />
-                    </div>
-                    <Button
-                      type="button"
-                      onClick={getCoordinates}
-                      disabled={isFetchingCoords}
-                      variant="outline"
-                      className="h-10"
-                    >
-                      {isFetchingCoords ? (
-                        <Loader2 className="h-4 w-4 animate-spin" />
-                      ) : (
-                        <MapPin className="h-4 w-4" />
-                      )}
-                      <span className="ml-2 hidden sm:inline">Buscar</span>
-                    </Button>
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Dados do Funcionário */}
-              <Card className="border-l-4 border-l-accent shadow-card">
-                <CardHeader className="bg-gradient-to-r from-accent/5 to-transparent">
-                  <div className="flex items-center gap-3">
-                    <div className="p-2 rounded-lg bg-accent/10">
-                      <User className="h-6 w-6 text-accent" />
-                    </div>
-                    <div>
-                      <CardTitle className="text-xl text-foreground">Dados do Funcionário</CardTitle>
-                      <CardDescription className="text-muted-foreground">
-                        Informações pessoais e profissionais
-                      </CardDescription>
-                    </div>
-                  </div>
-                </CardHeader>
-                <CardContent className="pt-6 space-y-6">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                  {/* Campos de Latitude/Longitude (automáticos) */}
+                  <div className="grid grid-cols-2 gap-6">
                     <FormField
                       control={form.control}
-                      name="employeeRequest.fullName"
+                      name="location.latitude"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel className="text-foreground font-medium">Nome Completo</FormLabel>
+                          <FormLabel className="flex items-center gap-2">
+                            Latitude
+                            {isGeocoding && <Loader2 className="h-4 w-4 animate-spin text-primary" />}
+                          </FormLabel>
                           <FormControl>
                             <Input
-                              placeholder="Digite o nome completo"
-                              className="border-border focus:border-accent focus:ring-accent/20"
                               {...field}
-                            />
-                          </FormControl>
-                          <FormDescription>
-                            Nome completo do funcionário
-                          </FormDescription>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-
-                    <FormField
-                      control={form.control}
-                      name="employeeRequest.cpf"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel className="text-foreground font-medium">CPF</FormLabel>
-                          <FormControl>
-                            <Input
-                              placeholder="12345678901"
-                              maxLength={11}
-                              className="border-border focus:border-accent focus:ring-accent/20"
-                              {...field}
-                            />
-                          </FormControl>
-                          <FormDescription>
-                            CPF do funcionário (apenas números)
-                          </FormDescription>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-
-                    <FormField
-                      control={form.control}
-                      name="employeeRequest.jobPosition"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel className="text-foreground font-medium">Cargo</FormLabel>
-                          <FormControl>
-                            <Input
-                              placeholder="Digite o cargo"
-                              className="border-border focus:border-accent focus:ring-accent/20"
-                              {...field}
-                            />
-                          </FormControl>
-                          <FormDescription>
-                            Cargo do funcionário na empresa
-                          </FormDescription>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-
-                    <FormField
-                      control={form.control}
-                      name="employeeRequest.email"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel className="text-foreground font-medium">Email</FormLabel>
-                          <FormControl>
-                            <Input
-                              placeholder="funcionario@email.com"
-                              type="email"
-                              className="border-border focus:border-accent focus:ring-accent/20"
-                              {...field}
-                            />
-                          </FormControl>
-                          <FormDescription>
-                            Email do funcionário
-                          </FormDescription>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-
-                    <FormField
-                      control={form.control}
-                      name="employeeRequest.salary"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel className="text-foreground font-medium">Salário</FormLabel>
-                          <FormControl>
-                            <Input
-                              placeholder="0"
                               type="number"
-                              className="border-border focus:border-accent focus:ring-accent/20"
-                              {...field}
-                              onChange={(e) =>
-                                field.onChange(parseFloat(e.target.value) || 0)
-                              }
+                              disabled
+                              placeholder={isGeocoding ? "Buscando..." : "Preenchimento automático"}
                             />
                           </FormControl>
-                          <FormDescription>
-                            Salário do funcionário
-                          </FormDescription>
                           <FormMessage />
                         </FormItem>
                       )}
                     />
-
                     <FormField
                       control={form.control}
-                      name="employeeRequest.phone"
+                      name="location.longitude"
                       render={({ field }) => (
                         <FormItem>
-                          <FormLabel className="text-foreground font-medium">Telefone</FormLabel>
+                          <FormLabel className="flex items-center gap-2">
+                            Longitude
+                            {isGeocoding && <Loader2 className="h-4 w-4 animate-spin text-primary" />}
+                          </FormLabel>
                           <FormControl>
                             <Input
-                              placeholder="11987654321"
-                              className="border-border focus:border-accent focus:ring-accent/20"
                               {...field}
+                              type="number"
+                              disabled
+                              placeholder={isGeocoding ? "Buscando..." : "Preenchimento automático"}
                             />
                           </FormControl>
-                          <FormDescription>
-                            Telefone do funcionário
-                          </FormDescription>
                           <FormMessage />
                         </FormItem>
                       )}
                     />
                   </div>
-
-                  <div className="bg-muted/30 p-4 rounded-lg border border-muted">
-                    <h4 className="text-lg font-medium text-foreground mb-4 flex items-center gap-2">
-                      <Building2 className="h-4 w-4 text-accent" />
-                      Endereço do Funcionário
-                    </h4>
-                    <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                      <FormField
-                        control={form.control}
-                        name="employeeRequest.address.postalCode"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel className="text-foreground font-medium">CEP</FormLabel>
-                            <FormControl>
-                              <Input
-                                placeholder="12345678"
-                                maxLength={8}
-                                className="border-border focus:border-accent focus:ring-accent/20"
-                                {...field}
-                              />
-                            </FormControl>
-                            <FormDescription>
-                              CEP do endereço (apenas números)
-                            </FormDescription>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-
-                      <FormField
-                        control={form.control}
-                        name="employeeRequest.address.number"
-                        render={({ field }) => (
-                          <FormItem>
-                            <FormLabel className="text-foreground font-medium">Número</FormLabel>
-                            <FormControl>
-                              <Input
-                                placeholder="123"
-                                className="border-border focus:border-accent focus:ring-accent/20"
-                                {...field}
-                              />
-                            </FormControl>
-                            <FormDescription>
-                              Número do endereço
-                            </FormDescription>
-                            <FormMessage />
-                          </FormItem>
-                        )}
-                      />
-                    </div>
-                  </div>
+                  <FormDescription>
+                      As coordenadas de latitude e longitude são preenchidas automaticamente ao informar o CEP e o Número.
+                  </FormDescription>
+                  {/* FIM Campos de Latitude/Longitude */}
                 </CardContent>
               </Card>
 
-              {/* Dados do Usuário */}
-             <Card className="border-l-4 border-l-primary shadow-card">
-                <CardHeader className="bg-gradient-to-r from-secondary/5 to-transparent">
-                  <div className="flex items-center gap-3">
-                    <div className="p-2 rounded-lg bg-secondary/20">
-                      <Shield className="h-6 w-6 text-secondary-foreground" />
-                    </div>
-                    <div>
-                      <CardTitle className="text-xl text-foreground">Dados do Usuário</CardTitle>
-                      <CardDescription className="text-muted-foreground">
-                        Credenciais de acesso ao sistema
-                      </CardDescription>
-                    </div>
-                  </div>
-                </CardHeader>
-                <CardContent className="pt-6 space-y-6">
-                  <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-                    <FormField
-                      control={form.control}
-                      name="userRequest.username"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel className="text-foreground font-medium">Nome de Usuário</FormLabel>
-                          <div className="flex space-x-2">
-                            <FormControl>
-                              <Input
-                                placeholder="Digite o nome de usuário"
-                                className="border-border focus:border-secondary focus:ring-secondary/20"
-                                {...field}
-                                onChange={(e) => {
-                                  field.onChange(e);
-                                  setUsernameAvailability(null);
-                                }}
-                              />
-                            </FormControl>
-                            <Button
-                              type="button"
-                              onClick={handleCheckUsername}
-                              disabled={
-                                isCheckingUsername || field.value.length < 4
-                              }
-                              className="touch-target w-auto h-12"
-                            >
-                              {isCheckingUsername ? (
-                                <Loader2 className="h-4 w-4 animate-spin" />
-                              ) : (
-                                "Verificar"
-                              )}
-                            </Button>
-                          </div>
-                          <FormMessage>
-                            {usernameAvailability === "unavailable" &&
-                              "Nome de usuário já existe."}
-                            {usernameAvailability === "available" && (
-                              <span className="text-green-500">
-                                Nome de usuário disponível.
-                              </span>
-                            )}
-                          </FormMessage>
-                          <FormDescription>
-                            Nome de usuário para acesso ao sistema
-                          </FormDescription>
-                        </FormItem>
-                      )}
-                    />
-
-                    <FormField
-                      control={form.control}
-                      name="userRequest.password"
-                      render={({ field }) => (
-                        <FormItem>
-                          <FormLabel className="text-foreground font-medium">Senha</FormLabel>
-                          <FormControl>
-                            <Input
-                              placeholder="Digite a senha"
-                              type="password"
-                              className="border-border focus:border-secondary focus:ring-secondary/20"
-                              {...field}
-                            />
-                          </FormControl>
-                          <FormDescription>
-                            Senha de acesso (mínimo 6 caracteres)
-                          </FormDescription>
-                          <FormMessage />
-                        </FormItem>
-                      )}
-                    />
-                  </div>
-
-                  <FormField
-                    control={form.control}
-                    name="userRequest.role"
-                    render={({ field }) => (
-                      <FormItem>
-                        <FormLabel className="text-foreground font-medium">Cargo no Sistema</FormLabel>
-                        <Select
-                          onValueChange={field.onChange}
-                          defaultValue={field.value}
-                        >
-                          <FormControl>
-                            <SelectTrigger className="border-border focus:border-secondary focus:ring-secondary/20">
-                              <SelectValue placeholder="Selecione o cargo" />
-                            </SelectTrigger>
-                          </FormControl>
-                          <SelectContent className="bg-popover border-border z-50">
-                            <SelectItem value="MANAGER">Administrador</SelectItem>
-                            <SelectItem value="PARTNER">Colaborador</SelectItem>
-                          </SelectContent>
-                        </Select>
-                        <FormDescription>
-                          Nível de acesso no sistema
-                        </FormDescription>
-                        <FormMessage />
-                      </FormItem>
-                    )}
-                  />
-                </CardContent>
-              </Card>
+              {/* Dados do Funcionário e Dados do Usuário REMOVIDOS COMPLETAMENTE DO JSX */}
 
               {/* Botões de Ação */}
               <div className="flex gap-4 pt-6">
                 <Button
                   type="submit"
                   className="flex-1 bg-primary hover:bg-primary/90 text-primary-foreground shadow-button"
-                  disabled={isSubmitting || usernameAvailability !== "available"}
+                  // Desabilita se estiver enviando ou se estiver geocodificando
+                  disabled={isSubmitting || isGeocoding}
                 >
-                  <Save className="h-4 w-4 mr-2" />
-                  {isSubmitting ? "Criando Empresa..." : "Criar Empresa"}
+                  {isSubmitting
+                    ? "Criando Empresa..."
+                    : isGeocoding
+                    ? "Aguarde Geocodificação..."
+                    : "Criar Empresa"
+                  }
                 </Button>
                 <Button
                   type="button"
                   variant="outline"
                   className="border-border hover:bg-muted"
-                  onClick={() => form.reset()}
+                  onClick={() => {
+                      form.reset();
+                      // Garante que as coordenadas sejam limpas ao resetar
+                      form.setValue("location.latitude", undefined);
+                      form.setValue("location.longitude", undefined);
+                  }}
                   disabled={isSubmitting}
                 >
                   Limpar
