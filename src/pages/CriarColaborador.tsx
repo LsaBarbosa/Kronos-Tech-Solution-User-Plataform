@@ -218,7 +218,7 @@ const CriarColaborador = () => {
 
             if (!employeeResponse.ok) {
                 const errorData = await employeeResponse.json();
-                throw new Error(errorData.detail || errorData.message || "Falha ao criar o colaborador.");
+                throw new Error(errorData.detail || errorData.message || "Desculpe. Verifique o campo CPF e tente novamente!");
             }
             
             const employeeData = await employeeResponse.json();
