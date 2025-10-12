@@ -395,7 +395,7 @@ const CriarColaborador = () => {
                             Criar Colaborador
                         </h1>
                         <p className="text-muted-foreground">
-                            Passo **{stepCompleted ? 2 : 1}** de 2: **{stepCompleted ? "Credenciais de Acesso" : "Dados Pessoais e Profissionais"}**
+                            {stepCompleted}{stepCompleted ? "Credenciais de Acesso" : "Dados Pessoais e Profissionais"}
                         </p>
                     </div>
 

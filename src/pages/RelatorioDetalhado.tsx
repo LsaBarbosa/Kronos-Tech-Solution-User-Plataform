@@ -1273,7 +1273,7 @@ const RelatorioDetalhado = () => {
                                                 <div className="font-medium text-muted-foreground">Saída:</div>
                                                 <div className="text-right font-semibold text-foreground">{item.endHour}</div>
 
-                                                <div className="font-medium text-muted-foreground">Horas Trab.:</div>
+                                                <div className="font-medium text-muted-foreground">Horas Trabalhadas</div>
                                                 <div className="text-right font-semibold text-foreground">{item.hoursWork}</div>
 
                                                 <div className="font-medium text-muted-foreground">Saldo:</div>
