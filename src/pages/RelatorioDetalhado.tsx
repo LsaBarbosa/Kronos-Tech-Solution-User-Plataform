@@ -80,6 +80,7 @@ const getEasterDate = (year) => {
 };
 
 const statusOptions = [
+    
     { value: "CREATED", label: "Criado" },
     { value: "PENDING", label: "Saída Pendente" },
     { value: "UPDATED", label: "Atualizado por ADM" },
@@ -334,14 +335,6 @@ const RelatorioDetalhado = () => {
     const handleSearch = async () => {
         setReportDataSimple(null); // Limpa dados simples
 
-        if (!status) {
-            toast({
-                title: "Erro",
-                description: "Selecione um status para gerar o relatório.",
-                variant: "destructive"
-            });
-            return;
-        }
 
         try {
             const token = localStorage.getItem("token");
@@ -350,11 +343,13 @@ const RelatorioDetalhado = () => {
             }
 
             const formattedDates = selectedDates.map(date => format(date, "dd-MM-yyyy"));
+
             const requestBody = {
                 reference: referenceTime,
                 active: isActive,
-                status: status,
                 dates: formattedDates,
+                // Adiciona a propriedade 'status' apenas se o valor de 'status' não for uma string vazia ("")
+                ...(status && { status: status }),
             };
 
             const apiUrl = new URL(`${API_BASE_URL}records/report`, window.location.origin);
@@ -413,14 +408,7 @@ const RelatorioDetalhado = () => {
     const handleSimpleSearch = async () => {
         setReportData([]); // Limpa dados detalhados
 
-        if (selectedDates.length === 0) {
-            toast({
-                title: "Erro",
-                description: "Por favor, selecione pelo menos uma data.",
-                variant: "destructive",
-            });
-            return;
-        }
+
 
         try {
             const token = localStorage.getItem("token");
@@ -489,7 +477,7 @@ const RelatorioDetalhado = () => {
     };
 
     // FUNÇÃO DE DOWNLOAD DETALHADA (EXISTENTE)
-     // FUNÇÃO DE DOWNLOAD DETALHADA - ATUALIZADA PARA AGRUPAR E TRADUZIR
+    // FUNÇÃO DE DOWNLOAD DETALHADA - ATUALIZADA PARA AGRUPAR E TRADUZIR
     const handleDownload = () => {
         const parseDate = (dateString) => {
             if (!dateString) return null;
@@ -503,7 +491,7 @@ const RelatorioDetalhado = () => {
             }
             return null;
         };
-        
+
         // Função para obter o Status traduzido
         const getTranslatedStatus = (statusValue) => {
             if (statusValue === 'BREAK') return 'Pausa Concluída';
@@ -562,7 +550,7 @@ const RelatorioDetalhado = () => {
             }
             doc.setFont("helvetica", "bold");
             yPosition += 5;
-            
+
             // Definição das cores (RGB)
             const COLOR_MAIN_RECORD = [245, 245, 245]; // Cinza Claro (Padrão para registro principal)
             const COLOR_BREAK_RECORD = [255, 255, 255]; // Branco (Padrão para pausa)
@@ -571,56 +559,56 @@ const RelatorioDetalhado = () => {
 
             // Prepara os dados da tabela, incluindo sub-linhas para as pausas
             const tableBody = [];
-            
+
             reportData.forEach(item => {
                 const startDate = parseDate(item.startWork);
                 const endDate = parseDate(item.endWork);
-                
+
                 const formattedStart = `${startDate ? format(startDate, "dd/MM/yyyy") : 'N/A'}\n${item.startHour}`;
                 const formattedEnd = `${endDate ? format(endDate, "dd/MM/yyyy") : 'N/A'}\n${item.endHour}`;
-                
+
                 const mainStatusLabel = getTranslatedStatus(item.statusRecord);
 
                 // Linha do Registro Principal - Forçando cor Cinza Claro
                 const mainRowCells = [
                     { content: formattedStart, styles: { fillColor: COLOR_MAIN_RECORD } },
                     { content: formattedEnd, styles: { fillColor: COLOR_MAIN_RECORD } },
-                    { content: item.hoursWork, styles: { fillColor: COLOR_MAIN_RECORD } }, 
+                    { content: item.hoursWork, styles: { fillColor: COLOR_MAIN_RECORD } },
                     { content: item.balance, styles: { fillColor: COLOR_MAIN_RECORD } },
                     { content: mainStatusLabel, styles: { fillColor: COLOR_MAIN_RECORD } }
                 ];
                 // Aplica estilos de alinhamento e fonte padrão para a linha principal
-                tableBody.push(mainRowCells.map(cell => ({ 
-                    ...cell, 
-                    styles: { 
-                        ...cell.styles, 
-                        halign: 'center', 
-                        cellPadding: 3, 
-                        fontSize: 9 
-                    } 
-                }))); 
-                
+                tableBody.push(mainRowCells.map(cell => ({
+                    ...cell,
+                    styles: {
+                        ...cell.styles,
+                        halign: 'center',
+                        cellPadding: 3,
+                        fontSize: 9
+                    }
+                })));
+
                 // Sub-linhas para as Pausas
                 if (item.breaks && item.breaks.length > 0) {
                     item.breaks.forEach(breakItem => {
                         const breakStartDate = parseDate(breakItem.startWork);
                         const breakEndDate = parseDate(breakItem.endWork);
                         const breakStatusLabel = getTranslatedStatus(breakItem.statusRecord);
-                        
+
                         // Formatação das sub-linhas
                         const formattedBreakStart = `${breakStartDate ? format(breakStartDate, "dd/MM/yyyy") : ''}\n${breakItem.startHour}`;
                         const formattedBreakEnd = `${breakEndDate ? format(breakEndDate, "dd/MM/yyyy") : 'N/A'}\n${breakItem.endHour}`;
-                        
+
                         // Linha de Pausa - Forçando cor Branca
                         const breakRowCells = [
                             { content: formattedBreakStart, styles: { fillColor: COLOR_BREAK_RECORD, fontStyle: 'italic', cellPadding: 1, fontSize: 8, halign: 'center' } },
                             { content: formattedBreakEnd, styles: { fillColor: COLOR_BREAK_RECORD, fontStyle: 'italic', cellPadding: 1, fontSize: 8, halign: 'center' } },
                             { content: breakItem.hoursBreak, styles: { fillColor: COLOR_BREAK_RECORD, fontStyle: 'italic', cellPadding: 1, halign: 'center', fontSize: 8 } },
-                            { content: '00:00', styles: { fillColor: COLOR_BREAK_RECORD, fontStyle: 'italic', cellPadding: 1, halign: 'center', fontSize: 8 } }, 
+                            { content: '00:00', styles: { fillColor: COLOR_BREAK_RECORD, fontStyle: 'italic', cellPadding: 1, halign: 'center', fontSize: 8 } },
                             { content: breakStatusLabel, styles: { fillColor: COLOR_BREAK_RECORD, fontStyle: 'italic', cellPadding: 1, fontSize: 8, halign: 'center' } },
                         ];
                         tableBody.push(breakRowCells);
-                        
+
                         // Linha separadora PRETA
                         tableBody.push([
                             { content: '', colSpan: 5, styles: { fillColor: COLOR_SEPARATOR, cellPadding: 0.5 } }
@@ -628,15 +616,15 @@ const RelatorioDetalhado = () => {
                     });
                 } else {
                     // Linha separadora PRETA após registro principal sem pausa
-                     tableBody.push([
-                            { content: '', colSpan: 5, styles: { fillColor: COLOR_SEPARATOR, cellPadding: 0.5 } }
+                    tableBody.push([
+                        { content: '', colSpan: 5, styles: { fillColor: COLOR_SEPARATOR, cellPadding: 0.5 } }
                     ]);
                 }
             });
 
 
             yPosition += 10;
-            
+
             // Remove a última linha separadora extra
             if (tableBody.length > 0) {
                 tableBody.pop();
@@ -1305,7 +1293,7 @@ const RelatorioDetalhado = () => {
                                     onClick={reportType === "detailed" ? handleSearch : handleSimpleSearch} // Ação condicional
                                     size="lg"
                                     className="w-full font-semibold bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary shadow-lg hover:shadow-primary/25 transition-all duration-200 relative overflow-hidden"
-                                    disabled={reportType === "detailed" && !status} // Se detalhado, exige status
+
                                 >
                                     <div className="absolute inset-0 bg-gradient-to-r from-white/10 to-transparent opacity-0 hover:opacity-100 transition-opacity duration-200"></div>
                                     <Search className="mr-2 h-4 w-4" />
