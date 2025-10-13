@@ -3,7 +3,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Eye, EyeOff } from "lucide-react";
+import { Eye, EyeOff, Lock } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { toast } from "@/components/ui/sonner";
 import { API_BASE_URL } from "@/config/api";
@@ -67,10 +67,9 @@ const LoginForm = () => {
   return (
     
     <div className="min-h-screen bg-background relative overflow-hidden flex items-center justify-center px-4">
-      {/* Animated Background */}
+      {/* Animated Background - Padrão do projeto */}
       <div className="fixed inset-0 z-0">
-        {/* Gradient Background */}
-        <div
+        <div 
           className="absolute inset-0 opacity-5"
           style={{
             background: 'linear-gradient(-45deg, hsl(var(--black-primary)), hsl(var(--primary)), hsl(var(--black-primary)), hsl(var(--primary)))',
@@ -78,10 +77,8 @@ const LoginForm = () => {
             animation: 'gradient-flow 15s ease-in-out infinite'
           }}
         />
-
-        {/* Floating Geometric Shapes */}
         <div className="absolute inset-0">
-          <div
+          <div 
             className="absolute top-1/4 left-1/4 w-32 h-32 opacity-3"
             style={{
               background: 'linear-gradient(135deg, hsl(var(--primary) / 0.1), transparent)',
@@ -89,7 +86,7 @@ const LoginForm = () => {
               animation: 'float-shapes 20s ease-in-out infinite'
             }}
           />
-          <div
+          <div 
             className="absolute top-3/4 right-1/4 w-48 h-48 opacity-2"
             style={{
               background: 'linear-gradient(45deg, hsl(var(--black-primary) / 0.05), transparent)',
@@ -97,21 +94,13 @@ const LoginForm = () => {
               animation: 'float-shapes 25s ease-in-out infinite reverse'
             }}
           />
-          <div
-            className="absolute top-1/2 right-1/3 w-24 h-24 opacity-4"
-            style={{
-              background: 'radial-gradient(circle, hsl(var(--primary) / 0.08), transparent)',
-              borderRadius: '50%',
-              animation: 'float-shapes 18s ease-in-out infinite 5s'
-            }}
-          />
         </div>
       </div>
 <Card className="border-l-4 border-l-primary shadow-card">
       <Card className="w-full max-w-md shadow-card border-0 relative z-10">
         <CardHeader className="space-y-1 text-center pb-8">
-          <CardTitle className="text-3xl font-semibold bg-gradient-to-r from-foreground to-primary bg-clip-text text-transparent">
-            Login
+          <CardTitle className="text-3xl font-semibold bg-gradient-to-r from-foreground to-primary bg-clip-text text-transparent flex items-center justify-center gap-3">
+            <Lock className="h-6 w-8" />  Login
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-6">

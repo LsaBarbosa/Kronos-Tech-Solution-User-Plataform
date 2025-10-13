@@ -4,11 +4,11 @@
   "version": "0.0.0",
   "type": "module",
   "scripts": {
-  "dev": "vite",
-  "build": "vite build",
-  "lint": "eslint .",
-  "preview": "vite preview",
-  "deploy": "npm run build && firebase deploy --only hosting"
+    "dev": "vite",
+    "build": "vite build",
+    "lint": "eslint .",
+    "preview": "vite preview",
+    "deploy": "npm run build && firebase deploy --only hosting"
   },
   "dependencies": {
     "@hookform/resolvers": "^3.10.0",
@@ -44,7 +44,9 @@
     "clsx": "^2.1.1",
     "cmdk": "^1.1.1",
     "date-fns": "^3.6.0",
+    "date-fns-holiday-br": "^1.0.7",
     "embla-carousel-react": "^8.6.0",
+    "holidays-br": "^1.0.1",
     "html2pdf.js": "^0.12.0",
     "input-otp": "^1.4.2",
     "jspdf": "^3.0.2",

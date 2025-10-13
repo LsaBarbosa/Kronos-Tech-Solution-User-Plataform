@@ -17,7 +17,7 @@ interface Employee {
 
 // Constantes para validação
 const MAX_UPLOAD_SIZE_BYTES = 5 * 1024 * 1024; // 5MB
-const MAX_COMPRESS_SIZE_MB = 3; // 3MB target for image compression
+const MAX_COMPRESS_SIZE_MB = 2; // 3MB target for image compression
 const ALLOWED_MIME_TYPES = ['.pdf', '.jpg', '.jpeg', '.png', '.docx', '.doc'];
 const ALLOWED_ACCEPT_STRING = ALLOWED_MIME_TYPES.join(', ');
 

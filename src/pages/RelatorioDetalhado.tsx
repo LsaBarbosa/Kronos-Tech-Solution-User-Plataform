@@ -15,7 +15,7 @@ import Header from "@/components/Header";
 import Sidebar from "@/components/Sidebar";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { CalendarIcon, Search, Download, Check, X, Edit } from "lucide-react";
+import { CalendarIcon, Search, Download, Check, X, Edit, Pause, Play } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { z } from "zod";
@@ -90,20 +90,33 @@ const statusOptions = [
     { value: "DOCTOR_APPOINTMENT", label: "Consulta Médica" },
 ];
 
-interface DetailedReportItem {
-    id?: string;
+interface BreakRecordResponse {
+    timeRecordId: number;
     startWork: string;
     startHour: string;
     endWork: string;
     endHour: string;
-    hoursWork: string;
+    hoursBreak: string;
+    statusRecord: string;
+}
+interface DetailedReportItem {
+    id?: string;
+    timeRecordId?: number; // Adicionado para consistência
+    startWork: string;
+    startHour: string;
+    endWork: string;
+    endHour: string;
+    hoursWork: string; // Horas Trabalhadas Efetivas (descontando pausas)
     balance: string;
     statusRecord: string;
+    edited: boolean;
     active: boolean;
+    employeeId: string; // Adicionado para consistência
     employeeData: {
         employeeName: string;
         companyName: string;
     };
+    breaks: BreakRecordResponse[]; // NOVO CAMPO
 }
 
 interface ReportDay {
@@ -476,6 +489,7 @@ const RelatorioDetalhado = () => {
     };
 
     // FUNÇÃO DE DOWNLOAD DETALHADA (EXISTENTE)
+     // FUNÇÃO DE DOWNLOAD DETALHADA - ATUALIZADA PARA AGRUPAR E TRADUZIR
     const handleDownload = () => {
         const parseDate = (dateString) => {
             if (!dateString) return null;
@@ -488,6 +502,13 @@ const RelatorioDetalhado = () => {
                 }
             }
             return null;
+        };
+        
+        // Função para obter o Status traduzido
+        const getTranslatedStatus = (statusValue) => {
+            if (statusValue === 'BREAK') return 'Pausa Concluída';
+            if (statusValue === 'BREAK_IN_PROGRESS') return 'Pausa em Andamento';
+            return statusOptions.find(opt => opt.value === statusValue)?.label || statusValue;
         };
 
         if (reportData.length === 0) {
@@ -523,7 +544,7 @@ const RelatorioDetalhado = () => {
             }
 
             if (status) {
-                const statusLabel = statusOptions.find(opt => opt.value === status)?.label || status;
+                const statusLabel = getTranslatedStatus(status);
                 doc.text(`Status: ${statusLabel}`, 20, yPosition);
                 yPosition += 7;
             }
@@ -541,25 +562,89 @@ const RelatorioDetalhado = () => {
             }
             doc.setFont("helvetica", "bold");
             yPosition += 5;
-            yPosition += 10;
-            const tableData = reportData.map(item => {
+            
+            // Definição das cores (RGB)
+            const COLOR_MAIN_RECORD = [245, 245, 245]; // Cinza Claro (Padrão para registro principal)
+            const COLOR_BREAK_RECORD = [255, 255, 255]; // Branco (Padrão para pausa)
+            const COLOR_SEPARATOR = [170, 170, 170];       // Preto (Padrão para separador)
+
+
+            // Prepara os dados da tabela, incluindo sub-linhas para as pausas
+            const tableBody = [];
+            
+            reportData.forEach(item => {
                 const startDate = parseDate(item.startWork);
                 const endDate = parseDate(item.endWork);
+                
+                const formattedStart = `${startDate ? format(startDate, "dd/MM/yyyy") : 'N/A'}\n${item.startHour}`;
+                const formattedEnd = `${endDate ? format(endDate, "dd/MM/yyyy") : 'N/A'}\n${item.endHour}`;
+                
+                const mainStatusLabel = getTranslatedStatus(item.statusRecord);
 
-                return [
-                    startDate ? format(startDate, "dd/MM/yyyy") : 'N/A',
-                    item.startHour,
-                    endDate ? format(endDate, "dd/MM/yyyy") : 'N/A',
-                    item.endHour,
-                    item.hoursWork,
-                    item.balance,
-                    statusOptions.find(opt => opt.value === item.statusRecord)?.label || item.statusRecord
+                // Linha do Registro Principal - Forçando cor Cinza Claro
+                const mainRowCells = [
+                    { content: formattedStart, styles: { fillColor: COLOR_MAIN_RECORD } },
+                    { content: formattedEnd, styles: { fillColor: COLOR_MAIN_RECORD } },
+                    { content: item.hoursWork, styles: { fillColor: COLOR_MAIN_RECORD } }, 
+                    { content: item.balance, styles: { fillColor: COLOR_MAIN_RECORD } },
+                    { content: mainStatusLabel, styles: { fillColor: COLOR_MAIN_RECORD } }
                 ];
+                // Aplica estilos de alinhamento e fonte padrão para a linha principal
+                tableBody.push(mainRowCells.map(cell => ({ 
+                    ...cell, 
+                    styles: { 
+                        ...cell.styles, 
+                        halign: 'center', 
+                        cellPadding: 3, 
+                        fontSize: 9 
+                    } 
+                }))); 
+                
+                // Sub-linhas para as Pausas
+                if (item.breaks && item.breaks.length > 0) {
+                    item.breaks.forEach(breakItem => {
+                        const breakStartDate = parseDate(breakItem.startWork);
+                        const breakEndDate = parseDate(breakItem.endWork);
+                        const breakStatusLabel = getTranslatedStatus(breakItem.statusRecord);
+                        
+                        // Formatação das sub-linhas
+                        const formattedBreakStart = `${breakStartDate ? format(breakStartDate, "dd/MM/yyyy") : ''}\n${breakItem.startHour}`;
+                        const formattedBreakEnd = `${breakEndDate ? format(breakEndDate, "dd/MM/yyyy") : 'N/A'}\n${breakItem.endHour}`;
+                        
+                        // Linha de Pausa - Forçando cor Branca
+                        const breakRowCells = [
+                            { content: formattedBreakStart, styles: { fillColor: COLOR_BREAK_RECORD, fontStyle: 'italic', cellPadding: 1, fontSize: 8, halign: 'center' } },
+                            { content: formattedBreakEnd, styles: { fillColor: COLOR_BREAK_RECORD, fontStyle: 'italic', cellPadding: 1, fontSize: 8, halign: 'center' } },
+                            { content: breakItem.hoursBreak, styles: { fillColor: COLOR_BREAK_RECORD, fontStyle: 'italic', cellPadding: 1, halign: 'center', fontSize: 8 } },
+                            { content: '00:00', styles: { fillColor: COLOR_BREAK_RECORD, fontStyle: 'italic', cellPadding: 1, halign: 'center', fontSize: 8 } }, 
+                            { content: breakStatusLabel, styles: { fillColor: COLOR_BREAK_RECORD, fontStyle: 'italic', cellPadding: 1, fontSize: 8, halign: 'center' } },
+                        ];
+                        tableBody.push(breakRowCells);
+                        
+                        // Linha separadora PRETA
+                        tableBody.push([
+                            { content: '', colSpan: 5, styles: { fillColor: COLOR_SEPARATOR, cellPadding: 0.5 } }
+                        ]);
+                    });
+                } else {
+                    // Linha separadora PRETA após registro principal sem pausa
+                     tableBody.push([
+                            { content: '', colSpan: 5, styles: { fillColor: COLOR_SEPARATOR, cellPadding: 0.5 } }
+                    ]);
+                }
             });
 
+
+            yPosition += 10;
+            
+            // Remove a última linha separadora extra
+            if (tableBody.length > 0) {
+                tableBody.pop();
+            }
+
             autoTable(doc, {
-                head: [['Data Entrada', 'Hora Entrada', 'Data Saída', 'Hora Saída', 'Horas Trabalhadas', 'Saldo', 'Status']],
-                body: tableData,
+                head: [['Entrada (Data/Hora)', 'Saída (Data/Hora)', 'Horas Trabalhadas', 'Saldo', 'Status']], // Novo Cabeçalho
+                body: tableBody,
                 startY: yPosition,
                 margin: { left: 20, right: 20 },
                 styles: {
@@ -574,14 +659,16 @@ const RelatorioDetalhado = () => {
                     fontStyle: 'bold'
                 },
                 columnStyles: {
-                    5: {
+                    3: { // Coluna do Saldo
                         cellWidth: 20,
                         halign: 'center'
                     }
                 },
                 didParseCell: function (data) {
-                    if (data.column.index === 5 && data.section === 'body') {
+                    // O didParseCell é mantido apenas para aplicar cores ao texto do Saldo
+                    if (data.column.index === 3 && data.section === 'body') {
                         const balance = data.cell.text[0];
+                        // Lógica de coloração para o Saldo (aplica-se apenas às linhas principais, as de pausa são "00:00")
                         if (balance && balance.toString().startsWith('-')) {
                             data.cell.styles.textColor = [220, 53, 69];
                             data.cell.styles.fontStyle = 'bold';
@@ -614,7 +701,7 @@ const RelatorioDetalhado = () => {
             console.error("Erro ao gerar PDF:", error);
             toast({
                 title: "Erro",
-                description: "Não foi possível gerar o PDF. Tente novamente.",
+                description: error.message || "Não foi possível gerar o PDF. Tente novamente.",
                 variant: "destructive",
             });
         }
@@ -1253,7 +1340,7 @@ const RelatorioDetalhado = () => {
                             <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                                 {reportData.map((item, index) => (
                                     <Card
-                                        key={item.id || index}
+                                        key={item.timeRecordId || index}
                                         className="border-l-4 border-primary shadow-md cursor-pointer hover:shadow-lg hover:border-primary/80 transition-all duration-300 group"
                                         onClick={() => handleEditRecord(item)}
                                     >
@@ -1274,12 +1361,43 @@ const RelatorioDetalhado = () => {
                                                 <div className="font-medium text-muted-foreground">Saída:</div>
                                                 <div className="text-right font-semibold text-foreground">{item.endHour}</div>
 
-                                                <div className="font-medium text-muted-foreground">Horas Trabalhadas</div>
+                                                {/* NOVO: Exibição das Horas Trabalhadas Efetivas (pausa já descontada pelo backend) */}
+                                                <div className="font-medium text-muted-foreground">Horas Trabalhadas (Líquidas)</div>
                                                 <div className="text-right font-semibold text-foreground">{item.hoursWork}</div>
 
                                                 <div className="font-medium text-muted-foreground">Saldo:</div>
                                                 <div className={`text-right font-bold ${item.balance.startsWith('-') ? 'text-destructive' : 'text-green-600'}`}>{item.balance}</div>
                                             </div>
+
+                                            {/* NOVO: Seção para exibir as pausas */}
+                                            {item.breaks && item.breaks.length > 0 && (
+                                                <div className="pt-3 border-t border-primary/10">
+                                                    <h4 className="text-xs font-bold text-primary mb-2 flex items-center gap-1">
+                                                        <Pause className="h-3 w-3" />
+                                                        Detalhes da Pausa
+                                                    </h4>
+                                                    <div className="space-y-2">
+                                                        {item.breaks.map((breakItem, breakIndex) => (
+                                                            <div key={breakIndex} className={`flex justify-between text-xs p-2 rounded-md ${breakItem.statusRecord === 'BREAK_IN_PROGRESS' ? 'bg-yellow-500/10 border border-yellow-500/20' : 'bg-secondary/10'}`}>
+                                                                <div className="flex items-center gap-1">
+                                                                    {breakItem.statusRecord === 'BREAK_IN_PROGRESS' ? (
+                                                                        <Pause className="h-3 w-3 text-yellow-600 animate-pulse" />
+                                                                    ) : (
+                                                                        <Play className="h-3 w-3 text-green-600" />
+                                                                    )}
+                                                                    <span className="font-medium text-muted-foreground">
+                                                                        {breakItem.startHour} - {breakItem.endHour || '...'}
+                                                                    </span>
+                                                                </div>
+                                                                <span className="font-bold text-foreground">
+                                                                    {breakItem.hoursBreak}
+                                                                </span>
+                                                            </div>
+                                                        ))}
+                                                    </div>
+                                                </div>
+                                            )}
+
                                             <div className="flex justify-end pt-2 text-primary opacity-0 group-hover:opacity-100 transition-opacity">
                                                 <Edit className="h-4 w-4" />
                                             </div>
