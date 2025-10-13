@@ -33,6 +33,7 @@ import ResetPassword from "./pages/ResetPassword";
 import DocumentoColaborador from "./pages/DocumentoColaborador";
 import ProtectedRoute from "./components/ProtectedRoute";
 import CriarManager from "./pages/CriarManager";
+import TokenRedirect from "./pages/TokenRedirect";
 
 const queryClient = new QueryClient();
 
@@ -43,49 +44,46 @@ const App = () => (
         <Toaster />
         <Sonner />
         <BrowserRouter>
-        <Routes>
-           
-          {/* ======================================= */}
-          {/* ROTAS PÚBLICAS (NÃO REQUEREM LOGIN) */}
-          {/* ======================================= */}
-          <Route path="/" element={<Login />} />
-          <Route path="/esqueci-a-senha" element={<EsqueciSenha />} />
-          <Route path="/resetar-senha" element={<ResetPassword />} />
-          
-          {/* ======================================= */}
-          {/* GRUPO DE ROTAS PROTEGIDAS (REQUEREM LOGIN) */}
-          {/* ======================================= */}
-          <Route element={<ProtectedRoute />}>
-            <Route path="/dashboard" element={<Dashboard />} />
-            
-            <Route path="/empresa" element={<Empresa />} />
-            <Route path="/empresa/criar" element={<CriarEmpresa />} />
-            <Route path="/empresa/buscar" element={<BuscarEmpresa />} />
-            
-            <Route path="/relatorio-simples" element={<RelatorioSimples />} />
-            <Route path="/relatorio-detalhado" element={<RelatorioDetalhado />} />
-            <Route path="/documentos" element={<Documentos />} />
-            <Route path="/enviar-documentos" element={<EnviarDocumentos />} />
-            <Route path="/enviar-documento-colaborador" element={<DocumentoColaborador />} />
-            <Route path="/atestado-medico" element={<AtestadoMedico />} />
-            <Route path="/usuario" element={<Usuario />} />
-            <Route path="/criar-colaborador" element={<CriarColaborador />} />
-            <Route path="/criar-administrador" element={<CriarManager />} />
-            <Route path="/lista-colaboradores" element={<ListaColaboradores />} />
-            <Route path="/lista-usuarios" element={<ListaUsuarios />} />
-            <Route path="/relatorio-horas" element={<RelatorioHoras />} />
-            <Route path="/apuracao-horas" element={<ApuracaoHoras />} />
-            <Route path="/status-do-registro" element={<StatusRegistro />} />
-            <Route path="/avisos" element={<Avisos />} />
-            <Route path="/criar-aviso" element={<CriarAviso />} />
-          </Route>
-          
-          {/* Rota de Not Found (pública) */}
-          <Route path="*" element={<NotFound />} />
-        </Routes>
-      </BrowserRouter>
-    </TooltipProvider>
-  </ThemeProvider>
+          <Routes>
+
+            <Route path="/" element={<TokenRedirect />} />
+            <Route path="/esqueci-a-senha" element={<EsqueciSenha />} />
+            <Route path="/resetar-senha" element={<ResetPassword />} />
+
+            {/* ======================================= */}
+            {/* GRUPO DE ROTAS PROTEGIDAS (REQUEREM LOGIN) */}
+            {/* ======================================= */}
+            <Route element={<ProtectedRoute />}>
+              <Route path="/dashboard" element={<Dashboard />} />
+
+              <Route path="/empresa" element={<Empresa />} />
+              <Route path="/empresa/criar" element={<CriarEmpresa />} />
+              <Route path="/empresa/buscar" element={<BuscarEmpresa />} />
+
+              <Route path="/relatorio-simples" element={<RelatorioSimples />} />
+              <Route path="/relatorio-detalhado" element={<RelatorioDetalhado />} />
+              <Route path="/documentos" element={<Documentos />} />
+              <Route path="/enviar-documentos" element={<EnviarDocumentos />} />
+              <Route path="/enviar-documento-colaborador" element={<DocumentoColaborador />} />
+              <Route path="/atestado-medico" element={<AtestadoMedico />} />
+              <Route path="/usuario" element={<Usuario />} />
+              <Route path="/criar-colaborador" element={<CriarColaborador />} />
+              <Route path="/criar-administrador" element={<CriarManager />} />
+              <Route path="/lista-colaboradores" element={<ListaColaboradores />} />
+              <Route path="/lista-usuarios" element={<ListaUsuarios />} />
+              <Route path="/relatorio-horas" element={<RelatorioHoras />} />
+              <Route path="/apuracao-horas" element={<ApuracaoHoras />} />
+              <Route path="/status-do-registro" element={<StatusRegistro />} />
+              <Route path="/avisos" element={<Avisos />} />
+              <Route path="/criar-aviso" element={<CriarAviso />} />
+            </Route>
+
+            {/* Rota de Not Found (pública) */}
+            <Route path="*" element={<NotFound />} />
+          </Routes>
+        </BrowserRouter>
+      </TooltipProvider>
+    </ThemeProvider>
   </QueryClientProvider>
 );
 
