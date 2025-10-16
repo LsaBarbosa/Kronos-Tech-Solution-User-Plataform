@@ -23,6 +23,7 @@ import jsPDF from 'jspdf';
 import 'jspdf-autotable';
 import autoTable from "jspdf-autotable";
 import { API_BASE_URL } from "@/config/api";
+import { Textarea } from "@/components/ui/textarea";
 
 const decodeToken = (token) => {
     try {
@@ -80,7 +81,7 @@ const getEasterDate = (year) => {
 };
 
 const statusOptions = [
-    
+
     { value: "CREATED", label: "Criado" },
     { value: "PENDING", label: "Saída Pendente" },
     { value: "UPDATED", label: "Atualizado por ADM" },
@@ -123,11 +124,13 @@ interface DetailedReportItem {
 interface ReportDay {
     startDate: string;
     totalHours: string;
+    totalBreakHours: string;
     balance: string;
 }
 
 interface ReportData {
     totalHoursWorked: string;
+    totalBreakHours: string;
     totalBalance: string;
     days: ReportDay[];
     employeeName?: string;
@@ -147,15 +150,40 @@ interface Employee {
     fullName: string;
 }
 
+interface BreakEditItem {
+    id: string; // Usado para keys no React
+    startDate: string; // data no formato YYYY-MM-DD
+    startHour: string; // hora no formato HH:MM
+    endDate: string; // data no formato YYYY-MM-DD
+    endHour: string; // hora no formato HH:MM
+    status: string; // BREAK ou BREAK_IN_PROGRESS
+}
+
 const editRecordSchema = z.object({
     startDate: z.string().min(1, "Data de início é obrigatória"),
     endDate: z.string().min(1, "Data de fim é obrigatória"),
     startHour: z.string().regex(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/, "Formato de hora inválido (HH:MM)"),
     endHour: z.string().regex(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/, "Formato de hora inválido (HH:MM)"),
     managerId: z.string().min(1, "Administrador é obrigatório"),
+    breakPeriodsString: z.string().optional(),
 });
 
 type EditRecordFormData = z.infer<typeof editRecordSchema>;
+const serializeBreaksFromEdit = (breaks: BreakEditItem[]): string => {
+    // Expected format: YYYY-MM-DD"T"HH24:MI:SS|YYYY-MM-DD"T"HH24:MI:SS;...
+    const formatDateTime = (date: string, time: string): string => {
+        if (!date || !time) return '';
+        // Converte o formato do input (YYYY-MM-DD) para o formato do backend (YYYY-MM-DDT)
+        return `${date}T${time}:00`;
+    };
+
+    return breaks.map(b => {
+        const start = formatDateTime(b.startDate, b.startHour);
+        // Se a pausa estiver em andamento (BREAK_IN_PROGRESS), o campo endHour estará vazio.
+        const end = b.status !== 'BREAK_IN_PROGRESS' ? formatDateTime(b.endDate, b.endHour) : '';
+        return `${start}|${end}`;
+    }).join(';');
+};
 
 const RelatorioDetalhado = () => {
     const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -175,6 +203,7 @@ const RelatorioDetalhado = () => {
     const [managers, setManagers] = useState([]);
     const reportTableRef = useRef(null);
     const [isPartner, setIsPartner] = useState(false);
+    const [editBreaks, setEditBreaks] = useState<BreakEditItem[]>([]);
 
     const form = useForm<EditRecordFormData>({
         resolver: zodResolver(editRecordSchema),
@@ -184,8 +213,28 @@ const RelatorioDetalhado = () => {
             startHour: "",
             endHour: "",
             managerId: "",
+            breakPeriodsString: "",
         },
     });
+
+    const transformBreakData = (breaks: BreakRecordResponse[]): BreakEditItem[] => {
+        const transformDate = (dateString: string): string => {
+            if (!dateString) return "";
+            // Converte de DD-MM-YYYY para YYYY-MM-DD
+            const [day, month, year] = dateString.split('-');
+            return `${year}-${month}-${day}`;
+        };
+
+        // A função serializeBreaks do backend retorna o formato D-M-Y para os campos startWork/endWork
+        return breaks.map((b, index) => ({
+            id: `break-${index}`, // ID para a key do React
+            startDate: transformDate(b.startWork),
+            startHour: b.startHour,
+            endDate: transformDate(b.endWork),
+            endHour: b.endHour,
+            status: b.statusRecord,
+        }));
+    };
 
     const fetchEmployees = useCallback(async () => {
         try {
@@ -273,6 +322,7 @@ const RelatorioDetalhado = () => {
             });
         }
     };
+
 
     useEffect(() => {
         fetchEmployees();
@@ -850,7 +900,7 @@ const RelatorioDetalhado = () => {
         }
     };
 
-    const handleEditRecord = (record) => {
+    const handleEditRecord = (record: DetailedReportItem) => {
         setSelectedRecord(record);
 
         const formatDateToInput = (dateString) => {
@@ -863,6 +913,9 @@ const RelatorioDetalhado = () => {
             return dateString;
         };
 
+        const transformedBreaks = transformBreakData(record.breaks);
+
+        setEditBreaks(transformedBreaks);
         form.reset({
             startDate: formatDateToInput(record.startWork),
             endDate: formatDateToInput(record.endWork),
@@ -885,6 +938,8 @@ const RelatorioDetalhado = () => {
                 throw new Error("Registro selecionado para edição não encontrado.");
             }
 
+            const newBreakPeriodsString = serializeBreaksFromEdit(editBreaks);
+
             const formatDate = (dateString: string) => {
                 const [year, month, day] = dateString.split('-');
                 return `${day}-${month}-${year}`;
@@ -896,7 +951,9 @@ const RelatorioDetalhado = () => {
                 startHour: data.startHour,
                 endHour: data.endHour,
                 managerId: data.managerId,
+                breakPeriodsString: newBreakPeriodsString,
             };
+
 
             const endpoint = `${API_BASE_URL}records/update/time-record/${selectedRecord.timeRecordId}`;
 
@@ -1515,6 +1572,78 @@ const RelatorioDetalhado = () => {
                                                     <FormMessage />
                                                 </FormItem>
                                             )} />
+                                        </div>
+
+
+                                        <div className="space-y-4 pt-4 border-t border-primary/20">
+                                            <FormLabel className="text-sm font-semibold text-foreground flex items-center gap-2">
+                                                <Pause className="h-4 w-4" /> Edição de Pausas ({editBreaks.length} período(s))
+                                            </FormLabel>
+
+                                            {editBreaks.map((breakItem, index) => (
+                                                <Card key={breakItem.id} className="p-3 border-l-2 border-l-primary/50 bg-muted/10">
+                                                    <h5 className="text-xs font-bold mb-2 text-primary">Pausa {index + 1} ({breakItem.status === 'BREAK_IN_PROGRESS' ? 'Em Andamento' : 'Concluída'})</h5>
+                                                    <div className="grid grid-cols-2 gap-3">
+                                                        {/* Data Início Pausa */}
+                                                        <div className="space-y-1">
+                                                            <Label className="text-xs text-muted-foreground">Data Início</Label>
+                                                            <Input
+                                                                type="date"
+                                                                value={breakItem.startDate}
+                                                                onChange={(e) => {
+                                                                    const newDate = e.target.value;
+                                                                    setEditBreaks(prev => prev.map(item => item.id === breakItem.id ? { ...item, startDate: newDate } : item));
+                                                                }}
+                                                                className="h-9 focus:border-primary focus:ring-primary/20"
+                                                            />
+                                                        </div>
+                                                        {/* Hora Início Pausa */}
+                                                        <div className="space-y-1">
+                                                            <Label className="text-xs text-muted-foreground">Hora Início</Label>
+                                                            <Input
+                                                                type="time"
+                                                                value={breakItem.startHour}
+                                                                onChange={(e) => {
+                                                                    const newHour = e.target.value;
+                                                                    setEditBreaks(prev => prev.map(item => item.id === breakItem.id ? { ...item, startHour: newHour } : item));
+                                                                }}
+                                                                className="h-9 focus:border-primary focus:ring-primary/20"
+                                                            />
+                                                        </div>
+
+                                                        {/* Data Fim Pausa (Apenas se não estiver em andamento) */}
+                                                        {breakItem.status !== 'BREAK_IN_PROGRESS' && (
+                                                            <>
+                                                                <div className="space-y-1">
+                                                                    <Label className="text-xs text-muted-foreground">Data Fim</Label>
+                                                                    <Input
+                                                                        type="date"
+                                                                        value={breakItem.endDate}
+                                                                        onChange={(e) => {
+                                                                            const newDate = e.target.value;
+                                                                            setEditBreaks(prev => prev.map(item => item.id === breakItem.id ? { ...item, endDate: newDate } : item));
+                                                                        }}
+                                                                        className="h-9 focus:border-primary focus:ring-primary/20"
+                                                                    />
+                                                                </div>
+                                                                {/* Hora Fim Pausa */}
+                                                                <div className="space-y-1">
+                                                                    <Label className="text-xs text-muted-foreground">Hora Fim</Label>
+                                                                    <Input
+                                                                        type="time"
+                                                                        value={breakItem.endHour}
+                                                                        onChange={(e) => {
+                                                                            const newHour = e.target.value;
+                                                                            setEditBreaks(prev => prev.map(item => item.id === breakItem.id ? { ...item, endHour: newHour } : item));
+                                                                        }}
+                                                                        className="h-9 focus:border-primary focus:ring-primary/20"
+                                                                    />
+                                                                </div>
+                                                            </>
+                                                        )}
+                                                    </div>
+                                                </Card>
+                                            ))}
                                         </div>
                                         <FormField control={form.control} name="managerId" render={({ field }) => (
                                             <FormItem>
