@@ -34,6 +34,7 @@ import DocumentoColaborador from "./pages/DocumentoColaborador";
 import ProtectedRoute from "./components/ProtectedRoute";
 import CriarManager from "./pages/CriarManager";
 import TokenRedirect from "./pages/TokenRedirect";
+import SolicitacoesAprovacao from "./pages/ApuracaoHoras";
 
 const queryClient = new QueryClient();
 

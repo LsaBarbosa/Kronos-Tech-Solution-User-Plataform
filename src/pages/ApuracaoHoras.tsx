@@ -5,13 +5,23 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@/components/ui/table";
 import { Badge } from "@/components/ui/badge";
-import { Check, X, Clock, User, AlertCircle, Pause } from "lucide-react"; 
+import { Check, X, Clock, User, AlertCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
 import { useToast } from "@/hooks/use-toast";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { API_BASE_URL } from "@/config/api";
-import { PendingApproval } from "@/utils/report-utils"; // Importado do report-utils
+
+// Interface para os dados da solicitação pendente, baseada no novo payload da API
+interface PendingApproval {
+  timeRecordId: number;
+  partnerName: string;
+  managerUsername: string;
+  newStartWork: string;
+  newEndWork: string;
+  currentStartWork: string;
+  currentEndWork: string;
+}
 
 // Interface para padronizar o objeto de erro da API
 interface ApiErrorResponse {
@@ -21,74 +31,6 @@ interface ApiErrorResponse {
   timestamp: string;
   message?: string;
 }
-
-// Função auxiliar para exibir JSON de forma amigável (CORRIGIDA)
-// Analisa se o JSON é o formato do backend (ISO) ou do frontend (HH:mm) para exibir corretamente.
-const renderBreakJson = (jsonString: string, type: 'current' | 'new') => {
-    if (!jsonString) return <span className="text-xs text-muted-foreground/70 italic">Nenhum dado de pausa.</span>;
-    try {
-        const jsonObject = JSON.parse(jsonString);
-        
-        // 🚨 AJUSTE PRINCIPAL AQUI:
-        // Para 'current' (pausas originais), queremos exibir TODAS as pausas registradas, ativas ou não.
-        // Para 'new' (proposta), filtramos apenas as que não estão marcadas para exclusão (b.delete).
-        const relevantBreaks = jsonObject
-            .filter((b: any) => type === 'current' ? true : !b.delete); // <<<< MUDANÇA APLICADA
-
-        if (relevantBreaks.length === 0) {
-            return <span className="text-xs text-muted-foreground/70 italic">Nenhuma pausa relevante.</span>;
-        }
-
-        // Formata os dados de pausa para exibição
-        const formattedBreaks = relevantBreaks.map((b: any, index: number) => {
-            // Verifica o formato dos dados: Backend Java (startBreak/endBreak em ISO) vs Frontend DTO (startHour/endHour)
-            const isJavaFormat = b.startBreak && typeof b.startBreak === 'string'; 
-            
-            let startDisplay = 'N/A'; // Inicializa para ser seguro
-            let endDisplay = '...';
-
-            // Lógica para determinar a hora de início
-            if (isJavaFormat) {
-                startDisplay = format(new Date(b.startBreak), 'HH:mm');
-            } else if (b.startHour) {
-                startDisplay = b.startHour;
-            }
-
-            // Lógica para determinar a hora de fim
-            if (isJavaFormat && b.endBreak) {
-                endDisplay = format(new Date(b.endBreak), 'HH:mm');
-            } else if (b.endHour) {
-                endDisplay = b.endHour;
-            }
-
-            const label = `${startDisplay} - ${endDisplay}`;
-            
-            // Determina a badge para melhor clareza na proposta (type === 'new')
-            let badge = null;
-            if (type === 'new') {
-                 // Pausa marcada para exclusão (embora já filtrada, esta é a lógica da badge)
-                 if (b.delete) badge = <Badge variant="destructive" className="h-4">Removida</Badge>;
-                 // Novo registro criado no frontend (sem ID)
-                 else if (b.breakRecordId === null || b.breakRecordId === undefined) badge = <Badge className="h-4 bg-yellow-500 hover:bg-yellow-500/90">Nova</Badge>;
-                 // Registro existente que foi apenas editado (tem ID)
-                 else badge = <Badge className="h-4 bg-blue-500 hover:bg-blue-500/90">Editada</Badge>;
-            }
-
-            return (
-                <div key={index} className={`flex justify-between text-xs p-1 rounded-sm ${b.delete ? 'opacity-50 italic line-through' : ''}`}>
-                    <span className="font-medium text-foreground">{label}</span>
-                    {badge}
-                </div>
-            );
-        });
-
-        return <div className="flex flex-col space-y-1">{formattedBreaks}</div>;
-        
-    } catch (e) {
-        return <span className="text-destructive text-xs">Erro ao parsear JSON.</span>;
-    }
-};
-
 
 const ApuracaoHoras = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -329,7 +271,7 @@ const ApuracaoHoras = () => {
                     <Table>
                       <TableHeader>
                         <TableRow>
-                          <TableHead className="min-w-[200px]">Colaborador e Pausas</TableHead>
+                          <TableHead className="min-w-[120px]">Colaborador</TableHead>
                           <TableHead>Administrador</TableHead>
                           <TableHead className="min-w-[120px]">Início Atual</TableHead>
                           <TableHead className="min-w-[120px]">Fim Atual</TableHead>
@@ -341,32 +283,13 @@ const ApuracaoHoras = () => {
                       <TableBody>
                         {pendingApprovals.map((request) => (
                           <TableRow key={request.timeRecordId} className="hover:bg-muted/50">
-                            <TableCell className="align-top">
-                            
-                                <div className="flex items-center gap-2">
-                                    <div className="h-8 w-8 bg-primary/10 rounded-full flex items-center justify-center">
-                                      <User className="h-4 w-4 text-primary" />
-                                    </div>
-                                    <span className="font-medium">{request.partnerName}</span>
+                            <TableCell>
+                              <div className="flex items-center gap-2">
+                                <div className="h-8 w-8 bg-primary/10 rounded-full flex items-center justify-center">
+                                  <User className="h-4 w-4 text-primary" />
                                 </div>
-                                {/* INÍCIO: DETALHES DAS PAUSAS (Desktop/Tablet) */}
-                                <div className="mt-2 text-xs text-muted-foreground border border-primary/20 rounded-lg p-2 bg-muted/20">
-                                    <p className="font-bold mb-1 text-primary flex items-center gap-1">
-                                        <Pause className="h-3 w-3" />
-                                        Pausas Atuais
-                                    </p>
-                                    <div className="space-y-1 p-2 bg-card rounded-md border">
-                                        {renderBreakJson(request.oldBreakRecordsJson, 'current')}
-                                    </div>
-                                    <p className="font-bold mt-3 mb-1 text-primary flex items-center gap-1">
-                                        <Pause className="h-3 w-3" />
-                                        Novas Pausas (Proposta)
-                                    </p>
-                                    <div className="space-y-1 p-2 bg-primary/5 rounded-md border border-primary/20">
-                                        {renderBreakJson(request.newBreakRecordsJson, 'new')}
-                                    </div>
-                                </div>
-                                {/* FIM: DETALHES DAS PAUSAS (Desktop/Tablet) */}
+                                <span className="font-medium">{request.partnerName}</span>
+                              </div>
                             </TableCell>
                             <TableCell>
                               <Badge variant="secondary" className="bg-success/10 text-success">
@@ -416,7 +339,7 @@ const ApuracaoHoras = () => {
                   </div>
 
                   {/* 2. VISUALIZAÇÃO EM CARTÕES (Mobile) */}
-                  <div className=" space-y-4 md:hidden">
+                  <div className=" space-y-4">
                     {pendingApprovals.map((request) => (
                       <Card key={request.timeRecordId} className="card-hover border-l-4 border-l-primary/50">
                         <CardContent className="p-4 mobile-stack space-y-3">
@@ -468,24 +391,6 @@ const ApuracaoHoras = () => {
                               </span>
                             </div>
                           </div>
-
-                          {/* INÍCIO: DETALHES DAS PAUSAS (Mobile) */}
-                          <div className="space-y-3 pt-2 border-t border-dashed border-primary/20">
-                            <span className="text-sm font-semibold text-primary flex items-center gap-2">
-                                <Pause className="h-4 w-4" /> Detalhes das Pausas
-                            </span>
-                            <div className="space-y-2">
-                                <p className="text-xs font-bold text-muted-foreground">Pausas Atuais:</p>
-                                <div className="space-y-1 p-2 bg-card rounded-md border">
-                                    {renderBreakJson(request.oldBreakRecordsJson, 'current')}
-                                </div>
-                                <p className="text-xs font-bold text-muted-foreground mt-2">Novas Pausas (Proposta):</p>
-                                <div className="space-y-1 p-2 bg-primary/5 rounded-md border border-primary/20">
-                                    {renderBreakJson(request.newBreakRecordsJson, 'new')}
-                                </div>
-                            </div>
-                          </div>
-                          {/* FIM: DETALHES DAS PAUSAS (Mobile) */}
 
                           {/* Ações */}
                           <div className="flex justify-between gap-2 pt-4 border-t border-border/50">
