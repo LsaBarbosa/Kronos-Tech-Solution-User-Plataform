@@ -1,207 +1,60 @@
+// src/pages/RelatorioDetalhado.tsx (Atualizado)
+
 import React, { useState, useEffect, useCallback, useRef } from "react";
-import { Button } from "@/components/ui/button";
-import { Calendar } from "@/components/ui/calendar";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Checkbox } from "@/components/ui/checkbox";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-// import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"; // REMOVIDO
-import { Badge } from "@/components/ui/badge";
-import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { useToast } from "@/hooks/use-toast";
 import Header from "@/components/Header";
 import Sidebar from "@/components/Sidebar";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { CalendarIcon, Search, Download, Check, X, Edit, Pause, Play } from "lucide-react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { z } from "zod";
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
 import autoTable from "jspdf-autotable";
+
+import {
+    DetailedReportItem,
+    ReportDataSimple,
+    Employee,
+    Manager,
+    BreakEditItem,
+    EditRecordFormData,
+    editRecordSchema,
+    decodeToken,
+    transformBreakData,
+    mapEditBreaksToSubmission, // IMPORTADO
+    isHoliday, // Importado para uso no PDF Simples
+    statusOptions, // Importado para uso no PDF Detalhado
+    getTranslatedStatus, // Importado para uso no PDF Detalhado
+} from "@/utils/report-utils";
 import { API_BASE_URL } from "@/config/api";
-import { Textarea } from "@/components/ui/textarea";
 
-const decodeToken = (token) => {
-    try {
-        const base64Url = token.split('.')[1];
-        const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-        const payload = decodeURIComponent(atob(base64).split('').map(function (c) {
-            return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
-        }).join(''));
-        return JSON.parse(payload);
-    } catch (error) {
-        console.error("Failed to decode token", error);
-        return null;
-    }
-};
+// Importa os novos sub-componentes
 
-const getBrazilianHolidays = (year) => {
-    const holidays = [];
+import { ResultadosRelatorioDetalhado } from "@/components/ResultadosRelatorioDetalhado";
+import { ResultadosRelatorioSimples } from "@/components/ResultadosRelatorioSimples";
+import { RegistroEdicaoModal } from "@/components/RegistroEdicaoModal";
 
-    holidays.push(new Date(year, 0, 1));
-    holidays.push(new Date(year, 3, 21));
-    holidays.push(new Date(year, 4, 1));
-    holidays.push(new Date(year, 8, 7));
-    holidays.push(new Date(year, 9, 12));
-    holidays.push(new Date(year, 10, 2));
-    holidays.push(new Date(year, 10, 15));
-    holidays.push(new Date(year, 11, 25));
-
-    const easter = getEasterDate(year);
-    const carnival = new Date(easter);
-    carnival.setDate(easter.getDate() - 47);
-    holidays.push(carnival);
-
-    const goodFriday = new Date(easter);
-    goodFriday.setDate(easter.getDate() - 2);
-    holidays.push(goodFriday);
-
-    const corpusChristi = new Date(easter);
-    corpusChristi.setDate(easter.getDate() + 60);
-    holidays.push(corpusChristi);
-
-    return holidays;
-};
-
-const getEasterDate = (year) => {
-    const f = Math.floor;
-    const G = year % 19;
-    const C = f(year / 100);
-    const H = (C - f(C / 4) - f((8 * C + 13) / 25) + 19 * G + 15) % 30;
-    const I = H - f(H / 28) * (1 - f(29 / (H + 1)) * f((21 - G) / 11));
-    const J = (year + f(year / 4) + I + 2 - C + f(C / 4)) % 7;
-    const L = I - J;
-    const month = 3 + f((L + 40) / 44);
-    const day = L + 28 - 31 * f(month / 4);
-    return new Date(year, month - 1, day);
-};
-
-const statusOptions = [
-
-    { value: "CREATED", label: "Criado" },
-    { value: "PENDING", label: "Saída Pendente" },
-    { value: "UPDATED", label: "Atualizado por ADM" },
-    { value: "UPDATE_REJECTED", label: "Atualização Rejeitada Por ADM" },
-    { value: "DAY_OFF", label: "Folga" },
-    { value: "ABSENCE", label: "Falta" },
-    { value: "PENDING_APPROVAL", label: "Aguardando Aprovação" },
-    { value: "DOCTOR_APPOINTMENT", label: "Consulta Médica" },
-];
-
-interface BreakRecordResponse {
-    timeRecordId: number;
-    startWork: string;
-    startHour: string;
-    endWork: string;
-    endHour: string;
-    hoursBreak: string;
-    statusRecord: string;
-}
-interface DetailedReportItem {
-    id?: string;
-    timeRecordId?: number; // Adicionado para consistência
-    startWork: string;
-    startHour: string;
-    endWork: string;
-    endHour: string;
-    hoursWork: string; // Horas Trabalhadas Efetivas (descontando pausas)
-    balance: string;
-    statusRecord: string;
-    edited: boolean;
-    active: boolean;
-    employeeId: string; // Adicionado para consistência
-    employeeData: {
-        employeeName: string;
-        companyName: string;
-    };
-    breaks: BreakRecordResponse[]; // NOVO CAMPO
-}
-
-interface ReportDay {
-    startDate: string;
-    totalHours: string;
-    totalBreakHours: string;
-    balance: string;
-}
-
-interface ReportData {
-    totalHoursWorked: string;
-    totalBreakHours: string;
-    totalBalance: string;
-    days: ReportDay[];
-    employeeName?: string;
-    companyName?: string;
-}
-
-interface UserItem {
-    userId: string;
-    username: string;
-    role: string;
-    active: boolean;
-    employeeId: string;
-}
-
-interface Employee {
-    employeeId: string;
-    fullName: string;
-}
-
-interface BreakEditItem {
-    id: string; // Usado para keys no React
-    startDate: string; // data no formato YYYY-MM-DD
-    startHour: string; // hora no formato HH:MM
-    endDate: string; // data no formato YYYY-MM-DD
-    endHour: string; // hora no formato HH:MM
-    status: string; // BREAK ou BREAK_IN_PROGRESS
-}
-
-const editRecordSchema = z.object({
-    startDate: z.string().min(1, "Data de início é obrigatória"),
-    endDate: z.string().min(1, "Data de fim é obrigatória"),
-    startHour: z.string().regex(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/, "Formato de hora inválido (HH:MM)"),
-    endHour: z.string().regex(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/, "Formato de hora inválido (HH:MM)"),
-    managerId: z.string().min(1, "Administrador é obrigatório"),
-    breakPeriodsString: z.string().optional(),
-});
-
-type EditRecordFormData = z.infer<typeof editRecordSchema>;
-const serializeBreaksFromEdit = (breaks: BreakEditItem[]): string => {
-    // Expected format: YYYY-MM-DD"T"HH24:MI:SS|YYYY-MM-DD"T"HH24:MI:SS;...
-    const formatDateTime = (date: string, time: string): string => {
-        if (!date || !time) return '';
-        // Converte o formato do input (YYYY-MM-DD) para o formato do backend (YYYY-MM-DDT)
-        return `${date}T${time}:00`;
-    };
-
-    return breaks.map(b => {
-        const start = formatDateTime(b.startDate, b.startHour);
-        // Se a pausa estiver em andamento (BREAK_IN_PROGRESS), o campo endHour estará vazio.
-        const end = b.status !== 'BREAK_IN_PROGRESS' ? formatDateTime(b.endDate, b.endHour) : '';
-        return `${start}|${end}`;
-    }).join(';');
-};
+// Componentes da UI que sobraram
+import { Card } from "@/components/ui/card";
+import { RelatorioFiltros } from "./RelatorioFiltros";
 
 const RelatorioDetalhado = () => {
     const [sidebarOpen, setSidebarOpen] = useState(false);
-    const [selectedDates, setSelectedDates] = useState([]);
+    const [selectedDates, setSelectedDates] = useState<Date[]>([]);
     const [referenceTime, setReferenceTime] = useState("08:00");
     const [selectedEmployee, setSelectedEmployee] = useState("");
     const [employeeActive, setEmployeeActive] = useState("active");
     const [isActive, setIsActive] = useState(true);
     const [status, setStatus] = useState("");
-    const [reportType, setReportType] = useState("detailed"); // NOVO ESTADO: "detailed" ou "simple"
+    const [reportType, setReportType] = useState<"detailed" | "simple">("detailed");
     const [reportData, setReportData] = useState<DetailedReportItem[]>([]);
-    const [reportDataSimple, setReportDataSimple] = useState<ReportData | null>(null); // NOVO ESTADO: Para relatório simples
+    const [reportDataSimple, setReportDataSimple] = useState<ReportDataSimple | null>(null);
     const [editModalOpen, setEditModalOpen] = useState(false);
-    const [selectedRecord, setSelectedRecord] = useState(null);
-    const [employees, setEmployees] = useState([]);
+    const [selectedRecord, setSelectedRecord] = useState<DetailedReportItem | null>(null);
+    const [employees, setEmployees] = useState<Employee[]>([]);
     const { toast } = useToast();
-    const [managers, setManagers] = useState([]);
-    const reportTableRef = useRef(null);
+    const [managers, setManagers] = useState<Manager[]>([]);
     const [isPartner, setIsPartner] = useState(false);
     const [editBreaks, setEditBreaks] = useState<BreakEditItem[]>([]);
 
@@ -213,38 +66,13 @@ const RelatorioDetalhado = () => {
             startHour: "",
             endHour: "",
             managerId: "",
-            breakPeriodsString: "",
         },
     });
-
-    const transformBreakData = (breaks: BreakRecordResponse[]): BreakEditItem[] => {
-        const transformDate = (dateString: string): string => {
-            if (!dateString) return "";
-            // Converte de DD-MM-YYYY para YYYY-MM-DD
-            const [day, month, year] = dateString.split('-');
-            return `${year}-${month}-${day}`;
-        };
-
-        // A função serializeBreaks do backend retorna o formato D-M-Y para os campos startWork/endWork
-        return breaks.map((b, index) => ({
-            id: `break-${index}`, // ID para a key do React
-            startDate: transformDate(b.startWork),
-            startHour: b.startHour,
-            endDate: transformDate(b.endWork),
-            endHour: b.endHour,
-            status: b.statusRecord,
-        }));
-    };
 
     const fetchEmployees = useCallback(async () => {
         try {
             const token = localStorage.getItem("token");
             if (!token) return;
-
-            const headers = {
-                "Content-Type": "application/json",
-                Authorization: `Bearer ${token}`,
-            };
 
             const decoded = decodeToken(token);
             const userRole = decoded?.role;
@@ -306,9 +134,9 @@ const RelatorioDetalhado = () => {
             }
 
             const data = await response.json();
-            const filteredManagers = data.users
-                .filter((user) => user.role === "MANAGER")
-                .map((user) => ({
+            const filteredManagers: Manager[] = data.users
+                .filter((user: any) => user.role === "MANAGER")
+                .map((user: any) => ({
                     id: user.userId,
                     name: user.username,
                 }));
@@ -317,7 +145,7 @@ const RelatorioDetalhado = () => {
             console.error("Erro ao buscar gerentes:", error);
             toast({
                 title: "Erro",
-                description: error.message || "Não foi possível carregar a lista de administradores.",
+                description: (error as Error).message || "Não foi possível carregar a lista de administradores.",
                 variant: "destructive",
             });
         }
@@ -329,62 +157,11 @@ const RelatorioDetalhado = () => {
         fetchManagers();
     }, [fetchEmployees]);
 
-    const currentYear = new Date().getFullYear();
-    const holidays = [
-        ...getBrazilianHolidays(currentYear),
-        ...getBrazilianHolidays(currentYear + 1)
-    ];
 
-    const isHoliday = (date) => {
-        return holidays.some(holiday =>
-            holiday.toDateString() === date.toDateString()
-        );
-    };
-
-    const handleDateSelect = (date) => {
-        if (!date) return;
-
-        setSelectedDates(prev => {
-            const isAlreadySelected = prev.some(selectedDate =>
-                selectedDate.getDate() === date.getDate() &&
-                selectedDate.getMonth() === date.getMonth() &&
-                selectedDate.getFullYear() === date.getFullYear()
-            );
-
-            if (isAlreadySelected) {
-                return prev.filter(selectedDate =>
-                    !(selectedDate.getDate() === date.getDate() &&
-                        selectedDate.getMonth() === date.getMonth() &&
-                        selectedDate.getFullYear() === date.getFullYear())
-                );
-            } else {
-                return [...prev, date];
-            }
-        });
-    };
-
-    const handleEmployeeStatusChange = (statusValue) => {
-        setEmployeeActive(prev => (prev === statusValue ? "" : statusValue));
-    };
-
-    // NOVO: Função para alternar o tipo de relatório (Radio Check)
-    const handleReportTypeChange = (typeValue) => {
-        if (reportType !== typeValue) {
-            setReportType(typeValue);
-            // Limpa o status se for para o simples
-            if (typeValue === "simple") {
-                setStatus("");
-            }
-            // Limpa os dados do relatório anterior
-            setReportData([]);
-            setReportDataSimple(null);
-        }
-    };
-
-    // FUNÇÃO DE BUSCA DETALHADA (EXISTENTE)
+    // FUNÇÃO DE BUSCA DETALHADA
     const handleSearch = async () => {
-        setReportDataSimple(null); // Limpa dados simples
-
+        setReportDataSimple(null);
+        setReportData([]);
 
         try {
             const token = localStorage.getItem("token");
@@ -398,7 +175,6 @@ const RelatorioDetalhado = () => {
                 reference: referenceTime,
                 active: isActive,
                 dates: formattedDates,
-                // Adiciona a propriedade 'status' apenas se o valor de 'status' não for uma string vazia ("")
                 ...(status && { status: status }),
             };
 
@@ -421,7 +197,7 @@ const RelatorioDetalhado = () => {
                 throw new Error(errorData.detail || "Erro ao buscar o relatório detalhado. Tente novamente mais tarde.");
             }
 
-            const data = await response.json();
+            const data: DetailedReportItem[] = await response.json();
 
             if (data.length === 0) {
                 setReportData([]);
@@ -434,7 +210,6 @@ const RelatorioDetalhado = () => {
             }
 
             setReportData(data);
-            setReportDataSimple(null); // Garante que o simples esteja vazio
 
             const datesList = selectedDates
                 .map(date => format(date, "dd/MM/yyyy", { locale: ptBR }))
@@ -448,17 +223,16 @@ const RelatorioDetalhado = () => {
             console.error("Erro na busca:", error);
             toast({
                 title: "Erro",
-                description: error.message || "Ocorreu um erro ao buscar o relatório.",
+                description: (error as Error).message || "Ocorreu um erro ao buscar o relatório.",
                 variant: "destructive",
             });
         }
     };
 
-    // NOVO: FUNÇÃO DE BUSCA SIMPLES
+    // FUNÇÃO DE BUSCA SIMPLES
     const handleSimpleSearch = async () => {
-        setReportData([]); // Limpa dados detalhados
-
-
+        setReportData([]);
+        setReportDataSimple(null);
 
         try {
             const token = localStorage.getItem("token");
@@ -493,7 +267,7 @@ const RelatorioDetalhado = () => {
                 throw new Error(errorData.detail || "Erro ao buscar o relatório simples. Tente novamente mais tarde.");
             }
 
-            const data = await response.json();
+            const data: ReportDataSimple = await response.json();
 
             if (data.days.length === 0) {
                 setReportDataSimple(null);
@@ -506,7 +280,6 @@ const RelatorioDetalhado = () => {
             }
 
             setReportDataSimple(data);
-            setReportData([]); // Garante que o detalhado esteja vazio
 
             const datesList = selectedDates
                 .map(date => format(date, "dd/MM/yyyy", { locale: ptBR }))
@@ -520,18 +293,26 @@ const RelatorioDetalhado = () => {
             console.error("Erro na busca simples:", error);
             toast({
                 title: "Erro",
-                description: error.message || "Ocorreu um erro ao buscar o relatório simples.",
+                description: (error as Error).message || "Ocorreu um erro ao buscar o relatório simples.",
                 variant: "destructive",
             });
         }
     };
 
-    // FUNÇÃO DE DOWNLOAD DETALHADA (EXISTENTE)
-    // FUNÇÃO DE DOWNLOAD DETALHADA - ATUALIZADA PARA AGRUPAR E TRADUZIR
+    const handleSearchClick = () => {
+        if (reportType === "detailed") {
+            handleSearch();
+        } else {
+            handleSimpleSearch();
+        }
+    };
+
+
+    // === LÓGICA DE DOWNLOAD DETALHADA RE-ADICIONADA ===
     const handleDownload = () => {
-        const parseDate = (dateString) => {
+        const parseDate = (dateString: string) => {
             if (!dateString) return null;
-            const parts = dateString.split('-');
+            const parts = dateString.split('-'); // DD-MM-YYYY
             if (parts.length === 3) {
                 const [day, month, year] = parts;
                 const date = new Date(`${year}/${month}/${day}`);
@@ -542,17 +323,10 @@ const RelatorioDetalhado = () => {
             return null;
         };
 
-        // Função para obter o Status traduzido
-        const getTranslatedStatus = (statusValue) => {
-            if (statusValue === 'BREAK') return 'Pausa Concluída';
-            if (statusValue === 'BREAK_IN_PROGRESS') return 'Pausa em Andamento';
-            return statusOptions.find(opt => opt.value === statusValue)?.label || statusValue;
-        };
-
         if (reportData.length === 0) {
             toast({
                 title: "Erro",
-                description: "Gere o relatório primeiro para poder fazer o download.",
+                description: "Gere o relatório detalhado primeiro para poder fazer o download.",
                 variant: "destructive"
             });
             return;
@@ -601,16 +375,14 @@ const RelatorioDetalhado = () => {
             doc.setFont("helvetica", "bold");
             yPosition += 5;
 
-            // Definição das cores (RGB)
-            const COLOR_MAIN_RECORD = [245, 245, 245]; // Cinza Claro (Padrão para registro principal)
-            const COLOR_BREAK_RECORD = [255, 255, 255]; // Branco (Padrão para pausa)
-            const COLOR_SEPARATOR = [170, 170, 170];       // Preto (Padrão para separador)
+            const COLOR_MAIN_RECORD = [245, 245, 245];
+            const COLOR_BREAK_RECORD = [255, 255, 255];
+            const COLOR_SEPARATOR = [200, 200, 200];
+            const SEPARATOR_PADDING = 0.1
 
+            const tableBody: any[] = [];
 
-            // Prepara os dados da tabela, incluindo sub-linhas para as pausas
-            const tableBody = [];
-
-            reportData.forEach(item => {
+            reportData.forEach((item, index) => {
                 const startDate = parseDate(item.startWork);
                 const endDate = parseDate(item.endWork);
 
@@ -658,30 +430,29 @@ const RelatorioDetalhado = () => {
                             { content: breakStatusLabel, styles: { fillColor: COLOR_BREAK_RECORD, fontStyle: 'italic', cellPadding: 1, fontSize: 8, halign: 'center' } },
                         ];
                         tableBody.push(breakRowCells);
-
-                        // Linha separadora PRETA
-                        tableBody.push([
-                            { content: '', colSpan: 5, styles: { fillColor: COLOR_SEPARATOR, cellPadding: 0.5 } }
-                        ]);
                     });
-                } else {
-                    // Linha separadora PRETA após registro principal sem pausa
+                }
+
+                // NOVO: Adiciona a linha separadora SOMENTE no final de cada REGISTRO (não entre pausas)
+                // E somente se não for o último item do relatório.
+                if (index < reportData.length - 1) {
                     tableBody.push([
-                        { content: '', colSpan: 5, styles: { fillColor: COLOR_SEPARATOR, cellPadding: 0.5 } }
+                        { content: '', colSpan: 5, styles: { fillColor: COLOR_SEPARATOR, cellPadding: SEPARATOR_PADDING } }
                     ]);
                 }
             });
 
-
             yPosition += 10;
 
-            // Remove a última linha separadora extra
             if (tableBody.length > 0) {
-                tableBody.pop();
+                // Remove a última linha separadora extra se ela foi adicionada no final
+                if (tableBody[tableBody.length - 1][0].styles.fillColor[0] === COLOR_SEPARATOR[0]) {
+                     tableBody.pop();
+                }
             }
 
             autoTable(doc, {
-                head: [['Entrada (Data/Hora)', 'Saída (Data/Hora)', 'Horas Trabalhadas', 'Saldo', 'Status']], // Novo Cabeçalho
+                head: [['Entrada (Data/Hora)', 'Saída (Data/Hora)', 'Horas Trabalhadas', 'Saldo', 'Status']],
                 body: tableBody,
                 startY: yPosition,
                 margin: { left: 20, right: 20 },
@@ -697,16 +468,14 @@ const RelatorioDetalhado = () => {
                     fontStyle: 'bold'
                 },
                 columnStyles: {
-                    3: { // Coluna do Saldo
+                    3: {
                         cellWidth: 20,
                         halign: 'center'
                     }
                 },
                 didParseCell: function (data) {
-                    // O didParseCell é mantido apenas para aplicar cores ao texto do Saldo
                     if (data.column.index === 3 && data.section === 'body') {
                         const balance = data.cell.text[0];
-                        // Lógica de coloração para o Saldo (aplica-se apenas às linhas principais, as de pausa são "00:00")
                         if (balance && balance.toString().startsWith('-')) {
                             data.cell.styles.textColor = [220, 53, 69];
                             data.cell.styles.fontStyle = 'bold';
@@ -739,18 +508,20 @@ const RelatorioDetalhado = () => {
             console.error("Erro ao gerar PDF:", error);
             toast({
                 title: "Erro",
-                description: error.message || "Não foi possível gerar o PDF. Tente novamente.",
+                description: (error as Error).message || "Não foi possível gerar o PDF. Tente novamente.",
                 variant: "destructive",
             });
         }
     };
+    // === FIM LÓGICA DE DOWNLOAD DETALHADA ===
 
-    // NOVO: FUNÇÃO DE DOWNLOAD SIMPLES
+
+    // === LÓGICA DE DOWNLOAD SIMPLES RE-ADICIONADA ===
     const handleSimpleDownload = () => {
         if (!reportDataSimple || reportDataSimple.days.length === 0) {
             toast({
                 title: "Erro",
-                description: "Gere o relatório primeiro para poder fazer o download.",
+                description: "Gere o relatório simples primeiro para poder fazer o download.",
                 variant: "destructive"
             });
             return;
@@ -793,13 +564,12 @@ const RelatorioDetalhado = () => {
                 yPosition += 10;
             }
 
-            // Adicionando os totais antes da tabela
             doc.setFont("helvetica", "bold");
             doc.text(`Total de Horas Trabalhadas: ${reportDataSimple.totalHoursWorked}`, 20, yPosition);
             yPosition += 7;
             doc.text(`Saldo Total: ${reportDataSimple.totalBalance}`, 20, yPosition);
             yPosition += 10;
-            doc.setFont("helvetica", "normal"); // Volta para normal
+            doc.setFont("helvetica", "normal");
 
             const tableData = reportDataSimple.days.map(day => {
                 const parts = day.startDate.split('/');
@@ -829,20 +599,19 @@ const RelatorioDetalhado = () => {
                     fontStyle: 'bold'
                 },
                 columnStyles: {
-                    2: { // Coluna do saldo
+                    2: {
                         cellWidth: 25,
                         halign: 'center'
                     }
                 },
                 didParseCell: function (data) {
-                    // Colorir saldo positivo/negativo
                     if (data.column.index === 2 && data.section === 'body') {
                         const balance = data.cell.text[0];
                         if (balance && balance.startsWith('-')) {
-                            data.cell.styles.textColor = [220, 53, 69]; // Vermelho para negativo
+                            data.cell.styles.textColor = [220, 53, 69];
                             data.cell.styles.fontStyle = 'bold';
                         } else if (balance && !balance.startsWith('-') && balance !== '00:00') {
-                            data.cell.styles.textColor = [40, 167, 69]; // Verde para positivo
+                            data.cell.styles.textColor = [40, 167, 69];
                             data.cell.styles.fontStyle = 'bold';
                         }
                     }
@@ -870,40 +639,29 @@ const RelatorioDetalhado = () => {
             console.error("Erro ao gerar PDF:", error);
             toast({
                 title: "Erro",
-                description: "Não foi possível gerar o PDF. Tente novamente.",
+                description: (error as Error).message || "Não foi possível gerar o PDF. Tente novamente.",
                 variant: "destructive",
             });
         }
     };
+    // === FIM LÓGICA DE DOWNLOAD SIMPLES ===
 
-    const getStatusBadgeVariant = (status) => {
-        switch (status) {
-            case "CREATED": return "default";
-            case "PENDING": return "secondary";
-            case "UPDATED": return "default";
-            case "UPDATE_REJECTED": return "destructive";
-            case "DAY_OFF": return "outline";
-            case "ABSENCE": return "destructive";
-            case "PENDING_APPROVAL": return "secondary";
-            case "DOCTOR_APPOINTMENT": return "outline";
-            default: return "default";
+
+    // === FUNÇÃO CORRIGIDA QUE É PASSADA PARA O BOTÃO DE DOWNLOAD ===
+    const handleDownloadClick = () => {
+        if (reportType === "detailed") {
+            handleDownload(); // Chama a nova função de download detalhado
+        } else {
+            handleSimpleDownload(); // Chama a nova função de download simples
         }
     };
+    // === FIM FUNÇÃO CORRIGIDA ===
 
-    const getStatusColor = (status) => {
-        const baseClass = "text-white";
-        switch (status) {
-            case "CREATED": return `${baseClass} bg-green-600`;
-            case "PENDING": return `${baseClass} bg-yellow-600`;
-            case "ABSENCE": return `${baseClass} bg-red-600`;
-            default: return `${baseClass} bg-primary`;
-        }
-    };
 
     const handleEditRecord = (record: DetailedReportItem) => {
         setSelectedRecord(record);
 
-        const formatDateToInput = (dateString) => {
+        const formatDateToInput = (dateString: string) => {
             if (!dateString) return "";
             const parts = dateString.split('-');
             if (parts.length === 3) {
@@ -913,15 +671,17 @@ const RelatorioDetalhado = () => {
             return dateString;
         };
 
+        // Usa o ID da pausa para rastreamento
         const transformedBreaks = transformBreakData(record.breaks);
 
         setEditBreaks(transformedBreaks);
         form.reset({
             startDate: formatDateToInput(record.startWork),
             endDate: formatDateToInput(record.endWork),
+            managerId: managers[0]?.id || "",
+            // Mantenha as horas originais se existirem no registro
             startHour: record.startHour,
             endHour: record.endHour,
-            managerId: managers[0]?.id || "",
         });
 
         setEditModalOpen(true);
@@ -938,20 +698,24 @@ const RelatorioDetalhado = () => {
                 throw new Error("Registro selecionado para edição não encontrado.");
             }
 
-            const newBreakPeriodsString = serializeBreaksFromEdit(editBreaks);
+            // NOVO: Mapeia as pausas editadas para o formato esperado pelo backend (List<BreakUpdateData>)
+            const breakUpdates = mapEditBreaksToSubmission(editBreaks);
 
+            // Função para converter YYYY-MM-DD (Input Date) para DD-MM-YYYY (Formato Java esperado)
             const formatDate = (dateString: string) => {
                 const [year, month, day] = dateString.split('-');
                 return `${day}-${month}-${year}`;
             };
 
+            // ESTRUTURA DO BODY AGORA CORRESPONDE AO UpdateTimeRecordRequest (Java)
             const requestBody = {
                 startDate: formatDate(data.startDate),
                 endDate: formatDate(data.endDate),
                 startHour: data.startHour,
                 endHour: data.endHour,
                 managerId: data.managerId,
-                breakPeriodsString: newBreakPeriodsString,
+                // NOVO CAMPO
+                breakUpdates: breakUpdates, 
             };
 
 
@@ -968,25 +732,25 @@ const RelatorioDetalhado = () => {
 
             if (!response.ok) {
                 const errorData = await response.json();
-                throw new Error(errorData.detail || "Erro ao atualizar o registro.");
+                throw new Error(errorData.detail || errorData.message || "Erro ao solicitar a aprovação de alteração.");
             }
 
+            // MENSAGEM SIMPLES DE CONFIRMAÇÃO
             toast({
                 title: "Sucesso",
-                description: "Registro atualizado com sucesso!",
+                description: "Solicitação de alteração enviada para aprovação do administrador.",
             });
 
             setEditModalOpen(false);
             setSelectedRecord(null);
             form.reset();
 
-            // Atualiza o relatório após a edição (sempre busca o detalhado após edição de um registro detalhado)
             handleSearch();
         } catch (error) {
             console.error("Erro ao salvar:", error);
             toast({
                 title: "Erro",
-                description: error.message || "Ocorreu um erro ao salvar o registro.",
+                description: (error as Error).message || "Ocorreu um erro ao salvar o registro.",
                 variant: "destructive",
             });
         }
@@ -994,9 +758,8 @@ const RelatorioDetalhado = () => {
 
     return (
         <div className="min-h-screen bg-background relative overflow-hidden">
-            {/* Animated Background */}
+            {/* Animated Background (Mantido para o layout) */}
             <div className="fixed inset-0 z-0">
-                {/* Gradient Background */}
                 <div
                     className="absolute inset-0 opacity-5"
                     style={{
@@ -1005,8 +768,6 @@ const RelatorioDetalhado = () => {
                         animation: 'gradient-flow 15s ease-in-out infinite'
                     }}
                 />
-
-                {/* Floating Geometric Shapes */}
                 <div className="absolute inset-0">
                     <div
                         className="absolute top-1/4 left-1/4 w-32 h-32 opacity-3"
@@ -1049,633 +810,65 @@ const RelatorioDetalhado = () => {
                     </p>
                 </div>
 
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                    <Card className="border-2 border-primary/20 shadow-card bg-gradient-to-br from-card via-card to-primary/5">
-                        <CardHeader className="border-b border-primary/20 bg-gradient-to-r from-primary/10 via-primary/5 to-transparent">
-                            <CardTitle className="flex items-center gap-2 text-foreground">
-                                <div className="p-2 rounded-lg bg-primary/10">
-                                    <CalendarIcon className="h-5 w-5 text-primary" />
-                                </div>
-                                Selecionar Datas
-                            </CardTitle>
-                            <CardDescription className="text-muted-foreground">
-                                Escolha múltiplas datas para o relatório detalhado
-                            </CardDescription>
-                        </CardHeader>
-                        <CardContent className="pt-6">
-                            <Card className="border-l-4 border-l-primary shadow-card w-fit mx-auto">
-                                <Calendar
-                                    mode="multiple"
-                                    selected={selectedDates}
-                                    onSelect={setSelectedDates}
-                                    className="w-full pointer-events-auto"
-                                    classNames={{
-                                        day: "h-9 w-9 p-0 font-normal aria-selected:opacity-100 hover:bg-calendar-selected-hover/20 hover:text-calendar-selected transition-colors duration-200 relative", day_selected: "bg-calendar-selected text-calendar-selected-foreground hover:bg-calendar-selected-hover hover:text-calendar-selected-foreground focus:bg-calendar-selected focus:text-calendar-selected-foreground font-semibold shadow-sm z-10",
-                                        day_today: "bg-transparent text-foreground font-bold border-2 border-primary hover:bg-primary/10",
-                                        day_outside: "text-muted-foreground opacity-50 aria-selected:bg-calendar-selected/50 aria-selected:text-calendar-selected-foreground aria-selected:opacity-80",
-                                        day_disabled: "text-muted-foreground opacity-50",
-                                        day_range_middle: "aria-selected:bg-calendar-selected/20 aria-selected:text-calendar-selected",
-                                        day_hidden: "invisible",
-                                    }}
-                                    modifiers={{
-                                        selected: selectedDates,
-                                        holiday: holidays,
-                                    }}
-                                    modifiersClassNames={{
-                                        elected: "bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground z-10",
-                                        holiday: "bg-destructive/10 text-destructive font-semibold border border-destructive/20 hover:bg-destructive/20 hover:text-destructive !text-destructive",
-
-                                    }}
-                                />
-                            </Card>
-                            <div className="mt-4 p-4 bg-gradient-to-br from-primary/5 to-secondary/5 rounded-lg border border-primary/20 backdrop-blur-sm">
-                                <h4 className="text-sm font-semibold text-foreground mb-2 flex items-center gap-2">
-                                    <div className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse"></div>
-                                    💡 Dica de uso:
-                                </h4>
-                                <p className="text-xs text-muted-foreground mb-4">
-                                    1. Clique em qualquer data no calendário para selecioná-la.<br />
-                                    2. Os feriados nacionais brasileiros estão destacados automaticamente.
-                                </p>
-                                <p className="text-xs text-muted-foreground mb-4">
-                                    3. O status FOLGA é atribuido automaticamente no dia que não houver registro<br />
-                                    4. Em caso de FALTA, navegue até a pagina  <a
-                                        href="status-do-registro"
-                                        className="text-primary hover:text-primary/80 underline font-semibold transition-colors duration-150 ml-1"
-                                    >
-                                        Status do registro
-                                    </a>  para realizar a mudança
-                                </p>
-                                <p className="text-xs text-muted-foreground mb-4">
-                                    5.Relatorio Simples:<br />
-                                    - Retorna o data dia trabalhado, as horas trabalhadas e o saldo do dia selecionado.
-                                </p>
-                                <p className="text-xs text-muted-foreground mb-4">
-                                    5.Relatorio Detalhado:<br />
-                                    - Retorna todos os registros realizados na data selecionada.<br />
-                                    - Retorna o status do registros também.
-                                    - Ao cliclar no registro é possivel solicitar a alteração (data e hora).
-                                </p>
-                                <div className="grid grid-cols-1 gap-3 text-xs">
-                                    <div className="flex items-center gap-3">
-                                        <div className="w-4 h-4 rounded bg-gradient-to-br from-primary to-primary/80 shadow-sm"></div>
-                                        <span className="text-muted-foreground">Data selecionada</span>
-                                    </div>
-                                    <div className="flex items-center gap-3">
-                                        <div className="w-4 h-4 rounded bg-destructive/10 border-2 border-destructive/30"></div>
-                                        <span className="text-destructive font-semibold">Feriado nacional (Texto em Vermelho)</span>
-
-                                    </div>
-
-                                    <div className="flex items-center gap-3">
-                                        <div className="w-4 h-4 rounded border-2 border-primary/50 bg-transparent"></div>
-                                        <span className="text-muted-foreground">Hoje</span>
-                                    </div>
-                                </div>
-                            </div>
-
-                            {selectedDates.length > 0 && (
-                                <div className="mt-4 p-4 bg-gradient-to-br from-primary/10 to-secondary/10 rounded-lg border-2 border-primary/30 backdrop-blur-sm">
-                                    <h4 className="text-sm font-semibold text-foreground mb-3 flex items-center gap-2">
-                                        <div className="w-2 h-2 rounded-full bg-primary animate-pulse"></div>
-                                        Datas Selecionadas ({selectedDates.length})
-                                    </h4>
-                                    <div className="flex flex-wrap gap-2">
-                                        {selectedDates.map((date, index) => (
-                                            <span
-                                                key={index}
-                                                className="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-semibold bg-gradient-to-r from-primary to-primary/90 text-primary-foreground shadow-sm border border-primary/20"
-                                            >
-                                                {format(date, "dd/MM/yyyy", { locale: ptBR })}
-                                            </span>
-                                        ))}
-                                    </div>
-                                </div>
-                            )}
-                        </CardContent>
-                    </Card>
-
-                    <Card className="border-2 border-primary/30 shadow-xl bg-gradient-to-br from-card via-card/95 to-primary/10 backdrop-blur-sm">
-                        <CardHeader className="border-b border-primary/30 bg-gradient-to-r from-primary/15 via-primary/8 to-secondary/10 relative overflow-hidden">
-                            <div className="absolute inset-0 bg-gradient-to-r from-primary/5 to-transparent opacity-50"></div>
-                            <CardTitle className="text-foreground flex items-center gap-3 relative z-10">
-                                <div className="p-2 rounded-lg bg-gradient-to-br from-primary/20 to-primary/10 shadow-sm">
-                                    <div className="w-3 h-3 rounded-full bg-gradient-to-br from-primary to-primary/80 animate-pulse shadow-sm"></div>
-                                </div>
-                                <span className="bg-gradient-to-r from-foreground to-primary bg-clip-text text-transparent font-semibold">
-                                    Parâmetros do Relatório
-                                </span>
-                            </CardTitle>
-                            <CardDescription className="text-muted-foreground relative z-10 flex items-center gap-2">
-                                <div className="w-1 h-1 rounded-full bg-primary/50"></div>
-                                Configure os filtros para o relatório detalhado
-                            </CardDescription>
-                        </CardHeader>
-                        <CardContent className="pt-6 space-y-6 relative">
-                            <div className="absolute inset-0 opacity-5">
-                                <div className="absolute top-4 right-4 w-8 h-8 bg-gradient-to-br from-primary to-primary/60 rounded-full blur-sm"></div>
-                                <div className="absolute bottom-4 left-4 w-6 h-6 bg-gradient-to-br from-secondary to-secondary/60 rounded-full blur-sm"></div>
-                            </div>
-
-                            {/* NOVO: SEÇÃO DE TIPO DE RELATÓRIO (Radio Check) */}
-                            <div className="space-y-3 relative border-b border-primary/20 pb-4">
-                                <Label className="text-sm font-semibold text-foreground flex items-center gap-2">
-                                    <div className="w-1.5 h-1.5 rounded-full bg-primary"></div>
-                                    Tipo de Relatório
-                                </Label>
-                                <div className="p-3 rounded-lg bg-gradient-to-r from-primary/5 to-secondary/5 border border-primary/20 flex space-x-6">
-                                    {/* Checkbox Detalhado (Radio Check 1) */}
-                                    <div className="flex items-center space-x-3 p-2 rounded-md hover:bg-primary/10 transition-colors">
-                                        <Checkbox
-                                            id="report-detailed"
-                                            checked={reportType === "detailed"}
-                                            onCheckedChange={() => handleReportTypeChange("detailed")}
-                                            className="data-[state=checked]:bg-primary data-[state=checked]:border-primary border-primary/50"
-                                        />
-                                        <Label htmlFor="report-detailed" className="text-sm cursor-pointer font-medium">
-                                            Detalhado
-                                        </Label>
-                                    </div>
-
-                                    {/* Checkbox Simples (Radio Check 2) */}
-                                    <div className="flex items-center space-x-3 p-2 rounded-md hover:bg-primary/10 transition-colors">
-                                        <Checkbox
-                                            id="report-simple"
-                                            checked={reportType === "simple"}
-                                            onCheckedChange={() => handleReportTypeChange("simple")}
-                                            className="data-[state=checked]:bg-primary data-[state=checked]:border-primary border-primary/50"
-                                        />
-                                        <Label htmlFor="report-simple" className="text-sm cursor-pointer font-medium">
-                                            Simples
-                                        </Label>
-                                    </div>
-                                </div>
-                            </div>
-                            {/* FIM: SEÇÃO DE TIPO DE RELATÓRIO */}
-
-                            <div className="space-y-3 relative">
-                                <Label htmlFor="reference-time" className="text-sm font-semibold text-foreground flex items-center gap-2">
-                                    <div className="w-1.5 h-1.5 rounded-full bg-primary"></div>
-                                    Carga Horária diária
-                                </Label>
-                                <div className="relative">
-                                    <Input
-                                        id="reference-time"
-                                        type="time"
-                                        value={referenceTime}
-                                        onChange={(e) => setReferenceTime(e.target.value)}
-                                        className="focus:border-primary focus:ring-2 focus:ring-primary/20 border-primary/20 bg-gradient-to-r from-background to-primary/5 transition-all duration-200"
-                                    />
-                                    <div className="absolute inset-0 rounded-md bg-gradient-to-r from-primary/5 to-transparent opacity-0 hover:opacity-100 transition-opacity duration-200 pointer-events-none"></div>
-                                </div>
-                                <p className="text-xs text-muted-foreground flex items-center gap-1">
-                                    <div className="w-1 h-1 rounded-full bg-muted-foreground/50"></div>
-                                    Horário de referência para cálculo do relatório
-                                </p>
-                            </div>
-
-                            <div className="space-y-3 relative">
-                                <Label className="text-sm font-semibold text-foreground flex items-center gap-2">
-                                    <div className="w-1.5 h-1.5 rounded-full bg-primary"></div>
-                                    Funcionário
-                                </Label>
-                                <Select value={selectedEmployee} onValueChange={setSelectedEmployee} disabled={isPartner}>
-                                    <SelectTrigger className="focus:border-primary focus:ring-2 focus:ring-primary/20 border-primary/20 bg-gradient-to-r from-background to-primary/5 hover:bg-primary/10 transition-all duration-200">
-                                        <SelectValue placeholder="Selecione um funcionário" />
-                                    </SelectTrigger>
-                                    <SelectContent className="border-primary/20">
-                                        {employees.map((employee) => (
-                                            <SelectItem
-                                                key={employee.employeeId}
-                                                value={employee.employeeId}
-                                                className="hover:bg-primary/10 focus:bg-primary/10"
-                                            >
-                                                {employee.fullName}
-                                            </SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
-                            </div>
-
-                            {/* INÍCIO DA SEÇÃO DE STATUS DO FUNCIONÁRIO COM CHECKBOX/RADIO LOGIC */}
-                            <div className="space-y-3 relative">
-                                <Label className="text-sm font-semibold text-foreground flex items-center gap-2">
-                                    <div className="w-1.5 h-1.5 rounded-full bg-primary"></div>
-                                    Status do Funcionário
-                                </Label>
-                                <div className="p-3 rounded-lg bg-gradient-to-r from-primary/5 to-secondary/5 border border-primary/20 flex space-x-6">
-                                    {/* Checkbox Ativo (Radio Check 1) */}
-                                    <div className="flex items-center space-x-3 p-2 rounded-md hover:bg-primary/10 transition-colors">
-                                        <Checkbox
-                                            id="emp-active"
-                                            checked={employeeActive === "active"}
-                                            onCheckedChange={() => handleEmployeeStatusChange("active")}
-                                            className="data-[state=checked]:bg-primary data-[state=checked]:border-primary border-primary/50"
-                                        />
-                                        <Label htmlFor="emp-active" className="text-sm cursor-pointer font-medium">
-                                            Ativo
-                                        </Label>
-                                    </div>
-
-                                    {/* Checkbox Inativo (Radio Check 2) */}
-                                    <div className="flex items-center space-x-3 p-2 rounded-md hover:bg-primary/10 transition-colors">
-                                        <Checkbox
-                                            id="emp-inactive"
-                                            checked={employeeActive === "inactive"}
-                                            onCheckedChange={() => handleEmployeeStatusChange("inactive")}
-                                            className="data-[state=checked]:bg-primary data-[state=checked]:border-primary border-primary/50"
-                                        />
-                                        <Label htmlFor="emp-inactive" className="text-sm cursor-pointer font-medium">
-                                            Inativo
-                                        </Label>
-                                    </div>
-                                </div>
-                            </div>
-                            {/* FIM DA SEÇÃO DE STATUS DO FUNCIONÁRIO COM CHECKBOX/RADIO LOGIC */}
-
-                            <div className="space-y-3 relative">
-                                <Label className="text-sm font-semibold text-foreground flex items-center gap-2">
-                                    <div className="w-1.5 h-1.5 rounded-full bg-primary"></div>
-                                    Registro Ativo/Inativo
-                                </Label>
-                                <div className="p-3 rounded-lg bg-gradient-to-r from-primary/5 to-secondary/5 border border-primary/20">
-                                    <div className="flex items-center space-x-3 p-2 rounded-md hover:bg-primary/10 transition-colors">
-                                        <Checkbox
-                                            id="active"
-                                            checked={isActive}
-                                            onCheckedChange={(checked) => setIsActive(checked as boolean)}
-                                            className="data-[state=checked]:bg-primary data-[state=checked]:border-primary border-primary/50"
-                                        />
-                                        <Label
-                                            htmlFor="active"
-                                            className="text-sm text-muted-foreground cursor-pointer font-medium"
-                                        >
-                                            {isActive ? "Incluir registros ativos" : "Incluir registros inativos"}
-                                        </Label>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div className="space-y-3 relative">
-                                <Label className={`text-sm font-semibold text-foreground flex items-center gap-2 ${reportType === "simple" ? 'opacity-50' : ''}`}>
-                                    <div className="w-1.5 h-1.5 rounded-full bg-primary"></div>
-                                    Status
-                                </Label>
-                                <Select value={status} onValueChange={setStatus} disabled={reportType === "simple"}>
-                                    <SelectTrigger className={`focus:border-primary focus:ring-2 focus:ring-primary/20 border-primary/20 bg-gradient-to-r from-background to-primary/5 hover:bg-primary/10 transition-all duration-200 ${reportType === "simple" ? 'opacity-50' : ''}`}>
-                                        <SelectValue placeholder="Selecione um status" />
-                                    </SelectTrigger>
-                                    <SelectContent className="border-primary/20">
-                                        {statusOptions.map((option) => (
-                                            <SelectItem
-                                                key={option.value}
-                                                value={option.value}
-                                                className="hover:bg-primary/10 focus:bg-primary/10 hover:text-foreground focus:text-foreground"
-                                            >
-                                                {option.label}
-                                            </SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
-                                <p className="text-xs text-muted-foreground flex items-center gap-1">
-                                    <div className="w-1 h-1 rounded-full bg-muted-foreground/50"></div>
-                                    Status dos registros a serem filtrados
-                                </p>
-                            </div>
-
-                            <div className="space-y-3 pt-6 border-t border-primary/20 relative">
-                                <div className="absolute -top-px left-1/2 transform -translate-x-1/2 w-12 h-px bg-gradient-to-r from-transparent via-primary to-transparent"></div>
-
-                                <Button
-                                    onClick={reportType === "detailed" ? handleSearch : handleSimpleSearch} // Ação condicional
-                                    size="lg"
-                                    className="w-full font-semibold bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary shadow-lg hover:shadow-primary/25 transition-all duration-200 relative overflow-hidden"
-
-                                >
-                                    <div className="absolute inset-0 bg-gradient-to-r from-white/10 to-transparent opacity-0 hover:opacity-100 transition-opacity duration-200"></div>
-                                    <Search className="mr-2 h-4 w-4" />
-                                    <span className="relative z-10">Buscar</span>
-                                </Button>
-
-                                <Button
-                                    onClick={reportType === "detailed" ? handleDownload : handleSimpleDownload} // Ação condicional
-                                    size="lg"
-                                    variant="outline"
-                                    className="w-full font-semibold border-2 border-primary/30 bg-gradient-to-r from-primary/10 to-secondary/10 hover:from-primary/20 hover:to-secondary/20 text-foreground hover:text-primary shadow-md hover:shadow-primary/20 transition-all duration-200 relative overflow-hidden"
-                                >
-                                    <div className="absolute inset-0 bg-gradient-to-r from-primary/5 to-transparent opacity-0 hover:opacity-100 transition-opacity duration-200"></div>
-                                    <Download className="mr-2 h-4 w-4" />
-                                    <span className="relative z-10">Download</span>
-                                </Button>
-                            </div>
-                        </CardContent>
-                    </Card>
-                </div>
+                <RelatorioFiltros
+                    selectedDates={selectedDates}
+                    setSelectedDates={setSelectedDates}
+                    referenceTime={referenceTime}
+                    setReferenceTime={setReferenceTime}
+                    selectedEmployee={selectedEmployee}
+                    setSelectedEmployee={setSelectedEmployee}
+                    employeeActive={employeeActive}
+                    setEmployeeActive={setEmployeeActive}
+                    isActive={isActive}
+                    setIsActive={setIsActive}
+                    status={status}
+                    setStatus={setStatus}
+                    reportType={reportType}
+                    setReportType={(type) => {
+                        setReportType(type);
+                        setReportData([]);
+                        setReportDataSimple(null);
+                        if (type === "simple") setStatus("");
+                    }}
+                    employees={employees}
+                    isPartner={isPartner}
+                    onSearch={handleSearchClick}
+                    onDownload={handleDownloadClick} // AGORA CHAMA A FUNÇÃO CONDICIONAL CORRETA
+                />
 
                 {/* EXIBIÇÃO CONDICIONAL DOS RESULTADOS */}
 
                 {/* 1. RELATÓRIO DETALHADO */}
                 {(reportType === "detailed" && reportData.length > 0) && (
-                    <Card className="mt-8 border-2 border-primary/20 shadow-lg bg-card/80 backdrop-blur-sm">
-                        <CardHeader>
-                            <CardTitle>Resultados do Relatório Detalhado</CardTitle>
-                            <CardDescription>{reportData.length} registro(s) detalhado(s) encontrado(s).</CardDescription>
-                        </CardHeader>
-                        <CardContent className="p-4">
-                            <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                                {reportData.map((item, index) => (
-                                    <Card
-                                        key={item.timeRecordId || index}
-                                        className="border-l-4 border-primary shadow-md cursor-pointer hover:shadow-lg hover:border-primary/80 transition-all duration-300 group"
-                                        onClick={() => handleEditRecord(item)}
-                                    >
-                                        <CardContent className="p-4 space-y-3">
-                                            <div className="flex justify-between items-center pb-2 border-b">
-                                                <div className="flex items-center gap-2">
-                                                    <CalendarIcon className="h-4 w-4 text-primary" />
-                                                    <span className="font-bold text-lg text-foreground">{item.startWork}</span>
-                                                </div>
-                                                <Badge className={`${getStatusColor(item.statusRecord)}`}>
-                                                    {statusOptions.find(opt => opt.value === item.statusRecord)?.label || item.statusRecord}
-                                                </Badge>
-                                            </div>
-                                            <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
-                                                <div className="font-medium text-muted-foreground">Entrada:</div>
-                                                <div className="text-right font-semibold text-foreground">{item.startHour}</div>
-
-                                                <div className="font-medium text-muted-foreground">Saída:</div>
-                                                <div className="text-right font-semibold text-foreground">{item.endHour}</div>
-
-                                                {/* NOVO: Exibição das Horas Trabalhadas Efetivas (pausa já descontada pelo backend) */}
-                                                <div className="font-medium text-muted-foreground">Horas Trabalhadas (Líquidas)</div>
-                                                <div className="text-right font-semibold text-foreground">{item.hoursWork}</div>
-
-                                                <div className="font-medium text-muted-foreground">Saldo:</div>
-                                                <div className={`text-right font-bold ${item.balance.startsWith('-') ? 'text-destructive' : 'text-green-600'}`}>{item.balance}</div>
-                                            </div>
-
-                                            {/* NOVO: Seção para exibir as pausas */}
-                                            {item.breaks && item.breaks.length > 0 && (
-                                                <div className="pt-3 border-t border-primary/10">
-                                                    <h4 className="text-xs font-bold text-primary mb-2 flex items-center gap-1">
-                                                        <Pause className="h-3 w-3" />
-                                                        Detalhes da Pausa
-                                                    </h4>
-                                                    <div className="space-y-2">
-                                                        {item.breaks.map((breakItem, breakIndex) => (
-                                                            <div key={breakIndex} className={`flex justify-between text-xs p-2 rounded-md ${breakItem.statusRecord === 'BREAK_IN_PROGRESS' ? 'bg-yellow-500/10 border border-yellow-500/20' : 'bg-secondary/10'}`}>
-                                                                <div className="flex items-center gap-1">
-                                                                    {breakItem.statusRecord === 'BREAK_IN_PROGRESS' ? (
-                                                                        <Pause className="h-3 w-3 text-yellow-600 animate-pulse" />
-                                                                    ) : (
-                                                                        <Play className="h-3 w-3 text-green-600" />
-                                                                    )}
-                                                                    <span className="font-medium text-muted-foreground">
-                                                                        {breakItem.startHour} - {breakItem.endHour || '...'}
-                                                                    </span>
-                                                                </div>
-                                                                <span className="font-bold text-foreground">
-                                                                    {breakItem.hoursBreak}
-                                                                </span>
-                                                            </div>
-                                                        ))}
-                                                    </div>
-                                                </div>
-                                            )}
-
-                                            <div className="flex justify-end pt-2 text-primary opacity-0 group-hover:opacity-100 transition-opacity">
-                                                <Edit className="h-4 w-4" />
-                                            </div>
-                                        </CardContent>
-                                    </Card>
-                                ))}
-                            </div>
-                        </CardContent>
-                    </Card>
+                    <ResultadosRelatorioDetalhado
+                        reportData={reportData}
+                        statusFilter={status}
+                        referenceTime={referenceTime}
+                        selectedDates={selectedDates}
+                        onEditRecord={handleEditRecord}
+                    />
                 )}
 
                 {/* 2. RELATÓRIO SIMPLES */}
                 {(reportType === "simple" && reportDataSimple && reportDataSimple.days.length > 0) && (
-                    <Card className="mt-8 border-2 border-primary/20 shadow-lg bg-card/80 backdrop-blur-sm">
-                        <CardHeader>
-                            <CardTitle>Resultados do Relatório Simples</CardTitle>
-                            <CardDescription>Resumo de saldo para {reportDataSimple.days.length} dias.</CardDescription>
-                        </CardHeader>
-                        <CardContent className="p-4">
-                            <div className="mb-4 p-4 rounded-lg border-2 border-primary/30 bg-primary/5">
-                                <h3 className="text-xl font-bold mb-2 text-foreground">Totais do Período</h3>
-                                <div className="grid grid-cols-2 gap-3">
-                                    <div className="font-medium text-muted-foreground">Total de Horas Trabalhadas:</div>
-                                    <div className="text-right font-bold text-foreground">{reportDataSimple.totalHoursWorked}</div>
-
-                                    <div className="font-medium text-muted-foreground">Saldo Total:</div>
-                                    <div className={`text-right font-bold ${reportDataSimple.totalBalance.startsWith('-') ? 'text-destructive' : 'text-green-600'}`}>
-                                        {reportDataSimple.totalBalance}
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div className="overflow-x-auto">
-                                <table className="min-w-full divide-y divide-primary/20 rounded-lg overflow-hidden border border-primary/20">
-                                    <thead className="bg-primary/10">
-                                        <tr>
-                                            <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-primary uppercase tracking-wider">
-                                                Data
-                                            </th>
-                                            <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-primary uppercase tracking-wider">
-                                                Horas Trabalhadas
-                                            </th>
-                                            <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-primary uppercase tracking-wider">
-                                                Saldo do Dia
-                                            </th>
-                                        </tr>
-                                    </thead>
-                                    <tbody className="bg-card divide-y divide-primary/10">
-                                        {reportDataSimple.days.map((day, index) => {
-                                            const parts = day.startDate.split('/');
-                                            const dayDate = new Date(`${parts[2]}-${parts[1]}-${parts[0]}`);
-                                            const isDayOffOrHoliday = isHoliday(dayDate) || day.totalHours === '00:00';
-
-                                            return (
-                                                <tr key={index} className={`hover:bg-primary/5 transition-colors ${isDayOffOrHoliday ? 'bg-secondary/5 text-muted-foreground/80' : ''}`}>
-                                                    <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-foreground flex items-center gap-2">
-                                                        <CalendarIcon className="h-4 w-4 text-primary/70" />
-                                                        {day.startDate}
-                                                        {isHoliday(dayDate) && <Badge variant="outline" className="text-destructive border-destructive/50 bg-destructive/5">Feriado</Badge>}
-                                                    </td>
-                                                    <td className="px-6 py-4 whitespace-nowrap text-sm text-right font-medium">{day.totalHours}</td>
-                                                    <td className={`px-6 py-4 whitespace-nowrap text-sm text-right font-bold ${day.balance.startsWith('-') ? 'text-destructive' : 'text-green-600'}`}>
-                                                        {day.balance}
-                                                    </td>
-                                                </tr>
-                                            );
-                                        })}
-                                    </tbody>
-                                </table>
-                            </div>
-                        </CardContent>
-                    </Card>
+                    <ResultadosRelatorioSimples
+                        reportDataSimple={reportDataSimple}
+                        referenceTime={referenceTime}
+                        selectedDates={selectedDates}
+                    />
                 )}
 
                 <Card className="border-l-4 border-l-primary shadow-card">
-                    <div>
-                        <Dialog open={editModalOpen} onOpenChange={setEditModalOpen}>
-                            <DialogContent className="sm:max-w-md bg-card/90 backdrop-blur-sm border-primary/30">
-                                <DialogHeader className="border-b border-primary/20 pb-4">
-                                    <DialogTitle className="flex items-center gap-2 text-xl font-semibold bg-gradient-to-r from-foreground to-primary bg-clip-text text-transparent">
-                                        <Edit className="h-5 w-5 text-primary" />
-                                        Editar Registro
-                                    </DialogTitle>
-                                    <DialogDescription>
-                                        Modifique as informações do registro e solicite a aprovação.
-                                    </DialogDescription>
-                                </DialogHeader>
-
-                                <Form {...form}>
-                                    <form onSubmit={form.handleSubmit(handleSaveRecord)} className="space-y-6 pt-4">
-                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                            <FormField control={form.control} name="startDate" render={({ field }) => (
-                                                <FormItem>
-                                                    <FormLabel>Data de Início</FormLabel>
-                                                    <FormControl>
-                                                        <Input type="date" {...field} className="focus:border-primary focus:ring-primary/20" />
-                                                    </FormControl>
-                                                    <FormMessage />
-                                                </FormItem>
-                                            )} />
-                                            <FormField control={form.control} name="endDate" render={({ field }) => (
-                                                <FormItem>
-                                                    <FormLabel>Data de Fim</FormLabel>
-                                                    <FormControl>
-                                                        <Input type="date" {...field} className="focus:border-primary focus:ring-primary/20" />
-                                                    </FormControl>
-                                                    <FormMessage />
-                                                </FormItem>
-                                            )} />
-                                        </div>
-                                        <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
-                                            <FormField control={form.control} name="startHour" render={({ field }) => (
-                                                <FormItem>
-                                                    <FormLabel>Hora de Início</FormLabel>
-                                                    <FormControl>
-                                                        <Input type="time" {...field} className="focus:border-primary focus:ring-primary/20" />
-                                                    </FormControl>
-                                                    <FormMessage />
-                                                </FormItem>
-                                            )} />
-                                            <FormField control={form.control} name="endHour" render={({ field }) => (
-                                                <FormItem>
-                                                    <FormLabel>Hora de Fim</FormLabel>
-                                                    <FormControl>
-                                                        <Input type="time" {...field} className="focus:border-primary focus:ring-primary/20" />
-                                                    </FormControl>
-                                                    <FormMessage />
-                                                </FormItem>
-                                            )} />
-                                        </div>
-
-
-                                        <div className="space-y-4 pt-4 border-t border-primary/20">
-                                            <FormLabel className="text-sm font-semibold text-foreground flex items-center gap-2">
-                                                <Pause className="h-4 w-4" /> Edição de Pausas ({editBreaks.length} período(s))
-                                            </FormLabel>
-
-                                            {editBreaks.map((breakItem, index) => (
-                                                <Card key={breakItem.id} className="p-3 border-l-2 border-l-primary/50 bg-muted/10">
-                                                    <h5 className="text-xs font-bold mb-2 text-primary">Pausa {index + 1} ({breakItem.status === 'BREAK_IN_PROGRESS' ? 'Em Andamento' : 'Concluída'})</h5>
-                                                    <div className="grid grid-cols-2 gap-3">
-                                                        {/* Data Início Pausa */}
-                                                        <div className="space-y-1">
-                                                            <Label className="text-xs text-muted-foreground">Data Início</Label>
-                                                            <Input
-                                                                type="date"
-                                                                value={breakItem.startDate}
-                                                                onChange={(e) => {
-                                                                    const newDate = e.target.value;
-                                                                    setEditBreaks(prev => prev.map(item => item.id === breakItem.id ? { ...item, startDate: newDate } : item));
-                                                                }}
-                                                                className="h-9 focus:border-primary focus:ring-primary/20"
-                                                            />
-                                                        </div>
-                                                        {/* Hora Início Pausa */}
-                                                        <div className="space-y-1">
-                                                            <Label className="text-xs text-muted-foreground">Hora Início</Label>
-                                                            <Input
-                                                                type="time"
-                                                                value={breakItem.startHour}
-                                                                onChange={(e) => {
-                                                                    const newHour = e.target.value;
-                                                                    setEditBreaks(prev => prev.map(item => item.id === breakItem.id ? { ...item, startHour: newHour } : item));
-                                                                }}
-                                                                className="h-9 focus:border-primary focus:ring-primary/20"
-                                                            />
-                                                        </div>
-
-                                                        {/* Data Fim Pausa (Apenas se não estiver em andamento) */}
-                                                        {breakItem.status !== 'BREAK_IN_PROGRESS' && (
-                                                            <>
-                                                                <div className="space-y-1">
-                                                                    <Label className="text-xs text-muted-foreground">Data Fim</Label>
-                                                                    <Input
-                                                                        type="date"
-                                                                        value={breakItem.endDate}
-                                                                        onChange={(e) => {
-                                                                            const newDate = e.target.value;
-                                                                            setEditBreaks(prev => prev.map(item => item.id === breakItem.id ? { ...item, endDate: newDate } : item));
-                                                                        }}
-                                                                        className="h-9 focus:border-primary focus:ring-primary/20"
-                                                                    />
-                                                                </div>
-                                                                {/* Hora Fim Pausa */}
-                                                                <div className="space-y-1">
-                                                                    <Label className="text-xs text-muted-foreground">Hora Fim</Label>
-                                                                    <Input
-                                                                        type="time"
-                                                                        value={breakItem.endHour}
-                                                                        onChange={(e) => {
-                                                                            const newHour = e.target.value;
-                                                                            setEditBreaks(prev => prev.map(item => item.id === breakItem.id ? { ...item, endHour: newHour } : item));
-                                                                        }}
-                                                                        className="h-9 focus:border-primary focus:ring-primary/20"
-                                                                    />
-                                                                </div>
-                                                            </>
-                                                        )}
-                                                    </div>
-                                                </Card>
-                                            ))}
-                                        </div>
-                                        <FormField control={form.control} name="managerId" render={({ field }) => (
-                                            <FormItem>
-                                                <FormLabel>Aprovador</FormLabel>
-                                                <Select onValueChange={field.onChange} value={field.value}>
-                                                    <FormControl>
-                                                        <SelectTrigger className="focus:border-primary focus:ring-primary/20">
-                                                            <SelectValue placeholder="Selecione um administrador" />
-                                                        </SelectTrigger>
-                                                    </FormControl>
-                                                    <SelectContent>
-                                                        {managers.map((manager) => (
-                                                            <SelectItem key={manager.id} value={manager.id}>{manager.name}</SelectItem>
-                                                        ))}
-                                                    </SelectContent>
-                                                </Select>
-                                                <FormMessage />
-                                            </FormItem>
-                                        )} />
-                                        <div className="flex justify-end space-x-4 pt-4">
-                                            <Button type="button" variant="outline" onClick={() => setEditModalOpen(false)}>
-                                                Cancelar
-                                            </Button>
-                                            <Button type="submit" className="bg-primary hover:bg-primary/90">
-                                                Solicitar Aprovação
-                                            </Button>
-                                        </div>
-                                    </form>
-                                </Form>
-                            </DialogContent>
-                        </Dialog>
-                    </div>
+                    <RegistroEdicaoModal
+                        isOpen={editModalOpen}
+                        setIsOpen={setEditModalOpen}
+                        managers={managers}
+                        selectedRecord={selectedRecord}
+                        editBreaks={editBreaks}
+                        setEditBreaks={setEditBreaks}
+                        onSaveRecord={handleSaveRecord}
+                        form={form} // Passa a instância completa do useForm
+                    />
                 </Card>
 
             </main>
