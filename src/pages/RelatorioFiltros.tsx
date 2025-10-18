@@ -266,63 +266,69 @@ export const RelatorioFiltros: React.FC<RelatorioFiltrosProps> = ({
                         </p>
                     </div>
 
-                    <div className="space-y-3 relative">
-                        <Label className="text-sm font-semibold text-foreground flex items-center gap-2">
-                            <div className="w-1.5 h-1.5 rounded-full bg-primary"></div>
-                            Funcionário
-                        </Label>
-                        <Select value={selectedEmployee} onValueChange={setSelectedEmployee} disabled={isPartner}>
-                            <SelectTrigger className="focus:border-primary focus:ring-2 focus:ring-primary/20 border-primary/20 bg-gradient-to-r from-background to-primary/5 hover:bg-primary/10 transition-all duration-200">
-                                <SelectValue placeholder="Selecione um funcionário" />
-                            </SelectTrigger>
-                            <SelectContent className="border-primary/20">
-                                {employees.map((employee) => (
-                                    <SelectItem
-                                        key={employee.employeeId}
-                                        value={employee.employeeId}
-                                        className="hover:bg-primary/10 focus:bg-primary/10"
-                                    >
-                                        {employee.fullName}
-                                    </SelectItem>
-                                ))}
-                            </SelectContent>
-                        </Select>
-                    </div>
+                    {/* Alteração 1: Esconder Funcionário se for PARTNER */}
+                    {!isPartner && (
+                        <div className="space-y-3 relative">
+                            <Label className="text-sm font-semibold text-foreground flex items-center gap-2">
+                                <div className="w-1.5 h-1.5 rounded-full bg-primary"></div>
+                                Funcionário
+                            </Label>
+                            <Select value={selectedEmployee} onValueChange={setSelectedEmployee} disabled={isPartner}>
+                                <SelectTrigger className="focus:border-primary focus:ring-2 focus:ring-primary/20 border-primary/20 bg-gradient-to-r from-background to-primary/5 hover:bg-primary/10 transition-all duration-200">
+                                    <SelectValue placeholder="Selecione um funcionário" />
+                                </SelectTrigger>
+                                <SelectContent className="border-primary/20">
+                                    {employees.map((employee) => (
+                                        <SelectItem
+                                            key={employee.employeeId}
+                                            value={employee.employeeId}
+                                            className="hover:bg-primary/10 focus:bg-primary/10"
+                                        >
+                                            {employee.fullName}
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                        </div>
+                    )}
 
+                    {/* Alteração 1: Esconder Status do Funcionário se for PARTNER */}
                     {/* SEÇÃO DE STATUS DO FUNCIONÁRIO COM CHECKBOX/RADIO LOGIC */}
-                    <div className="space-y-3 relative">
-                        <Label className="text-sm font-semibold text-foreground flex items-center gap-2">
-                            <div className="w-1.5 h-1.5 rounded-full bg-primary"></div>
-                            Status do Funcionário
-                        </Label>
-                        <div className="p-3 rounded-lg bg-gradient-to-r from-primary/5 to-secondary/5 border border-primary/20 flex space-x-6">
-                            {/* Checkbox Ativo */}
-                            <div className="flex items-center space-x-3 p-2 rounded-md hover:bg-primary/10 transition-colors">
-                                <Checkbox
-                                    id="emp-active"
-                                    checked={employeeActive === "active"}
-                                    onCheckedChange={() => handleEmployeeStatusChange("active")}
-                                    className="data-[state=checked]:bg-primary data-[state=checked]:border-primary border-primary/50"
-                                />
-                                <Label htmlFor="emp-active" className="text-sm cursor-pointer font-medium">
-                                    Ativo
-                                </Label>
-                            </div>
+                    {!isPartner && (
+                        <div className="space-y-3 relative">
+                            <Label className="text-sm font-semibold text-foreground flex items-center gap-2">
+                                <div className="w-1.5 h-1.5 rounded-full bg-primary"></div>
+                                Status do Funcionário
+                            </Label>
+                            <div className="p-3 rounded-lg bg-gradient-to-r from-primary/5 to-secondary/5 border border-primary/20 flex space-x-6">
+                                {/* Checkbox Ativo */}
+                                <div className="flex items-center space-x-3 p-2 rounded-md hover:bg-primary/10 transition-colors">
+                                    <Checkbox
+                                        id="emp-active"
+                                        checked={employeeActive === "active"}
+                                        onCheckedChange={() => handleEmployeeStatusChange("active")}
+                                        className="data-[state=checked]:bg-primary data-[state=checked]:border-primary border-primary/50"
+                                    />
+                                    <Label htmlFor="emp-active" className="text-sm cursor-pointer font-medium">
+                                        Ativo
+                                    </Label>
+                                </div>
 
-                            {/* Checkbox Inativo */}
-                            <div className="flex items-center space-x-3 p-2 rounded-md hover:bg-primary/10 transition-colors">
-                                <Checkbox
-                                    id="emp-inactive"
-                                    checked={employeeActive === "inactive"}
-                                    onCheckedChange={() => handleEmployeeStatusChange("inactive")}
-                                    className="data-[state=checked]:bg-primary data-[state=checked]:border-primary border-primary/50"
-                                />
-                                <Label htmlFor="emp-inactive" className="text-sm cursor-pointer font-medium">
-                                    Inativo
-                                </Label>
+                                {/* Checkbox Inativo */}
+                                <div className="flex items-center space-x-3 p-2 rounded-md hover:bg-primary/10 transition-colors">
+                                    <Checkbox
+                                        id="emp-inactive"
+                                        checked={employeeActive === "inactive"}
+                                        onCheckedChange={() => handleEmployeeStatusChange("inactive")}
+                                        className="data-[state=checked]:bg-primary data-[state=checked]:border-primary border-primary/50"
+                                    />
+                                    <Label htmlFor="emp-inactive" className="text-sm cursor-pointer font-medium">
+                                        Inativo
+                                    </Label>
+                                </div>
                             </div>
                         </div>
-                    </div>
+                    )}
                     {/* FIM DA SEÇÃO DE STATUS DO FUNCIONÁRIO COM CHECKBOX/RADIO LOGIC */}
 
                     <div className="space-y-3 relative">
@@ -381,9 +387,9 @@ export const RelatorioFiltros: React.FC<RelatorioFiltrosProps> = ({
                         <Button
                             onClick={onSearch}
                             size="lg"
-                            className="w-full font-semibold bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary shadow-lg hover:shadow-primary/25 transition-all duration-200 relative overflow-hidden"
+                            className="group w-full font-semibold bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary shadow-lg hover:shadow-primary/25 transition-all duration-200 relative overflow-hidden"
                         >
-                            <div className="absolute inset-0 bg-gradient-to-r from-white/10 to-transparent opacity-0 hover:opacity-100 transition-opacity duration-200"></div>
+                            <div className="absolute inset-0 bg-gradient-to-r from-white/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-200"></div>
                             <Search className="mr-2 h-4 w-4" />
                             <span className="relative z-10">Buscar</span>
                         </Button>
@@ -392,9 +398,9 @@ export const RelatorioFiltros: React.FC<RelatorioFiltrosProps> = ({
                             onClick={onDownload}
                             size="lg"
                             variant="outline"
-                            className="w-full font-semibold border-2 border-primary/30 bg-gradient-to-r from-primary/10 to-secondary/10 hover:from-primary/20 hover:to-secondary/20 text-foreground hover:text-primary shadow-md hover:shadow-primary/20 transition-all duration-200 relative overflow-hidden"
+                            className="group w-full font-semibold border-2 border-primary/30 bg-gradient-to-r from-primary/10 to-secondary/10 hover:from-primary/20 hover:to-secondary/20 text-foreground hover:text-primary shadow-md hover:shadow-primary/20 transition-all duration-200 relative overflow-hidden"
                         >
-                            <div className="absolute inset-0 bg-gradient-to-r from-primary/5 to-transparent opacity-0 hover:opacity-100 transition-opacity duration-200"></div>
+                            <div className="absolute inset-0 bg-gradient-to-r from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-200"></div>
                             <Download className="mr-2 h-4 w-4" />
                             <span className="relative z-10">Download</span>
                         </Button>
