@@ -394,14 +394,17 @@ export const RelatorioFiltros: React.FC<RelatorioFiltrosProps> = ({
                             <span className="relative z-10">Buscar</span>
                         </Button>
 
-                        <Button
+                      <Button
                             onClick={onDownload}
                             size="lg"
                             variant="outline"
-                            className="group w-full font-semibold border-2 border-primary/30 bg-gradient-to-r from-primary/10 to-secondary/10 hover:from-primary/20 hover:to-secondary/20 text-foreground hover:text-primary shadow-md hover:shadow-primary/20 transition-all duration-200 relative overflow-hidden"
+                            className="w-full font-semibold border-2 border-primary/30 bg-gradient-to-r from-primary/10 to-secondary/10  text-foreground  transition-all duration-200 relative overflow-hidden"
                         >
-                            <div className="absolute inset-0 bg-gradient-to-r from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-200"></div>
-                            <Download className="mr-2 h-4 w-4" />
+                            {/* O DIV de efeito de hover que estava sobrepondo o texto */}
+                            <div className="absolute inset-0 bg-gradient-to-r from-primary/5 to-transparent opacity-0 hover:opacity-100 transition-opacity duration-200"></div>
+                            
+                            {/* Ajuste: Adicionado 'relative z-10' para garantir que o ícone e o texto fiquem na frente */}
+                            <Download className="mr-2 h-4 w-4 relative z-10" />
                             <span className="relative z-10">Download</span>
                         </Button>
                     </div>
