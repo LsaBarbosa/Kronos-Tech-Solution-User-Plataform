@@ -17,15 +17,12 @@ import {
     ReportDataSimple,
     Employee,
     Manager,
-    BreakEditItem,
     EditRecordFormData,
     editRecordSchema,
     decodeToken,
-    transformBreakData,
-    mapEditBreaksToSubmission, // IMPORTADO
-    isHoliday, // Importado para uso no PDF Simples
-    statusOptions, // Importado para uso no PDF Detalhado
-    getTranslatedStatus, // Importado para uso no PDF Detalhado
+    isHoliday,
+    statusOptions,
+    getTranslatedStatus,
 } from "@/utils/report-utils";
 import { API_BASE_URL } from "@/config/api";
 
@@ -56,7 +53,9 @@ const RelatorioDetalhado = () => {
     const { toast } = useToast();
     const [managers, setManagers] = useState<Manager[]>([]);
     const [isPartner, setIsPartner] = useState(false);
-    const [editBreaks, setEditBreaks] = useState<BreakEditItem[]>([]);
+    
+    // REMOVIDO: O estado de pausas aninhadas (editBreaks) não é mais necessário
+    // const [editBreaks, setEditBreaks] = useState<BreakEditItem[]>([]); 
 
     const form = useForm<EditRecordFormData>({
         resolver: zodResolver(editRecordSchema),
@@ -376,71 +375,55 @@ const RelatorioDetalhado = () => {
             yPosition += 5;
 
             const COLOR_MAIN_RECORD = [245, 245, 245];
-            const COLOR_BREAK_RECORD = [255, 255, 255];
+            const COLOR_BREAK_RECORD = [230, 230, 250];
             const COLOR_SEPARATOR = [200, 200, 200];
             const SEPARATOR_PADDING = 0.1
 
             const tableBody: any[] = [];
 
             reportData.forEach((item, index) => {
+                const isBreak = item.statusRecord === 'IMPLICIT_BREAK';
+                
                 const startDate = parseDate(item.startWork);
                 const endDate = parseDate(item.endWork);
 
                 const formattedStart = `${startDate ? format(startDate, "dd/MM/yyyy") : 'N/A'}\n${item.startHour}`;
                 const formattedEnd = `${endDate ? format(endDate, "dd/MM/yyyy") : 'N/A'}\n${item.endHour}`;
 
-                const mainStatusLabel = getTranslatedStatus(item.statusRecord);
+                const statusLabel = getTranslatedStatus(item.statusRecord);
+                const fillColor = isBreak ? COLOR_BREAK_RECORD : COLOR_MAIN_RECORD;
+                const fontStyle = isBreak ? 'italic' : 'normal';
 
-                // Linha do Registro Principal - Forçando cor Cinza Claro
-                const mainRowCells = [
-                    { content: formattedStart, styles: { fillColor: COLOR_MAIN_RECORD } },
-                    { content: formattedEnd, styles: { fillColor: COLOR_MAIN_RECORD } },
-                    { content: item.hoursWork, styles: { fillColor: COLOR_MAIN_RECORD } },
-                    { content: item.balance, styles: { fillColor: COLOR_MAIN_RECORD } },
-                    { content: mainStatusLabel, styles: { fillColor: COLOR_MAIN_RECORD } }
+                // Linha Única para Segmento de Trabalho OU Pausa
+                const rowCells = [
+                    { content: formattedStart, styles: { fillColor: fillColor } },
+                    { content: formattedEnd, styles: { fillColor: fillColor } },
+                    { content: item.hoursWork, styles: { fillColor: fillColor } },
+                    { content: isBreak ? 'N/A' : item.balance, styles: { fillColor: fillColor } },
+                    { content: statusLabel, styles: { fillColor: fillColor } }
                 ];
-                // Aplica estilos de alinhamento e fonte padrão para a linha principal
-                tableBody.push(mainRowCells.map(cell => ({
+                
+                // Aplica estilos de alinhamento e fonte padrão para a linha
+                tableBody.push(rowCells.map(cell => ({
                     ...cell,
                     styles: {
                         ...cell.styles,
                         halign: 'center',
-                        cellPadding: 3,
-                        fontSize: 9
+                        cellPadding: isBreak ? 1 : 3,
+                        fontSize: isBreak ? 8 : 9,
+                        fontStyle: fontStyle
                     }
                 })));
 
-                // Sub-linhas para as Pausas
-                if (item.breaks && item.breaks.length > 0) {
-                    item.breaks.forEach(breakItem => {
-                        const breakStartDate = parseDate(breakItem.startWork);
-                        const breakEndDate = parseDate(breakItem.endWork);
-                        const breakStatusLabel = getTranslatedStatus(breakItem.statusRecord);
 
-                        // Formatação das sub-linhas
-                        const formattedBreakStart = `${breakStartDate ? format(breakStartDate, "dd/MM/yyyy") : ''}\n${breakItem.startHour}`;
-                        const formattedBreakEnd = `${breakEndDate ? format(breakEndDate, "dd/MM/yyyy") : 'N/A'}\n${breakItem.endHour}`;
-
-                        // Linha de Pausa - Forçando cor Branca
-                        const breakRowCells = [
-                            { content: formattedBreakStart, styles: { fillColor: COLOR_BREAK_RECORD, fontStyle: 'italic', cellPadding: 1, fontSize: 8, halign: 'center' } },
-                            { content: formattedBreakEnd, styles: { fillColor: COLOR_BREAK_RECORD, fontStyle: 'italic', cellPadding: 1, fontSize: 8, halign: 'center' } },
-                            { content: breakItem.hoursBreak, styles: { fillColor: COLOR_BREAK_RECORD, fontStyle: 'italic', cellPadding: 1, halign: 'center', fontSize: 8 } },
-                            { content: '00:00', styles: { fillColor: COLOR_BREAK_RECORD, fontStyle: 'italic', cellPadding: 1, halign: 'center', fontSize: 8 } },
-                            { content: breakStatusLabel, styles: { fillColor: COLOR_BREAK_RECORD, fontStyle: 'italic', cellPadding: 1, fontSize: 8, halign: 'center' } },
-                        ];
-                        tableBody.push(breakRowCells);
-                    });
-                }
-
-                // NOVO: Adiciona a linha separadora SOMENTE no final de cada REGISTRO (não entre pausas)
-                // E somente se não for o último item do relatório.
+                // Adiciona a linha separadora SOMENTE no final de cada REGISTRO
                 if (index < reportData.length - 1) {
                     tableBody.push([
                         { content: '', colSpan: 5, styles: { fillColor: COLOR_SEPARATOR, cellPadding: SEPARATOR_PADDING } }
                     ]);
                 }
             });
+
 
             yPosition += 10;
 
@@ -452,7 +435,7 @@ const RelatorioDetalhado = () => {
             }
 
             autoTable(doc, {
-                head: [['Entrada (Data/Hora)', 'Saída (Data/Hora)', 'Horas Trabalhadas', 'Saldo', 'Status']],
+                head: [['Início (Data/Hora)', 'Fim (Data/Hora)', 'Duração', 'Saldo', 'Status']], 
                 body: tableBody,
                 startY: yPosition,
                 margin: { left: 20, right: 20 },
@@ -468,7 +451,7 @@ const RelatorioDetalhado = () => {
                     fontStyle: 'bold'
                 },
                 columnStyles: {
-                    3: {
+                    3: { // Coluna do Saldo
                         cellWidth: 20,
                         halign: 'center'
                     }
@@ -476,12 +459,20 @@ const RelatorioDetalhado = () => {
                 didParseCell: function (data) {
                     if (data.column.index === 3 && data.section === 'body') {
                         const balance = data.cell.text[0];
-                        if (balance && balance.toString().startsWith('-')) {
-                            data.cell.styles.textColor = [220, 53, 69];
-                            data.cell.styles.fontStyle = 'bold';
-                        } else if (balance && !balance.toString().startsWith('-') && balance !== '00:00') {
-                            data.cell.styles.textColor = [40, 167, 69];
-                            data.cell.styles.fontStyle = 'bold';
+                        const status = data.row.raw[4].content;
+                        
+                        // Não aplica cor ao Saldo se for Pausa
+                        if (status === getTranslatedStatus('IMPLICIT_BREAK') || balance === 'N/A') {
+                            data.cell.styles.textColor = [0, 0, 0]; // Preto
+                            data.cell.styles.fontStyle = 'italic';
+                        } else if (balance) {
+                            if (balance.toString().startsWith('-')) {
+                                data.cell.styles.textColor = [220, 53, 69];
+                                data.cell.styles.fontStyle = 'bold';
+                            } else if (!balance.toString().startsWith('-') && balance !== '00:00') {
+                                data.cell.styles.textColor = [40, 167, 69];
+                                data.cell.styles.fontStyle = 'bold';
+                            }
                         }
                     }
                 }
@@ -671,15 +662,12 @@ const RelatorioDetalhado = () => {
             return dateString;
         };
 
-        // Usa o ID da pausa para rastreamento
-        const transformedBreaks = transformBreakData(record.breaks);
-
-        setEditBreaks(transformedBreaks);
+        // NOTA: A Lógica de Pausa Aninhada FOI REMOVIDA DESTA FUNÇÃO
+        
         form.reset({
             startDate: formatDateToInput(record.startWork),
             endDate: formatDateToInput(record.endWork),
             managerId: managers[0]?.id || "",
-            // Mantenha as horas originais se existirem no registro
             startHour: record.startHour,
             endHour: record.endHour,
         });
@@ -698,8 +686,8 @@ const RelatorioDetalhado = () => {
                 throw new Error("Registro selecionado para edição não encontrado.");
             }
 
-            // NOVO: Mapeia as pausas editadas para o formato esperado pelo backend (List<BreakUpdateData>)
-            const breakUpdates = mapEditBreaksToSubmission(editBreaks);
+            // NOTA: A Lógica de Mapeamento de Pausas Aninhadas FOI REMOVIDA DESTA FUNÇÃO
+            // const breakUpdates = mapEditBreaksToSubmission(editBreaks); 
 
             // Função para converter YYYY-MM-DD (Input Date) para DD-MM-YYYY (Formato Java esperado)
             const formatDate = (dateString: string) => {
@@ -707,15 +695,13 @@ const RelatorioDetalhado = () => {
                 return `${day}-${month}-${year}`;
             };
 
-            // ESTRUTURA DO BODY AGORA CORRESPONDE AO UpdateTimeRecordRequest (Java)
+            // ESTRUTURA DO BODY AGORA CORRESPONDE AO UpdateTimeRecordRequest (Java) - SEM breaks
             const requestBody = {
                 startDate: formatDate(data.startDate),
                 endDate: formatDate(data.endDate),
                 startHour: data.startHour,
                 endHour: data.endHour,
                 managerId: data.managerId,
-                // NOVO CAMPO
-                breakUpdates: breakUpdates, 
             };
 
 
@@ -833,7 +819,7 @@ const RelatorioDetalhado = () => {
                     employees={employees}
                     isPartner={isPartner}
                     onSearch={handleSearchClick}
-                    onDownload={handleDownloadClick} // AGORA CHAMA A FUNÇÃO CONDICIONAL CORRETA
+                    onDownload={handleDownloadClick}
                 />
 
                 {/* EXIBIÇÃO CONDICIONAL DOS RESULTADOS */}
@@ -864,8 +850,7 @@ const RelatorioDetalhado = () => {
                         setIsOpen={setEditModalOpen}
                         managers={managers}
                         selectedRecord={selectedRecord}
-                        editBreaks={editBreaks}
-                        setEditBreaks={setEditBreaks}
+                      
                         onSaveRecord={handleSaveRecord}
                         form={form} // Passa a instância completa do useForm
                     />

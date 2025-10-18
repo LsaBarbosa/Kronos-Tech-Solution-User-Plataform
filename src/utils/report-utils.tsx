@@ -1,21 +1,12 @@
 // src/utils/report-utils.ts
 
 import { z } from "zod";
-import { API_BASE_URL } from "@/config/api"; // Mantenha a importação da API
-import { format } from "date-fns"; // Importado para uso interno
+import { API_BASE_URL } from "@/config/api";
+import { format } from "date-fns";
 
 // --- Interfaces ---
 
-export interface BreakRecordResponse {
-    timeRecordId: number;
-    startWork: string;
-    startHour: string;
-    endWork: string;
-    endHour: string;
-    hoursBreak: string;
-    statusRecord: string;
-}
-
+// Interface DetailedReportItem simplificada (sem a lista 'breaks')
 export interface DetailedReportItem {
     id?: string;
     timeRecordId?: number;
@@ -23,8 +14,8 @@ export interface DetailedReportItem {
     startHour: string; // HH:MM
     endWork: string; // DD-MM-YYYY
     endHour: string; // HH:MM
-    hoursWork: string; // Horas Trabalhadas Efetivas (descontando pausas)
-    balance: string;
+    hoursWork: string; // Duração (Trabalho ou Pausa)
+    balance: string; // Saldo (Apenas para registros de trabalho)
     statusRecord: string;
     edited: boolean;
     active: boolean;
@@ -33,7 +24,7 @@ export interface DetailedReportItem {
         employeeName: string;
         companyName: string;
     };
-    breaks: BreakRecordResponse[];
+    // Campo 'breaks' foi removido
 }
 
 export interface ReportDay {
@@ -62,7 +53,7 @@ export interface Manager {
     name: string;
 }
 
-// NOVO: Interface para a solicitação pendente com os campos JSON
+// Interface simplificada (sem campos de break)
 export interface PendingApproval {
   timeRecordId: number;
   partnerName: string;
@@ -71,30 +62,11 @@ export interface PendingApproval {
   newEndWork: string;
   currentStartWork: string;
   currentEndWork: string;
-  oldBreakRecordsJson: string; // NOVO CAMPO
-  newBreakRecordsJson: string; // NOVO CAMPO
+  // Campos de Break JSON removidos
 }
 
-// NOVO: Interface para os dados de Pausa na submissão (equivalente ao BreakUpdateData em Java)
-export interface BreakSubmissionData {
-    breakRecordId?: number; 
-    startDate: string; // Data no formato DD-MM-YYYY (para o Java)
-    endDate?: string;  // Data no formato DD-MM-YYYY (para o Java)
-    startHour: string; // Hora no formato HH:MM
-    endHour?: string;  // Hora no formato HH:MM
-    delete?: boolean; // Para marcar a pausa como inativa/deletada
-}
-
-export interface BreakEditItem {
-    id: string; // Usado para keys no React
-    breakRecordId?: number; // ID da pausa (Long) para rastreamento
-    startDate: string; // data no formato YYYY-MM-DD
-    startHour: string; // hora no formato HH:MM
-    endDate: string; // data no formato YYYY-MM-DD
-    endHour: string; // hora no formato HH:MM
-    status: string; // BREAK ou BREAK_IN_PROGRESS
-    delete?: boolean; // NOVO CAMPO
-}
+// Tipo BreakEditItem removido, substituído por um alias que não pode ser instanciado
+export type BreakEditItem = never;
 
 // --- Zod Schema e Tipos ---
 
@@ -120,6 +92,7 @@ export const statusOptions = [
     { value: "ABSENCE", label: "Falta" },
     { value: "PENDING_APPROVAL", label: "Aguardando Aprovação" },
     { value: "DOCTOR_APPOINTMENT", label: "Consulta Médica" },
+    { value: "IMPLICIT_BREAK", label: "Pausa (Automática)" }, // NOVO STATUS
 ];
 
 // --- Funções Auxiliares ---
@@ -191,55 +164,7 @@ export const isHoliday = (date: Date): boolean => {
     );
 };
 
-export const transformBreakData = (breaks: BreakRecordResponse[]): BreakEditItem[] => {
-    const transformDate = (dateString: string): string => {
-        if (!dateString) return "";
-        // Converte de DD-MM-YYYY para YYYY-MM-DD
-        const [day, month, year] = dateString.split('-');
-        if (day && month && year) return `${year}-${month}-${day}`;
-        return dateString;
-    };
-
-    return breaks.map((b, index) => ({
-        id: `break-${b.timeRecordId}-${index}`, // ID Único mais robusto
-        breakRecordId: b.timeRecordId, // Mapeado para o ID da Pausa (Long)
-        startDate: transformDate(b.startWork),
-        startHour: b.startHour,
-        endDate: transformDate(b.endWork),
-        endHour: b.endHour,
-        status: b.statusRecord,
-        delete: false, // Default
-    }));
-};
-
-// NOVO: Função para mapear BreakEditItem[] (usado no form) para BreakSubmissionData[] (usado no PUT)
-export const mapEditBreaksToSubmission = (editBreaks: BreakEditItem[]): BreakSubmissionData[] => {
-    // Função para converter YYYY-MM-DD (Input Date) para DD-MM-YYYY (Formato Java esperado)
-    const formatDateForJava = (dateString: string | undefined): string | undefined => {
-        if (!dateString) return undefined;
-        const parts = dateString.split('-'); // [YYYY, MM, DD]
-        if (parts.length === 3) {
-            return `${parts[2]}-${parts[1]}-${parts[0]}`;
-        }
-        return dateString;
-    };
-
-    return editBreaks.map(b => ({
-        // Novo registro (sem ID) ou registro existente (com ID)
-        breakRecordId: b.breakRecordId,
-        
-        // Datas e horas
-        startDate: formatDateForJava(b.startDate) || '',
-        // Se estiver em andamento ou deletado, não enviamos endDate/endHour
-        endDate: b.status !== 'BREAK_IN_PROGRESS' && !b.delete && b.endDate ? formatDateForJava(b.endDate) : undefined,
-        startHour: b.startHour,
-        endHour: b.status !== 'BREAK_IN_PROGRESS' && !b.delete && b.endHour ? b.endHour : undefined,
-
-        // Flag de deleção
-        delete: b.delete || false,
-    }));
-};
-
+// Funções de Break removidas
 
 export const getStatusColor = (status: string) => {
     const baseClass = "text-white";
@@ -247,12 +172,12 @@ export const getStatusColor = (status: string) => {
         case "CREATED": return `${baseClass} bg-green-600`;
         case "PENDING": return `${baseClass} bg-yellow-600`;
         case "ABSENCE": return `${baseClass} bg-red-600`;
+        case "IMPLICIT_BREAK": return `${baseClass} bg-gray-500`; // NOVO
         default: return `${baseClass} bg-primary`;
     }
 };
 
 export const getTranslatedStatus = (statusValue: string): string => {
-    if (statusValue === 'BREAK') return 'Pausa Concluída';
-    if (statusValue === 'BREAK_IN_PROGRESS') return 'Pausa em Andamento';
+    // Traduções antigas de pausa removidas
     return statusOptions.find(opt => opt.value === statusValue)?.label || statusValue;
 };

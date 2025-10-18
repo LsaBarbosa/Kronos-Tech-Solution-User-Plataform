@@ -3,7 +3,7 @@
 import React from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { CalendarIcon, Download, Edit, Pause, Play } from "lucide-react";
+import { CalendarIcon, Download, Edit, Coffee } from "lucide-react"; // Usando Coffee para Pausa
 import { DetailedReportItem, statusOptions, getStatusColor, getTranslatedStatus } from "@/utils/report-utils";
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
@@ -29,7 +29,7 @@ export const ResultadosRelatorioDetalhado: React.FC<ResultadosDetalhadoProps> = 
 }) => {
     const { toast } = useToast();
 
-    // Lógica do PDF Detalhado (Migrada)
+    // Lógica do PDF Detalhado (Atualizada para Pausa como registro principal)
     const handleDownload = () => {
         const parseDate = (dateString: string) => {
             if (!dateString) return null;
@@ -97,73 +97,51 @@ export const ResultadosRelatorioDetalhado: React.FC<ResultadosDetalhadoProps> = 
             yPosition += 5;
 
             // Definição das cores (RGB)
-            const COLOR_MAIN_RECORD = [245, 245, 245]; // Cinza Claro (Padrão para registro principal)
-            const COLOR_BREAK_RECORD = [255, 255, 255]; // Branco (Padrão para pausa)
-            const COLOR_SEPARATOR = [220, 220, 220];       // Cinza (Padrão para separador)
+            const COLOR_MAIN_RECORD = [245, 245, 245]; // Cinza Claro (Trabalho)
+            const COLOR_BREAK_RECORD = [230, 230, 250]; // Lavanda/Muito Claro (Pausa)
+            const COLOR_SEPARATOR = [220, 220, 220];       // Cinza (Separador)
 
-            // Prepara os dados da tabela, incluindo sub-linhas para as pausas
+            // Prepara os dados da tabela
             const tableBody: any[] = [];
 
             reportData.forEach(item => {
+                const isBreak = item.statusRecord === 'IMPLICIT_BREAK';
+                
                 const startDate = parseDate(item.startWork);
                 const endDate = parseDate(item.endWork);
 
                 const formattedStart = `${startDate ? format(startDate, "dd/MM/yyyy") : 'N/A'}\n${item.startHour}`;
                 const formattedEnd = `${endDate ? format(endDate, "dd/MM/yyyy") : 'N/A'}\n${item.endHour}`;
 
-                const mainStatusLabel = getTranslatedStatus(item.statusRecord);
+                const statusLabel = getTranslatedStatus(item.statusRecord);
+                const fillColor = isBreak ? COLOR_BREAK_RECORD : COLOR_MAIN_RECORD;
+                const fontStyle = isBreak ? 'italic' : 'normal';
 
-                // Linha do Registro Principal - Forçando cor Cinza Claro
-                const mainRowCells = [
-                    { content: formattedStart, styles: { fillColor: COLOR_MAIN_RECORD } },
-                    { content: formattedEnd, styles: { fillColor: COLOR_MAIN_RECORD } },
-                    { content: item.hoursWork, styles: { fillColor: COLOR_MAIN_RECORD } },
-                    { content: item.balance, styles: { fillColor: COLOR_MAIN_RECORD } },
-                    { content: mainStatusLabel, styles: { fillColor: COLOR_MAIN_RECORD } }
+                // Linha Única para Segmento de Trabalho OU Pausa
+                const rowCells = [
+                    { content: formattedStart, styles: { fillColor: fillColor } },
+                    { content: formattedEnd, styles: { fillColor: fillColor } },
+                    { content: item.hoursWork, styles: { fillColor: fillColor } },
+                    { content: isBreak ? 'N/A' : item.balance, styles: { fillColor: fillColor } },
+                    { content: statusLabel, styles: { fillColor: fillColor } }
                 ];
-                // Aplica estilos de alinhamento e fonte padrão para a linha principal
-                tableBody.push(mainRowCells.map(cell => ({
+                
+                // Aplica estilos de alinhamento e fonte padrão para a linha
+                tableBody.push(rowCells.map(cell => ({
                     ...cell,
                     styles: {
                         ...cell.styles,
                         halign: 'center',
-                        cellPadding: 3,
-                        fontSize: 9
+                        cellPadding: isBreak ? 1 : 3,
+                        fontSize: isBreak ? 8 : 9,
+                        fontStyle: fontStyle
                     }
                 })));
 
-                // Sub-linhas para as Pausas
-                if (item.breaks && item.breaks.length > 0) {
-                    item.breaks.forEach(breakItem => {
-                        const breakStartDate = parseDate(breakItem.startWork);
-                        const breakEndDate = parseDate(breakItem.endWork);
-                        const breakStatusLabel = getTranslatedStatus(breakItem.statusRecord);
-
-                        // Formatação das sub-linhas
-                        const formattedBreakStart = `${breakStartDate ? format(breakStartDate, "dd/MM/yyyy") : ''}\n${breakItem.startHour}`;
-                        const formattedBreakEnd = `${breakEndDate ? format(breakEndDate, "dd/MM/yyyy") : 'N/A'}\n${breakItem.endHour}`;
-
-                        // Linha de Pausa - Forçando cor Branca
-                        const breakRowCells = [
-                            { content: formattedBreakStart, styles: { fillColor: COLOR_BREAK_RECORD, fontStyle: 'italic', cellPadding: 1, fontSize: 8, halign: 'center' } },
-                            { content: formattedBreakEnd, styles: { fillColor: COLOR_BREAK_RECORD, fontStyle: 'italic', cellPadding: 1, fontSize: 8, halign: 'center' } },
-                            { content: breakItem.hoursBreak, styles: { fillColor: COLOR_BREAK_RECORD, fontStyle: 'italic', cellPadding: 1, halign: 'center', fontSize: 8 } },
-                            { content: '00:00', styles: { fillColor: COLOR_BREAK_RECORD, fontStyle: 'italic', cellPadding: 1, halign: 'center', fontSize: 8 } },
-                            { content: breakStatusLabel, styles: { fillColor: COLOR_BREAK_RECORD, fontStyle: 'italic', cellPadding: 1, fontSize: 8, halign: 'center' } },
-                        ];
-                        tableBody.push(breakRowCells);
-
-                        // Linha separadora
-                        tableBody.push([
-                            { content: '', colSpan: 1, styles: { fillColor: COLOR_SEPARATOR, cellPadding: 0.2 } }
-                        ]);
-                    });
-                } else {
-                    // Linha separadora após registro principal sem pausa
-                    tableBody.push([
-                       { content: '', colSpan: 1, styles: { fillColor: COLOR_SEPARATOR, cellPadding: 0.2 } }
-                    ]);
-                }
+                // Linha separadora
+                tableBody.push([
+                   { content: '', colSpan: 1, styles: { fillColor: COLOR_SEPARATOR, cellPadding: 0.2 } }
+                ]);
             });
 
 
@@ -175,7 +153,7 @@ export const ResultadosRelatorioDetalhado: React.FC<ResultadosDetalhadoProps> = 
             }
 
             autoTable(doc, {
-                head: [['Entrada (Data/Hora)', 'Saída (Data/Hora)', 'Horas Trabalhadas', 'Saldo', 'Status']], // Novo Cabeçalho
+                head: [['Início (Data/Hora)', 'Fim (Data/Hora)', 'Duração', 'Saldo', 'Status']], 
                 body: tableBody,
                 startY: yPosition,
                 margin: { left: 20, right: 20 },
@@ -199,12 +177,20 @@ export const ResultadosRelatorioDetalhado: React.FC<ResultadosDetalhadoProps> = 
                 didParseCell: function (data) {
                     if (data.column.index === 3 && data.section === 'body') {
                         const balance = data.cell.text[0];
-                        if (balance && balance.toString().startsWith('-')) {
-                            data.cell.styles.textColor = [220, 53, 69];
-                            data.cell.styles.fontStyle = 'bold';
-                        } else if (balance && !balance.toString().startsWith('-') && balance !== '00:00') {
-                            data.cell.styles.textColor = [40, 167, 69];
-                            data.cell.styles.fontStyle = 'bold';
+                        const status = data.row.raw[4].content;
+                        
+                        // Não aplica cor ao Saldo se for Pausa
+                        if (status === getTranslatedStatus('IMPLICIT_BREAK') || balance === 'N/A') {
+                            data.cell.styles.textColor = [0, 0, 0]; // Preto
+                            data.cell.styles.fontStyle = 'italic';
+                        } else if (balance) {
+                            if (balance.toString().startsWith('-')) {
+                                data.cell.styles.textColor = [220, 53, 69];
+                                data.cell.styles.fontStyle = 'bold';
+                            } else if (!balance.toString().startsWith('-') && balance !== '00:00') {
+                                data.cell.styles.textColor = [40, 167, 69];
+                                data.cell.styles.fontStyle = 'bold';
+                            }
                         }
                     }
                 }
@@ -254,72 +240,68 @@ export const ResultadosRelatorioDetalhado: React.FC<ResultadosDetalhadoProps> = 
             </CardHeader>
             <CardContent className="p-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {reportData.map((item, index) => (
-                        <Card
-                            key={item.timeRecordId || index}
-                            className="border-l-4 border-primary shadow-md cursor-pointer hover:shadow-lg hover:border-primary/80 transition-all duration-300 group"
-                            onClick={() => onEditRecord(item)}
-                        >
-                            <CardContent className="p-4 space-y-3">
-                                <div className="flex justify-between items-center pb-2 border-b">
-                                    <div className="flex items-center gap-2">
-                                        <CalendarIcon className="h-4 w-4 text-primary" />
-                                        <span className="font-bold text-lg text-foreground">{item.startWork}</span>
-                                    </div>
-                                    <Badge className={`${getStatusColor(item.statusRecord)}`}>
-                                        {statusOptions.find(opt => opt.value === item.statusRecord)?.label || item.statusRecord}
-                                    </Badge>
-                                </div>
-                                <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
-                                    <div className="font-medium text-muted-foreground">Entrada:</div>
-                                    <div className="text-right font-semibold text-foreground">{item.startHour}</div>
-
-                                    <div className="font-medium text-muted-foreground">Saída:</div>
-                                    <div className="text-right font-semibold text-foreground">{item.endHour}</div>
-
-                                    {/* Exibição das Horas Trabalhadas Efetivas (pausa já descontada pelo backend) */}
-                                    <div className="font-medium text-muted-foreground">Horas Trabalhadas (Líquidas)</div>
-                                    <div className="text-right font-semibold text-foreground">{item.hoursWork}</div>
-
-                                    <div className="font-medium text-muted-foreground">Saldo:</div>
-                                    <div className={`text-right font-bold ${item.balance.startsWith('-') ? 'text-destructive' : 'text-green-600'}`}>{item.balance}</div>
-                                </div>
-
-                                {/* Seção para exibir as pausas */}
-                                {item.breaks && item.breaks.length > 0 && (
-                                    <div className="pt-3 border-t border-primary/10">
-                                        <h4 className="text-xs font-bold text-primary mb-2 flex items-center gap-1">
-                                            <Pause className="h-3 w-3" />
-                                            Detalhes da Pausa
-                                        </h4>
-                                        <div className="space-y-2">
-                                            {item.breaks.map((breakItem, breakIndex) => (
-                                                <div key={breakIndex} className={`flex justify-between text-xs p-2 rounded-md ${breakItem.statusRecord === 'BREAK_IN_PROGRESS' ? 'bg-yellow-500/10 border border-yellow-500/20' : 'bg-secondary/10'}`}>
-                                                    <div className="flex items-center gap-1">
-                                                        {breakItem.statusRecord === 'BREAK_IN_PROGRESS' ? (
-                                                            <Pause className="h-3 w-3 text-yellow-600 animate-pulse" />
-                                                        ) : (
-                                                            <Play className="h-3 w-3 text-green-600" />
-                                                        )}
-                                                        <span className="font-medium text-muted-foreground">
-                                                            {breakItem.startHour} - {breakItem.endHour || '...'}
-                                                        </span>
-                                                    </div>
-                                                    <span className="font-bold text-foreground">
-                                                        {breakItem.hoursBreak}
-                                                    </span>
-                                                </div>
-                                            ))}
+                    {reportData.map((item, index) => {
+                        const isBreak = item.statusRecord === 'IMPLICIT_BREAK';
+                        
+                        const handleCardClick = () => {
+                            // Impedir a edição de registros de Pausa (IMPLICIT_BREAK)
+                            if (!isBreak) {
+                                onEditRecord(item);
+                            }
+                        };
+                        
+                        return (
+                            <Card
+                                key={item.timeRecordId || index}
+                                // Estilos para Pausa vs Trabalho
+                                className={`
+                                    border-l-4 shadow-md transition-all duration-300
+                                    ${isBreak ? 'border-l-gray-500 bg-gray-500/10 cursor-default' : 'border-l-primary bg-card/80 cursor-pointer hover:shadow-lg hover:border-primary/80 group'}
+                                `}
+                                onClick={handleCardClick}
+                            >
+                                <CardContent className="p-4 space-y-3">
+                                    <div className="flex justify-between items-center pb-2 border-b">
+                                        <div className="flex items-center gap-2">
+                                            {isBreak ? <Coffee className="h-4 w-4 text-gray-500" /> : <CalendarIcon className="h-4 w-4 text-primary" />}
+                                            <span className="font-bold text-lg text-foreground">{item.startWork}</span>
                                         </div>
+                                        <Badge className={`${getStatusColor(item.statusRecord)}`}>
+                                            {statusOptions.find(opt => opt.value === item.statusRecord)?.label || item.statusRecord}
+                                        </Badge>
                                     </div>
-                                )}
+                                    <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
+                                        <div className="font-medium text-muted-foreground">Início:</div>
+                                        <div className="text-right font-semibold text-foreground">{item.startHour}</div>
 
-                                <div className="flex justify-end pt-2 text-primary opacity-0 group-hover:opacity-100 transition-opacity">
-                                    <Edit className="h-4 w-4" />
-                                </div>
-                            </CardContent>
-                        </Card>
-                    ))}
+                                        <div className="font-medium text-muted-foreground">Fim:</div>
+                                        <div className="text-right font-semibold text-foreground">{item.endHour}</div>
+
+                                        {/* Título de Duração muda se for Pausa */}
+                                        <div className="font-medium text-muted-foreground">
+                                            {isBreak ? 'Duração da Pausa' : 'Horas Trabalhadas (Líquidas)'}
+                                        </div>
+                                        <div className="text-right font-bold text-foreground">{item.hoursWork}</div>
+
+                                        {/* Saldo é apenas para registros de Trabalho */}
+                                        {!isBreak && (
+                                            <>
+                                                <div className="font-medium text-muted-foreground">Saldo:</div>
+                                                <div className={`text-right font-bold ${item.balance.startsWith('-') ? 'text-destructive' : 'text-green-600'}`}>{item.balance}</div>
+                                            </>
+                                        )}
+                                    </div>
+
+                                    {/* Ícone de Edição só aparece se não for pausa */}
+                                    {!isBreak && (
+                                        <div className="flex justify-end pt-2 text-primary opacity-0 group-hover:opacity-100 transition-opacity">
+                                            <Edit className="h-4 w-4" />
+                                        </div>
+                                    )}
+                                </CardContent>
+                            </Card>
+                        );
+                    })}
                 </div>
             </CardContent>
         </Card>
