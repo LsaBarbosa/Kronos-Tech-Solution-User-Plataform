@@ -61,6 +61,7 @@ interface Employee {
   address: Address;
   companyId: string;
   active: boolean;
+  homeOffice: boolean; // NOVO CAMPO ADICIONADO
 }
 
 interface UserData {
@@ -233,6 +234,7 @@ const ListaColaboradores = () => {
       username: colaborador.username,
       role: colaborador.role,
       enabled: colaborador.enabled,
+      homeOffice: colaborador.homeOffice, // NOVO: Inicializa o status de Home Office
     });
   };
 
@@ -285,7 +287,7 @@ const ListaColaboradores = () => {
     }
 
     // Validação do Telefone (mantida)
-    const cleanedPhone = editedData.phone.replace(/\D/g, '');
+    const cleanedPhone = editedData.phone ? editedData.phone.replace(/\D/g, '') : originalColaborador.phone.replace(/\D/g, '');
     if (editedData.phone && cleanedPhone.length !== 11) {
       toast({
         title: "Erro ao salvar",
@@ -320,12 +322,17 @@ const ListaColaboradores = () => {
       if (editedData.email && editedData.email !== originalColaborador.email) {
         bodyDataEmployee.email = editedData.email;
       }
-      if (editedData.salary !== undefined && editedData.salary !== originalColaborador.salary) {
+      if (editedData.salary !== undefined && editedData.salary.toString() !== originalColaborador.salary.toString()) {
         bodyDataEmployee.salary = parseFloat(editedData.salary);
       }
       if (editedData.phone && editedData.phone.replace(/\D/g, "") !== originalColaborador.phone) {
         bodyDataEmployee.phone = editedData.phone.replace(/\D/g, "");
       }
+      // NOVO: Adiciona a flag homeOffice se houver alteração
+      if (editedData.homeOffice !== undefined && editedData.homeOffice !== originalColaborador.homeOffice) {
+        bodyDataEmployee.homeOffice = editedData.homeOffice;
+      }
+
 
       const hasAddressChange =
         (editedCep &&
@@ -451,6 +458,11 @@ const ListaColaboradores = () => {
 
   const handleEditedDataChange = (field: string, value: string | boolean) => {
     setEditedData((prev) => {
+      // Campos booleanos (enabled, homeOffice)
+      if (field === "enabled" || field === "homeOffice") {
+        return { ...prev, [field]: value };
+      }
+
       // Lógica de sanitização e limitação para campos que aceitam apenas números
       if (field === "maskedCpf" || field === "postalCode" || field === "phone") {
         const sanitizedValue = (value as string).replace(/\D/g, '');
@@ -465,6 +477,13 @@ const ListaColaboradores = () => {
         }
         return { ...prev, [field]: finalValue };
       }
+      
+      // Para salário (convertendo string para number para o editedData)
+      if (field === "salary") {
+          const numericValue = (value as string).replace(/[R$\s.]/g, "").replace(",", ".");
+          return { ...prev, [field]: numericValue };
+      }
+
 
       // Retorna o valor original para os outros campos
       return { ...prev, [field]: value };
@@ -771,6 +790,20 @@ const ListaColaboradores = () => {
                           </div>
                         </div>
 
+                        {/* NOVO CAMPO DE EDIÇÃO: HOME OFFICE (SWITCH) */}
+                        <div className="flex items-center gap-3 text-sm">
+                          <Label htmlFor="home-office-toggle" className="text-muted-foreground w-16">Home Office:</Label>
+                          <div className="flex-1 flex items-center justify-between">
+                            <span className="font-medium text-sm">{editedData.homeOffice ? 'Sim' : 'Não (Local Físico)'}</span>
+                            <Switch
+                              id="home-office-toggle"
+                              checked={editedData.homeOffice}
+                              onCheckedChange={(value) => handleEditedDataChange("homeOffice", value)}
+                            />
+                          </div>
+                        </div>
+                        {/* FIM NOVO CAMPO DE EDIÇÃO */}
+
                         {/* CPF */}
                         <div className="flex items-center gap-3 text-sm">
                           <IdCard className="w-4 h-4 text-muted-foreground flex-shrink-0" />
@@ -870,6 +903,21 @@ const ListaColaboradores = () => {
                             {colaborador.role === 'MANAGER' ? 'Administrador' : colaborador.role === 'PARTNER' ? 'Colaborador' : colaborador.role}
                           </span>
                         </div>
+
+                        {/* NOVO CAMPO DE VISUALIZAÇÃO: HOME OFFICE */}
+                        <div className="flex items-center gap-3 text-sm">
+                          <MapPin className="w-4 h-4 text-muted-foreground flex-shrink-0" />
+                          <span className="text-muted-foreground">Local de Trabalho:</span>
+                          <Badge 
+                            variant="secondary"
+                            className={colaborador.homeOffice 
+                              ? "bg-green-500/10 text-green-600 border-green-500/20" 
+                              : "bg-red-500/10 text-red-600 border-red-500/20"}
+                          >
+                            {colaborador.homeOffice ? 'Remoto (Sem Geolocalização)' : 'Físico (Exige Geolocalização)'}
+                          </Badge>
+                        </div>
+                        {/* FIM NOVO CAMPO DE VISUALIZAÇÃO */}
 
                         {/* CPF */}
                         <div className="flex items-center gap-3 text-sm">

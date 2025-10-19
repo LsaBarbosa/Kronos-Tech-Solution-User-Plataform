@@ -23,6 +23,7 @@ import { API_BASE_URL } from "@/config/api";
 // --- ESQUEMAS DE VALIDAÇÃO REVISADOS ---
 
 // Esquema para validação rigorosa dos campos do Passo 1 (Employee)
+// O campo homeOffice é adicionado como uma string (necessário para o Select)
 const employeeSchema = z.object({
     nomeCompleto: z.string().min(2, "Nome deve ter pelo menos 2 caracteres"),
     cpf: z.string().length(14, "CPF deve ter 11 dígitos"), 
@@ -32,6 +33,9 @@ const employeeSchema = z.object({
     telefone: z.string().length(15, "Telefone deve ter 11 dígitos"), 
     cep: z.string().length(9, "CEP deve ter 8 dígitos"), 
     numero: z.string().min(1, "Número é obrigatório"),
+    homeOffice: z.enum(["true", "false"], { // NOVO CAMPO
+        required_error: "O status Home Office é obrigatório.",
+    }),
 });
 
 // Esquema para validação rigorosa dos campos do Passo 2 (User)
@@ -77,6 +81,7 @@ const CriarColaborador = () => {
             telefone: "",
             cep: "",
             numero: "",
+            homeOffice: "false", // NOVO VALOR PADRÃO
             username: "",
             password: "",
             role: "PARTNER",
@@ -195,7 +200,7 @@ const CriarColaborador = () => {
             const token = localStorage.getItem("token");
             if (!token) throw new Error("Token de autenticação não encontrado.");
 
-            // Removendo máscaras para envio ao backend
+            // Removendo máscaras e convertendo dados para envio ao backend
             const employeePayload = {
                 fullName: data.nomeCompleto,
                 cpf: data.cpf.replace(/\D/g, ""),
@@ -204,6 +209,7 @@ const CriarColaborador = () => {
                 // Garantimos que o salário seja enviado como float/number
                 salary: parseFloat(data.salario.replace(/[R$\s.]/g, "").replace(",", ".")), 
                 phone: data.telefone.replace(/\D/g, ""),
+                homeOffice: data.homeOffice === "true", // NOVO CAMPO: Converte string para boolean
                 address: {
                     postalCode: data.cep.replace(/\D/g, ""),
                     number: data.numero,
@@ -395,7 +401,7 @@ const CriarColaborador = () => {
                             Criar Colaborador
                         </h1>
                         <p className="text-muted-foreground">
-                            {stepCompleted}{stepCompleted ? "Credenciais de Acesso" : "Dados Pessoais e Profissionais"}
+                            {stepCompleted ? "Credenciais de Acesso" : "Dados Pessoais e Profissionais"}
                         </p>
                     </div>
 
@@ -482,6 +488,26 @@ const CriarColaborador = () => {
                                                 <FormMessage />
                                             </FormItem>
                                         )}/>
+                                        
+                                        {/* NOVO CAMPO: HOME OFFICE */}
+                                        <FormField control={form.control} name="homeOffice" render={({ field }) => (
+                                            <FormItem className="md:col-span-2">
+                                                <FormLabel className="text-base font-semibold">Trabalho Remoto (Home Office)</FormLabel>
+                                                <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                                    <FormControl>
+                                                        <SelectTrigger className="h-12 text-base">
+                                                            <SelectValue placeholder="O colaborador trabalha remotamente?" />
+                                                        </SelectTrigger>
+                                                    </FormControl>
+                                                    <SelectContent>
+                                                        <SelectItem value="false">Não (Exige Geolocalização)</SelectItem>
+                                                        <SelectItem value="true">Sim (Ignora Geolocalização)</SelectItem>
+                                                    </SelectContent>
+                                                </Select>
+                                                <FormMessage />
+                                            </FormItem>
+                                        )}/>
+                                        {/* FIM NOVO CAMPO */}
                                     </div>
                                     
                                     {/* Botão de Submissão do Passo 1 */}
