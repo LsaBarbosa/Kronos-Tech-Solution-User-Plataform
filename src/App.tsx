@@ -35,6 +35,7 @@ import ProtectedRoute from "./components/ProtectedRoute";
 import CriarManager from "./pages/CriarManager";
 import TokenRedirect from "./pages/TokenRedirect";
 import SolicitacoesAprovacao from "./pages/ApuracaoHoras";
+import AtualizarEmpresa from "./pages/AtualizarEmpresa";
 
 const queryClient = new QueryClient();
 
@@ -60,6 +61,7 @@ const App = () => (
               <Route path="/empresa" element={<Empresa />} />
               <Route path="/empresa/criar" element={<CriarEmpresa />} />
               <Route path="/empresa/buscar" element={<BuscarEmpresa />} />
+              <Route path="/empresa/atualizar" element={<AtualizarEmpresa />} />
 
               <Route path="/relatorio-simples" element={<RelatorioSimples />} />
               <Route path="/relatorio-detalhado" element={<RelatorioDetalhado />} />

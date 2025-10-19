@@ -3,7 +3,7 @@ import Header from "@/components/Header";
 import Sidebar from "@/components/Sidebar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Building2, Plus, Search, User } from "lucide-react"; // 💡 Importamos o ícone User
+import { Building2, Plus, Search, User, Edit } from "lucide-react"; // 💡 Importamos o ícone Edit
 import { useNavigate } from "react-router-dom";
 
 const Empresa = () => {
@@ -27,8 +27,8 @@ const Empresa = () => {
             </p>
           </div>
 
-          {/* 🎯 Mudamos para grid de 3 colunas para acomodar o novo card */}
-          <div className="grid md:grid-cols-3 gap-6"> 
+          {/* 🎯 ALTERAÇÃO AQUI: Grid de 2 colunas no md e 4 colunas no lg */}
+          <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6"> 
             
             {/* CARD 1: CRIAR EMPRESA */}
             <Card className="hover:shadow-lg transition-shadow cursor-pointer" onClick={() => navigate("/empresa/criar")}>
@@ -51,11 +51,11 @@ const Empresa = () => {
               </CardContent>
             </Card>
 
-            {/* 🆕 CARD 2: ADICIONAR COLABORADOR */}
+            {/* CARD 2: ADICIONAR COLABORADOR */}
             <Card className="hover:shadow-lg transition-shadow cursor-pointer" onClick={() => navigate("/criar-administrador" )}>
               <CardHeader>
                 <div className="flex items-center gap-3">
-                  <User className="h-8 w-8 text-indigo-600" /> {/* Ícone e cor para Colaborador */}
+                  <User className="h-8 w-8 text-indigo-600" /> 
                   <div>
                     <CardTitle>Adicionar Colaborador</CardTitle>
                     <CardDescription>
@@ -89,6 +89,27 @@ const Empresa = () => {
                 <Button className="w-full" variant="outline">
                   <Search className="h-4 w-4 mr-2" />
                   Buscar Empresas
+                </Button>
+              </CardContent>
+            </Card>
+            
+            {/* 🆕 CARD 4: ATUALIZAR EMPRESA */}
+            <Card className="hover:shadow-lg transition-shadow cursor-pointer" onClick={() => navigate("/empresa/atualizar")}>
+              <CardHeader>
+                <div className="flex items-center gap-3">
+                  <Edit className="h-8 w-8 text-orange-500" /> {/* Ícone para Edição */}
+                  <div>
+                    <CardTitle>Atualizar Empresa</CardTitle>
+                    <CardDescription>
+                      Edite dados e status de empresas existentes
+                    </CardDescription>
+                  </div>
+                </div>
+              </CardHeader>
+              <CardContent>
+                <Button className="w-full" variant="outline">
+                  <Edit className="h-4 w-4 mr-2" />
+                  Atualizar Dados
                 </Button>
               </CardContent>
             </Card>
