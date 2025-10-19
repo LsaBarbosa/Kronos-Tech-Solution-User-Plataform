@@ -230,13 +230,6 @@ export const ResultadosRelatorioDetalhado: React.FC<ResultadosDetalhadoProps> = 
                     <CardTitle>Resultados do Relatório Detalhado</CardTitle>
                     <CardDescription>{reportData.length} registro(s) detalhado(s) encontrado(s).</CardDescription>
                 </div>
-                <button
-                    onClick={handleDownload}
-                    className="flex items-center gap-1 text-primary text-sm hover:opacity-80 transition-opacity"
-                >
-                    <Download className="h-4 w-4" />
-                    Download PDF
-                </button>
             </CardHeader>
             <CardContent className="p-4">
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">

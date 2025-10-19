@@ -167,13 +167,7 @@ export const ResultadosRelatorioSimples: React.FC<ResultadosSimplesProps> = ({
                     <CardTitle>Resultados do Relatório Simples</CardTitle>
                     <CardDescription>Resumo de saldo para {reportDataSimple.days.length} dias.</CardDescription>
                 </div>
-                <button
-                    onClick={handleDownload}
-                    className="flex items-center gap-1 text-primary text-sm hover:opacity-80 transition-opacity"
-                >
-                    <Download className="h-4 w-4" />
-                    Download PDF
-                </button>
+        
             </CardHeader>
             <CardContent className="p-4">
                 <div className="mb-4 p-4 rounded-lg border-2 border-primary/30 bg-primary/5">

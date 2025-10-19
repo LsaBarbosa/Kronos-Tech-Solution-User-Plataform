@@ -36,6 +36,45 @@ import { RegistroEdicaoModal } from "@/components/RegistroEdicaoModal";
 import { Card } from "@/components/ui/card";
 import { RelatorioFiltros } from "./RelatorioFiltros";
 
+// === FUNÇÃO UTILITÁRIA PARA GERAÇÃO DE CSV (NOVA) ===
+const generateCSV = (data: any[], headers: string[], fileName: string) => {
+    // Cabeçalho CSV (separado por ponto e vírgula, compatível com Excel brasileiro)
+    const csvHeaders = headers.join(';');
+
+    // Mapeamento dos dados para as linhas CSV
+    const csvRows = data.map(row => 
+        row.map((item: any) => {
+            // Converte o item para string
+            let value = String(item);
+            
+            // Remove quebras de linha e substitui vírgulas por pontos (para valores numéricos/horários)
+            // Se o item for um array (deve ser tratado na função chamadora, mas garantindo a sanitização)
+            value = value.replace(/\n/g, ' ').replace(/,/g, '.');
+            
+            // Coloca aspas se o valor contiver o separador (ponto e vírgula)
+            return /;/.test(value) ? `"${value.replace(/"/g, '""')}"` : value;
+        }).join(';')
+    ).join('\n');
+
+    // Adiciona o BOM (Byte Order Mark) para garantir que caracteres especiais e acentuação funcionem corretamente no Excel
+    const csvContent = `\ufeff${csvHeaders}\n${csvRows}`;
+
+    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+    const url = URL.createObjectURL(blob);
+    
+    const link = document.createElement('a');
+    link.href = url;
+    link.setAttribute('download', fileName);
+    document.body.appendChild(link);
+    link.click();
+    document.body.removeChild(link);
+    
+    // Libera a URL do objeto
+    URL.revokeObjectURL(url);
+};
+// === FIM FUNÇÃO UTILITÁRIA CSV ===
+
+
 const RelatorioDetalhado = () => {
     const [sidebarOpen, setSidebarOpen] = useState(false);
     const [selectedDates, setSelectedDates] = useState<Date[]>([]);
@@ -307,8 +346,8 @@ const RelatorioDetalhado = () => {
     };
 
 
-    // === LÓGICA DE DOWNLOAD DETALHADA RE-ADICIONADA ===
-    const handleDownload = () => {
+    // === LÓGICA DE DOWNLOAD PDF DETALHADA (RENOMEADA) ===
+    const handleDownloadPDFDetailed = () => {
         const parseDate = (dateString: string) => {
             if (!dateString) return null;
             const parts = dateString.split('-'); // DD-MM-YYYY
@@ -504,11 +543,11 @@ const RelatorioDetalhado = () => {
             });
         }
     };
-    // === FIM LÓGICA DE DOWNLOAD DETALHADA ===
+    // === FIM LÓGICA DE DOWNLOAD PDF DETALHADA ===
 
 
-    // === LÓGICA DE DOWNLOAD SIMPLES RE-ADICIONADA ===
-    const handleSimpleDownload = () => {
+    // === LÓGICA DE DOWNLOAD PDF SIMPLES (RENOMEADA) ===
+    const handleDownloadPDFSimple = () => {
         if (!reportDataSimple || reportDataSimple.days.length === 0) {
             toast({
                 title: "Erro",
@@ -635,18 +674,123 @@ const RelatorioDetalhado = () => {
             });
         }
     };
-    // === FIM LÓGICA DE DOWNLOAD SIMPLES ===
+    // === FIM LÓGICA DE DOWNLOAD PDF SIMPLES ===
 
 
-    // === FUNÇÃO CORRIGIDA QUE É PASSADA PARA O BOTÃO DE DOWNLOAD ===
-    const handleDownloadClick = () => {
+    // === FUNÇÃO DE DOWNLOAD CSV DETALHADA (NOVA) ===
+    const handleDownloadCSVDetailed = () => {
+        if (reportData.length === 0) {
+            toast({
+                title: "Erro",
+                description: "Gere o relatório detalhado primeiro para poder fazer o download CSV.",
+                variant: "destructive"
+            });
+            return;
+        }
+        
+        // Define as colunas do CSV (Cabeçalho)
+        const csvHeaders = ['Data Início', 'Hora Início', 'Data Fim', 'Hora Fim', 'Duração', 'Saldo', 'Status', 'Funcionário', 'Empresa'];
+        
+        // Mapeia os dados detalhados para o formato de linhas CSV
+        const csvData = reportData.map(item => {
+            const statusLabel = getTranslatedStatus(item.statusRecord);
+
+            return [
+                item.startWork, // DD-MM-YYYY
+                item.startHour,
+                item.endWork, // DD-MM-YYYY
+                item.endHour,
+                item.hoursWork,
+                // Garantir que o saldo seja exportado corretamente
+                item.statusRecord === 'IMPLICIT_BREAK' ? 'N/A' : item.balance, 
+                statusLabel,
+                item.employeeData.employeeName,
+                item.employeeData.companyName,
+            ];
+        });
+
+        const fileName = `relatorio_detalhado_csv_${format(new Date(), "yyyyMMdd_HHmmss")}.csv`;
+        
+        generateCSV(csvData, csvHeaders, fileName);
+
+        toast({
+            title: "CSV Gerado",
+            description: "Relatório detalhado baixado em formato CSV!",
+        });
+    };
+    // === FIM LÓGICA DE DOWNLOAD CSV DETALHADA ===
+
+
+    // === FUNÇÃO DE DOWNLOAD CSV SIMPLES (NOVA) ===
+    const handleDownloadCSVSimple = () => {
+        if (!reportDataSimple || reportDataSimple.days.length === 0) {
+            toast({
+                title: "Erro",
+                description: "Gere o relatório simples primeiro para poder fazer o download CSV.",
+                variant: "destructive"
+            });
+            return;
+        }
+
+        // Define as colunas do CSV (Cabeçalho)
+        const csvHeaders = ['Data', 'Total de Horas', 'Saldo do Dia', 'Total Trabalhado Geral', 'Saldo Total Geral'];
+        
+        // Linhas de totais para inclusão no início do arquivo CSV
+        const totalRows = [
+            ['TOTAIS:', '', '', reportDataSimple.totalHoursWorked, reportDataSimple.totalBalance],
+            ['--- Detalhes por Dia ---', '', '', '', ''],
+        ];
+
+        // Mapeia os dados por dia
+        const dayRows = reportDataSimple.days.map(day => {
+            // Formatamos as datas (DD/MM/YYYY) e adicionamos o indicador de feriado
+            const parts = day.startDate.split('/'); 
+            const dayDate = new Date(`${parts[2]}-${parts[1]}-${parts[0]}`);
+            const holiday = isHoliday(dayDate) ? ' (Feriado)' : '';
+
+            return [
+                `${day.startDate}${holiday}`,
+                day.totalHours,
+                day.balance,
+                '', // Coluna vazia para alinhar com totais
+                '', // Coluna vazia para alinhar com totais
+            ];
+        });
+        
+        const csvData = [...totalRows, ...dayRows];
+
+        const fileName = `relatorio_simples_csv_${format(new Date(), "yyyyMMdd_HHmmss")}.csv`;
+        
+        // Passa as colunas do cabeçalho original para a função gerarCSV
+        generateCSV(csvData, csvHeaders, fileName);
+
+        toast({
+            title: "CSV Gerado",
+            description: "Relatório simples baixado em formato CSV!",
+        });
+    };
+    // === FIM LÓGICA DE DOWNLOAD CSV SIMPLES ===
+
+
+    // === FUNÇÃO ROUTER PARA O BOTÃO PDF ===
+    const handleDownloadPDF = () => {
         if (reportType === "detailed") {
-            handleDownload(); // Chama a nova função de download detalhado
+            handleDownloadPDFDetailed();
         } else {
-            handleSimpleDownload(); // Chama a nova função de download simples
+            handleDownloadPDFSimple();
         }
     };
-    // === FIM FUNÇÃO CORRIGIDA ===
+    // === FIM FUNÇÃO ROUTER PDF ===
+
+    // === FUNÇÃO ROUTER PARA O BOTÃO CSV (NOVA) ===
+    const handleDownloadCSV = () => {
+        if (reportType === "detailed") {
+            handleDownloadCSVDetailed();
+        } else {
+            handleDownloadCSVSimple();
+        }
+    };
+    // === FIM FUNÇÃO ROUTER CSV ===
 
 
     const handleEditRecord = (record: DetailedReportItem) => {
@@ -819,7 +963,8 @@ const RelatorioDetalhado = () => {
                     employees={employees}
                     isPartner={isPartner}
                     onSearch={handleSearchClick}
-                    onDownload={handleDownloadClick}
+                    onDownloadPDF={handleDownloadPDF} // Passa o novo router de PDF
+                    onDownloadCSV={handleDownloadCSV} // Passa o novo router de CSV
                 />
 
                 {/* EXIBIÇÃO CONDICIONAL DOS RESULTADOS */}

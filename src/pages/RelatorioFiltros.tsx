@@ -8,7 +8,8 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { CalendarIcon, Search, Download } from "lucide-react";
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { CalendarIcon, Search, Download, FileText } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { Employee, statusOptions, allHolidays } from "@/utils/report-utils";
@@ -31,7 +32,8 @@ interface RelatorioFiltrosProps {
     employees: Employee[];
     isPartner: boolean;
     onSearch: () => void;
-    onDownload: () => void;
+    onDownloadPDF: () => void;
+    onDownloadCSV: () => void;
 }
 
 const isHoliday = (date: Date) => {
@@ -58,25 +60,17 @@ export const RelatorioFiltros: React.FC<RelatorioFiltrosProps> = ({
     employees,
     isPartner,
     onSearch,
-    onDownload,
+    onDownloadPDF,
+    onDownloadCSV,
 }) => {
 
-    // --- CORREÇÃO APLICADA AQUI: O Calendar em mode="multiple" espera a lista completa de datas como 1º argumento. ---
-    // A lógica de adição/remoção (toggle) é feita internamente pelo componente Calendar (react-day-picker)
-    // quando ele está em mode="multiple". Simplesmente atualize o estado com o array fornecido.
     const handleDateSelect = (days: Date[] | undefined) => {
         setSelectedDates(days || []);
-    };
-    // -----------------------------------------------------------------------------------------------------------------
-
-    const handleEmployeeStatusChange = (statusValue: string) => {
-        setEmployeeActive(prev => (prev === statusValue ? "" : statusValue));
     };
 
     const handleReportTypeChange = (typeValue: "detailed" | "simple") => {
         if (reportType !== typeValue) {
             setReportType(typeValue);
-            // Limpa o status se for para o simples, conforme a lógica original
             if (typeValue === "simple") {
                 setStatus("");
             }
@@ -98,8 +92,8 @@ export const RelatorioFiltros: React.FC<RelatorioFiltrosProps> = ({
                     </CardDescription>
                 </CardHeader>
                 <CardContent className="pt-6">
-                    <Card className="border-l-4 border-l-primary shadow-card w-fit mx-auto">
-                        <Calendar
+                    <Card className="border-l-4 border-l-primary shadow-card w-fit max-w-lg mx-auto">
+                        <Calendar 
                             mode="multiple"
                             selected={selectedDates}
                             onSelect={handleDateSelect}
@@ -121,6 +115,20 @@ export const RelatorioFiltros: React.FC<RelatorioFiltrosProps> = ({
                                 holiday: "bg-destructive/10 text-destructive font-semibold border border-destructive/20 hover:bg-destructive/20 hover:text-destructive !text-destructive",
                             }}
                         />
+                        <div className="grid grid-cols-1 gap-3 ml-4 mb-4 text-xs">
+                            <div className="flex items-center gap-3">
+                                <div className="w-4 h-4 rounded bg-gradient-to-br from-primary to-primary/80 shadow-sm"></div>
+                                <span className="text-muted-foreground">Data selecionada</span>
+                            </div>
+                            <div className="flex items-center gap-3">
+                                <div className="w-4 h-4 rounded bg-destructive/10 border-2 border-destructive/30"></div>
+                                <span className="text-destructive font-semibold">Feriado nacional</span>
+                            </div>
+                            <div className="flex items-center gap-3">
+                                <div className="w-4 h-4 rounded border-2 border-primary/50 bg-transparent"></div>
+                                <span className="text-muted-foreground">Hoje</span>
+                            </div>
+                        </div>
                     </Card>
                     <div className="mt-4 p-4 bg-gradient-to-br from-primary/5 to-secondary/5 rounded-lg border border-primary/20 backdrop-blur-sm">
                         <h4 className="text-sm font-semibold text-foreground mb-2 flex items-center gap-2">
@@ -128,12 +136,11 @@ export const RelatorioFiltros: React.FC<RelatorioFiltrosProps> = ({
                             💡 Dica de uso:
                         </h4>
                         <p className="text-xs text-muted-foreground mb-4">
-                            1. Clique em qualquer data no calendário para selecioná-la.<br />
-                            2. Os feriados nacionais brasileiros estão destacados automaticamente.
+                            1. Clique em qualquer data no calendário para selecioná-la.
                         </p>
                         <p className="text-xs text-muted-foreground mb-4">
-                            3. O status FOLGA é atribuido automaticamente no dia que não houver registro<br />
-                            4. Em caso de FALTA, navegue até a pagina  <a
+                            2. O status FOLGA é atribuido automaticamente no dia que não houver registro.<br />
+                            * Em caso de FALTA, navegue até a pagina  <a
                                 href="status-do-registro"
                                 className="text-primary hover:text-primary/80 underline font-semibold transition-colors duration-150 ml-1"
                             >
@@ -141,29 +148,17 @@ export const RelatorioFiltros: React.FC<RelatorioFiltrosProps> = ({
                             </a>  para realizar a mudança
                         </p>
                         <p className="text-xs text-muted-foreground mb-4">
-                            5.Relatorio Simples:<br />
-                            - Retorna o data dia trabalhado, as horas trabalhadas e o saldo do dia selecionado.
+                            3. Relatorio Simples: <br/>
+                            * Retorna a data, as horas trabalhadas e o saldo do dia selecionado.
                         </p>
                         <p className="text-xs text-muted-foreground mb-4">
-                            5.Relatorio Detalhado:<br />
-                            - Retorna todos os registros realizados na data selecionada.<br />
-                            - Retorna o status do registros também.
-                            - Ao cliclar no registro é possivel solicitar a alteração (data e hora).
+                            4. Relatorio Detalhado:<br />
+                            * Retorna todos os registros realizados na data selecionada.<br />
+                            * Retorna o status do registros.<br />
                         </p>
-                        <div className="grid grid-cols-1 gap-3 text-xs">
-                            <div className="flex items-center gap-3">
-                                <div className="w-4 h-4 rounded bg-gradient-to-br from-primary to-primary/80 shadow-sm"></div>
-                                <span className="text-muted-foreground">Data selecionada</span>
-                            </div>
-                            <div className="flex items-center gap-3">
-                                <div className="w-4 h-4 rounded bg-destructive/10 border-2 border-destructive/30"></div>
-                                <span className="text-destructive font-semibold">Feriado nacional (Texto em Vermelho)</span>
-                            </div>
-                            <div className="flex items-center gap-3">
-                                <div className="w-4 h-4 rounded border-2 border-primary/50 bg-transparent"></div>
-                                <span className="text-muted-foreground">Hoje</span>
-                            </div>
-                        </div>
+                        <p className="text-xs text-muted-foreground mb-4">
+                            5. Ao cliclar no registro é possivel solicitar a alteração (data e hora).
+                        </p>
                     </div>
 
                     {selectedDates.length > 0 && (
@@ -215,7 +210,7 @@ export const RelatorioFiltros: React.FC<RelatorioFiltrosProps> = ({
                             <div className="w-1.5 h-1.5 rounded-full bg-primary"></div>
                             Tipo de Relatório
                         </Label>
-                        <div className="p-3 rounded-lg bg-gradient-to-r from-primary/5 to-secondary/5 border border-primary/20 flex space-x-6">
+                        <div className="p-3 rounded-lg bg-gradient-to-r from-primary/5 to-secondary/5 border border-primary/20 flex flex-wrap gap-3 sm:gap-6">
                             {/* Checkbox Detalhado */}
                             <div className="flex items-center space-x-3 p-2 rounded-md hover:bg-primary/10 transition-colors">
                                 <Checkbox
@@ -292,67 +287,101 @@ export const RelatorioFiltros: React.FC<RelatorioFiltrosProps> = ({
                         </div>
                     )}
 
-                    {/* Alteração 1: Esconder Status do Funcionário se for PARTNER */}
-                    {/* SEÇÃO DE STATUS DO FUNCIONÁRIO COM CHECKBOX/RADIO LOGIC */}
+                    {/* NOVO: SEÇÃO DE STATUS DO FUNCIONÁRIO COM RADIO GROUP */}
                     {!isPartner && (
                         <div className="space-y-3 relative">
                             <Label className="text-sm font-semibold text-foreground flex items-center gap-2">
                                 <div className="w-1.5 h-1.5 rounded-full bg-primary"></div>
                                 Status do Funcionário
                             </Label>
-                            <div className="p-3 rounded-lg bg-gradient-to-r from-primary/5 to-secondary/5 border border-primary/20 flex space-x-6">
-                                {/* Checkbox Ativo */}
+                            <RadioGroup
+                                value={employeeActive}
+                                onValueChange={setEmployeeActive}
+                                // AJUSTE RESPONSIVO
+                                className="p-3 rounded-lg bg-gradient-to-r from-primary/5 to-secondary/5 border border-primary/20 flex flex-wrap gap-3 sm:gap-6"
+                            >
+                                {/* Radio Button TODOS */}
                                 <div className="flex items-center space-x-3 p-2 rounded-md hover:bg-primary/10 transition-colors">
-                                    <Checkbox
+                                    <RadioGroupItem
+                                        value=""
+                                        id="emp-todos"
+                                        className="data-[state=checked]:border-primary data-[state=checked]:text-primary border-primary/50"
+                                    />
+                                    <Label htmlFor="emp-todos" className="text-sm cursor-pointer font-medium">
+                                        Todos
+                                    </Label>
+                                </div>
+
+                                {/* Radio Button ATIVO */}
+                                <div className="flex items-center space-x-3 p-2 rounded-md hover:bg-primary/10 transition-colors">
+                                    <RadioGroupItem
+                                        value="active"
                                         id="emp-active"
-                                        checked={employeeActive === "active"}
-                                        onCheckedChange={() => handleEmployeeStatusChange("active")}
-                                        className="data-[state=checked]:bg-primary data-[state=checked]:border-primary border-primary/50"
+                                        className="data-[state=checked]:border-primary data-[state=checked]:text-primary border-primary/50"
                                     />
                                     <Label htmlFor="emp-active" className="text-sm cursor-pointer font-medium">
                                         Ativo
                                     </Label>
                                 </div>
 
-                                {/* Checkbox Inativo */}
+                                {/* Radio Button INATIVO */}
                                 <div className="flex items-center space-x-3 p-2 rounded-md hover:bg-primary/10 transition-colors">
-                                    <Checkbox
+                                    <RadioGroupItem
+                                        value="inactive"
                                         id="emp-inactive"
-                                        checked={employeeActive === "inactive"}
-                                        onCheckedChange={() => handleEmployeeStatusChange("inactive")}
-                                        className="data-[state=checked]:bg-primary data-[state=checked]:border-primary border-primary/50"
+                                        className="data-[state=checked]:border-primary data-[state=checked]:text-primary border-primary/50"
                                     />
                                     <Label htmlFor="emp-inactive" className="text-sm cursor-pointer font-medium">
                                         Inativo
                                     </Label>
                                 </div>
-                            </div>
+                            </RadioGroup>
                         </div>
                     )}
-                    {/* FIM DA SEÇÃO DE STATUS DO FUNCIONÁRIO COM CHECKBOX/RADIO LOGIC */}
+                    {/* FIM: SEÇÃO DE STATUS DO FUNCIONÁRIO COM RADIO GROUP */}
 
+                    {/* SEÇÃO DE REGISTRO ATIVO/INATIVO COMO RADIO GROUP */}
                     <div className="space-y-3 relative">
                         <Label className="text-sm font-semibold text-foreground flex items-center gap-2">
                             <div className="w-1.5 h-1.5 rounded-full bg-primary"></div>
-                            Registro Ativo/Inativo
+                            Registro Aprovado/Reprovado
                         </Label>
-                        <div className="p-3 rounded-lg bg-gradient-to-r from-primary/5 to-secondary/5 border border-primary/20">
+                        <RadioGroup
+                            value={isActive ? "ativo" : "inativo"}
+                            onValueChange={(value) => setIsActive(value === "ativo")}
+                            // AJUSTE RESPONSIVO
+                            className="p-3 rounded-lg bg-gradient-to-r from-primary/5 to-secondary/5 border border-primary/20 flex flex-wrap gap-3 sm:gap-6"
+                        >
+                            {/* Radio Button ATIVO */}
                             <div className="flex items-center space-x-3 p-2 rounded-md hover:bg-primary/10 transition-colors">
-                                <Checkbox
-                                    id="active"
-                                    checked={isActive}
-                                    onCheckedChange={(checked) => setIsActive(checked as boolean)}
-                                    className="data-[state=checked]:bg-primary data-[state=checked]:border-primary border-primary/50"
+                                <RadioGroupItem
+                                    value="ativo"
+                                    id="reg-ativo"
+                                    className="data-[state=checked]:border-primary data-[state=checked]:text-primary border-primary/50"
                                 />
-                                <Label
-                                    htmlFor="active"
-                                    className="text-sm text-muted-foreground cursor-pointer font-medium"
-                                >
-                                    {isActive ? "Incluir registros ativos" : "Incluir registros inativos"}
+                                <Label htmlFor="reg-ativo" className="text-sm cursor-pointer font-medium">
+                                    Ativo
                                 </Label>
                             </div>
-                        </div>
+
+                            {/* Radio Button INATIVO */}
+                            <div className="flex items-center space-x-3 p-2 rounded-md hover:bg-primary/10 transition-colors">
+                                <RadioGroupItem
+                                    value="inativo"
+                                    id="reg-inativo"
+                                    className="data-[state=checked]:border-primary data-[state=checked]:text-primary border-primary/50"
+                                />
+                                <Label htmlFor="reg-inativo" className="text-sm cursor-pointer font-medium">
+                                    Inativo
+                                </Label>
+                            </div>
+                        </RadioGroup>
+                        <p className="text-xs text-muted-foreground flex items-center gap-1">
+                            <div className="w-1 h-1 rounded-full bg-muted-foreground/50"></div>
+                            Incluir registros ativos ou inativos no relatório
+                        </p>
                     </div>
+                    {/* FIM: SEÇÃO DE REGISTRO ATIVO/INATIVO COMO RADIO GROUP */}
 
                     <div className="space-y-3 relative">
                         <Label className={`text-sm font-semibold text-foreground flex items-center gap-2 ${reportType === "simple" ? 'opacity-50' : ''}`}>
@@ -394,18 +423,28 @@ export const RelatorioFiltros: React.FC<RelatorioFiltrosProps> = ({
                             <span className="relative z-10">Buscar</span>
                         </Button>
 
-                      <Button
-                            onClick={onDownload}
+                        {/* BOTÃO DE DOWNLOAD PDF */}
+                        <Button
+                            onClick={onDownloadPDF}
                             size="lg"
                             variant="outline"
-                            className="w-full font-semibold border-2 border-primary/30 bg-gradient-to-r from-primary/10 to-secondary/10  text-foreground  transition-all duration-200 relative overflow-hidden"
+                            disabled={selectedDates.length === 0}
+                            className="w-full font-semibold border-2 border-red-600/30 bg-gradient-to-r from-red-600/10 to-red-600/5 text-red-600 hover:bg-red-600/10 transition-all duration-200 relative overflow-hidden"
                         >
-                            {/* O DIV de efeito de hover que estava sobrepondo o texto */}
-                            <div className="absolute inset-0 bg-gradient-to-r from-primary/5 to-transparent opacity-0 hover:opacity-100 transition-opacity duration-200"></div>
-                            
-                            {/* Ajuste: Adicionado 'relative z-10' para garantir que o ícone e o texto fiquem na frente */}
                             <Download className="mr-2 h-4 w-4 relative z-10" />
-                            <span className="relative z-10">Download</span>
+                            <span className="relative z-10">Download PDF</span>
+                        </Button>
+
+                        {/* BOTÃO DE DOWNLOAD CSV */}
+                        <Button
+                            onClick={onDownloadCSV}
+                            size="lg"
+                            variant="outline"
+                            disabled={selectedDates.length === 0}
+                            className="w-full font-semibold border-2 border-green-600/30 bg-gradient-to-r from-green-600/10 to-green-600/5 text-green-600 hover:bg-green-600/10 transition-all duration-200 relative overflow-hidden"
+                        >
+                            <FileText className="mr-2 h-4 w-4 relative z-10" />
+                            <span className="relative z-10">Download CSV</span>
                         </Button>
                     </div>
                 </CardContent>
