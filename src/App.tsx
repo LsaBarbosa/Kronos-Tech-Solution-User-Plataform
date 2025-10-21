@@ -16,7 +16,6 @@ import BuscarEmpresa from "./pages/BuscarEmpresa";
 import RelatorioSimples from "./pages/RelatorioSimples";
 import RelatorioDetalhado from "./pages/RelatorioDetalhado";
 import Documentos from "./pages/Documentos";
-import AtestadoMedico from "./pages/AtestadoMedico";
 import EnviarDocumentos from "./pages/EnviarDocumentos";
 import EnviarAtestado from "./pages/DocumentoColaborador";
 import Usuario from "./pages/Usuario";
@@ -68,7 +67,7 @@ const App = () => (
               <Route path="/documentos" element={<Documentos />} />
               <Route path="/enviar-documentos" element={<EnviarDocumentos />} />
               <Route path="/enviar-documento-colaborador" element={<DocumentoColaborador />} />
-              <Route path="/atestado-medico" element={<AtestadoMedico />} />
+             
               <Route path="/usuario" element={<Usuario />} />
               <Route path="/criar-colaborador" element={<CriarColaborador />} />
               <Route path="/criar-administrador" element={<CriarManager />} />

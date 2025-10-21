@@ -113,10 +113,16 @@ const PendingApprovals = () => {
     fetchPendingApprovals();
   }, []);
 
+  const handleToggleSidebar = () => setSidebarOpen((prev) => !prev); 
   return (
-    <div className="min-h-screen bg-background relative overflow-hidden">
-      <Header onMenuClick={() => setSidebarOpen(true)} />
-      <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+    <div className="flex h-screen bg-background">
+      {/* 💡 CORREÇÃO: Sidebar usa 'toggleSidebar' */}
+      <Sidebar isOpen={sidebarOpen} toggleSidebar={handleToggleSidebar} /> 
+      
+      <div className="flex-1 flex flex-col overflow-hidden">
+        {/* 💡 CORREÇÃO: Header usa 'toggleSidebar' */}
+        <Header toggleSidebar={handleToggleSidebar} />
+
       
       <main className="container mx-auto px-4 py-8 relative z-10">
         <div className="mb-8">
@@ -242,6 +248,7 @@ const PendingApprovals = () => {
           </DialogContent>
         </Dialog>
       </main>
+    </div>
     </div>
   );
 };

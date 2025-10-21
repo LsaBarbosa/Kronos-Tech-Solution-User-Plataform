@@ -367,6 +367,7 @@ const RelatorioDetalhado = () => {
 
     // A função handleSaveRecord (edição de tempo) foi removida.
 
+    const handleToggleSidebar = () => setSidebarOpen((prev) => !prev); 
     return (
 
         <div className="min-h-screen bg-background relative overflow-hidden">
@@ -407,8 +408,14 @@ const RelatorioDetalhado = () => {
                 </div>
             </div>
 
-            <Header onMenuClick={() => setSidebarOpen(true)} />
-            <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+ 
+      {/* 💡 CORREÇÃO: Sidebar usa 'toggleSidebar' */}
+      <Sidebar isOpen={sidebarOpen} toggleSidebar={handleToggleSidebar} /> 
+      
+      <div className="flex-1 flex flex-col overflow-hidden">
+        {/* 💡 CORREÇÃO: Header usa 'toggleSidebar' */}
+        <Header toggleSidebar={handleToggleSidebar} />
+
 
             <main className="container mx-auto px-4 py-20 relative z-10">
                 <div className="mb-8">
@@ -815,6 +822,7 @@ const RelatorioDetalhado = () => {
                 </Dialog>
                 {/* FIM MODAL DE EDIÇÃO DE STATUS */}
             </main>
+        </div>
         </div>
     );
 };

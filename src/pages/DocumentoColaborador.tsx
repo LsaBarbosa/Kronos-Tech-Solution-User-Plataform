@@ -153,8 +153,8 @@ export default function EnviarDocumentos() {
 
         const response = await fetch(`${API_BASE_URL}employee?active=${activeEmployeeFilter}`, { headers });
         if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.detail ||"Erro ao buscar funcionários.");
+          const errorData = await response.json();
+          throw new Error(errorData.detail || "Erro ao buscar funcionários.");
         }
         const data = await response.json();
         const formattedEmployees: Employee[] = data.employees.map((emp: any) => ({
@@ -319,12 +319,15 @@ export default function EnviarDocumentos() {
     }
   };
 
+  const handleToggleSidebar = () => setSidebarOpen((prev) => !prev);
   return (
-    <div className="min-h-screen bg-background">
-      <Header onMenuClick={() => setSidebarOpen(!sidebarOpen)} />
+    <div className="flex h-screen bg-background">
+      {/* 💡 CORREÇÃO: Sidebar usa 'toggleSidebar' */}
+      <Sidebar isOpen={sidebarOpen} toggleSidebar={handleToggleSidebar} />
 
-      <div className="flex flex-col sm:flex-row min-h-screen">
-        <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+      <div className="flex-1 flex flex-col overflow-hidden">
+        {/* 💡 CORREÇÃO: Header usa 'toggleSidebar' */}
+        <Header toggleSidebar={handleToggleSidebar} />
 
         <main className="flex-1 mobile-container py-4 pt-20 pb-8">
           <div className="max-w-4xl mx-auto">
@@ -451,7 +454,7 @@ export default function EnviarDocumentos() {
                         <SelectValue placeholder="Selecione o tipo" />
                       </SelectTrigger>
                       <SelectContent>
-                      
+
                         <SelectItem value="DOCTOR_APPOINTMENT">Atestado</SelectItem>
                         <SelectItem value="EMPLOYEE_DOCUMENTS">Documentos Pessoais</SelectItem>
                       </SelectContent>

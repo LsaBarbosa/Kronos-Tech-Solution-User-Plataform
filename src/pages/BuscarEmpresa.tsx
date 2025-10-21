@@ -224,11 +224,16 @@ const onSubmitEdit = async (data: any) => {
         setIsSubmitting(false);
     }
 };
-
+ const handleToggleSidebar = () => setSidebarOpen((prev) => !prev); 
   return (
-    <div className="min-h-screen bg-background">
-      <Header onMenuClick={() => setSidebarOpen(!sidebarOpen)} />
-      <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+    <div className="flex h-screen bg-background">
+      {/* 💡 CORREÇÃO: Sidebar usa 'toggleSidebar' */}
+      <Sidebar isOpen={sidebarOpen} toggleSidebar={handleToggleSidebar} /> 
+      
+      <div className="flex-1 flex flex-col overflow-hidden">
+        {/* 💡 CORREÇÃO: Header usa 'toggleSidebar' */}
+        <Header toggleSidebar={handleToggleSidebar} />
+
 
       <main className="pt-16 px-4 md:px-6">
         <div className="max-w-6xl mx-auto py-8">
@@ -561,6 +566,7 @@ const onSubmitEdit = async (data: any) => {
         </DialogContent>
       </Dialog>
 
+    </div>
     </div>
   );
 };

@@ -489,7 +489,8 @@ const ListaColaboradores = () => {
       return { ...prev, [field]: value };
     });
   };
-
+  
+  const handleToggleSidebar = () => setSidebarOpen((prev) => !prev); 
   return (
     <div className="min-h-screen bg-background relative overflow-hidden">
       {/* Animated Background */}
@@ -533,8 +534,14 @@ const ListaColaboradores = () => {
         </div>
       </div>
 
-      <Header onMenuClick={() => setSidebarOpen(!sidebarOpen)} />
-      <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+
+      {/* 💡 CORREÇÃO: Sidebar usa 'toggleSidebar' */}
+      <Sidebar isOpen={sidebarOpen} toggleSidebar={handleToggleSidebar} /> 
+      
+      <div className="flex-1 flex flex-col overflow-hidden">
+        {/* 💡 CORREÇÃO: Header usa 'toggleSidebar' */}
+        <Header toggleSidebar={handleToggleSidebar} />
+
 
       {/* Content */}
       <div className="relative z-10 min-h-screen pt-20 p-6">
@@ -996,6 +1003,7 @@ const ListaColaboradores = () => {
             </div>
           )}
         </div>
+      </div>
       </div>
     </div>
   );

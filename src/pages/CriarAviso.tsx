@@ -217,10 +217,16 @@ const CriarAviso = () => {
   
   const isFormValid = !!tipo && !!title.trim() && !!mensagem.trim();
 
+  const handleToggleSidebar = () => setSidebarOpen((prev) => !prev); 
   return (
-    <div className="min-h-screen bg-gradient-to-br from-background to-secondary/10">
-      <Header onMenuClick={() => setSidebarOpen(true)} />
-      <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+    <div className="flex h-screen bg-background">
+      {/* 💡 CORREÇÃO: Sidebar usa 'toggleSidebar' */}
+      <Sidebar isOpen={sidebarOpen} toggleSidebar={handleToggleSidebar} /> 
+      
+      <div className="flex-1 flex flex-col overflow-hidden">
+        {/* 💡 CORREÇÃO: Header usa 'toggleSidebar' */}
+        <Header toggleSidebar={handleToggleSidebar} />
+
 
       <main className="container mx-auto px-4 pt-20 pb-8">
         <div className="flex items-center gap-4 mb-8">
@@ -415,6 +421,7 @@ const CriarAviso = () => {
           </CardContent>
         </Card>
       </main>
+    </div>
     </div>
   );
 };

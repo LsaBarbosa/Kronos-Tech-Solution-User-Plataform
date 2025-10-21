@@ -42,15 +42,15 @@ const generateCSV = (data: any[], headers: string[], fileName: string) => {
     const csvHeaders = headers.join(';');
 
     // Mapeamento dos dados para as linhas CSV
-    const csvRows = data.map(row => 
+    const csvRows = data.map(row =>
         row.map((item: any) => {
             // Converte o item para string
             let value = String(item);
-            
+
             // Remove quebras de linha e substitui vírgulas por pontos (para valores numéricos/horários)
             // Se o item for um array (deve ser tratado na função chamadora, mas garantindo a sanitização)
             value = value.replace(/\n/g, ' ').replace(/,/g, '.');
-            
+
             // Coloca aspas se o valor contiver o separador (ponto e vírgula)
             return /;/.test(value) ? `"${value.replace(/"/g, '""')}"` : value;
         }).join(';')
@@ -61,14 +61,14 @@ const generateCSV = (data: any[], headers: string[], fileName: string) => {
 
     const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
     const url = URL.createObjectURL(blob);
-    
+
     const link = document.createElement('a');
     link.href = url;
     link.setAttribute('download', fileName);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
-    
+
     // Libera a URL do objeto
     URL.revokeObjectURL(url);
 };
@@ -92,7 +92,7 @@ const RelatorioDetalhado = () => {
     const { toast } = useToast();
     const [managers, setManagers] = useState<Manager[]>([]);
     const [isPartner, setIsPartner] = useState(false);
-    
+
     // REMOVIDO: O estado de pausas aninhadas (editBreaks) não é mais necessário
     // const [editBreaks, setEditBreaks] = useState<BreakEditItem[]>([]); 
 
@@ -422,7 +422,7 @@ const RelatorioDetalhado = () => {
 
             reportData.forEach((item, index) => {
                 const isBreak = item.statusRecord === 'IMPLICIT_BREAK';
-                
+
                 const startDate = parseDate(item.startWork);
                 const endDate = parseDate(item.endWork);
 
@@ -441,7 +441,7 @@ const RelatorioDetalhado = () => {
                     { content: isBreak ? 'N/A' : item.balance, styles: { fillColor: fillColor } },
                     { content: statusLabel, styles: { fillColor: fillColor } }
                 ];
-                
+
                 // Aplica estilos de alinhamento e fonte padrão para a linha
                 tableBody.push(rowCells.map(cell => ({
                     ...cell,
@@ -469,12 +469,12 @@ const RelatorioDetalhado = () => {
             if (tableBody.length > 0) {
                 // Remove a última linha separadora extra se ela foi adicionada no final
                 if (tableBody[tableBody.length - 1][0].styles.fillColor[0] === COLOR_SEPARATOR[0]) {
-                     tableBody.pop();
+                    tableBody.pop();
                 }
             }
 
             autoTable(doc, {
-                head: [['Início (Data/Hora)', 'Fim (Data/Hora)', 'Duração', 'Saldo', 'Status']], 
+                head: [['Início (Data/Hora)', 'Fim (Data/Hora)', 'Duração', 'Saldo', 'Status']],
                 body: tableBody,
                 startY: yPosition,
                 margin: { left: 20, right: 20 },
@@ -499,7 +499,7 @@ const RelatorioDetalhado = () => {
                     if (data.column.index === 3 && data.section === 'body') {
                         const balance = data.cell.text[0];
                         const status = data.row.raw[4].content;
-                        
+
                         // Não aplica cor ao Saldo se for Pausa
                         if (status === getTranslatedStatus('IMPLICIT_BREAK') || balance === 'N/A') {
                             data.cell.styles.textColor = [0, 0, 0]; // Preto
@@ -687,10 +687,10 @@ const RelatorioDetalhado = () => {
             });
             return;
         }
-        
+
         // Define as colunas do CSV (Cabeçalho)
         const csvHeaders = ['Data Início', 'Hora Início', 'Data Fim', 'Hora Fim', 'Duração', 'Saldo', 'Status', 'Funcionário', 'Empresa'];
-        
+
         // Mapeia os dados detalhados para o formato de linhas CSV
         const csvData = reportData.map(item => {
             const statusLabel = getTranslatedStatus(item.statusRecord);
@@ -702,7 +702,7 @@ const RelatorioDetalhado = () => {
                 item.endHour,
                 item.hoursWork,
                 // Garantir que o saldo seja exportado corretamente
-                item.statusRecord === 'IMPLICIT_BREAK' ? 'N/A' : item.balance, 
+                item.statusRecord === 'IMPLICIT_BREAK' ? 'N/A' : item.balance,
                 statusLabel,
                 item.employeeData.employeeName,
                 item.employeeData.companyName,
@@ -710,7 +710,7 @@ const RelatorioDetalhado = () => {
         });
 
         const fileName = `relatorio_detalhado_csv_${format(new Date(), "yyyyMMdd_HHmmss")}.csv`;
-        
+
         generateCSV(csvData, csvHeaders, fileName);
 
         toast({
@@ -734,7 +734,7 @@ const RelatorioDetalhado = () => {
 
         // Define as colunas do CSV (Cabeçalho)
         const csvHeaders = ['Data', 'Total de Horas', 'Saldo do Dia', 'Total Trabalhado Geral', 'Saldo Total Geral'];
-        
+
         // Linhas de totais para inclusão no início do arquivo CSV
         const totalRows = [
             ['TOTAIS:', '', '', reportDataSimple.totalHoursWorked, reportDataSimple.totalBalance],
@@ -744,7 +744,7 @@ const RelatorioDetalhado = () => {
         // Mapeia os dados por dia
         const dayRows = reportDataSimple.days.map(day => {
             // Formatamos as datas (DD/MM/YYYY) e adicionamos o indicador de feriado
-            const parts = day.startDate.split('/'); 
+            const parts = day.startDate.split('/');
             const dayDate = new Date(`${parts[2]}-${parts[1]}-${parts[0]}`);
             const holiday = isHoliday(dayDate) ? ' (Feriado)' : '';
 
@@ -756,11 +756,11 @@ const RelatorioDetalhado = () => {
                 '', // Coluna vazia para alinhar com totais
             ];
         });
-        
+
         const csvData = [...totalRows, ...dayRows];
 
         const fileName = `relatorio_simples_csv_${format(new Date(), "yyyyMMdd_HHmmss")}.csv`;
-        
+
         // Passa as colunas do cabeçalho original para a função gerarCSV
         generateCSV(csvData, csvHeaders, fileName);
 
@@ -807,7 +807,7 @@ const RelatorioDetalhado = () => {
         };
 
         // NOTA: A Lógica de Pausa Aninhada FOI REMOVIDA DESTA FUNÇÃO
-        
+
         form.reset({
             startDate: formatDateToInput(record.startWork),
             endDate: formatDateToInput(record.endWork),
@@ -886,6 +886,7 @@ const RelatorioDetalhado = () => {
         }
     };
 
+    const handleToggleSidebar = () => setSidebarOpen((prev) => !prev);
     return (
         <div className="min-h-screen bg-background relative overflow-hidden">
             {/* Animated Background (Mantido para o layout) */}
@@ -927,81 +928,87 @@ const RelatorioDetalhado = () => {
             </div>
 
 
-            <Header onMenuClick={() => setSidebarOpen(true)} />
-            <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+            {/* 💡 CORREÇÃO: Sidebar usa 'toggleSidebar' */}
+            <Sidebar isOpen={sidebarOpen} toggleSidebar={handleToggleSidebar} />
 
-            <main className="container mx-auto px-4 py-20 relative z-10">
-                <div className="mb-8">
-                    <h1 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-foreground to-primary bg-clip-text text-transparent page-title">
-                        Relatório De Horas
-                    </h1>
-                    <p className="text-muted-foreground">
-                        Gere relatórios detalhados com informações completas de registros de ponto
-                    </p>
-                </div>
+            <div className="flex-1 flex flex-col overflow-hidden">
+                {/* 💡 CORREÇÃO: Header usa 'toggleSidebar' */}
+                <Header toggleSidebar={handleToggleSidebar} />
 
-                <RelatorioFiltros
-                    selectedDates={selectedDates}
-                    setSelectedDates={setSelectedDates}
-                    referenceTime={referenceTime}
-                    setReferenceTime={setReferenceTime}
-                    selectedEmployee={selectedEmployee}
-                    setSelectedEmployee={setSelectedEmployee}
-                    employeeActive={employeeActive}
-                    setEmployeeActive={setEmployeeActive}
-                    isActive={isActive}
-                    setIsActive={setIsActive}
-                    status={status}
-                    setStatus={setStatus}
-                    reportType={reportType}
-                    setReportType={(type) => {
-                        setReportType(type);
-                        setReportData([]);
-                        setReportDataSimple(null);
-                        if (type === "simple") setStatus("");
-                    }}
-                    employees={employees}
-                    isPartner={isPartner}
-                    onSearch={handleSearchClick}
-                    onDownloadPDF={handleDownloadPDF} // Passa o novo router de PDF
-                    onDownloadCSV={handleDownloadCSV} // Passa o novo router de CSV
-                />
 
-                {/* EXIBIÇÃO CONDICIONAL DOS RESULTADOS */}
+                <main className="container mx-auto px-4 py-20 relative z-10">
+                    <div className="mb-8">
+                        <h1 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-foreground to-primary bg-clip-text text-transparent page-title">
+                            Relatório De Horas
+                        </h1>
+                        <p className="text-muted-foreground">
+                            Gere relatórios detalhados com informações completas de registros de ponto
+                        </p>
+                    </div>
 
-                {/* 1. RELATÓRIO DETALHADO */}
-                {(reportType === "detailed" && reportData.length > 0) && (
-                    <ResultadosRelatorioDetalhado
-                        reportData={reportData}
-                        statusFilter={status}
-                        referenceTime={referenceTime}
+                    <RelatorioFiltros
                         selectedDates={selectedDates}
-                        onEditRecord={handleEditRecord}
-                    />
-                )}
-
-                {/* 2. RELATÓRIO SIMPLES */}
-                {(reportType === "simple" && reportDataSimple && reportDataSimple.days.length > 0) && (
-                    <ResultadosRelatorioSimples
-                        reportDataSimple={reportDataSimple}
+                        setSelectedDates={setSelectedDates}
                         referenceTime={referenceTime}
-                        selectedDates={selectedDates}
+                        setReferenceTime={setReferenceTime}
+                        selectedEmployee={selectedEmployee}
+                        setSelectedEmployee={setSelectedEmployee}
+                        employeeActive={employeeActive}
+                        setEmployeeActive={setEmployeeActive}
+                        isActive={isActive}
+                        setIsActive={setIsActive}
+                        status={status}
+                        setStatus={setStatus}
+                        reportType={reportType}
+                        setReportType={(type) => {
+                            setReportType(type);
+                            setReportData([]);
+                            setReportDataSimple(null);
+                            if (type === "simple") setStatus("");
+                        }}
+                        employees={employees}
+                        isPartner={isPartner}
+                        onSearch={handleSearchClick}
+                        onDownloadPDF={handleDownloadPDF} // Passa o novo router de PDF
+                        onDownloadCSV={handleDownloadCSV} // Passa o novo router de CSV
                     />
-                )}
 
-                <Card className="border-l-4 border-l-primary shadow-card">
-                    <RegistroEdicaoModal
-                        isOpen={editModalOpen}
-                        setIsOpen={setEditModalOpen}
-                        managers={managers}
-                        selectedRecord={selectedRecord}
-                      
-                        onSaveRecord={handleSaveRecord}
-                        form={form} // Passa a instância completa do useForm
-                    />
-                </Card>
+                    {/* EXIBIÇÃO CONDICIONAL DOS RESULTADOS */}
 
-            </main>
+                    {/* 1. RELATÓRIO DETALHADO */}
+                    {(reportType === "detailed" && reportData.length > 0) && (
+                        <ResultadosRelatorioDetalhado
+                            reportData={reportData}
+                            statusFilter={status}
+                            referenceTime={referenceTime}
+                            selectedDates={selectedDates}
+                            onEditRecord={handleEditRecord}
+                        />
+                    )}
+
+                    {/* 2. RELATÓRIO SIMPLES */}
+                    {(reportType === "simple" && reportDataSimple && reportDataSimple.days.length > 0) && (
+                        <ResultadosRelatorioSimples
+                            reportDataSimple={reportDataSimple}
+                            referenceTime={referenceTime}
+                            selectedDates={selectedDates}
+                        />
+                    )}
+
+                    <Card className="border-l-4 border-l-primary shadow-card">
+                        <RegistroEdicaoModal
+                            isOpen={editModalOpen}
+                            setIsOpen={setEditModalOpen}
+                            managers={managers}
+                            selectedRecord={selectedRecord}
+
+                            onSaveRecord={handleSaveRecord}
+                            form={form} // Passa a instância completa do useForm
+                        />
+                    </Card>
+
+                </main>
+            </div>
         </div>
     );
 };

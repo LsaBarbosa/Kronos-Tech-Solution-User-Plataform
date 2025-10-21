@@ -348,7 +348,8 @@ const CriarColaborador = () => {
             handleCreateUser(data);
         }
     };
-
+    
+    const handleToggleSidebar = () => setSidebarOpen((prev) => !prev); 
     return (
         <div className="min-h-screen bg-background relative overflow-hidden">
             {/* Animated Background (Mantido) */}
@@ -390,8 +391,13 @@ const CriarColaborador = () => {
                 </div>
             </div>
 
-            <Header onMenuClick={() => setSidebarOpen(!sidebarOpen)} />
-            <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+
+      {/* 💡 CORREÇÃO: Sidebar usa 'toggleSidebar' */}
+      <Sidebar isOpen={sidebarOpen} toggleSidebar={handleToggleSidebar} /> 
+      
+      <div className="flex-1 flex flex-col overflow-hidden">
+        {/* 💡 CORREÇÃO: Header usa 'toggleSidebar' */}
+        <Header toggleSidebar={handleToggleSidebar} />
 
             {/* Content */}
             <div className="relative z-10 min-h-screen flex items-center justify-center p-6 pt-20">
@@ -620,6 +626,7 @@ const CriarColaborador = () => {
                     </Form>
 
 
+                </div>
                 </div>
             </div>
         </div>

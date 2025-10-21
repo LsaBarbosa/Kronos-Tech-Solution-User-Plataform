@@ -122,7 +122,7 @@ const Dashboard = () => {
     fetchPendingApprovals();
     fetchWarnings();
   }, [fetchProfile, fetchPendingApprovals, fetchWarnings]);
-
+  
   // Hook que calcula quais avisos são "novos"
   const newWarnings = useMemo(() => {
     if (!userData || !allCompanyWarnings.length) {
@@ -148,10 +148,10 @@ const Dashboard = () => {
 
   // Função que chama a nova API do backend ao clicar na notificação
  const handleWarningClick = async () => {
-    try {
-      const headers = getAuthHeaders();
-      const response = await fetch(`${API_BASE_URL}employee/mark-messages-seen`, {
-        method: "POST",
+   try {
+     const headers = getAuthHeaders();
+     const response = await fetch(`${API_BASE_URL}employee/mark-messages-seen`, {
+       method: "POST",
         headers,
       });
 
@@ -178,6 +178,7 @@ const Dashboard = () => {
       navigate("/avisos");
     }
   };
+  const handleToggleSidebar = () => setSidebarOpen((prev) => !prev); 
   return (
     <div className="min-h-screen bg-background relative overflow-hidden">
       {/* Animated Background */}
@@ -220,9 +221,14 @@ const Dashboard = () => {
           />
         </div>
       </div>
+ 
+      {/* 💡 CORREÇÃO: Sidebar usa 'toggleSidebar' */}
+      <Sidebar isOpen={sidebarOpen} toggleSidebar={handleToggleSidebar} /> 
       
-      <Header onMenuClick={() => setSidebarOpen(!sidebarOpen)} />
-      <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+      <div className="flex-1 flex flex-col overflow-hidden">
+        {/* 💡 CORREÇÃO: Header usa 'toggleSidebar' */}
+        <Header toggleSidebar={handleToggleSidebar} />
+
 
       <main className="pt-16 px-4 md:px-6 flex items-center justify-center min-h-[calc(100vh-4rem)] relative z-10">
         <div className="max-w-md w-full space-y-6 md:space-y-8 text-center">
@@ -276,6 +282,7 @@ const Dashboard = () => {
           </div>
         </div>
       </main>
+    </div>
     </div>
   );
 };

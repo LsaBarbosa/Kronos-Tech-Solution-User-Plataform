@@ -318,13 +318,16 @@ export default function EnviarDocumentos() {
       fileInputRef.current.value = "";
     }
   };
-
+ const handleToggleSidebar = () => setSidebarOpen((prev) => !prev); 
   return (
-    <div className="min-h-screen bg-background">
-      <Header onMenuClick={() => setSidebarOpen(!sidebarOpen)} />
+    <div className="flex h-screen bg-background">
+      {/* 💡 CORREÇÃO: Sidebar usa 'toggleSidebar' */}
+      <Sidebar isOpen={sidebarOpen} toggleSidebar={handleToggleSidebar} /> 
+      
+      <div className="flex-1 flex flex-col overflow-hidden">
+        {/* 💡 CORREÇÃO: Header usa 'toggleSidebar' */}
+        <Header toggleSidebar={handleToggleSidebar} />
 
-      <div className="flex flex-col sm:flex-row min-h-screen">
-        <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
 
         <main className="flex-1 mobile-container py-4 pt-20 pb-8">
           <div className="max-w-4xl mx-auto">

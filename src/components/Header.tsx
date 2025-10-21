@@ -1,12 +1,16 @@
+// src/components/Header.tsx
+
 import { Menu } from "lucide-react";
 import ThemeToggle from "./ThemeToggle";
 import { Button } from "@/components/ui/button";
 
+// 💡 CORREÇÃO: Interface ajustada para usar 'toggleSidebar'
 interface HeaderProps {
-  onMenuClick: () => void;
+  toggleSidebar: () => void; 
 }
 
-const Header = ({ onMenuClick }: HeaderProps) => {
+// 💡 Propriedade desestruturada ajustada para 'toggleSidebar'
+const Header = ({ toggleSidebar }: HeaderProps) => {
 
   return (
     <header className="fixed top-0 left-0 right-0 z-50 bg-background border-b border-border shadow-sm">
@@ -16,8 +20,8 @@ const Header = ({ onMenuClick }: HeaderProps) => {
           <Button
             variant="ghost"
             size="icon"
-            onClick={onMenuClick}
-            // MODIFICADO: text-primary para destaque fixo + hover e focus temáticos
+            // 💡 Chamada da função de toggle
+            onClick={toggleSidebar} 
             className="text-primary hover:bg-primary/10 hover:text-primary transition-colors focus-visible:ring-primary/20"
           >
             <Menu className="h-6 w-6" />

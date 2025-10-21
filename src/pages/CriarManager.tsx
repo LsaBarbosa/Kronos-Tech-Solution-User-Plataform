@@ -66,7 +66,7 @@ const CriarColaborador = () => {
     // --- ESTADOS PARA EMPRESAS ---
     const [companies, setCompanies] = useState<Company[]>([]);
     const [isFetchingCompanies, setIsFetchingCompanies] = useState(true);
-    
+
     // Estados para controle de fluxo
     const [savedEmployeeId, setSavedEmployeeId] = useState<string | null>(null);
     const [stepCompleted, setStepCompleted] = useState(false);
@@ -74,7 +74,7 @@ const CriarColaborador = () => {
     // Estados para verificação de username
     const [usernameAvailability, setUsernameAvailability] = useState<'available' | 'unavailable' | 'checking' | null>(null);
     const [isCheckingUsername, setIsCheckingUsername] = useState(false);
-    
+
     // --- NOVOS ESTADOS PARA VERIFICAÇÃO DE CPF ---
     const [cpfAvailability, setCpfAvailability] = useState<'available' | 'unavailable' | 'checking' | null>(null);
     const [isCheckingCPF, setIsCheckingCPF] = useState(false);
@@ -116,11 +116,11 @@ const CriarColaborador = () => {
             if (!response.ok) {
                 throw new Error("Falha ao buscar a lista de empresas.");
             }
-            
+
             const data = await response.json();
             // CORREÇÃO: Mapeando 'id' (UUID) da empresa, e não o 'cnpj'.
             setCompanies(data.companies.map((c: any) => ({ companyId: c.id, name: c.name })));
-            
+
         } catch (error) {
             console.error("Erro ao buscar empresas:", error);
             toast({ title: "Erro", description: "Não foi possível carregar a lista de empresas.", variant: "destructive" });
@@ -169,7 +169,7 @@ const CriarColaborador = () => {
         return formattedValue;
     };
     // -----------------------
-    
+
     // --- FUNÇÃO PARA VERIFICAR CPF (NOVA) ---
     const handleCheckCPF = async () => {
         const cpfWithMask = form.getValues('cpf');
@@ -220,6 +220,7 @@ const CriarColaborador = () => {
         }
     };
     // ------------------------------------------
+    const handleToggleSidebar = () => setSidebarOpen((prev) => !prev);
 
     const handleCheckUsername = async () => {
         // Bloqueia se o Passo 1 não estiver completo
@@ -289,7 +290,7 @@ const CriarColaborador = () => {
             setIsSubmitting(false);
             return;
         }
-        
+
         // --- VALIDAÇÃO DE CHECK NO CPF (NOVA) ---
         if (cpfAvailability !== 'available') {
             toast({
@@ -308,7 +309,7 @@ const CriarColaborador = () => {
 
             // Removendo máscaras para envio ao backend
             const employeePayload = {
-                companyId: data.companyId, 
+                companyId: data.companyId,
                 fullName: data.nomeCompleto,
                 cpf: data.cpf.replace(/\D/g, ""),
                 jobPosition: data.cargo,
@@ -490,276 +491,282 @@ const CriarColaborador = () => {
                 </div>
             </div>
 
-            <Header onMenuClick={() => setSidebarOpen(!sidebarOpen)} />
-            <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
 
-            {/* Content */}
-            <div className="relative z-10 min-h-screen flex items-center justify-center p-6 pt-20">
-                <div className="w-full max-w-2xl">
-                    <div className="mb-8 text-center">
-                        <h1 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-foreground to-primary bg-clip-text text-transparent page-title">
-                            Criar Colaborador
-                        </h1>
-                        <p className="text-muted-foreground">
-                            Passo **{stepCompleted ? 2 : 1}** de 2: **{stepCompleted ? "Credenciais de Acesso" : "Dados Pessoais e Profissionais"}**
-                        </p>
-                    </div>
+            {/* 💡 CORREÇÃO: Sidebar usa 'toggleSidebar' */}
+            <Sidebar isOpen={sidebarOpen} toggleSidebar={handleToggleSidebar} />
 
-                    <Form {...form}>
-                        <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+            <div className="flex-1 flex flex-col overflow-hidden">
+                {/* 💡 CORREÇÃO: Header usa 'toggleSidebar' */}
+                <Header toggleSidebar={handleToggleSidebar} />
 
-                            {/* CARD 1: DADOS DO COLABORADOR (PASSO 1) */}
-                            <Card className={`border-l-4 border-l-primary shadow-2xl bg-card/80 backdrop-blur-sm ${stepCompleted ? 'opacity-50 pointer-events-none' : ''}`}>
-                                <CardHeader>
-                                    <div className="flex items-center gap-3">
-                                        <User className="h-6 w-6 text-primary" />
-                                        <div>
-                                            <CardTitle className="text-xl">Dados Pessoais</CardTitle>
-                                            <CardDescription>
-                                                Informações pessoais e profissionais do colaborador
-                                            </CardDescription>
+                {/* Content */}
+                <div className="relative z-10 min-h-screen flex items-center justify-center p-6 pt-20">
+                    <div className="w-full max-w-2xl">
+                        <div className="mb-8 text-center">
+                            <h1 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-foreground to-primary bg-clip-text text-transparent page-title">
+                                Criar Colaborador
+                            </h1>
+                            <p className="text-muted-foreground">
+                                Passo **{stepCompleted ? 2 : 1}** de 2: **{stepCompleted ? "Credenciais de Acesso" : "Dados Pessoais e Profissionais"}**
+                            </p>
+                        </div>
+
+                        <Form {...form}>
+                            <form onSubmit={form.handleSubmit(onSubmit)} className="space-y-6">
+
+                                {/* CARD 1: DADOS DO COLABORADOR (PASSO 1) */}
+                                <Card className={`border-l-4 border-l-primary shadow-2xl bg-card/80 backdrop-blur-sm ${stepCompleted ? 'opacity-50 pointer-events-none' : ''}`}>
+                                    <CardHeader>
+                                        <div className="flex items-center gap-3">
+                                            <User className="h-6 w-6 text-primary" />
+                                            <div>
+                                                <CardTitle className="text-xl">Dados Pessoais</CardTitle>
+                                                <CardDescription>
+                                                    Informações pessoais e profissionais do colaborador
+                                                </CardDescription>
+                                            </div>
                                         </div>
-                                    </div>
-                                </CardHeader>
-                                <CardContent>
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                    </CardHeader>
+                                    <CardContent>
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
 
-                                        {/* CAMPO: SELEÇÃO DE EMPRESA */}
-                                        <FormField
-                                            control={form.control}
-                                            name="companyId"
-                                            render={({ field }) => (
+                                            {/* CAMPO: SELEÇÃO DE EMPRESA */}
+                                            <FormField
+                                                control={form.control}
+                                                name="companyId"
+                                                render={({ field }) => (
+                                                    <FormItem className="md:col-span-2">
+                                                        <FormLabel className="text-base font-semibold flex items-center gap-2">
+                                                            <Building2 className="h-4 w-4" /> Empresa
+                                                        </FormLabel>
+                                                        <Select
+                                                            onValueChange={field.onChange}
+                                                            value={field.value}
+                                                            disabled={isFetchingCompanies || companies.length === 0}
+                                                        >
+                                                            <FormControl>
+                                                                <SelectTrigger className="h-12 text-base">
+                                                                    <SelectValue
+                                                                        placeholder={isFetchingCompanies ? "Carregando empresas..." : "Selecione a empresa"}
+                                                                    />
+                                                                </SelectTrigger>
+                                                            </FormControl>
+                                                            <SelectContent>
+                                                                {companies.map((company) => (
+                                                                    <SelectItem key={company.companyId} value={company.companyId}>
+                                                                        {company.name}
+                                                                    </SelectItem>
+                                                                ))}
+                                                            </SelectContent>
+                                                        </Select>
+                                                        <FormMessage />
+                                                    </FormItem>
+                                                )}
+                                            />
+
+                                            <FormField control={form.control} name="nomeCompleto" render={({ field }) => (
                                                 <FormItem className="md:col-span-2">
-                                                    <FormLabel className="text-base font-semibold flex items-center gap-2">
-                                                        <Building2 className="h-4 w-4" /> Empresa
-                                                    </FormLabel>
-                                                    <Select
-                                                        onValueChange={field.onChange}
-                                                        value={field.value}
-                                                        disabled={isFetchingCompanies || companies.length === 0}
-                                                    >
+                                                    <FormLabel className="text-base font-semibold">Nome Completo</FormLabel>
+                                                    <FormControl><Input placeholder="Digite o nome completo" className="h-12 text-base" {...field} /></FormControl>
+                                                    <FormMessage />
+                                                </FormItem>
+                                            )} />
+
+                                            {/* CAMPO: CPF COM VERIFICAÇÃO */}
+                                            <FormField control={form.control} name="cpf" render={({ field }) => (
+                                                <FormItem>
+                                                    <FormLabel className="text-base font-semibold">CPF</FormLabel>
+                                                    <div className="flex space-x-2">
+                                                        <FormControl>
+                                                            <Input
+                                                                placeholder="000.000.000-00"
+                                                                className="h-12 text-base"
+                                                                {...field}
+                                                                onChange={(e) => {
+                                                                    field.onChange(maskCPF(e.target.value));
+                                                                    setCpfAvailability(null); // Resetar status ao digitar
+                                                                }}
+                                                                maxLength={14}
+                                                            />
+                                                        </FormControl>
+                                                        <Button
+                                                            type="button"
+                                                            onClick={handleCheckCPF}
+                                                            disabled={isCheckingCPF || field.value.length < 14}
+                                                            className="touch-target w-auto h-12"
+                                                        >
+                                                            {isCheckingCPF ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Verificar'}
+                                                        </Button>
+                                                    </div>
+                                                    <FormMessage>
+                                                        {cpfAvailability === 'unavailable' && 'CPF já existe no sistema.'}
+                                                        {cpfAvailability === 'available' && <span className="text-green-500">CPF disponível para cadastro.</span>}
+                                                    </FormMessage>
+                                                </FormItem>
+                                            )} />
+                                            {/* FIM: CPF COM VERIFICAÇÃO */}
+
+                                            <FormField control={form.control} name="cargo" render={({ field }) => (
+                                                <FormItem>
+                                                    <FormLabel className="text-base font-semibold">Cargo</FormLabel>
+                                                    <FormControl><Input placeholder="Ex: Padeiro, Atendente" className="h-12 text-base" {...field} /></FormControl>
+                                                    <FormMessage />
+                                                </FormItem>
+                                            )} />
+
+                                            <FormField control={form.control} name="email" render={({ field }) => (
+                                                <FormItem>
+                                                    <FormLabel className="text-base font-semibold">Email</FormLabel>
+                                                    <FormControl><Input type="email" placeholder="email@exemplo.com" className="h-12 text-base" {...field} /></FormControl>
+                                                    <FormMessage />
+                                                </FormItem>
+                                            )} />
+
+                                            <FormField control={form.control} name="salario" render={({ field }) => (
+                                                <FormItem>
+                                                    <FormLabel className="text-base font-semibold">Salário</FormLabel>
+                                                    <FormControl><Input placeholder="R$ 0,00" className="h-12 text-base" {...field} onChange={(e) => field.onChange(maskCurrency(e.target.value))} /></FormControl>
+                                                    <FormMessage />
+                                                </FormItem>
+                                            )} />
+
+                                            <FormField control={form.control} name="telefone" render={({ field }) => (
+                                                <FormItem>
+                                                    <FormLabel className="text-base font-semibold">Telefone</FormLabel>
+                                                    <FormControl><Input placeholder="(00) 00000-0000" className="h-12 text-base" {...field} onChange={(e) => field.onChange(maskPhone(e.target.value))} maxLength={15} /></FormControl>
+                                                    <FormMessage />
+                                                </FormItem>
+                                            )} />
+                                        </div>
+                                        <div className="grid grid-cols-2 gap-6 pt-6">
+                                            <FormField control={form.control} name="cep" render={({ field }) => (
+                                                <FormItem>
+                                                    <FormLabel className="text-base font-semibold flex items-center gap-2"><MapPin className="h-4 w-4" /> CEP</FormLabel>
+                                                    <FormControl><Input placeholder="00000-000" className="h-12 text-base" {...field} onChange={(e) => field.onChange(maskCEP(e.target.value))} maxLength={9} /></FormControl>
+                                                    <FormMessage />
+                                                </FormItem>
+                                            )} />
+
+                                            <FormField control={form.control} name="numero" render={({ field }) => (
+                                                <FormItem>
+                                                    <FormLabel className="text-base font-semibold">Número</FormLabel>
+                                                    <FormControl><Input placeholder="Ex: 123, 45A" className="h-12 text-base" {...field} /></FormControl>
+                                                    <FormMessage />
+                                                </FormItem>
+                                            )} />
+                                        </div>
+
+                                        {/* Botão de Submissão do Passo 1 */}
+                                        {!stepCompleted && (
+                                            <Button
+                                                type="submit"
+                                                variant="default"
+                                                size="lg"
+                                                className="w-full h-14 text-lg font-semibold mt-6 shadow-md"
+                                                // Desabilita se estiver submetendo ou se ainda estiver buscando as empresas
+                                                disabled={isSubmitting || isFetchingCompanies}
+                                            >
+                                                {isSubmitting ? <Loader2 className="h-6 w-6 animate-spin mr-2" /> : "Salvar Dados e Continuar"}
+                                            </Button>
+                                        )}
+                                        {stepCompleted && (
+                                            <div className="w-full flex items-center justify-center p-3 bg-green-500/10 text-green-600 rounded-lg mt-6 border border-green-500">
+                                                <CheckCircle className="h-5 w-5 mr-2" />
+                                                <span>Passo 1 Concluído! Prossiga abaixo.</span>
+                                            </div>
+                                        )}
+                                    </CardContent>
+                                </Card>
+
+                                {/* CARD 2: DADOS DO USUÁRIO (PASSO 2 - BLOQUEADO) */}
+                                <Card className={`border-l-4 border-l-secondary shadow-2xl bg-card/80 backdrop-blur-sm ${!stepCompleted ? 'opacity-50 pointer-events-none' : ''}`}>
+                                    <CardHeader>
+                                        <div className="flex items-center gap-3">
+                                            <Shield className="h-6 w-6 text-secondary" />
+                                            <div>
+                                                <CardTitle className="text-xl">Credenciais de Acesso</CardTitle>
+                                                <CardDescription>
+                                                    Defina o nome de usuário e a senha de acesso ao sistema
+                                                </CardDescription>
+                                            </div>
+                                        </div>
+                                    </CardHeader>
+                                    <CardContent>
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+
+                                            <FormField control={form.control} name="username" render={({ field }) => (
+                                                <FormItem>
+                                                    <FormLabel className="text-base font-semibold flex items-center">Nome de Usuário</FormLabel>
+                                                    <div className="flex space-x-2">
+                                                        <FormControl><Input placeholder="Digite o nome de usuário" className="h-12 text-base" {...field} onChange={(e) => { field.onChange(e); setUsernameAvailability(null); }} /></FormControl>
+
+                                                        {/* BLOQUEIO DO BOTÃO DE VERIFICAR */}
+                                                        <Button
+                                                            type="button"
+                                                            onClick={handleCheckUsername}
+                                                            disabled={isCheckingUsername || field.value.length < 4 || !stepCompleted}
+                                                            className="touch-target w-auto h-12"
+                                                        >
+                                                            {isCheckingUsername ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Verificar'}
+                                                        </Button>
+                                                    </div>
+                                                    <FormMessage>
+                                                        {usernameAvailability === 'unavailable' && 'Nome de usuário já existe.'}
+                                                        {usernameAvailability === 'available' && <span className="text-green-500">Nome de usuário disponível.</span>}
+                                                    </FormMessage>
+                                                </FormItem>
+                                            )} />
+
+                                            <FormField control={form.control} name="password" render={({ field }) => (
+                                                <FormItem>
+                                                    <FormLabel className="text-base font-semibold">Senha</FormLabel>
+                                                    <FormControl><Input type="password" placeholder="Digite a senha" className="h-12 text-base" {...field} /></FormControl>
+                                                    <FormMessage />
+                                                </FormItem>
+                                            )} />
+
+                                            <FormField control={form.control} name="role" render={({ field }) => (
+                                                <FormItem className="md:col-span-2">
+                                                    <FormLabel className="text-base font-semibold">Perfil</FormLabel>
+                                                    <Select onValueChange={field.onChange} defaultValue={field.value} disabled={!stepCompleted}>
                                                         <FormControl>
                                                             <SelectTrigger className="h-12 text-base">
-                                                                <SelectValue
-                                                                    placeholder={isFetchingCompanies ? "Carregando empresas..." : "Selecione a empresa"}
-                                                                />
+                                                                <SelectValue placeholder="Selecione o perfil" />
                                                             </SelectTrigger>
                                                         </FormControl>
                                                         <SelectContent>
-                                                            {companies.map((company) => (
-                                                                <SelectItem key={company.companyId} value={company.companyId}>
-                                                                    {company.name}
-                                                                </SelectItem>
-                                                            ))}
+                                                            <SelectItem value="PARTNER">Colaborador (Acesso Padrão)</SelectItem>
+                                                            <SelectItem value="MANAGER">Administrador (Acesso Total)</SelectItem>
                                                         </SelectContent>
                                                     </Select>
                                                     <FormMessage />
                                                 </FormItem>
-                                            )}
-                                        />
-
-                                        <FormField control={form.control} name="nomeCompleto" render={({ field }) => (
-                                            <FormItem className="md:col-span-2">
-                                                <FormLabel className="text-base font-semibold">Nome Completo</FormLabel>
-                                                <FormControl><Input placeholder="Digite o nome completo" className="h-12 text-base" {...field} /></FormControl>
-                                                <FormMessage />
-                                            </FormItem>
-                                        )} />
-                                        
-                                        {/* CAMPO: CPF COM VERIFICAÇÃO */}
-                                        <FormField control={form.control} name="cpf" render={({ field }) => (
-                                            <FormItem>
-                                                <FormLabel className="text-base font-semibold">CPF</FormLabel>
-                                                <div className="flex space-x-2">
-                                                    <FormControl>
-                                                        <Input
-                                                            placeholder="000.000.000-00"
-                                                            className="h-12 text-base"
-                                                            {...field}
-                                                            onChange={(e) => {
-                                                                field.onChange(maskCPF(e.target.value));
-                                                                setCpfAvailability(null); // Resetar status ao digitar
-                                                            }}
-                                                            maxLength={14}
-                                                        />
-                                                    </FormControl>
-                                                    <Button
-                                                        type="button"
-                                                        onClick={handleCheckCPF}
-                                                        disabled={isCheckingCPF || field.value.length < 14}
-                                                        className="touch-target w-auto h-12"
-                                                    >
-                                                        {isCheckingCPF ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Verificar'}
-                                                    </Button>
-                                                </div>
-                                                <FormMessage>
-                                                    {cpfAvailability === 'unavailable' && 'CPF já existe no sistema.'}
-                                                    {cpfAvailability === 'available' && <span className="text-green-500">CPF disponível para cadastro.</span>}
-                                                </FormMessage>
-                                            </FormItem>
-                                        )} />
-                                        {/* FIM: CPF COM VERIFICAÇÃO */}
-
-                                        <FormField control={form.control} name="cargo" render={({ field }) => (
-                                            <FormItem>
-                                                <FormLabel className="text-base font-semibold">Cargo</FormLabel>
-                                                <FormControl><Input placeholder="Ex: Padeiro, Atendente" className="h-12 text-base" {...field} /></FormControl>
-                                                <FormMessage />
-                                            </FormItem>
-                                        )} />
-
-                                        <FormField control={form.control} name="email" render={({ field }) => (
-                                            <FormItem>
-                                                <FormLabel className="text-base font-semibold">Email</FormLabel>
-                                                <FormControl><Input type="email" placeholder="email@exemplo.com" className="h-12 text-base" {...field} /></FormControl>
-                                                <FormMessage />
-                                            </FormItem>
-                                        )} />
-
-                                        <FormField control={form.control} name="salario" render={({ field }) => (
-                                            <FormItem>
-                                                <FormLabel className="text-base font-semibold">Salário</FormLabel>
-                                                <FormControl><Input placeholder="R$ 0,00" className="h-12 text-base" {...field} onChange={(e) => field.onChange(maskCurrency(e.target.value))} /></FormControl>
-                                                <FormMessage />
-                                            </FormItem>
-                                        )} />
-
-                                        <FormField control={form.control} name="telefone" render={({ field }) => (
-                                            <FormItem>
-                                                <FormLabel className="text-base font-semibold">Telefone</FormLabel>
-                                                <FormControl><Input placeholder="(00) 00000-0000" className="h-12 text-base" {...field} onChange={(e) => field.onChange(maskPhone(e.target.value))} maxLength={15} /></FormControl>
-                                                <FormMessage />
-                                            </FormItem>
-                                        )} />
-                                    </div>
-                                    <div className="grid grid-cols-2 gap-6 pt-6">
-                                        <FormField control={form.control} name="cep" render={({ field }) => (
-                                            <FormItem>
-                                                <FormLabel className="text-base font-semibold flex items-center gap-2"><MapPin className="h-4 w-4" /> CEP</FormLabel>
-                                                <FormControl><Input placeholder="00000-000" className="h-12 text-base" {...field} onChange={(e) => field.onChange(maskCEP(e.target.value))} maxLength={9} /></FormControl>
-                                                <FormMessage />
-                                            </FormItem>
-                                        )} />
-
-                                        <FormField control={form.control} name="numero" render={({ field }) => (
-                                            <FormItem>
-                                                <FormLabel className="text-base font-semibold">Número</FormLabel>
-                                                <FormControl><Input placeholder="Ex: 123, 45A" className="h-12 text-base" {...field} /></FormControl>
-                                                <FormMessage />
-                                            </FormItem>
-                                        )} />
-                                    </div>
-
-                                    {/* Botão de Submissão do Passo 1 */}
-                                    {!stepCompleted && (
-                                        <Button
-                                            type="submit"
-                                            variant="default"
-                                            size="lg"
-                                            className="w-full h-14 text-lg font-semibold mt-6 shadow-md"
-                                            // Desabilita se estiver submetendo ou se ainda estiver buscando as empresas
-                                            disabled={isSubmitting || isFetchingCompanies}
-                                        >
-                                            {isSubmitting ? <Loader2 className="h-6 w-6 animate-spin mr-2" /> : "Salvar Dados e Continuar"}
-                                        </Button>
-                                    )}
-                                    {stepCompleted && (
-                                        <div className="w-full flex items-center justify-center p-3 bg-green-500/10 text-green-600 rounded-lg mt-6 border border-green-500">
-                                            <CheckCircle className="h-5 w-5 mr-2" />
-                                            <span>Passo 1 Concluído! Prossiga abaixo.</span>
+                                            )} />
                                         </div>
-                                    )}
-                                </CardContent>
-                            </Card>
 
-                            {/* CARD 2: DADOS DO USUÁRIO (PASSO 2 - BLOQUEADO) */}
-                            <Card className={`border-l-4 border-l-secondary shadow-2xl bg-card/80 backdrop-blur-sm ${!stepCompleted ? 'opacity-50 pointer-events-none' : ''}`}>
-                                <CardHeader>
-                                    <div className="flex items-center gap-3">
-                                        <Shield className="h-6 w-6 text-secondary" />
-                                        <div>
-                                            <CardTitle className="text-xl">Credenciais de Acesso</CardTitle>
-                                            <CardDescription>
-                                                Defina o nome de usuário e a senha de acesso ao sistema
-                                            </CardDescription>
-                                        </div>
-                                    </div>
-                                </CardHeader>
-                                <CardContent>
-                                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                        {/* Botão de Submissão do Passo 2 (Final) */}
+                                        {stepCompleted && (
+                                            <div className="pt-6">
+                                                <Button
+                                                    type="submit"
+                                                    variant="login"
+                                                    size="lg"
+                                                    className="w-full h-14 text-lg font-semibold shadow-button hover:shadow-xl transition-all duration-300 hover:scale-[1.02]"
+                                                    // Botão Final exige submissão, checagem de username e validação de password.
+                                                    disabled={isSubmitting || usernameAvailability !== 'available'}
+                                                >
+                                                    {isSubmitting ? <Loader2 className="h-6 w-6 animate-spin mr-2" /> : "Concluir Cadastro"}
+                                                </Button>
+                                            </div>
+                                        )}
+                                    </CardContent>
+                                </Card>
 
-                                        <FormField control={form.control} name="username" render={({ field }) => (
-                                            <FormItem>
-                                                <FormLabel className="text-base font-semibold flex items-center">Nome de Usuário</FormLabel>
-                                                <div className="flex space-x-2">
-                                                    <FormControl><Input placeholder="Digite o nome de usuário" className="h-12 text-base" {...field} onChange={(e) => { field.onChange(e); setUsernameAvailability(null); }} /></FormControl>
-
-                                                    {/* BLOQUEIO DO BOTÃO DE VERIFICAR */}
-                                                    <Button
-                                                        type="button"
-                                                        onClick={handleCheckUsername}
-                                                        disabled={isCheckingUsername || field.value.length < 4 || !stepCompleted}
-                                                        className="touch-target w-auto h-12"
-                                                    >
-                                                        {isCheckingUsername ? <Loader2 className="h-4 w-4 animate-spin" /> : 'Verificar'}
-                                                    </Button>
-                                                </div>
-                                                <FormMessage>
-                                                    {usernameAvailability === 'unavailable' && 'Nome de usuário já existe.'}
-                                                    {usernameAvailability === 'available' && <span className="text-green-500">Nome de usuário disponível.</span>}
-                                                </FormMessage>
-                                            </FormItem>
-                                        )} />
-
-                                        <FormField control={form.control} name="password" render={({ field }) => (
-                                            <FormItem>
-                                                <FormLabel className="text-base font-semibold">Senha</FormLabel>
-                                                <FormControl><Input type="password" placeholder="Digite a senha" className="h-12 text-base" {...field} /></FormControl>
-                                                <FormMessage />
-                                            </FormItem>
-                                        )} />
-
-                                        <FormField control={form.control} name="role" render={({ field }) => (
-                                            <FormItem className="md:col-span-2">
-                                                <FormLabel className="text-base font-semibold">Perfil</FormLabel>
-                                                <Select onValueChange={field.onChange} defaultValue={field.value} disabled={!stepCompleted}>
-                                                    <FormControl>
-                                                        <SelectTrigger className="h-12 text-base">
-                                                            <SelectValue placeholder="Selecione o perfil" />
-                                                        </SelectTrigger>
-                                                    </FormControl>
-                                                    <SelectContent>
-                                                        <SelectItem value="PARTNER">Colaborador (Acesso Padrão)</SelectItem>
-                                                        <SelectItem value="MANAGER">Administrador (Acesso Total)</SelectItem>
-                                                    </SelectContent>
-                                                </Select>
-                                                <FormMessage />
-                                            </FormItem>
-                                        )} />
-                                    </div>
-
-                                    {/* Botão de Submissão do Passo 2 (Final) */}
-                                    {stepCompleted && (
-                                        <div className="pt-6">
-                                            <Button
-                                                type="submit"
-                                                variant="login"
-                                                size="lg"
-                                                className="w-full h-14 text-lg font-semibold shadow-button hover:shadow-xl transition-all duration-300 hover:scale-[1.02]"
-                                                // Botão Final exige submissão, checagem de username e validação de password.
-                                                disabled={isSubmitting || usernameAvailability !== 'available'}
-                                            >
-                                                {isSubmitting ? <Loader2 className="h-6 w-6 animate-spin mr-2" /> : "Concluir Cadastro"}
-                                            </Button>
-                                        </div>
-                                    )}
-                                </CardContent>
-                            </Card>
-
-                        </form>
-                    </Form>
+                            </form>
+                        </Form>
 
 
+                    </div>
                 </div>
             </div>
         </div>

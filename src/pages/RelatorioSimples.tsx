@@ -226,7 +226,7 @@ const RelatorioSimples = () => {
         body: JSON.stringify(requestBody), // Mantenha o corpo da requisição
       });
 
-      if (!response.ok){
+      if (!response.ok) {
         const errorData = await response.json();
         throw new Error(errorData.detail || "Erro ao buscar o relatório. Tente novamente mais tarde.");
       }
@@ -389,6 +389,7 @@ const RelatorioSimples = () => {
   const clearAllDates = () => {
     setSelectedDates([]);
   };
+  const handleToggleSidebar = () => setSidebarOpen((prev) => !prev);
 
   return (
     <div className="min-h-screen bg-background relative overflow-hidden">
@@ -433,362 +434,368 @@ const RelatorioSimples = () => {
         </div>
       </div>
 
-      <Header onMenuClick={() => setSidebarOpen(!sidebarOpen)} />
-      <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+      {/* 💡 CORREÇÃO: Sidebar usa 'toggleSidebar' */}
+      <Sidebar isOpen={sidebarOpen} toggleSidebar={handleToggleSidebar} />
 
-      <main className="pt-16 px-6 py-8 relative z-10">
-        <div className="max-w-4xl mx-auto">
-          <div className="text-center mb-8">
-            <h1 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-foreground to-primary bg-clip-text text-transparent page-title">
-              Relatório Simples
-            </h1>
-            <p className="text-muted-foreground">
-              Selecione o período para gerar seu relatório
-            </p>
-          </div>
-          <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            {/* Calendário */}
+      <div className="flex-1 flex flex-col overflow-hidden">
+        {/* 💡 CORREÇÃO: Header usa 'toggleSidebar' */}
+        <Header toggleSidebar={handleToggleSidebar} />
 
-            <div className="flex flex-col items-center space-y-4">
-              <div className="text-center">
-                <h2 className="text-xl font-semibold text-foreground mb-1">
-                  Selecionar Período
-                </h2>
-                <p className="text-sm text-muted-foreground">
-                  Escolha as datas para o relatório
-                </p>
-              </div>
-              <Card className="border-l-4 border-l-primary shadow-card">
-                <Calendar
-                  mode="multiple"
-                  selected={selectedDates}
-                  onSelect={setSelectedDates}
-                  numberOfMonths={1}
-                  locale={ptBR}
-                  className="rounded-lg border border-border bg-card shadow-lg pointer-events-auto p-4"
-                  modifiers={{
-                    holiday: holidays,
-                    selected: selectedDates
-                  }}
-                  modifiersStyles={{
-                    holiday: {
-                      color: 'hsl(var(--calendar-selected))',
-                      fontWeight: 'bold',
-                      textDecoration: 'underline'
-                    },
-                    selected: {
-                      backgroundColor: 'hsl(var(--calendar-selected))',
-                      color: 'hsl(var(--calendar-selected-foreground))',
-                      fontWeight: 'bold',
-                      borderRadius: '50%'
-                    }
-                  }}
-                  disabled={(date) => date > new Date()}
-                />
-              </Card>
+
+        <main className="pt-16 px-6 py-8 relative z-10">
+          <div className="max-w-4xl mx-auto">
+            <div className="text-center mb-8">
+              <h1 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-foreground to-primary bg-clip-text text-transparent page-title">
+                Relatório Simples
+              </h1>
+              <p className="text-muted-foreground">
+                Selecione o período para gerar seu relatório
+              </p>
             </div>
+            <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+              {/* Calendário */}
 
-            {/* Datas Selecionadas */}
-            <Card className="shadow-card border-2 border-primary/20 bg-gradient-to-br from-card via-card to-primary/5">
-              <CardHeader className="bg-gradient-to-r from-primary/10 via-primary/5 to-transparent pb-4">
-                <div className="flex items-center justify-between">
-                  <div>
-                    <CardTitle className="text-xl text-foreground flex items-center gap-2">
-                      <div className="w-2 h-2 rounded-full bg-primary animate-pulse"></div>
-                      Datas Selecionadas
-                    </CardTitle>
-                    <CardDescription className="text-muted-foreground">
-                      Confirme as datas antes de gerar o relatório
-                    </CardDescription>
-                  </div>
-                  {selectedDates.length > 0 && (
-                    <Button
-                      variant="ghost"
-                      size="sm"
-                      onClick={clearAllDates}
-                      className="text-muted-foreground hover:text-foreground hover:bg-primary/10"
-                    >
-                      Limpar todas
-                    </Button>
-                  )}
+              <div className="flex flex-col items-center space-y-4">
+                <div className="text-center">
+                  <h2 className="text-xl font-semibold text-foreground mb-1">
+                    Selecionar Período
+                  </h2>
+                  <p className="text-sm text-muted-foreground">
+                    Escolha as datas para o relatório
+                  </p>
                 </div>
-              </CardHeader>
+                <Card className="border-l-4 border-l-primary shadow-card">
+                  <Calendar
+                    mode="multiple"
+                    selected={selectedDates}
+                    onSelect={setSelectedDates}
+                    numberOfMonths={1}
+                    locale={ptBR}
+                    className="rounded-lg border border-border bg-card shadow-lg pointer-events-auto p-4"
+                    modifiers={{
+                      holiday: holidays,
+                      selected: selectedDates
+                    }}
+                    modifiersStyles={{
+                      holiday: {
+                        color: 'hsl(var(--calendar-selected))',
+                        fontWeight: 'bold',
+                        textDecoration: 'underline'
+                      },
+                      selected: {
+                        backgroundColor: 'hsl(var(--calendar-selected))',
+                        color: 'hsl(var(--calendar-selected-foreground))',
+                        fontWeight: 'bold',
+                        borderRadius: '50%'
+                      }
+                    }}
+                    disabled={(date) => date > new Date()}
+                  />
+                </Card>
+              </div>
 
-              <CardContent className="space-y-6">
-                <div className="space-y-4">
-                  <div className="p-4 bg-gradient-to-br from-primary/5 to-secondary/5 rounded-lg border border-primary/20 backdrop-blur-sm">
-                    <div className="flex items-center justify-between mb-4">
-                      <p className="text-sm text-muted-foreground flex items-center gap-2">
-                        <div className="w-1.5 h-1.5 rounded-full bg-primary"></div>
-                        Datas selecionadas:
-                      </p>
-                      <span className="text-sm font-semibold text-primary bg-primary/10 px-2 py-1 rounded-full">
-                        {selectedDates.length} {selectedDates.length === 1 ? 'data' : 'datas'}
-                      </span>
+              {/* Datas Selecionadas */}
+              <Card className="shadow-card border-2 border-primary/20 bg-gradient-to-br from-card via-card to-primary/5">
+                <CardHeader className="bg-gradient-to-r from-primary/10 via-primary/5 to-transparent pb-4">
+                  <div className="flex items-center justify-between">
+                    <div>
+                      <CardTitle className="text-xl text-foreground flex items-center gap-2">
+                        <div className="w-2 h-2 rounded-full bg-primary animate-pulse"></div>
+                        Datas Selecionadas
+                      </CardTitle>
+                      <CardDescription className="text-muted-foreground">
+                        Confirme as datas antes de gerar o relatório
+                      </CardDescription>
                     </div>
-
-                    {selectedDates.length === 0 ? (
-                      <div className="text-center py-6">
-                        <div className="w-12 h-12 mx-auto mb-3 rounded-full bg-primary/10 flex items-center justify-center">
-                          <div className="w-6 h-6 rounded-full border-2 border-primary/30"></div>
-                        </div>
-                        <p className="text-muted-foreground italic">Nenhuma data selecionada</p>
-                      </div>
-                    ) : (
-                      <div className="space-y-2 max-h-40 overflow-y-auto">
-                        {selectedDates
-                          .sort((a, b) => a.getTime() - b.getTime())
-                          .map((date, index) => (
-                            <div key={index} className="flex items-center justify-between bg-gradient-to-r from-primary/10 to-secondary/10 p-3 rounded-lg border border-primary/20 hover:from-primary/15 hover:to-secondary/15 transition-all duration-200">
-                              <span className="font-semibold text-foreground flex items-center gap-2">
-                                <div className="w-2 h-2 rounded-full bg-primary"></div>
-                                {format(date, "dd/MM/yyyy", { locale: ptBR })}
-                              </span>
-                              <Button
-                                variant="ghost"
-                                size="sm"
-                                onClick={() => removeDateSelection(date)}
-                                className="h-7 w-7 p-0 hover:bg-destructive/20 hover:text-destructive rounded-full"
-                              >
-                                <X className="h-3 w-3" />
-                              </Button>
-                            </div>
-                          ))}
-                      </div>
+                    {selectedDates.length > 0 && (
+                      <Button
+                        variant="ghost"
+                        size="sm"
+                        onClick={clearAllDates}
+                        className="text-muted-foreground hover:text-foreground hover:bg-primary/10"
+                      >
+                        Limpar todas
+                      </Button>
                     )}
                   </div>
-
-                  <div className="p-4 bg-primary/5 rounded-lg border border-primary/20">
-                    <p className="text-sm text-primary mb-1">💡 Dica de uso:</p>
-                    <p className="text-xs text-gray-text">
-                      1. Os feriados nacionais brasileiros estão destacados sublinhado.
-                    </p>
-                    <br />
-                    <p className="text-xs text-gray-text">
-                      2. O Relatório Simples não filtra os regitros por status, apenas retorna todos os registros do dia selecionado.
-                    </p>
-                    <br />
-                    <p className="text-xs text-gray-text">
-                      3. Ao gerar o relatório, todos os registros do dia selecionado são simplificados,
-                      retornando: <br/> - Total de horas trabalhadas. <br/> - Saldo de horas baseado na carga horária de trabalho.
-                    </p>
-                    <br />
-                  </div>
-                </div>
-
-                {/* Campo de Referência */}
-                <div className="space-y-3 pt-4 border-t border-gray-border">
-                  <div className="space-y-2">
-                    <Label htmlFor="reference-time" className="text-sm font-medium text-foreground">
-                      Carga Horária diária
-                    </Label>
-                    <Input
-                      id="reference-time"
-                      type="time"
-                      value={referenceTime}
-                      onChange={(e) => setReferenceTime(e.target.value)}
-                      className="border-gray-border focus:border-primary focus:ring-primary/20"
-                    />
-                    <p className="text-xs text-gray-text mt-1">
-                      Horário de referência para cálculo do relatório
-                    </p>
-                  </div>
-
-                  {/* Seleção de Funcionário */}
-                  <div className="space-y-2">
-                    <Label className="text-sm font-medium text-foreground">
-                      Funcionário
-                    </Label>
-                    <Select value={selectedEmployee} onValueChange={setSelectedEmployee} disabled={isPartner}>
-                      <SelectTrigger className="border-gray-border focus:border-primary focus:ring-primary/20">
-                        <SelectValue placeholder="Selecione um funcionário" />
-                      </SelectTrigger>
-                      <SelectContent>
-                        {employees.map((employee) => (
-                          <SelectItem key={employee.employeeId} value={employee.employeeId}>
-                            {employee.fullName}
-                          </SelectItem>
-                        ))}
-                      </SelectContent>
-                    </Select>
-                  </div>
-
-                  {/* Status Funcionário */}
-                  <div className="space-y-2">
-                    <Label className="text-sm font-medium text-foreground">
-                      Status do Funcionário
-                    </Label>
-                    <RadioGroup value={employeeActive} onValueChange={setEmployeeActive}>
-                      <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="active" id="employee-active" />
-                        <Label htmlFor="employee-active" className="text-sm cursor-pointer">
-                          Ativo
-                        </Label>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="inactive" id="employee-inactive" />
-                        <Label htmlFor="employee-inactive" className="text-sm cursor-pointer">
-                          Inativo
-                        </Label>
-                      </div>
-                    </RadioGroup>
-                  </div>
-
-                  {/* Status Registro */}
-                  <div className="space-y-2">
-                    <Label className="text-sm font-medium text-foreground">
-                      Status do Registro
-                    </Label>
-                    <RadioGroup value={active} onValueChange={setRecordActive}>
-                      <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="active" id="record-active" />
-                        <Label htmlFor="record-active" className="text-sm cursor-pointer">
-                          Ativo
-                        </Label>
-                      </div>
-                      <div className="flex items-center space-x-2">
-                        <RadioGroupItem value="inactive" id="record-inactive" />
-                        <Label htmlFor="record-inactive" className="text-sm cursor-pointer">
-                          Inativo
-                        </Label>
-                      </div>
-                    </RadioGroup>
-                  </div>
-                </div>
-
-                {/* Botões de Ação */}
-                <div className="space-y-3 pt-4">{/* MODIFIED: Removed the top border, now the Referência field has it */}
-                  <Button
-                    onClick={handleSearch}
-                    size="lg"
-                    className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-semibold shadow-button transition-smooth"
-                  >
-                    <Search className="mr-2 h-5 w-5" />
-                    Buscar
-                  </Button>
-
-                  <Button
-                    onClick={handleDownload}
-                    size="lg"
-                    variant="outline" // Assuming a variant exists for download button
-                    className="w-full border-2 border-primary text-primary hover:bg-primary hover:text-white font-semibold shadow-lg transition-smooth"
-                  >
-                    <Download className="mr-2 h-5 w-5" />
-                    Download
-                  </Button>
-                </div>
-              </CardContent>
-            </Card>
-          </div>
-
-          {/* Exibição do Relatório */}
-          {reportData && (
-            <div className="mt-12">
-              <div className="text-center mb-8">
-                <h2 className="text-2xl font-bold text-foreground mb-2">
-                  Resultado do Relatório
-                </h2>
-                <p className="text-gray-text">
-                  Resumo das horas trabalhadas e detalhes por dia
-                </p>
-              </div>
-
-              {/* Seção de Totais */}
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
-                <Card className="shadow-card">
-                  <CardContent className="p-6 text-center">
-                    <h3 className="text-lg font-semibold text-gray-text mb-2">
-                      Total de Horas Trabalhadas
-                    </h3>
-                    <p className="text-4xl font-bold text-foreground">
-                      {reportData.totalHoursWorked}
-                    </p>
-                  </CardContent>
-                </Card>
-
-                <Card className="shadow-card">
-                  <CardContent className="p-6 text-center">
-                    <h3 className="text-lg font-semibold text-gray-text mb-2">
-                      Saldo Total
-                    </h3>
-                    <p className={`text-4xl font-bold ${reportData.totalBalance.startsWith('-')
-                      ? 'text-destructive-light'
-                      : 'text-success-light'
-                      }`}>
-                      {reportData.totalBalance}
-                    </p>
-                  </CardContent>
-                </Card>
-              </div>
-
-              {/* Tabela de Detalhes */}
-              <Card className="shadow-card">
-                <CardHeader>
-                  <CardTitle className="text-xl text-foreground">
-                    Detalhes por Dia
-                  </CardTitle>
-                  <CardDescription className="text-gray-text">
-                    Visualização detalhada das horas trabalhadas e saldo de cada dia
-                  </CardDescription>
                 </CardHeader>
 
-                <CardContent>
-                  <div className="overflow-x-auto">
-                    <table className="w-full">
-                      <thead>
-                        <tr className="border-b border-gray-border">
-                          <th className="text-left py-3 px-4 font-semibold text-foreground">
-                            Data
-                          </th>
-                          <th className="text-left py-3 px-4 font-semibold text-foreground">
-                            Total de Horas
-                          </th>
-                          <th className="text-left py-3 px-4 font-semibold text-foreground">
-                            Saldo do Dia
-                          </th>
-                        </tr>
-                      </thead>
-                      <tbody>
-                        {reportData.days.map((day, index) => {
-                          const dayDate = new Date(day.startDate.split('/').reverse().join('-'));
-                          const holiday = isHoliday(dayDate);
-                          return (
-                            <tr
-                              key={index}
-                              className={`border-b border-gray-border/50 ${index % 2 === 0 ? 'bg-gray-light/30' : 'bg-background'
-                                } hover:bg-gray-light/50 transition-colors`}
-                            >
-                              <td className="py-3 px-4 text-foreground font-medium">
-                                <div className="flex items-center gap-2">
-                                  <span>{day.startDate}</span>
-                                  {holiday && (
-                                    <span className="text-primary text-sm" title="Feriado">
-                                      🎉
-                                    </span>
-                                  )}
-                                </div>
-                              </td>
-                              <td className="py-3 px-4 text-foreground">
-                                {day.totalHours}
-                              </td>
-                              <td className={`py-3 px-4 font-medium ${day.balance.startsWith('-')
-                                ? 'text-destructive-light'
-                                : 'text-success-light'
-                                }`}>
-                                {day.balance}
-                              </td>
-                            </tr>
-                          );
-                        })}
-                      </tbody>
-                    </table>
+                <CardContent className="space-y-6">
+                  <div className="space-y-4">
+                    <div className="p-4 bg-gradient-to-br from-primary/5 to-secondary/5 rounded-lg border border-primary/20 backdrop-blur-sm">
+                      <div className="flex items-center justify-between mb-4">
+                        <p className="text-sm text-muted-foreground flex items-center gap-2">
+                          <div className="w-1.5 h-1.5 rounded-full bg-primary"></div>
+                          Datas selecionadas:
+                        </p>
+                        <span className="text-sm font-semibold text-primary bg-primary/10 px-2 py-1 rounded-full">
+                          {selectedDates.length} {selectedDates.length === 1 ? 'data' : 'datas'}
+                        </span>
+                      </div>
+
+                      {selectedDates.length === 0 ? (
+                        <div className="text-center py-6">
+                          <div className="w-12 h-12 mx-auto mb-3 rounded-full bg-primary/10 flex items-center justify-center">
+                            <div className="w-6 h-6 rounded-full border-2 border-primary/30"></div>
+                          </div>
+                          <p className="text-muted-foreground italic">Nenhuma data selecionada</p>
+                        </div>
+                      ) : (
+                        <div className="space-y-2 max-h-40 overflow-y-auto">
+                          {selectedDates
+                            .sort((a, b) => a.getTime() - b.getTime())
+                            .map((date, index) => (
+                              <div key={index} className="flex items-center justify-between bg-gradient-to-r from-primary/10 to-secondary/10 p-3 rounded-lg border border-primary/20 hover:from-primary/15 hover:to-secondary/15 transition-all duration-200">
+                                <span className="font-semibold text-foreground flex items-center gap-2">
+                                  <div className="w-2 h-2 rounded-full bg-primary"></div>
+                                  {format(date, "dd/MM/yyyy", { locale: ptBR })}
+                                </span>
+                                <Button
+                                  variant="ghost"
+                                  size="sm"
+                                  onClick={() => removeDateSelection(date)}
+                                  className="h-7 w-7 p-0 hover:bg-destructive/20 hover:text-destructive rounded-full"
+                                >
+                                  <X className="h-3 w-3" />
+                                </Button>
+                              </div>
+                            ))}
+                        </div>
+                      )}
+                    </div>
+
+                    <div className="p-4 bg-primary/5 rounded-lg border border-primary/20">
+                      <p className="text-sm text-primary mb-1">💡 Dica de uso:</p>
+                      <p className="text-xs text-gray-text">
+                        1. Os feriados nacionais brasileiros estão destacados sublinhado.
+                      </p>
+                      <br />
+                      <p className="text-xs text-gray-text">
+                        2. O Relatório Simples não filtra os regitros por status, apenas retorna todos os registros do dia selecionado.
+                      </p>
+                      <br />
+                      <p className="text-xs text-gray-text">
+                        3. Ao gerar o relatório, todos os registros do dia selecionado são simplificados,
+                        retornando: <br /> - Total de horas trabalhadas. <br /> - Saldo de horas baseado na carga horária de trabalho.
+                      </p>
+                      <br />
+                    </div>
+                  </div>
+
+                  {/* Campo de Referência */}
+                  <div className="space-y-3 pt-4 border-t border-gray-border">
+                    <div className="space-y-2">
+                      <Label htmlFor="reference-time" className="text-sm font-medium text-foreground">
+                        Carga Horária diária
+                      </Label>
+                      <Input
+                        id="reference-time"
+                        type="time"
+                        value={referenceTime}
+                        onChange={(e) => setReferenceTime(e.target.value)}
+                        className="border-gray-border focus:border-primary focus:ring-primary/20"
+                      />
+                      <p className="text-xs text-gray-text mt-1">
+                        Horário de referência para cálculo do relatório
+                      </p>
+                    </div>
+
+                    {/* Seleção de Funcionário */}
+                    <div className="space-y-2">
+                      <Label className="text-sm font-medium text-foreground">
+                        Funcionário
+                      </Label>
+                      <Select value={selectedEmployee} onValueChange={setSelectedEmployee} disabled={isPartner}>
+                        <SelectTrigger className="border-gray-border focus:border-primary focus:ring-primary/20">
+                          <SelectValue placeholder="Selecione um funcionário" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {employees.map((employee) => (
+                            <SelectItem key={employee.employeeId} value={employee.employeeId}>
+                              {employee.fullName}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    </div>
+
+                    {/* Status Funcionário */}
+                    <div className="space-y-2">
+                      <Label className="text-sm font-medium text-foreground">
+                        Status do Funcionário
+                      </Label>
+                      <RadioGroup value={employeeActive} onValueChange={setEmployeeActive}>
+                        <div className="flex items-center space-x-2">
+                          <RadioGroupItem value="active" id="employee-active" />
+                          <Label htmlFor="employee-active" className="text-sm cursor-pointer">
+                            Ativo
+                          </Label>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <RadioGroupItem value="inactive" id="employee-inactive" />
+                          <Label htmlFor="employee-inactive" className="text-sm cursor-pointer">
+                            Inativo
+                          </Label>
+                        </div>
+                      </RadioGroup>
+                    </div>
+
+                    {/* Status Registro */}
+                    <div className="space-y-2">
+                      <Label className="text-sm font-medium text-foreground">
+                        Status do Registro
+                      </Label>
+                      <RadioGroup value={active} onValueChange={setRecordActive}>
+                        <div className="flex items-center space-x-2">
+                          <RadioGroupItem value="active" id="record-active" />
+                          <Label htmlFor="record-active" className="text-sm cursor-pointer">
+                            Ativo
+                          </Label>
+                        </div>
+                        <div className="flex items-center space-x-2">
+                          <RadioGroupItem value="inactive" id="record-inactive" />
+                          <Label htmlFor="record-inactive" className="text-sm cursor-pointer">
+                            Inativo
+                          </Label>
+                        </div>
+                      </RadioGroup>
+                    </div>
+                  </div>
+
+                  {/* Botões de Ação */}
+                  <div className="space-y-3 pt-4">{/* MODIFIED: Removed the top border, now the Referência field has it */}
+                    <Button
+                      onClick={handleSearch}
+                      size="lg"
+                      className="w-full bg-primary hover:bg-primary/90 text-primary-foreground font-semibold shadow-button transition-smooth"
+                    >
+                      <Search className="mr-2 h-5 w-5" />
+                      Buscar
+                    </Button>
+
+                    <Button
+                      onClick={handleDownload}
+                      size="lg"
+                      variant="outline" // Assuming a variant exists for download button
+                      className="w-full border-2 border-primary text-primary hover:bg-primary hover:text-white font-semibold shadow-lg transition-smooth"
+                    >
+                      <Download className="mr-2 h-5 w-5" />
+                      Download
+                    </Button>
                   </div>
                 </CardContent>
               </Card>
             </div>
-          )}
-        </div>
-      </main>
+
+            {/* Exibição do Relatório */}
+            {reportData && (
+              <div className="mt-12">
+                <div className="text-center mb-8">
+                  <h2 className="text-2xl font-bold text-foreground mb-2">
+                    Resultado do Relatório
+                  </h2>
+                  <p className="text-gray-text">
+                    Resumo das horas trabalhadas e detalhes por dia
+                  </p>
+                </div>
+
+                {/* Seção de Totais */}
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mb-8">
+                  <Card className="shadow-card">
+                    <CardContent className="p-6 text-center">
+                      <h3 className="text-lg font-semibold text-gray-text mb-2">
+                        Total de Horas Trabalhadas
+                      </h3>
+                      <p className="text-4xl font-bold text-foreground">
+                        {reportData.totalHoursWorked}
+                      </p>
+                    </CardContent>
+                  </Card>
+
+                  <Card className="shadow-card">
+                    <CardContent className="p-6 text-center">
+                      <h3 className="text-lg font-semibold text-gray-text mb-2">
+                        Saldo Total
+                      </h3>
+                      <p className={`text-4xl font-bold ${reportData.totalBalance.startsWith('-')
+                        ? 'text-destructive-light'
+                        : 'text-success-light'
+                        }`}>
+                        {reportData.totalBalance}
+                      </p>
+                    </CardContent>
+                  </Card>
+                </div>
+
+                {/* Tabela de Detalhes */}
+                <Card className="shadow-card">
+                  <CardHeader>
+                    <CardTitle className="text-xl text-foreground">
+                      Detalhes por Dia
+                    </CardTitle>
+                    <CardDescription className="text-gray-text">
+                      Visualização detalhada das horas trabalhadas e saldo de cada dia
+                    </CardDescription>
+                  </CardHeader>
+
+                  <CardContent>
+                    <div className="overflow-x-auto">
+                      <table className="w-full">
+                        <thead>
+                          <tr className="border-b border-gray-border">
+                            <th className="text-left py-3 px-4 font-semibold text-foreground">
+                              Data
+                            </th>
+                            <th className="text-left py-3 px-4 font-semibold text-foreground">
+                              Total de Horas
+                            </th>
+                            <th className="text-left py-3 px-4 font-semibold text-foreground">
+                              Saldo do Dia
+                            </th>
+                          </tr>
+                        </thead>
+                        <tbody>
+                          {reportData.days.map((day, index) => {
+                            const dayDate = new Date(day.startDate.split('/').reverse().join('-'));
+                            const holiday = isHoliday(dayDate);
+                            return (
+                              <tr
+                                key={index}
+                                className={`border-b border-gray-border/50 ${index % 2 === 0 ? 'bg-gray-light/30' : 'bg-background'
+                                  } hover:bg-gray-light/50 transition-colors`}
+                              >
+                                <td className="py-3 px-4 text-foreground font-medium">
+                                  <div className="flex items-center gap-2">
+                                    <span>{day.startDate}</span>
+                                    {holiday && (
+                                      <span className="text-primary text-sm" title="Feriado">
+                                        🎉
+                                      </span>
+                                    )}
+                                  </div>
+                                </td>
+                                <td className="py-3 px-4 text-foreground">
+                                  {day.totalHours}
+                                </td>
+                                <td className={`py-3 px-4 font-medium ${day.balance.startsWith('-')
+                                  ? 'text-destructive-light'
+                                  : 'text-success-light'
+                                  }`}>
+                                  {day.balance}
+                                </td>
+                              </tr>
+                            );
+                          })}
+                        </tbody>
+                      </table>
+                    </div>
+                  </CardContent>
+                </Card>
+              </div>
+            )}
+          </div>
+        </main>
+      </div>
     </div>
   );
 };

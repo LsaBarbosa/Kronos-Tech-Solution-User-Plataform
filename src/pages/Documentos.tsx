@@ -273,7 +273,8 @@ const Documentos = () => {
     setSearchDate(date);
     filterDocumentsByDate(date);
   };
-
+  
+  const handleToggleSidebar = () => setSidebarOpen((prev) => !prev); 
   const handleDownload = async (document: Document) => {
     try {
       const headers = getAuthHeaders();
@@ -367,8 +368,13 @@ const Documentos = () => {
         </div>
       </div>
 
-      <Header onMenuClick={() => setSidebarOpen(!sidebarOpen)} />
-      <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+ 
+      {/* 💡 CORREÇÃO: Sidebar usa 'toggleSidebar' */}
+      <Sidebar isOpen={sidebarOpen} toggleSidebar={handleToggleSidebar} /> 
+      
+      <div className="flex-1 flex flex-col overflow-hidden">
+        {/* 💡 CORREÇÃO: Header usa 'toggleSidebar' */}
+        <Header toggleSidebar={handleToggleSidebar} />
 
       <main className="pt-16 mobile-container py-4 sm:py-20 space-y-6 sm:space-y-8 relative z-10">
         <div className="space-y-2">
@@ -565,6 +571,7 @@ const Documentos = () => {
           </Card>
         )}
       </main>
+    </div>
     </div>
   );
 };
