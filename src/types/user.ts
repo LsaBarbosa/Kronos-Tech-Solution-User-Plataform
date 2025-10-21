@@ -1,3 +1,5 @@
+// src/types/user.ts
+
 /**
  * Interface para os dados básicos da conta do usuário (geralmente do token ou endpoint de conta).
  */
@@ -36,3 +38,8 @@ export interface ChangePasswordData {
   newPassword: string;
   confirmNewPassword: string;
 }
+
+// --- Funções Utilitárias Puras ---
+
+// Função auxiliar para limpar números (se necessário para phone/cpf, embora o CPF venha mascarado)
+export const cleanNumberString = (value: string | undefined): string => (value || '').replace(/\D/g, '');

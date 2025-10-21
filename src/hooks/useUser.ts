@@ -1,9 +1,10 @@
 // src/hooks/useUser.ts
 
 import { useState, useEffect, useCallback } from "react";
-import { useToast } from "@/hooks/use-toast"; // Reutiliza seu hook de toast
-import { UserAccountData, UserData, ChangePasswordData } from "@/types/user";
-import { fetchAccountData, fetchUserData, updateEmail, updatePhone, changePassword } from "@/service/userService";
+import { useToast } from "@/hooks/use-toast";
+import { useNavigate } from "react-router-dom";
+import { UserAccountData, UserData, ChangePasswordData, cleanNumberString } from "@/types/user";
+import { fetchAccountData, fetchUserData, updateEmail, updatePhone, changePassword } from "@/service/user.Service";
 
 interface UseUserReturn {
   // Estados de Dados
@@ -33,6 +34,7 @@ interface UseUserReturn {
 
 export const useUser = (): UseUserReturn => {
   const { toast } = useToast();
+  const navigate = useNavigate();
   const [userAccountData, setUserAccountData] = useState<UserAccountData | null>(null);
   const [userData, setUserData] = useState<UserData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -46,6 +48,7 @@ export const useUser = (): UseUserReturn => {
   const [passwordData, setPasswordData] = useState<ChangePasswordData>({
     newPassword: "",
     confirmNewPassword: "",
+    oldPassword: "", // Adicionado para consistência
   });
 
   // --- Funções de Busca ---
@@ -56,33 +59,40 @@ export const useUser = (): UseUserReturn => {
       setUserData(data);
       setNewEmail(data.email);
       setNewPhone(data.phone);
-    } catch (error) {
+    } catch (error: any) {
       console.error("Erro ao buscar dados do usuário:", error);
       toast({
         title: "Erro",
-        description: (error as Error).message || "Não foi possível carregar os dados detalhados.",
+        description: error.message || "Não foi possível carregar os dados detalhados.",
         variant: "destructive",
       });
+      // Se houver erro de token, o fetchAccountData já deve ter cuidado disso,
+      // mas mantemos o erro de dados aqui.
     }
   }, [toast]);
 
   const loadAccountData = useCallback(async () => {
     setIsLoading(true);
     try {
-      const account = await fetchAccountData();
+      const account = await fetchAccountData(); // 💡 Chama o Serviço
       setUserAccountData(account);
-      await loadUserData(account);
-    } catch (error) {
+      // Se tivermos os dados da conta, buscamos os detalhes do perfil
+      if (account.employeeId) {
+          await loadUserData(account);
+      }
+    } catch (error: any) {
       console.error("Erro ao carregar dados iniciais:", error);
       toast({
         title: "Erro de Autenticação",
-        description: (error as Error).message || "Não foi possível carregar os dados da sua conta.",
+        description: error.message || "Não foi possível carregar os dados da sua conta.",
         variant: "destructive",
       });
+       // Redireciona para o login em caso de falha grave de autenticação
+       if (error.message.includes("Token")) navigate("/login");
     } finally {
       setIsLoading(false);
     }
-  }, [toast, loadUserData]);
+  }, [toast, loadUserData, navigate]);
 
   useEffect(() => {
     loadAccountData();
@@ -111,7 +121,13 @@ export const useUser = (): UseUserReturn => {
   };
   
   const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => setNewEmail(e.target.value);
-  const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => setNewPhone(e.target.value);
+  
+  // Limpeza de telefone no input (apenas para números)
+  const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+      const maskedValue = e.target.value; // Manter a máscara no input
+      setNewPhone(maskedValue);
+  };
+  
   const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { id, value } = e.target;
     setPasswordData(prev => ({ ...prev, [id]: value }));
@@ -120,38 +136,67 @@ export const useUser = (): UseUserReturn => {
   // --- Handlers de Persistência (Chamadas de Serviço) ---
 
   const handleSaveEmail = useCallback(async () => {
-    if (!userAccountData?.employeeId) return;
+    if (!userAccountData?.employeeId || !newEmail) return;
+    
+    // Simples validação de formato
+    if (!/\S+@\S+\.\S+/.test(newEmail)) {
+        toast({ title: "Erro de Validação", description: "O formato do e-mail é inválido.", variant: "destructive" });
+        return;
+    }
+
     try {
-      await updateEmail(userAccountData.employeeId, newEmail);
+      await updateEmail(userAccountData.employeeId, newEmail); // 💡 Chama o Serviço
+      
+      // Atualiza o estado localmente
       setUserData(prev => prev ? { ...prev, email: newEmail } : null);
       setIsEditingEmail(false);
       toast({ title: "Sucesso", description: "E-mail salvo com sucesso.", variant: "default" });
-    } catch (error) {
-      toast({ title: "Erro ao salvar", description: (error as Error).message, variant: "destructive" });
+    } catch (error: any) {
+      toast({ title: "Erro ao salvar", description: error.message, variant: "destructive" });
     }
   }, [userAccountData, newEmail, toast]);
 
   const handleSavePhone = useCallback(async () => {
-    if (!userAccountData?.employeeId) return;
+    if (!userAccountData?.employeeId || !newPhone) return;
+    
+    const cleanPhone = cleanNumberString(newPhone);
+    if (cleanPhone.length < 10) {
+        toast({ title: "Erro de Validação", description: "O número de telefone está incompleto.", variant: "destructive" });
+        return;
+    }
+
     try {
-      await updatePhone(userAccountData.employeeId, newPhone);
-      setUserData(prev => prev ? { ...prev, phone: newPhone } : null);
+      await updatePhone(userAccountData.employeeId, cleanPhone); // 💡 Chama o Serviço
+      
+      // Atualiza o estado localmente (manter a string formatada se preferir, ou a API deve retornar a formatada)
+      setUserData(prev => prev ? { ...prev, phone: newPhone } : null); 
       setIsEditingPhone(false);
       toast({ title: "Sucesso", description: "Telefone salvo com sucesso.", variant: "default" });
-    } catch (error) {
-      toast({ title: "Erro ao salvar", description: (error as Error).message, variant: "destructive" });
+    } catch (error: any) {
+      toast({ title: "Erro ao salvar", description: error.message, variant: "destructive" });
     }
   }, [userAccountData, newPhone, toast]);
 
   const handleChangePassword = useCallback(async () => {
+    // Validação local de campos obrigatórios e confirmação
+    if (!passwordData.oldPassword || !passwordData.newPassword || !passwordData.confirmNewPassword) {
+        toast({ title: "Erro", description: "Preencha todos os campos de senha.", variant: "destructive" });
+        return;
+    }
+    if (passwordData.newPassword !== passwordData.confirmNewPassword) {
+        toast({ title: "Erro", description: "As novas senhas não coincidem.", variant: "destructive" });
+        return;
+    }
+
     try {
-      await changePassword(passwordData);
+      await changePassword(passwordData); // 💡 Chama o Serviço
+      
       // Limpa os campos de senha após o sucesso
       setPasswordData({ oldPassword: "", newPassword: "", confirmNewPassword: "" });
       setShowPasswordFields(false);
       toast({ title: "Sucesso", description: "Senha alterada com sucesso.", variant: "default" });
-    } catch (error) {
-      toast({ title: "Erro ao alterar senha", description: (error as Error).message, variant: "destructive" });
+    } catch (error: any) {
+      toast({ title: "Erro ao alterar senha", description: error.message, variant: "destructive" });
     }
   }, [passwordData, toast]);
 

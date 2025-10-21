@@ -1,4 +1,6 @@
-import React, { useState, useEffect } from "react";
+// src/pages/ApuracaoHoras.tsx
+
+import React, { useState, useCallback } from "react";
 import Header from "@/components/Header";
 import Sidebar from "@/components/Sidebar";
 import { Button } from "@/components/ui/button";
@@ -7,176 +9,42 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from "@
 import { Badge } from "@/components/ui/badge";
 import { Check, X, Clock, User, AlertCircle } from "lucide-react";
 import { cn } from "@/lib/utils";
-import { useToast } from "@/hooks/use-toast";
+// import { useToast } from "@/hooks/use-toast"; // 💡 REMOVIDO: Movido para o hook
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { API_BASE_URL } from "@/config/api";
+// import { API_BASE_URL } from "@/config/api"; // 💡 REMOVIDO: Movido para o service
 
-// Interface para os dados da solicitação pendente, baseada no novo payload da API
-interface PendingApproval {
-  timeRecordId: number;
-  partnerName: string;
-  managerUsername: string;
-  newStartWork: string;
-  newEndWork: string;
-  currentStartWork: string;
-  currentEndWork: string;
-}
-
-// Interface para padronizar o objeto de erro da API
-interface ApiErrorResponse {
-  status: number;
-  title: string;
-  detail: string;
-  timestamp: string;
-  message?: string;
-}
+// 💡 NOVO: Importa o hook customizado com toda a lógica
+import { usePendingApprovals } from "@/hooks/usePendingApproval"; 
+// 💡 REMOVIDO: Interfaces PendingApproval e ApiErrorResponse - Movidas para src/types/recordApproval.ts
 
 const ApuracaoHoras = () => {
+  // 💡 ESTADO DE UI (Sidebar) é o único estado mantido localmente
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [pendingApprovals, setPendingApprovals] = useState<PendingApproval[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const { toast } = useToast();
+  const handleToggleSidebar = useCallback(() => setSidebarOpen((prev) => !prev), []);
+  
+  // 💡 HOOK: Toda a lógica de dados, API e Toast
+  const { 
+    pendingApprovals, 
+    isLoading, 
+    handleApprove, 
+    handleReject 
+  } = usePendingApprovals();
 
-  // Função utilitária para formatar a data e hora (usando 'yy' para economizar espaço no mobile)
+  // 💡 LÓGICA DE API E ESTADOS REMOVIDOS - Movidos para usePendingApprovals.ts
+  
+  // Função utilitária para formatar a data e hora (mantida, pois é pura)
   const formatDateTime = (isoString: string) => {
     if (!isoString) return "N/A";
-    // Ajustado para 'yy' para melhor responsividade
     return format(new Date(isoString), 'dd/MM/yy HH:mm', { locale: ptBR });
   };
-
-  // Função para buscar os dados da API real
-  const fetchPendingApprovals = async () => {
-    setIsLoading(true);
-    try {
-      const token = localStorage.getItem("token");
-      if (!token) {
-        throw new Error("Token de autenticação não encontrado.");
-      }
-
-      const response = await fetch(`${API_BASE_URL}records/pending-approvals`, {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-      });
-
-      if (!response.ok) {
-        const errorData: ApiErrorResponse = await response.json();
-        const errorMessage = errorData.detail || errorData.message || "Erro ao buscar as solicitações pendentes.";
-        throw new Error(errorMessage);
-      }
-
-      const data: PendingApproval[] = await response.json();
-      setPendingApprovals(data);
-
-      toast({
-        title: "Sucesso",
-        description: `Foram encontradas ${data.length} solicitações de alteração pendentes.`,
-        className: "border-success bg-success text-white font-medium shadow-lg"
-      });
-
-    } catch (error: any) {
-      console.error("Erro ao buscar solicitações:", error);
-      toast({
-        title: "Erro",
-        description: error.message || "Ocorreu um erro ao buscar as solicitações.",
-        variant: "destructive"
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
-  // Chama a função de busca ao montar o componente
-  useEffect(() => {
-    fetchPendingApprovals();
-  }, []);
-
-  const handleApprove = async (timeRecordId: number, partnerName: string) => {
-    try {
-      const token = localStorage.getItem("token");
-      if (!token) {
-        throw new Error("Token de autenticação não encontrado.");
-      }
-
-      const response = await fetch(`${API_BASE_URL}records/approve/${timeRecordId}`, {
-        method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-      });
-
-      if (!response.ok) {
-        const errorData: ApiErrorResponse = await response.json();
-        const errorMessage = errorData.detail || errorData.message || "Ocorreu um erro ao aprovar a solicitação.";
-        throw new Error(errorMessage);
-      }
-
-      setPendingApprovals(prev => prev.filter(req => req.timeRecordId !== timeRecordId));
-
-      toast({
-        title: "Solicitação Aprovada",
-        description: `A alteração de registro de ${partnerName} foi aprovada com sucesso.`,
-        className: "border-success bg-success text-white font-medium shadow-lg"
-      });
-    } catch (error: any) {
-      console.error("Erro ao aprovar:", error);
-      toast({
-        title: "Erro ao Aprovar",
-        description: error.message || "Ocorreu um erro ao aprovar a solicitação. Tente novamente.",
-        variant: "destructive"
-      });
-    }
-  };
-
-  const handleReject = async (timeRecordId: number, partnerName: string) => {
-    try {
-      const token = localStorage.getItem("token");
-      if (!token) {
-        throw new Error("Token de autenticação não encontrado.");
-      }
-
-      const response = await fetch(`${API_BASE_URL}records/reject/${timeRecordId}`, {
-        method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-      });
-
-      if (!response.ok) {
-        const errorData: ApiErrorResponse = await response.json();
-        const errorMessage = errorData.detail || errorData.message || "Ocorreu um erro ao rejeitar a solicitação.";
-        throw new Error(errorMessage);
-      }
-
-      setPendingApprovals(prev => prev.filter(req => req.timeRecordId !== timeRecordId));
-
-      toast({
-        title: "Solicitação Rejeitada",
-        description: `A alteração de registro de ${partnerName} foi rejeitada.`,
-        className: "border-destructive bg-destructive text-white font-medium shadow-lg"
-      });
-    } catch (error: any) {
-      console.error("Erro ao rejeitar:", error);
-      toast({
-        title: "Erro ao Rejeitar",
-        description: error.message || "Ocorreu um erro ao rejeitar a solicitação. Tente novamente.",
-        variant: "destructive"
-      });
-    }
-  };
-  const handleToggleSidebar = () => setSidebarOpen((prev) => !prev); 
+  
   return (
     <div className="flex h-screen bg-background">
-      {/* 💡 CORREÇÃO: Sidebar usa 'toggleSidebar' */}
+      {/* Sidebar e Header usando a prop 'toggleSidebar' (tipagem já corrigida) */}
       <Sidebar isOpen={sidebarOpen} toggleSidebar={handleToggleSidebar} /> 
       
       <div className="flex-1 flex flex-col overflow-hidden">
-        {/* 💡 CORREÇÃO: Header usa 'toggleSidebar' */}
         <Header toggleSidebar={handleToggleSidebar} />
 
       <main className="pt-16 mobile-container py-4 sm:py-20 space-y-6 sm:space-y-8 relative z-10">
@@ -215,7 +83,8 @@ const ApuracaoHoras = () => {
                   <div>
                     <p className="text-sm text-muted-foreground">Usuários com Solicitações</p>
                     <p className="text-2xl font-bold text-foreground">
-                      {Array.from(new Set(pendingApprovals.map(r => r.partnerName))).length}
+                      {/* Utiliza pendingApprovals do hook */}
+                      {Array.from(new Set(pendingApprovals.map(r => r.partnerName))).length} 
                     </p>
                   </div>
                   <div className="h-12 w-12 bg-success/10 rounded-full flex items-center justify-center">
@@ -318,6 +187,7 @@ const ApuracaoHoras = () => {
                             </TableCell>
                             <TableCell>
                               <div className="flex items-center justify-center gap-2">
+                                {/* Usa o handler do hook */}
                                 <Button
                                   size="sm"
                                   className="bg-success hover:bg-success/90 text-white"
@@ -326,6 +196,7 @@ const ApuracaoHoras = () => {
                                   <Check className="h-4 w-4 mr-1" />
                                   Aprovar
                                 </Button>
+                                {/* Usa o handler do hook */}
                                 <Button
                                   size="sm"
                                   variant="destructive"
@@ -398,6 +269,7 @@ const ApuracaoHoras = () => {
 
                           {/* Ações */}
                           <div className="flex justify-between gap-2 pt-4 border-t border-border/50">
+                            {/* Usa o handler do hook */}
                             <Button
                               size="sm"
                               className="flex-1 bg-success hover:bg-success/90 text-white"
@@ -406,6 +278,7 @@ const ApuracaoHoras = () => {
                               <Check className="h-4 w-4 mr-1" />
                               Aprovar
                             </Button>
+                            {/* Usa o handler do hook */}
                             <Button
                               size="sm"
                               variant="destructive"
