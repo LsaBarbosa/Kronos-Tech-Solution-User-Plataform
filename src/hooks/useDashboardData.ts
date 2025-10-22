@@ -3,14 +3,17 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
-// 💡 CORREÇÃO: Funções do dashboardService.ts já corrigido
+// Importação do serviço (mantida)
 import { fetchUserProfile, fetchPendingApprovalsCount, fetchAllWarnings, updateLastSeenMessageTimestamp } from "@/service/dashboard.service";
-// 💡 CORREÇÃO: Importa a tipagem do array de aprovações (do outro arquivo de types)
 import { PendingApproval } from "@/types/recordApproval"; 
-import { UserProfile, WarningMessage, hasApprovalPermission } from "@/types/dashboard";
+// 💡 CORREÇÃO 1: Removendo a importação de UserProfile que não existe mais em dashboard.ts
+import { WarningMessage, hasApprovalPermission } from "@/types/dashboard";
+// 💡 CORREÇÃO 2: Importando o tipo UserData (o novo tipo completo) de user.ts
+import { UserData } from "@/types/user"; 
 
 interface UseDashboardDataReturn {
-    userData: UserProfile | null;
+    // 💡 CORREÇÃO 3: Usando UserData no lugar de UserProfile
+    userData: UserData & { role: string } | null; 
     isLoading: boolean;
     pendingApprovalsCount: number;
     newWarnings: WarningMessage[];
@@ -20,7 +23,8 @@ interface UseDashboardDataReturn {
 }
 
 export const useDashboardData = (): UseDashboardDataReturn => {
-    const [userData, setUserData] = useState<UserProfile | null>(null);
+    // 💡 CORREÇÃO 4: Usando UserData no lugar de UserProfile
+    const [userData, setUserData] = useState<(UserData & { role: string }) | null>(null);
     const [isLoading, setIsLoading] = useState(true);
     const [pendingApprovalsCount, setPendingApprovalsCount] = useState<number>(0);
     const [allWarnings, setAllWarnings] = useState<WarningMessage[]>([]);
@@ -29,7 +33,7 @@ export const useDashboardData = (): UseDashboardDataReturn => {
     const { toast } = useToast();
     const navigate = useNavigate();
 
-    // 💡 CORREÇÃO: Usa a função hasApprovalPermission do types
+    // Nota: A role no userData virá do fetchUserProfile (que agora retorna UserData, mas é apelidada como UserProfile no arquivo de serviço antigo, faremos o cast).
     const userRole = userData?.role || '';
     const canApprove = useMemo(() => hasApprovalPermission(userRole), [userRole]);
 
@@ -40,7 +44,6 @@ export const useDashboardData = (): UseDashboardDataReturn => {
              return { count: 0 };
         }
         try {
-            // 💡 CORREÇÃO: Espera o array e retorna o .length
             const approvals: PendingApproval[] = await fetchPendingApprovalsCount();
             return { count: approvals.length };
         } catch (error) {
@@ -54,8 +57,11 @@ export const useDashboardData = (): UseDashboardDataReturn => {
         setIsLoading(true);
         setError(null);
         try {
+            // 💡 CORREÇÃO 5: O serviço retorna o UserData completo (que tem role), mas o tipo de retorno aqui deve ser UserData.
             const profile = await fetchUserProfile(); 
-            setUserData(profile);
+            // Faz o cast explícito aqui para garantir que o estado local tenha a tipagem correta, 
+            // assumindo que fetchUserProfile (corrigido no próximo arquivo) retorna UserData com 'role'.
+            setUserData(profile as UserData & { role: string });
             
             // Busca dados secundários (Contagem e Avisos) em paralelo
             const [approvals, warnings] = await Promise.all([
@@ -77,7 +83,7 @@ export const useDashboardData = (): UseDashboardDataReturn => {
         } finally {
             setIsLoading(false);
         }
-    }, [toast, navigate, fetchApprovalsCount]); // fetchApprovalsCount agora é uma dependência
+    }, [toast, navigate, fetchApprovalsCount]); 
 
     useEffect(() => {
         fetchProfile();
@@ -101,7 +107,6 @@ export const useDashboardData = (): UseDashboardDataReturn => {
 
         if (newWarnings.length > 0) {
             try {
-                // 💡 CORREÇÃO: Chama a função corrigida do service (não precisa de timestamp no body)
                 await updateLastSeenMessageTimestamp(); 
                 
                 // Atualiza o estado localmente (para remover o contador visualmente)

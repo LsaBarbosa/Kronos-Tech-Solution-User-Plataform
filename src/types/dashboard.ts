@@ -1,24 +1,12 @@
 // src/types/dashboard.ts
 
-/**
- * Interface para os dados do perfil do usuário no Dashboard.
- */
-export interface UserProfile {
-  fullName: string;
-  jobPosition: string;
-  email: string;
-  salary: number; // Salário como number (para formatação)
-  phone: string; // Telefone como string
-  companyName: string;
-  role: 'PARTNER' | 'MANAGER' | 'ADMIN' | 'CTO' | 'USER'; // Assumindo as roles
-  employeeId: string; // Adicionado para consistência
-  lastSeenMessageTimestamp?: string; // Para lógica de "novo aviso"
-  profilePhotoUrl?: string; // URL da foto de perfil
-}
+// import { UserData } from "@/types/user"; // Não é mais necessário importar UserData aqui
+
+// 💡 REMOVIDO: UserProfile (agora consolidado em UserData no src/types/user.ts)
+
 /**
  * Interface para o contador de aprovações pendentes.
  */
-// 💡 NOVO: Exportação da interface ApprovalStats
 export interface ApprovalStats {
   count: number;
 }
@@ -26,7 +14,6 @@ export interface ApprovalStats {
 
 /**
  * Interface para os avisos (simplificada para notificação).
- * 💡 CORREÇÃO: Usaremos 'Warning' no hook, mas a versão do serviço pode usar 'WarningMessage'
  */
 export interface WarningMessage {
   messageId: string;
@@ -37,8 +24,9 @@ export interface WarningMessage {
   [key: string]: any;
 }
 
-// Utilitários de role (se você os usa, caso contrário pode ser removido)
-export const getRoleDisplayName = (role: UserProfile['role'] | string): string => {
+// Utilitários de role
+// 💡 CORRIGIDO: Tipagem ajustada para aceitar string
+export const getRoleDisplayName = (role: string): string => {
     switch (role) {
         case 'MANAGER': return 'Gestor';
         case 'CTO': return 'CTO';
@@ -49,7 +37,6 @@ export const getRoleDisplayName = (role: UserProfile['role'] | string): string =
 
 /**
  * Verifica se o usuário tem permissão de Manager/Admin.
- * 💡 NOVO: Exportação da função hasApprovalPermission
  */
 export const hasApprovalPermission = (role: string): boolean => {
   return ['MANAGER'].includes(role);

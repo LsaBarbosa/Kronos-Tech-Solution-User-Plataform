@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
+// 💡 CORREÇÃO 8: Importa UserData com todos os novos campos
 import { UserAccountData, UserData, ChangePasswordData, cleanNumberString } from "@/types/user";
 import { fetchAccountData, fetchUserData, updateEmail, updatePhone, changePassword } from "@/service/user.Service";
 
@@ -55,10 +56,18 @@ export const useUser = (): UseUserReturn => {
 
   const loadUserData = useCallback(async (accountData: UserAccountData) => {
     try {
+      // Busca os dados detalhados do perfil (inclui campos como salary, companyName, etc.)
       const data = await fetchUserData(accountData.employeeId);
-      setUserData(data);
-      setNewEmail(data.email);
-      setNewPhone(data.phone);
+      
+      // 💡 CORREÇÃO 9: Combina os dados detalhados com a role do token (UserAccountData)
+      const fullUserData: UserData = {
+          ...data,
+          role: accountData.role, // Adiciona a role que vem do token/account data
+      } as UserData; // Fazemos o cast para UserData, pois os campos se complementam
+
+      setUserData(fullUserData); 
+      setNewEmail(fullUserData.email);
+      setNewPhone(fullUserData.phone);
     } catch (error: any) {
       console.error("Erro ao buscar dados do usuário:", error);
       toast({
@@ -74,7 +83,7 @@ export const useUser = (): UseUserReturn => {
   const loadAccountData = useCallback(async () => {
     setIsLoading(true);
     try {
-      const account = await fetchAccountData(); // 💡 Chama o Serviço
+      const account = await fetchAccountData(); // 💡 Chama o Serviço (Retorna employeeId e role)
       setUserAccountData(account);
       // Se tivermos os dados da conta, buscamos os detalhes do perfil
       if (account.employeeId) {
@@ -99,7 +108,8 @@ export const useUser = (): UseUserReturn => {
   }, [loadAccountData]);
 
   // --- Handlers de UI e Edição ---
-
+  // ... (Restante do código omitido por não ter sido alterado)
+  
   const toggleEditingEmail = () => {
     if (isEditingEmail && userData) {
         setNewEmail(userData.email); // Reverte ao valor original ao cancelar

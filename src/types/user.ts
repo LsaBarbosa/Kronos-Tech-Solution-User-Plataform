@@ -2,6 +2,7 @@
 
 /**
  * Interface para os dados básicos da conta do usuário (geralmente do token ou endpoint de conta).
+ * A role e o employeeId vêm do token/dados da conta.
  */
 export interface UserAccountData {
   userId: string;
@@ -13,14 +14,16 @@ export interface UserAccountData {
 
 /**
  * Interface para os dados detalhados do colaborador/usuário.
+ * 💡 ATUALIZADO: Inclui todos os campos do payload da API + role (adicionada no hook).
  */
 export interface UserData {
+  employeeId: string;
   fullName: string;
-  email: string;
+  maskedCpf: string; // <-- NOVO
   jobPosition: string;
+  email: string;
+  salary: number; // <-- NOVO
   phone: string;
-  lastLogin?: string;
-  maskedCpf: string;
   address: {
     street: string;
     number: string;
@@ -28,6 +31,13 @@ export interface UserData {
     city: string;
     state: string;
   };
+  companyName: string; // <-- NOVO
+  lastSeenMessageTimestamp: string | null; // <-- NOVO
+  homeOffice: boolean; // <-- NOVO
+  
+  // Adicionado no hook (vem do UserAccountData/Token) para conveniência
+  role?: 'PARTNER' | 'MANAGER' | 'ADMIN' | 'CTO' | 'USER' | string; 
+  lastLogin?: string; // Mantido
 }
 
 /**
@@ -41,5 +51,5 @@ export interface ChangePasswordData {
 
 // --- Funções Utilitárias Puras ---
 
-// Função auxiliar para limpar números (se necessário para phone/cpf, embora o CPF venha mascarado)
+// Função auxiliar para limpar números
 export const cleanNumberString = (value: string | undefined): string => (value || '').replace(/\D/g, '');
