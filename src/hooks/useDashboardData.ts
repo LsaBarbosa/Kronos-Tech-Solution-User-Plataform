@@ -3,7 +3,10 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
+// 💡 CORREÇÃO: Funções do dashboardService.ts já corrigido
 import { fetchUserProfile, fetchPendingApprovalsCount, fetchAllWarnings, updateLastSeenMessageTimestamp } from "@/service/dashboard.service";
+// 💡 CORREÇÃO: Importa a tipagem do array de aprovações (do outro arquivo de types)
+import { PendingApproval } from "@/types/recordApproval"; 
 import { UserProfile, WarningMessage, hasApprovalPermission } from "@/types/dashboard";
 
 interface UseDashboardDataReturn {
@@ -26,17 +29,37 @@ export const useDashboardData = (): UseDashboardDataReturn => {
     const { toast } = useToast();
     const navigate = useNavigate();
 
-    // 1. Busca do Perfil e Contadores
+    // 💡 CORREÇÃO: Usa a função hasApprovalPermission do types
+    const userRole = userData?.role || '';
+    const canApprove = useMemo(() => hasApprovalPermission(userRole), [userRole]);
+
+
+    // 1. Busca de Aprovações Pendentes (separada para reuso)
+    const fetchApprovalsCount = useCallback(async (role: string) => {
+        if (!hasApprovalPermission(role)) {
+             return { count: 0 };
+        }
+        try {
+            // 💡 CORREÇÃO: Espera o array e retorna o .length
+            const approvals: PendingApproval[] = await fetchPendingApprovalsCount();
+            return { count: approvals.length };
+        } catch (error) {
+            console.error("Erro ao buscar aprovações:", error);
+            return { count: 0 };
+        }
+    }, []);
+
+    // 2. Busca de Perfil e Contadores
     const fetchProfile = useCallback(async () => {
         setIsLoading(true);
         setError(null);
         try {
-            const profile = await fetchUserProfile(); // 💡 Chama o Serviço
+            const profile = await fetchUserProfile(); 
             setUserData(profile);
             
-            // Busca dados secundários (Contagem e Avisos)
+            // Busca dados secundários (Contagem e Avisos) em paralelo
             const [approvals, warnings] = await Promise.all([
-                hasApprovalPermission(profile.role) ? fetchPendingApprovalsCount() : Promise.resolve({ count: 0 }),
+                fetchApprovalsCount(profile.role), // Passa a role do perfil
                 fetchAllWarnings(),
             ]);
 
@@ -54,46 +77,40 @@ export const useDashboardData = (): UseDashboardDataReturn => {
         } finally {
             setIsLoading(false);
         }
-    }, [toast, navigate]);
+    }, [toast, navigate, fetchApprovalsCount]); // fetchApprovalsCount agora é uma dependência
 
     useEffect(() => {
         fetchProfile();
     }, [fetchProfile]);
     
-    // 2. Lógica para filtrar novos avisos (useMemo)
+    // 3. Lógica para filtrar novos avisos (useMemo)
     const newWarnings = useMemo(() => {
-        if (!userData?.lastSeenMessageTimestamp) {
-            // Se nunca viu, todos são novos
-            return allWarnings; 
-        }
-        const lastSeen = new Date(userData.lastSeenMessageTimestamp).getTime();
+        if (!userData || allWarnings.length === 0) return [];
         
-        // Filtra avisos criados DEPOIS do último timestamp de visualização
+        const lastSeenTimestamp = new Date(userData.lastSeenMessageTimestamp || 0).getTime();
+
         return allWarnings.filter(warning => 
-            new Date(warning.createdAt).getTime() > lastSeen
+            new Date(warning.createdAt).getTime() > lastSeenTimestamp
         );
     }, [allWarnings, userData]);
     
-    // 3. Handler para clicar no aviso (Atualiza timestamp no backend)
+    // 4. Handler para clicar no aviso (Atualiza timestamp no backend)
     const handleWarningClick = useCallback(async () => {
         // Redireciona imediatamente
         navigate("/avisos"); 
 
         if (newWarnings.length > 0) {
-            const now = new Date().toISOString();
-            
             try {
-                await updateLastSeenMessageTimestamp(now); // 💡 Chama o Serviço
+                // 💡 CORREÇÃO: Chama a função corrigida do service (não precisa de timestamp no body)
+                await updateLastSeenMessageTimestamp(); 
                 
-                // Atualiza o estado localmente para remover o contador
-                setUserData(prev => prev ? { ...prev, lastSeenMessageTimestamp: now } : null);
-                setPendingApprovalsCount(0); // Limpa o contador no dashboard imediatamente
+                // Atualiza o estado localmente (para remover o contador visualmente)
+                setUserData(prev => prev ? { ...prev, lastSeenMessageTimestamp: new Date().toISOString() } : null);
                 
             } catch (err: any) {
-                // Se falhar, notifica o usuário, mas o redirecionamento já ocorreu
                 toast({ 
                     title: "Atenção", 
-                    description: "Falha ao registrar a visualização dos avisos.", 
+                    description: (err as Error).message || "Falha ao registrar a visualização dos avisos.", 
                     variant: "destructive" 
                 });
             }
@@ -105,8 +122,8 @@ export const useDashboardData = (): UseDashboardDataReturn => {
         isLoading,
         pendingApprovalsCount,
         newWarnings,
-        hasApprovalPermission: hasApprovalPermission(userData?.role || ''),
-        fetchProfile, // Exporta para que o EmployeeBadge possa atualizar o perfil
+        hasApprovalPermission: canApprove,
+        fetchProfile, 
         handleWarningClick,
     };
 };

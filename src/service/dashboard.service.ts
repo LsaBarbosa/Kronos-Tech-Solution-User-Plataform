@@ -1,13 +1,17 @@
 // src/services/dashboardService.ts
 
 import { API_BASE_URL } from "@/config/api"; 
-import { UserProfile, ApprovalStats, WarningMessage } from "@/types/dashboard";
+// 💡 CORREÇÃO: Importa PendingApproval, pois fetchPendingApprovalsCount agora retorna uma lista
+import { PendingApproval } from "@/types/recordApproval"; 
+// 💡 CORREÇÃO: UserProfile e WarningMessage já tipam o perfil e avisos
+import { UserProfile, WarningMessage } from "@/types/dashboard"; 
 
 // --- Funções Auxiliares de Requisição ---
 
 const getAuthHeaders = () => {
     const token = localStorage.getItem('token');
     if (!token) {
+        // Redirecionamento é tratado no hook, aqui lançamos o erro
         throw new Error("Token de autenticação não encontrado."); 
     }
     return {
@@ -19,7 +23,7 @@ const getAuthHeaders = () => {
 const handleResponse = async (response: Response): Promise<any> => {
     if (!response.ok) {
         const errorData = await response.json();
-        const errorMessage = errorData.detail || errorData.message || `Erro de API (${response.status}) (Status ${response.status})`;
+        const errorMessage = errorData.detail || errorData.message || `Erro de API (${response.status})`;
         throw new Error(errorMessage);
     }
     const contentType = response.headers.get("content-type");
@@ -29,51 +33,58 @@ const handleResponse = async (response: Response): Promise<any> => {
     return {};
 };
 
-// --- Serviços ---
+// --- Serviços Corrigidos ---
 
 /**
  * Busca o perfil completo do usuário logado.
+ * Endpoint corrigido para 'employee/own-profile'
  */
 export const fetchUserProfile = async (): Promise<UserProfile> => {
     const headers = getAuthHeaders();
-    // Endpoint simulado para buscar o perfil (ajuste conforme seu backend)
-    const response = await fetch(`${API_BASE_URL}user/profile`, { headers }); 
+    const response = await fetch(`${API_BASE_URL}employee/own-profile`, { headers }); 
     const data = await handleResponse(response);
     return data as UserProfile;
 };
 
 /**
- * Busca a contagem de aprovações pendentes (apenas para usuários com permissão).
+ * Busca a lista de aprovações pendentes (e retorna o array).
+ * Endpoint corrigido para 'records/pending-approvals'
  */
-export const fetchPendingApprovalsCount = async (): Promise<ApprovalStats> => {
+export const fetchPendingApprovalsCount = async (): Promise<PendingApproval[]> => {
     const headers = getAuthHeaders();
-    // Endpoint simulado para buscar apenas a contagem
-    const response = await fetch(`${API_BASE_URL}records/pending-approvals/count`, { headers });
+    const response = await fetch(`${API_BASE_URL}records/pending-approvals`, { headers });
     const data = await handleResponse(response);
-    return data as ApprovalStats; // Ex: { count: 5 }
+    return data as PendingApproval[]; 
 };
 
 /**
- * Busca todos os avisos (para calcular "novos" no hook).
+ * Busca todos os avisos (mensagens) visíveis.
+ * Endpoint corrigido para 'messages'
  */
 export const fetchAllWarnings = async (): Promise<WarningMessage[]> => {
     const headers = getAuthHeaders();
-    // Endpoint simulado para buscar os avisos visíveis para o usuário
-    const response = await fetch(`${API_BASE_URL}messages/visible`, { headers });
+    const response = await fetch(`${API_BASE_URL}messages`, { headers });
     const data = await handleResponse(response);
     return data as WarningMessage[]; 
 };
 
 /**
  * Atualiza o timestamp de última visualização de avisos.
+ * Endpoint corrigido para 'employee/mark-messages-seen'
  */
-export const updateLastSeenMessageTimestamp = async (timestamp: string): Promise<void> => {
+export const updateLastSeenMessageTimestamp = async (): Promise<void> => {
     const headers = getAuthHeaders();
-    // Endpoint simulado para notificar o backend
-    const response = await fetch(`${API_BASE_URL}user/update-last-seen-message`, {
-        method: 'PATCH',
+    
+    // A API de produção usa POST para marcar como visto: employee/mark-messages-seen.
+    // O backend deve usar o token para saber qual usuário atualizar o timestamp.
+    const response = await fetch(`${API_BASE_URL}employee/mark-messages-seen`, {
+        method: 'POST',
         headers: headers,
-        body: JSON.stringify({ timestamp })
+        // O body é opcional se o backend apenas usa o token para marcar o horário atual.
+        // Se o backend espera um body JSON vazio, este é o formato:
+        body: JSON.stringify({}), 
     });
-    await handleResponse(response);
+    
+    // A chamada original no Dashboard.tsx não lê o corpo da resposta em caso de sucesso.
+    await handleResponse(response); 
 };

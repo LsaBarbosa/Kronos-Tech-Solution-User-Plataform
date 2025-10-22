@@ -1,13 +1,13 @@
 // src/components/Sidebar.tsx
 
-import { X, Home, BarChart3, FileText, ChevronDown, ChevronRight, User, Shield, Users, Clock, FilePlus, Upload, Download, LogOut, UserCheck, UserPlus, Folder, FolderOpen, FileCheck, Calculator, ClipboardCheck, Building2, Bell, MessageSquarePlus } from "lucide-react";
+import { X, Home, BarChart3, ChevronDown, ChevronRight, User, Shield, Users, Clock, FilePlus, Upload, LogOut, UserCheck, UserPlus, Folder, FolderOpen, Calculator, ClipboardCheck, Building2, Bell, MessageSquarePlus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { cn } from "@/lib/utils";
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 
-// 💡 CORREÇÃO: Interface ajustada para usar 'toggleSidebar' (Substituindo 'onClose')
+// 💡 Alteração: A interface foi atualizada para usar 'toggleSidebar' para refletir a nova funcionalidade.
 interface SidebarProps {
   isOpen: boolean;
   toggleSidebar: () => void; 
@@ -28,120 +28,99 @@ const decodeToken = (token: string) => {
   }
 };
 
-// 💡 Propriedade desestruturada ajustada para 'toggleSidebar'
+// 💡 Alteração: Recebendo a nova prop toggleSidebar
 const Sidebar = ({ isOpen, toggleSidebar }: SidebarProps) => {
+  // Estados de Collapsible mantidos da versão de produção
   const [relatoriosOpen, setRelatoriosOpen] = useState(false);
-  const [managerOpen, setManagerOpen] = useState(false);
   const [documentosOpen, setDocumentosOpen] = useState(false);
-  const [userRole, setUserRole] = useState<string | null>(null);
+  const [administradorOpen, setAdministradorOpen] = useState(false);
+  const [colaboradoresOpen, setColaboradoresOpen] = useState(false);
+  const [folhaDePontoOpen, setFolhaDePontoOpen] = useState(false);
+  const [adminDocumentosOpen, setAdminDocumentosOpen] = useState(false);
+  const [userRole, setUserRole] = useState("");
   const navigate = useNavigate();
 
   useEffect(() => {
     const token = localStorage.getItem("token");
     if (token) {
       const decoded = decodeToken(token);
-      setUserRole(decoded?.role || null);
+      setUserRole(decoded?.role || "");
     }
   }, []);
 
   const handleLogout = () => {
     localStorage.removeItem("token");
-    localStorage.removeItem("refreshToken");
-    navigate("/login");
-    // 💡 Chamada da função de toggle/fechar
-    toggleSidebar(); 
+    navigate("/");
+    toggleSidebar(); // 💡 Alteração: Usando toggleSidebar
   };
 
-  const menuItems = [
-    { name: "Início", path: "/dashboard", icon: Home, roles: ["ADMIN", "MANAGER", "USER"] },
-    { name: "Meu Perfil", path: "/usuario", icon: User, roles: ["ADMIN", "MANAGER", "USER"] },
-  ];
-
-  const adminMenu = [
-    { name: "Lista de Colaboradores", path: "/lista-colaboradores", icon: Users },
-    { name: "Criar Colaborador", path: "/criar-colaborador", icon: UserPlus },
-    { name: "Criar Gestor", path: "/criar-manager", icon: Shield },
-    { name: "Criar Empresa", path: "/criar-empresa", icon: Building2 },
-    { name: "Buscar Empresa", path: "/buscar-empresa", icon: Building2 },
-    { name: "Atualizar Empresa", path: "/atualizar-empresa", icon: Building2 },
-  ];
-  
-  const managerMenu = [
-    { name: "Lista de Colaboradores", path: "/lista-colaboradores", icon: Users },
-    { name: "Criar Colaborador", path: "/criar-colaborador", icon: UserPlus },
-  ];
+  const isManager = userRole === "MANAGER";
+  const isCto = userRole === "CTO";
 
   return (
     <>
-      {/* Overlay para mobile */}
+      {/* 1. Overlay (Fundo escuro quando aberto) */}
       <div
         className={cn(
-          "fixed inset-0 bg-black/50 z-40 transition-opacity duration-300 md:hidden",
-          isOpen ? "opacity-100 visible" : "opacity-0 invisible"
+          "fixed inset-0 bg-black/50 z-40 transition-opacity duration-300",
+          // Garante a visibilidade quando aberto e esconde quando fechado
+          isOpen ? "opacity-100 visible" : "opacity-0 invisible pointer-events-none"
         )}
-        // 💡 Chamada da função de toggle/fechar
-        onClick={toggleSidebar}
+        onClick={toggleSidebar} // 💡 Alteração: Fecha o menu ao clicar no overlay
       />
 
-      {/* Sidebar principal */}
+      {/* 2. Sidebar Principal (Deslizante) */}
       <div
         className={cn(
-          "fixed top-0 left-0 h-full w-64 bg-card border-r border-border shadow-2xl z-50 transform transition-transform duration-300 ease-in-out",
-          isOpen ? "translate-x-0" : "-translate-x-full",
-          "md:sticky md:top-0 md:translate-x-0 md:flex-shrink-0"
+          "fixed top-0 left-0 z-50 h-full w-80 bg-background border-r border-border shadow-xl transform transition-transform duration-300 ease-in-out",
+          // Aplica o deslize (slide-in/slide-out)
+          isOpen ? "translate-x-0" : "-translate-x-full"
         )}
       >
-        <div className="flex flex-col h-full">
-          {/* Header da Sidebar */}
-          <div className="flex items-center justify-between h-16 px-4 border-b border-border bg-background">
-            <h1 className="text-xl font-bold text-primary">Kronos</h1>
+        {/* Header da Sidebar */}
+        <div className="flex items-center justify-between p-4 border-b border-border">
+          <h2 className="text-xl font-bold text-foreground">Menu</h2>
+          <Button
+            variant="ghost"
+            size="icon"
+            onClick={toggleSidebar} // 💡 Alteração: Fecha o menu no botão 'X'
+            className="hover:bg-primary/10 hover:text-primary transition-colors"
+          >
+            <X className="h-5 w-5" />
+          </Button>
+        </div>
+
+        {/* Menu Items (Conteúdo com scroll) */}
+        <div className="p-4 flex-1 space-y-2 flex flex-col h-full overflow-y-auto">
+          <div className="space-y-2">
+            
+            {/* 1. Início */}
             <Button
               variant="ghost"
-              size="icon"
-              // 💡 Chamada da função de toggle/fechar
-              onClick={toggleSidebar}
-              className="md:hidden text-muted-foreground hover:text-primary"
+              className="w-full justify-start sidebar-fixed-height px-4 text-left hover:bg-primary/10 hover:text-foreground transition-colors group"
+              onClick={() => {
+                navigate("/dashboard");
+                toggleSidebar();
+              }}
             >
-              <X className="h-6 w-6" />
+              <Home className="mr-3 sidebar-icon-sm text-primary group-hover:text-primary transition-colors" />
+              <span className="font-medium sidebar-text-sm">Início</span>
             </Button>
-          </div>
 
-          {/* Navegação */}
-          <div className="flex-1 overflow-y-auto p-2 space-y-2">
-            {menuItems.map((item) => (
-              (userRole && item.roles.includes(userRole)) && (
-                <Button
-                  key={item.path}
-                  variant="ghost"
-                  className="w-full justify-start sidebar-fixed-height px-4 text-left hover:bg-primary/10 hover:text-foreground transition-colors"
-                  onClick={() => {
-                    navigate(item.path);
-                    // 💡 Chamada da função de toggle/fechar
-                    toggleSidebar(); 
-                  }}
-                >
-                  <item.icon className="mr-3 sidebar-icon-sm text-primary transition-colors" />
-                  <span className="font-medium sidebar-text-sm">{item.name}</span>
-                </Button>
-              )
-            ))}
-
-            {/* Collapsible Relatórios */}
-            <Collapsible
-              open={relatoriosOpen}
-              onOpenChange={setRelatoriosOpen}
-              className="w-full space-y-2"
-            >
+            {/* 2. Relatórios (Collapsible) */}
+            <Collapsible open={relatoriosOpen} onOpenChange={setRelatoriosOpen}>
               <CollapsibleTrigger asChild>
                 <Button
                   variant="ghost"
-                  className="w-full justify-between sidebar-fixed-height px-4 text-left hover:bg-primary/10 hover:text-foreground transition-colors group"
+                  className="w-full justify-start sidebar-fixed-height px-4 text-left hover:bg-primary/10 hover:text-foreground transition-colors group"
                 >
-                  <span className="flex items-center">
-                    <BarChart3 className="mr-3 sidebar-icon-sm text-primary group-hover:text-primary transition-colors" />
-                    <span className="font-medium sidebar-text-sm">Relatórios</span>
-                  </span>
-                  {relatoriosOpen ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+                  <BarChart3 className="mr-3 sidebar-icon-sm text-primary group-hover:text-primary transition-colors" />
+                  <span className="font-medium flex-1 sidebar-text-sm">Relatórios</span>
+                  {relatoriosOpen ? (
+                    <ChevronDown className="sidebar-icon-xs text-muted-foreground group-hover:text-foreground transition-colors" />
+                  ) : (
+                    <ChevronRight className="sidebar-icon-xs text-muted-foreground group-hover:text-foreground transition-colors" />
+                  )}
                 </Button>
               </CollapsibleTrigger>
               <CollapsibleContent className="space-y-1">
@@ -150,68 +129,29 @@ const Sidebar = ({ isOpen, toggleSidebar }: SidebarProps) => {
                   className="w-full justify-start sidebar-fixed-height-sm px-4 pl-12 text-left sidebar-text-sm hover:bg-primary/10 hover:text-foreground transition-colors"
                   onClick={() => {
                     navigate("/relatorio-detalhado");
-                    // 💡 Chamada da função de toggle/fechar
-                    toggleSidebar(); 
+                    toggleSidebar();
                   }}
                 >
-                  <FileText className="mr-2 sidebar-icon-xs" />
-                  <span>Detalhado</span>
-                </Button>
-                <Button
-                  variant="ghost"
-                  className="w-full justify-start sidebar-fixed-height-sm px-4 pl-12 text-left sidebar-text-sm hover:bg-primary/10 hover:text-foreground transition-colors"
-                  onClick={() => {
-                    navigate("/relatorio-simples");
-                    // 💡 Chamada da função de toggle/fechar
-                    toggleSidebar(); 
-                  }}
-                >
-                  <FileText className="mr-2 sidebar-icon-xs" />
-                  <span>Simples</span>
-                </Button>
-                <Button
-                  variant="ghost"
-                  className="w-full justify-start sidebar-fixed-height-sm px-4 pl-12 text-left sidebar-text-sm hover:bg-primary/10 hover:text-foreground transition-colors"
-                  onClick={() => {
-                    navigate("/relatorio-horas");
-                    // 💡 Chamada da função de toggle/fechar
-                    toggleSidebar(); 
-                  }}
-                >
-                  <Clock className="mr-2 sidebar-icon-xs" />
-                  <span>Horas</span>
-                </Button>
-                <Button
-                  variant="ghost"
-                  className="w-full justify-start sidebar-fixed-height-sm px-4 pl-12 text-left sidebar-text-sm hover:bg-primary/10 hover:text-foreground transition-colors"
-                  onClick={() => {
-                    navigate("/apuracao-horas");
-                    // 💡 Chamada da função de toggle/fechar
-                    toggleSidebar(); 
-                  }}
-                >
-                  <Calculator className="mr-2 sidebar-icon-xs" />
-                  <span>Apuração de Horas</span>
+                  <BarChart3 className="mr-2 sidebar-icon-xs" />
+                  <span>Relatório de Horas</span>
                 </Button>
               </CollapsibleContent>
             </Collapsible>
 
-            {/* Collapsible Documentos */}
-            <Collapsible
-              open={documentosOpen}
-              onOpenChange={setDocumentosOpen}
-              className="w-full space-y-2"
-            >
+            {/* 3. Documentos (Collapsible) */}
+            <Collapsible open={documentosOpen} onOpenChange={setDocumentosOpen}>
               <CollapsibleTrigger asChild>
                 <Button
                   variant="ghost"
-                  className="w-full justify-between sidebar-fixed-height px-4 text-left hover:bg-primary/10 hover:text-foreground transition-colors group"
+                  className="w-full justify-start sidebar-fixed-height px-4 text-left hover:bg-primary/10 hover:text-foreground transition-colors group"
                 >
-                  <span className="flex items-center">
-                    <Folder className="mr-3 sidebar-icon-sm text-primary group-hover:text-primary transition-colors" />
-                    <span className="font-medium sidebar-text-sm">Documentos</span>
-                  </span>
-                  {documentosOpen ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+                  <Folder className="mr-3 sidebar-icon-sm text-primary group-hover:text-primary transition-colors" />
+                  <span className="font-medium flex-1 sidebar-text-sm">Documentos</span>
+                  {documentosOpen ? (
+                    <ChevronDown className="sidebar-icon-xs text-muted-foreground group-hover:text-foreground transition-colors" />
+                  ) : (
+                    <ChevronRight className="sidebar-icon-xs text-muted-foreground group-hover:text-foreground transition-colors" />
+                  )}
                 </Button>
               </CollapsibleTrigger>
               <CollapsibleContent className="space-y-1">
@@ -220,217 +160,219 @@ const Sidebar = ({ isOpen, toggleSidebar }: SidebarProps) => {
                   className="w-full justify-start sidebar-fixed-height-sm px-4 pl-12 text-left sidebar-text-sm hover:bg-primary/10 hover:text-foreground transition-colors"
                   onClick={() => {
                     navigate("/documentos");
-                    // 💡 Chamada da função de toggle/fechar
-                    toggleSidebar(); 
+                    toggleSidebar();
                   }}
                 >
-                  <FileCheck className="mr-2 sidebar-icon-xs" />
-                  <span>Meus Documentos</span>
+                  <FolderOpen className="mr-2 sidebar-icon-xs" />
+                  <span>Buscar Documentos</span>
                 </Button>
                 <Button
                   variant="ghost"
                   className="w-full justify-start sidebar-fixed-height-sm px-4 pl-12 text-left sidebar-text-sm hover:bg-primary/10 hover:text-foreground transition-colors"
                   onClick={() => {
-                    navigate("/enviar-documentos");
-                    // 💡 Chamada da função de toggle/fechar
-                    toggleSidebar(); 
+                    navigate("/enviar-documento-colaborador");
+                    toggleSidebar();
                   }}
                 >
-                  <Upload className="mr-2 sidebar-icon-xs" />
-                  <span>Enviar Documento</span>
+                  <FilePlus className="mr-2 sidebar-icon-xs" />
+                  <span>Enviar Documentos</span>
                 </Button>
-                <Button
-                  variant="ghost"
-                  className="w-full justify-start sidebar-fixed-height-sm px-4 pl-12 text-left sidebar-text-sm hover:bg-primary/10 hover:text-foreground transition-colors"
-                  onClick={() => {
-                    navigate("/atestado-medico");
-                    // 💡 Chamada da função de toggle/fechar
-                    toggleSidebar(); 
-                  }}
-                >
-                  <ClipboardCheck className="mr-2 sidebar-icon-xs" />
-                  <span>Atestado Médico</span>
-                </Button>
-                
-                {/* Ações de Admin/Manager */}
-                {(userRole === "ADMIN" || userRole === "MANAGER") && (
-                  <>
-                    <Collapsible
-                      open={managerOpen}
-                      onOpenChange={setManagerOpen}
-                      className="w-full space-y-1"
-                    >
-                      <CollapsibleTrigger asChild>
-                        <Button
-                          variant="ghost"
-                          className="w-full justify-between sidebar-fixed-height-sm px-4 pl-12 text-left sidebar-text-sm hover:bg-primary/10 hover:text-foreground transition-colors group"
-                        >
-                          <span className="flex items-center">
-                            <FolderOpen className="mr-2 sidebar-icon-xs" />
-                            <span>Documentos Colaboradores</span>
-                          </span>
-                          {managerOpen ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
-                        </Button>
-                      </CollapsibleTrigger>
-                      <CollapsibleContent className="space-y-1">
-                        <Button
-                          variant="ghost"
-                          className="w-full justify-start sidebar-fixed-height-sm px-4 pl-16 text-left sidebar-text-xs hover:bg-primary/10 hover:text-foreground transition-colors"
-                          onClick={() => {
-                            navigate("/documento-colaborador");
-                            // 💡 Chamada da função de toggle/fechar
-                            toggleSidebar(); 
-                          }}
-                        >
-                          <FileText className="mr-2 sidebar-icon-xxs" />
-                          <span>Buscar Documento</span>
-                        </Button>
-                      </CollapsibleContent>
-                    </Collapsible>
-                  </>
-                )}
               </CollapsibleContent>
             </Collapsible>
-            
-            {/* Outras Ações */}
+
+            {/* 4. Usuário */}
             <Button
               variant="ghost"
-              className="w-full justify-start sidebar-fixed-height px-4 text-left hover:bg-primary/10 hover:text-foreground transition-colors"
+              className="w-full justify-start sidebar-fixed-height px-4 text-left hover:bg-primary/10 hover:text-foreground transition-colors group"
               onClick={() => {
-                navigate("/avisos");
-                // 💡 Chamada da função de toggle/fechar
-                toggleSidebar(); 
+                navigate("/usuario");
+                toggleSidebar();
               }}
             >
-              <Bell className="mr-3 sidebar-icon-sm text-primary transition-colors" />
+              <User className="mr-3 sidebar-icon-sm text-primary group-hover:text-primary transition-colors" />
+              <span className="font-medium sidebar-text-sm">Usuário</span>
+            </Button>
+
+            {/* 5. Empresa (Visível apenas para CTO) */}
+            {isCto && (
+              <Button
+                variant="ghost"
+                className="w-full justify-start sidebar-fixed-height px-4 text-left hover:bg-primary/10 hover:text-foreground transition-colors group"
+                onClick={() => {
+                  navigate("/empresa");
+                  toggleSidebar();
+                }}
+              >
+                <Building2 className="mr-3 sidebar-icon-sm text-primary group-hover:text-primary transition-colors" />
+                <span className="font-medium sidebar-text-sm">Empresa</span>
+              </Button>
+            )}
+
+            {/* 6. Avisos */}
+            <Button
+              variant="ghost"
+              className="w-full justify-start sidebar-fixed-height px-4 text-left hover:bg-primary/10 hover:text-foreground transition-colors group"
+              onClick={() => {
+                navigate("/avisos");
+                toggleSidebar();
+              }}
+            >
+              <Bell className="mr-3 sidebar-icon-sm text-primary group-hover:text-primary transition-colors" />
               <span className="font-medium sidebar-text-sm">Avisos</span>
             </Button>
             
-            {/* Menus de Administração */}
-            {(userRole === "ADMIN") && (
-              <Collapsible
-                open={managerOpen}
-                onOpenChange={setManagerOpen}
-                className="w-full space-y-2"
-              >
+            {/* 7. Administrador (Somente visível para MANAGER) */}
+            {isManager && (
+              <Collapsible open={administradorOpen} onOpenChange={setAdministradorOpen}>
                 <CollapsibleTrigger asChild>
                   <Button
                     variant="ghost"
-                    className="w-full justify-between sidebar-fixed-height px-4 text-left hover:bg-primary/10 hover:text-foreground transition-colors group"
+                    className="w-full justify-start sidebar-fixed-height px-4 text-left hover:bg-primary/10 hover:text-foreground transition-colors group"
                   >
-                    <span className="flex items-center">
-                      <Shield className="mr-3 sidebar-icon-sm text-primary group-hover:text-primary transition-colors" />
-                      <span className="font-medium sidebar-text-sm">Administração</span>
-                    </span>
-                    {managerOpen ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
+                    <Shield className="mr-3 sidebar-icon-sm text-primary group-hover:text-primary transition-colors" />
+                    <span className="font-medium flex-1 sidebar-text-sm">Administrador</span>
+                    {administradorOpen ? (
+                      <ChevronDown className="sidebar-icon-xs text-muted-foreground group-hover:text-foreground transition-colors" />
+                    ) : (
+                      <ChevronRight className="sidebar-icon-xs text-muted-foreground group-hover:text-foreground transition-colors" />
+                    )}
                   </Button>
                 </CollapsibleTrigger>
                 <CollapsibleContent className="space-y-1">
-                  {adminMenu.map((item) => (
-                    <Button
-                      key={item.path}
-                      variant="ghost"
-                      className="w-full justify-start sidebar-fixed-height-sm px-4 pl-12 text-left sidebar-text-sm hover:bg-primary/10 hover:text-foreground transition-colors"
-                      onClick={() => {
-                        navigate(item.path);
-                        // 💡 Chamada da função de toggle/fechar
-                        toggleSidebar(); 
-                      }}
-                    >
-                      <item.icon className="mr-2 sidebar-icon-xs" />
-                      <span>{item.name}</span>
-                    </Button>
-                  ))}
                   
-                  {/* Pending Approvals */}
-                  <Button
-                    variant="ghost"
-                    className="w-full justify-start sidebar-fixed-height-sm px-4 pl-12 text-left sidebar-text-sm hover:bg-primary/10 hover:text-foreground transition-colors"
-                    onClick={() => {
-                      navigate("/pending-approvals");
-                      // 💡 Chamada da função de toggle/fechar
-                      toggleSidebar(); 
-                    }}
-                  >
-                    <UserCheck className="mr-2 sidebar-icon-xs" />
-                    <span>Aprovações Pendentes</span>
-                  </Button>
-                  
-                  {/* Criar Aviso */}
-                  <Button
-                    variant="ghost"
-                    className="w-full justify-start sidebar-fixed-height-sm px-4 pl-12 text-left sidebar-text-sm hover:bg-primary/10 hover:text-foreground transition-colors"
-                    onClick={() => {
-                      navigate("/criar-aviso");
-                      // 💡 Chamada da função de toggle/fechar
-                      toggleSidebar(); 
-                    }}
-                  >
-                    <MessageSquarePlus className="mr-2 sidebar-icon-xs" />
-                    <span>Criar Aviso</span>
-                  </Button>
-                </CollapsibleContent>
-              </Collapsible>
-            )}
-            
-            {/* Menus de Gestor */}
-            {(userRole === "MANAGER") && (
-              <Collapsible
-                open={managerOpen}
-                onOpenChange={setManagerOpen}
-                className="w-full space-y-2"
-              >
-                <CollapsibleTrigger asChild>
-                  <Button
-                    variant="ghost"
-                    className="w-full justify-between sidebar-fixed-height px-4 text-left hover:bg-primary/10 hover:text-foreground transition-colors group"
-                  >
-                    <span className="flex items-center">
-                      <Shield className="mr-3 sidebar-icon-sm text-primary group-hover:text-primary transition-colors" />
-                      <span className="font-medium sidebar-text-sm">Gestão</span>
-                    </span>
-                    {managerOpen ? <ChevronDown className="h-4 w-4" /> : <ChevronRight className="h-4 w-4" />}
-                  </Button>
-                </CollapsibleTrigger>
-                <CollapsibleContent className="space-y-1">
-                  {managerMenu.map((item) => (
-                    <Button
-                      key={item.path}
-                      variant="ghost"
-                      className="w-full justify-start sidebar-fixed-height-sm px-4 pl-12 text-left sidebar-text-sm hover:bg-primary/10 hover:text-foreground transition-colors"
-                      onClick={() => {
-                        navigate(item.path);
-                        // 💡 Chamada da função de toggle/fechar
-                        toggleSidebar(); 
-                      }}
-                    >
-                      <item.icon className="mr-2 sidebar-icon-xs" />
-                      <span>{item.name}</span>
-                    </Button>
-                  ))}
+                  {/* 7.1 Colaboradores (Nested Collapsible) */}
+                  <Collapsible open={colaboradoresOpen} onOpenChange={setColaboradoresOpen}>
+                    <CollapsibleTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        className="w-full justify-start sidebar-fixed-height-sm px-4 pl-12 text-left sidebar-text-sm hover:bg-primary/10 hover:text-foreground transition-colors group"
+                      >
+                        <Users className="mr-2 sidebar-icon-xs text-muted-foreground group-hover:text-foreground transition-colors" />
+                        <span className="flex-1">Colaboradores</span>
+                        {colaboradoresOpen ? (
+                          <ChevronDown className="sidebar-icon-xxs text-muted-foreground group-hover:text-foreground transition-colors" />
+                        ) : (
+                          <ChevronRight className="sidebar-icon-xxs text-muted-foreground group-hover:text-foreground transition-colors" />
+                        )}
+                      </Button>
+                    </CollapsibleTrigger>
+                    <CollapsibleContent className="space-y-1">
+                      <Button
+                        variant="ghost"
+                        className="w-full justify-start sidebar-fixed-height-xs px-4 pl-20 text-left sidebar-text-xs hover:bg-primary/10 hover:text-foreground transition-colors"
+                        onClick={() => {
+                          navigate("/lista-colaboradores");
+                          toggleSidebar();
+                        }}
+                      >
+                        <UserCheck className="mr-2 sidebar-icon-xxs" />
+                        <span>Lista de Colaboradores</span>
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        className="w-full justify-start sidebar-fixed-height-xs px-4 pl-20 text-left sidebar-text-xs hover:bg-primary/10 hover:text-foreground transition-colors"
+                        onClick={() => {
+                          navigate("/criar-colaborador");
+                          toggleSidebar();
+                        }}
+                      >
+                        <UserPlus className="mr-2 sidebar-icon-xxs" />
+                        <span>Criar Colaborador</span>
+                      </Button>
+                    </CollapsibleContent>
+                  </Collapsible>
 
-                  {/* Pending Approvals */}
-                  <Button
-                    variant="ghost"
-                    className="w-full justify-start sidebar-fixed-height-sm px-4 pl-12 text-left sidebar-text-sm hover:bg-primary/10 hover:text-foreground transition-colors"
-                    onClick={() => {
-                      navigate("/pending-approvals");
-                      // 💡 Chamada da função de toggle/fechar
-                      toggleSidebar(); 
-                    }}
-                  >
-                    <UserCheck className="mr-2 sidebar-icon-xs" />
-                    <span>Aprovações Pendentes</span>
-                  </Button>
-                  
-                  {/* Criar Aviso */}
+                  {/* 7.2 Folha de Ponto (Nested Collapsible) */}
+                  <Collapsible open={folhaDePontoOpen} onOpenChange={setFolhaDePontoOpen}>
+                    <CollapsibleTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        className="w-full justify-start sidebar-fixed-height-sm px-4 pl-12 text-left sidebar-text-sm hover:bg-primary/10 hover:text-foreground transition-colors group"
+                      >
+                        <Clock className="mr-2 sidebar-icon-xs text-muted-foreground group-hover:text-foreground transition-colors" />
+                        <span className="flex-1">Folha de Ponto</span>
+                        {folhaDePontoOpen ? (
+                          <ChevronDown className="sidebar-icon-xxs text-muted-foreground group-hover:text-foreground transition-colors" />
+                        ) : (
+                          <ChevronRight className="sidebar-icon-xxs text-muted-foreground group-hover:text-foreground transition-colors" />
+                        )}
+                      </Button>
+                    </CollapsibleTrigger>
+                    <CollapsibleContent className="space-y-1">
+                      <Button
+                        variant="ghost"
+                        className="w-full justify-start sidebar-fixed-height-xs px-4 pl-20 text-left sidebar-text-xs hover:bg-primary/10 hover:text-foreground transition-colors"
+                        onClick={() => {
+                          navigate("/apuracao-horas");
+                          toggleSidebar();
+                        }}
+                      >
+                        <Calculator className="mr-2 sidebar-icon-xxs" />
+                        <span>Apuração de Horas</span>
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        className="w-full justify-start sidebar-fixed-height-xs px-4 pl-20 text-left sidebar-text-xs hover:bg-primary/10 hover:text-foreground transition-colors"
+                        onClick={() => {
+                          navigate("/status-do-registro");
+                          toggleSidebar();
+                        }}
+                      >
+                        <ClipboardCheck className="mr-2 sidebar-icon-xxs" />
+                        <span>Status do Registro</span>
+                      </Button>
+                    </CollapsibleContent>
+                  </Collapsible>
+
+                  {/* 7.3 Documentos (Nested Collapsible - Administrador) */}
+                  <Collapsible open={adminDocumentosOpen} onOpenChange={setAdminDocumentosOpen}>
+                    <CollapsibleTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        className="w-full justify-start sidebar-fixed-height-sm px-4 pl-12 text-left sidebar-text-sm hover:bg-primary/10 hover:text-foreground transition-colors group"
+                      >
+                        <Folder className="mr-2 sidebar-icon-xs text-muted-foreground group-hover:text-foreground transition-colors" />
+                        <span className="flex-1">Documentos</span>
+                        {adminDocumentosOpen ? (
+                          <ChevronDown className="sidebar-icon-xxs text-muted-foreground group-hover:text-foreground transition-colors" />
+                        ) : (
+                          <ChevronRight className="sidebar-icon-xxs text-muted-foreground group-hover:text-foreground transition-colors" />
+                        )}
+                      </Button>
+                    </CollapsibleTrigger>
+                    <CollapsibleContent className="space-y-1">
+                      <Button
+                        variant="ghost"
+                        className="w-full justify-start sidebar-fixed-height-xs px-4 pl-20 text-left sidebar-text-xs hover:bg-primary/10 hover:text-foreground transition-colors"
+                        onClick={() => {
+                          navigate("/documentos");
+                          toggleSidebar();
+                        }}
+                      >
+                        <FolderOpen className="mr-2 sidebar-icon-xxs" />
+                        <span>Buscar Documentos</span>
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        className="w-full justify-start sidebar-fixed-height-xs px-4 pl-20 text-left sidebar-text-xs hover:bg-primary/10 hover:text-foreground transition-colors"
+                        onClick={() => {
+                          navigate("/enviar-documentos");
+                          toggleSidebar();
+                        }}
+                      >
+                        <Upload className="mr-2 sidebar-icon-xxs" />
+                        <span>Enviar Documentos</span>
+                      </Button>
+                    </CollapsibleContent>
+                  </Collapsible>
+
+                  {/* 7.4 Criar Aviso */}
                   <Button
                     variant="ghost"
                     className="w-full justify-start sidebar-fixed-height-sm px-4 pl-12 text-left sidebar-text-sm hover:bg-primary/10 hover:text-foreground transition-colors"
                     onClick={() => {
                       navigate("/criar-aviso");
-                      // 💡 Chamada da função de toggle/fechar
-                      toggleSidebar(); 
+                      toggleSidebar();
                     }}
                   >
                     <MessageSquarePlus className="mr-2 sidebar-icon-xs" />
@@ -440,7 +382,7 @@ const Sidebar = ({ isOpen, toggleSidebar }: SidebarProps) => {
               </Collapsible>
             )}
             
-            {/* Sair */}
+            {/* 8. Sair */}
             <Button
               variant="ghost"
               className="w-full justify-start sidebar-fixed-height px-4 text-left hover:bg-primary/10 hover:text-foreground transition-colors group"

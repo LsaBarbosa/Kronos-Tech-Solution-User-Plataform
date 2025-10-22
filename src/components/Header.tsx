@@ -4,7 +4,7 @@ import { Menu } from "lucide-react";
 import ThemeToggle from "./ThemeToggle";
 import { Button } from "@/components/ui/button";
 
-// 💡 CORREÇÃO: Interface ajustada para usar 'toggleSidebar'
+// 💡 Interface ajustada para usar 'toggleSidebar'
 interface HeaderProps {
   toggleSidebar: () => void; 
 }
