@@ -17,7 +17,7 @@ import { Separator } from "@/components/ui/separator";
 import { useDashboardData } from "@/hooks/useDashboardData";
 import { getRoleDisplayName } from "@/types/dashboard";
 
-// Função utilitária para formatar o salário (Mantida)
+// Função utilitária para formatar o salário
 const formatSalary = (salary: number | undefined) => {
     if (salary === undefined || salary === null) return "N/A";
     return new Intl.NumberFormat('pt-BR', {
@@ -26,7 +26,7 @@ const formatSalary = (salary: number | undefined) => {
     }).format(salary);
 };
 
-// Função utilitária para formatar o telefone (Mantida)
+// Função utilitária para formatar o telefone
 const formatPhone = (phone: string | undefined) => {
     if (!phone) return "N/A";
     const cleaned = ('' + phone).replace(/\D/g, '');
@@ -41,12 +41,35 @@ const formatPhone = (phone: string | undefined) => {
     return phone;
 };
 
+/**
+ * Função auxiliar para extrair o primeiro e o segundo nome.
+ * Ex: "Lucas Sant Anna Barbosa" -> "Lucas Sant"
+ * Ex: "Lucas SantAnna" -> "Lucas SantAnna"
+ */
+const getTwoNames = (fullName: string | undefined): string => {
+    if (!fullName) return "Colaborador";
+    // Usa split por espaço para separar as palavras
+    const names = fullName.trim().split(/\s+/);
+    if (names.length >= 2) {
+        // Retorna o primeiro e o segundo elemento
+        return `${names[0]} ${names[1]}`;
+    }
+    return fullName; // Retorna o nome completo se tiver 1 ou 0 palavras
+};
+
+// NOVO: Função para obter apenas o primeiro nome (para a saudação)
+const getFirstName = (fullName: string | undefined): string => {
+    if (!fullName) return "Usuário";
+    return fullName.trim().split(/\s+/)[0];
+};
+
+
 const Dashboard = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [showSalary, setShowSalary] = useState(false);
+  const [showSalary, setShowSalary] = useState(false); // Estado para mostrar/esconder salário
   
   const handleToggleSidebar = useCallback(() => setSidebarOpen((prev) => !prev), []);
-  const toggleSalary = useCallback(() => setShowSalary(prev => !prev), []);
+  const toggleSalary = useCallback(() => setShowSalary(prev => !prev), []); // Toggle do salário
   
   const navigate = useNavigate();
 
@@ -57,7 +80,7 @@ const Dashboard = () => {
     newWarnings,
     hasApprovalPermission,
     fetchProfile, 
-    // handleWarningClick (mantida a função que deve navegar para /avisos)
+    handleWarningClick,
   } = useDashboardData();
   
   // Handlers de Navegação
@@ -65,26 +88,18 @@ const Dashboard = () => {
     navigate("/apuracao-horas"); 
   }, [navigate]);
 
-  const handleClockClick = useCallback(() => {
+  const handleClockCardClick = useCallback(() => { // Card Controle de Ponto
     navigate("/relatorio-detalhado"); 
   }, [navigate]);
 
-  // Handler para o clique no Card de Detalhes (leva para /usuario)
+  // Redirecionamento do Card de Detalhes do Usuário
   const handleDetailsCardClick = useCallback(() => {
     navigate("/usuario");
   }, [navigate]);
-
-  // Handler para o Card de Avisos para não-MANAGERs
-  const handleAvisosCardClick = useCallback(() => {
-    if (!isManager && newWarnings.length > 0) {
-        navigate("/avisos"); // Assumindo que a rota "/avisos" é o destino para a lista completa
-    }
-  }, [navigate, newWarnings.length]);
-
-
+  
   const isCto = useMemo(() => userData?.role === 'CTO', [userData?.role]);
   const isManager = useMemo(() => userData?.role === 'MANAGER', [userData?.role]); 
-
+  
   // Handler para o link da empresa (clique na span dentro do card)
   const handleCompanyLinkClick = useCallback((event: React.MouseEvent<HTMLSpanElement, MouseEvent>) => {
     event.stopPropagation(); // Impede que o clique suba para o Card e navegue para /usuario
@@ -101,8 +116,16 @@ const Dashboard = () => {
     }
   }, [isCto, navigate]);
 
+  // Handler para o Card de Avisos para não-MANAGERs
+  const handleAvisosCardClick = useCallback(() => {
+    if (!isManager && newWarnings.length > 0) {
+        handleWarningClick(); // Marca como visto e navega para /avisos
+    }
+  }, [isManager, newWarnings.length, handleWarningClick]);
+  
+
   /**
-   * 💡 Função auxiliar para aplicar estilização temática de Card.
+   * Função auxiliar para aplicar estilização temática de Card.
    * Mantém a coerência visual de bordas, sombras e hover.
    * @param baseColor Cor base ('primary', 'destructive', 'success', 'yellow-600').
    */
@@ -112,6 +135,7 @@ const Dashboard = () => {
       
       let borderColor, ringColor;
 
+      // Mapeamento das classes Tailwind para cores e efeitos
       switch (baseColor) {
           case 'primary':
               borderColor = 'border-l-primary';
@@ -136,6 +160,7 @@ const Dashboard = () => {
               ringColor = 'ring-primary';
       }
       
+      // Classes comuns: borda, hover com shadow e ring
       const cursorClass = isClickable ? 'cursor-pointer' : 'cursor-default';
       
       return `${borderColor} ${hoverClasses} hover:ring-2 hover:${ringColor}/50 ${cursorClass}`;
@@ -151,9 +176,9 @@ const Dashboard = () => {
         <main className="flex-1 overflow-x-hidden overflow-y-auto bg-gray-50 dark:bg-gray-900 p-6 pt-20">
           <div className="max-w-6xl mx-auto">
             
-            {/* SAUDAÇÃO PERSONALIZADA */}
+            {/* SAUDAÇÃO PERSONALIZADA - APLICA O getFirstName AQUI */}
             <h1 className="text-3xl font-bold text-foreground mb-1">
-                Olá, {isLoading ? "..." : userData?.fullName.split(' ')[0] || "Usuário"}!
+                Olá, {isLoading ? "..." : userData?.fullName || "Usuário"}!
             </h1>
             <p className="text-lg text-muted-foreground mb-6">
                 Seja bem-vindo(a) ao seu painel de controle.
@@ -169,22 +194,21 @@ const Dashboard = () => {
                     {/* Linha Principal - Informações do Colaborador e Relógio */}
                     <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
                         
-                        {/* Card Consolidado de Informações do Colaborador (1/3) - AGORA CLICÁVEL */}
+                        {/* 1. Card Consolidado de Informações do Colaborador (Primary - lg:col-span-1) */}
                         <Card 
-                            className={`
-                                lg:col-span-1 
-                                ${getThemeCardClasses('primary', true)}
-                            `}
+                            className={`lg:col-span-1 ${getThemeCardClasses('primary', true)}`}
                             onClick={handleDetailsCardClick} // Redireciona para /usuario
                         >
                             <CardContent className="p-6 space-y-4">
                                 
-                                {/* Nome, Cargo e Botão Empresa (se for CTO) */}
+                                {/* Nome (AJUSTADO PARA OS 2 PRIMEIROS NOMES), Cargo e Botão Empresa (se for CTO) */}
                                 <div className="flex items-center space-x-4 pb-2 border-b border-border/70">
                                     <User2 className="h-10 w-10 text-primary" />
                                     
                                     <div className="flex-1 min-w-0">
-                                        <h2 className="text-xl font-bold text-foreground line-clamp-1">{userData?.fullName || "Colaborador"}</h2>
+                                        {/* APLICAÇÃO DO NOVO FILTRO DE NOME */}
+                                        <h2 className="text-xl font-bold text-foreground line-clamp-1">{getFirstName(userData?.fullName)}</h2>
+                                        
                                         <p className="text-sm font-semibold text-foreground/80">
                                             {userData?.jobPosition || "N/A"} 
                                             <span className="text-muted-foreground ml-1 font-normal">({getRoleDisplayName(userData?.role || '')})</span>
@@ -196,7 +220,7 @@ const Dashboard = () => {
                                             variant="ghost" 
                                             size="sm" 
                                             className="flex-shrink-0 text-primary hover:bg-primary/10"
-                                            onClick={handleCompanyButtonClick} // Chama o handler com stopPropagation
+                                            onClick={handleCompanyButtonClick} // Handler com stopPropagation
                                             title="Gerenciar Empresa"
                                         >
                                             <Briefcase className="w-4 h-4 mr-1" /> Empresa
@@ -213,7 +237,7 @@ const Dashboard = () => {
                                         <Building className="h-4 w-4 text-primary/80" />
                                         <span 
                                             className={`text-foreground font-medium ${isCto ? 'underline cursor-pointer hover:text-primary' : ''}`}
-                                            onClick={handleCompanyLinkClick} // Chama o handler com stopPropagation
+                                            onClick={handleCompanyLinkClick} // Handler com stopPropagation
                                             title={isCto ? "Clique para ir para a Empresa" : undefined}
                                         >
                                             {userData?.companyName || "N/A"}
@@ -262,7 +286,7 @@ const Dashboard = () => {
                                 ${getThemeCardClasses('primary', true)} 
                                 flex flex-col justify-center
                             `}
-                            onClick={handleClockClick}
+                            onClick={handleClockCardClick}
                         >
                             <CardContent className="p-6">
                                 <div className="flex items-center justify-center">
@@ -287,7 +311,6 @@ const Dashboard = () => {
                             className={`
                                 ${getThemeCardClasses('yellow-600', !isManager && newWarnings.length > 0)}
                             `}
-                            // NOVO: Clique no card para não-MANAGERs leva para /avisos se houver avisos
                             onClick={handleAvisosCardClick} 
                         >
                             <CardContent className="p-5 flex flex-col h-full justify-between">
@@ -314,7 +337,7 @@ const Dashboard = () => {
                                             variant="ghost" 
                                             size="sm" 
                                             className="w-full justify-start text-yellow-600 hover:bg-yellow-600/10"
-                                            onClick={(e) => { e.stopPropagation(); navigate("/avisos"); }} // Navega para a lista de avisos
+                                            onClick={(e) => { e.stopPropagation(); handleWarningClick(); }} // Marca como visto e navega
                                         >
                                             <ListChecks className="w-4 h-4 mr-2" /> Ver Todos Avisos
                                         </Button>
@@ -324,7 +347,7 @@ const Dashboard = () => {
                                         variant="ghost" 
                                         size="sm" 
                                         className="mt-2 -mx-3 justify-start text-yellow-600 hover:bg-yellow-600/10"
-                                        onClick={handleAvisosCardClick} // O clique do botão também usa a navegação simples
+                                        onClick={handleAvisosCardClick} // Redireciona
                                     >
                                         Ver Avisos <ArrowRight className="w-4 h-4 ml-1" />
                                     </Button>
@@ -338,7 +361,7 @@ const Dashboard = () => {
                                 className={`
                                     ${pendingApprovalsCount > 0 ? getThemeCardClasses('destructive', !isManager) : getThemeCardClasses('success', !isManager)}
                                 `}
-                                // Apenas roles que não são MANAGER e que têm aprovações pendentes podem clicar aqui.
+                                // Permite o clique no card apenas para não-MANAGERs com pendências
                                 onClick={!isManager && pendingApprovalsCount > 0 ? handleApprovalClick : undefined}
                             >
                                 <CardContent className="p-5 flex flex-col h-full justify-between">
@@ -388,7 +411,7 @@ const Dashboard = () => {
                                 </CardContent>
                             </Card>
                         ) : (
-                            /* Card de Acesso Rápido (para quem não tem permissão de aprovação e não é manager) */
+                            /* Card de Acesso Rápido (para quem não tem permissão de aprovação) */
                              <Card className={getThemeCardClasses('primary')}>
                                 <CardContent className="p-5 space-y-3 flex flex-col items-start h-full justify-center">
                                     <div className="flex items-center text-primary mb-3">
@@ -407,7 +430,7 @@ const Dashboard = () => {
                                         variant="outline" 
                                         size="sm" 
                                         className="w-full justify-start text-primary hover:bg-primary/10"
-                                        onClick={() => navigate("/relatorio")}
+                                        onClick={() => navigate("/relatorio-detalhado")}
                                     >
                                         <ArrowRight className="w-4 h-4 mr-2" /> Meu Relatório
                                     </Button>
