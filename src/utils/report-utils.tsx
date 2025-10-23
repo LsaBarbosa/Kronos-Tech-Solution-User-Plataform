@@ -28,6 +28,8 @@ export interface DetailedReportItem {
 }
 
 export interface ReportDay {
+    endHour: string;
+    startHour: string;
     startDate: string; // DD/MM/YYYY
     totalHours: string;
     totalBreakHours: string;

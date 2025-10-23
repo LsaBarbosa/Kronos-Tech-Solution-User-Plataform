@@ -4,6 +4,7 @@ import React from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { CalendarIcon, Download } from "lucide-react";
+// Usando ReportDataSimple do utils, mas estendemos a tipagem aqui para os novos campos
 import { ReportDataSimple, isHoliday } from "@/utils/report-utils";
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
@@ -12,11 +13,29 @@ import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { useToast } from "@/hooks/use-toast";
 
+// 💡 NOVO: Estendendo as interfaces para incluir as novas horas
+interface ReportDayExtended {
+    startDate: string;
+    totalHours: string;
+    balance: string;
+    startHour?: string; // Novo Campo
+    endHour?: string;   // Novo Campo
+}
+
+interface ReportDataSimpleExtended {
+    totalHoursWorked: string;
+    totalBalance: string;
+    days: ReportDayExtended[];
+    employeeName?: string;
+    companyName?: string;
+}
+
 interface ResultadosSimplesProps {
-    reportDataSimple: ReportDataSimple | null;
+    reportDataSimple: ReportDataSimpleExtended | null;
     referenceTime: string;
     selectedDates: Date[];
 }
+
 
 export const ResultadosRelatorioSimples: React.FC<ResultadosSimplesProps> = ({
     reportDataSimple,
@@ -25,7 +44,7 @@ export const ResultadosRelatorioSimples: React.FC<ResultadosSimplesProps> = ({
 }) => {
     const { toast } = useToast();
 
-    // Lógica do PDF Simples (Migrada)
+    // Lógica do PDF Simples (Migrada, Estilizada e Atualizada com Entrada/Saída)
     const handleDownload = () => {
         if (!reportDataSimple || reportDataSimple.days.length === 0) {
             toast({
@@ -43,12 +62,16 @@ export const ResultadosRelatorioSimples: React.FC<ResultadosSimplesProps> = ({
                 format: 'a4'
             });
 
+            // 💡 ESTILO: TÍTULO PRINCIPAL COLORIDO E MAIOR
+            doc.setTextColor(0, 150, 136); // Azul-Petróleo Elegante
             doc.setFont("helvetica", "bold");
-            doc.setFontSize(18);
+            doc.setFontSize(22);
             doc.text('RELATÓRIO SIMPLES DE PONTO', 20, 25);
 
+            // Volta para estilo de texto normal
             doc.setFontSize(12);
             doc.setFont("helvetica", "normal");
+            doc.setTextColor(0, 0, 0); // Preto
             let yPosition = 40;
 
             if (reportDataSimple.employeeName) {
@@ -75,11 +98,15 @@ export const ResultadosRelatorioSimples: React.FC<ResultadosSimplesProps> = ({
 
             // Adicionando os totais antes da tabela
             doc.setFont("helvetica", "bold");
+            // 💡 ESTILO: TOTAIS EM DESTAQUE E COLORIDOS
+            doc.setTextColor(40, 167, 69); // Verde
             doc.text(`Total de Horas Trabalhadas: ${reportDataSimple.totalHoursWorked}`, 20, yPosition);
             yPosition += 7;
+            doc.setTextColor(reportDataSimple.totalBalance.startsWith('-') ? 220 : 40, reportDataSimple.totalBalance.startsWith('-') ? 53 : 167, reportDataSimple.totalBalance.startsWith('-') ? 69 : 69); // Destaque de saldo
             doc.text(`Saldo Total: ${reportDataSimple.totalBalance}`, 20, yPosition);
             yPosition += 10;
-            doc.setFont("helvetica", "normal"); // Volta para normal
+            doc.setFont("helvetica", "normal"); 
+            doc.setTextColor(0, 0, 0); // Volta para preto
 
             const tableData = reportDataSimple.days.map(day => {
                 const parts = day.startDate.split('/'); // DD/MM/YYYY
@@ -87,36 +114,60 @@ export const ResultadosRelatorioSimples: React.FC<ResultadosSimplesProps> = ({
                 const holiday = isHoliday(dayDate) ? ' 🎉' : '';
                 return [
                     `${day.startDate}${holiday}`,
+                    day.startHour || 'N/A', // 💡 NOVO
+                    day.endHour || 'N/A',   // 💡 NOVO
                     day.totalHours,
                     day.balance,
                 ];
             });
 
             autoTable(doc, {
-                head: [['Data', 'Total de Horas', 'Saldo do Dia']],
+                head: [['Data', 'Entrada', 'Saída', 'Total de Horas', 'Saldo do Dia']], // 💡 NOVO TÍTULO
                 body: tableData,
                 startY: yPosition,
                 margin: { left: 20, right: 20 },
-                styles: {
+                // ===================================
+                // 💡 INÍCIO DAS ALTERAÇÕES DE ESTILO (ELEGÂNCIA)
+                // ===================================
+                styles: { 
                     fontSize: 9,
-                    cellPadding: 3,
-                    halign: 'center'
+                    cellPadding: 4, // Aumenta o padding para mais elegância
+                    halign: 'center',
+                    lineColor: [220, 220, 220], // Linhas mais claras
+                    lineWidth: 0.1, // Linhas mais finas
                 },
                 headStyles: {
-                    fillColor: [41, 128, 185],
+                    fillColor: [0, 150, 136], // NOVO: Azul-petróleo (Tema Principal)
                     textColor: [255, 255, 255],
-                    fontSize: 10,
+                    fontSize: 11, // Aumenta levemente a fonte
                     fontStyle: 'bold'
                 },
+                alternateRowStyles: { // Efeito Zebra
+                    fillColor: [240, 255, 240], // Honeydew (Verde/Azul claro suave)
+                },
+                // ===================================
+                // 💡 FIM DAS ALTERAÇÕES DE ESTILO DE TABELA
+                // ===================================
                 columnStyles: {
-                    2: { // Coluna do saldo
+                    4: { // Coluna do saldo agora é a 4 (0-indexed)
                         cellWidth: 25,
                         halign: 'center'
                     }
                 },
                 didParseCell: function (data) {
-                    // Colorir saldo positivo/negativo
-                    if (data.column.index === 2 && data.section === 'body') {
+                    // 💡 ESTILO: Destaque Colorido para Feriado (Primeira Coluna)
+                    if (data.column.index === 0 && data.section === 'body') {
+                        const cellContent = data.cell.text[0];
+                        if (cellContent && cellContent.includes('🎉')) {
+                            data.cell.styles.textColor = [255, 87, 34]; // Laranja vibrante (Accent)
+                            data.cell.styles.fontStyle = 'bold';
+                            // Remove o ícone 🎉 da célula para que a cor seja o único destaque
+                            data.cell.text[0] = data.cell.text[0].replace(' 🎉', '');
+                        }
+                    }
+
+                    // Colorir saldo positivo/negativo (Coluna do Saldo agora é a 4)
+                    if (data.column.index === 4 && data.section === 'body') {
                         const balance = data.cell.text[0];
                         if (balance && balance.startsWith('-')) {
                             data.cell.styles.textColor = [220, 53, 69]; // Vermelho para negativo
@@ -133,10 +184,12 @@ export const ResultadosRelatorioSimples: React.FC<ResultadosSimplesProps> = ({
             for (let i = 1; i <= pageCount; i++) {
                 doc.setPage(i);
                 doc.setFontSize(8);
-                doc.setTextColor(128, 128, 128);
+                // 💡 ESTILO: Rodapé em Azul Suave
+                doc.setTextColor(100, 149, 237); // Cornflower Blue
                 doc.text(`Página ${i} de ${pageCount}`, doc.internal.pageSize.width - 30, doc.internal.pageSize.height - 10);
                 doc.text(`Gerado em: ${format(new Date(), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}`, 20, doc.internal.pageSize.height - 10);
             }
+            doc.setTextColor(0, 0, 0); // Volta ao preto para evitar vazamento
 
             const fileName = `relatorio_simples_${format(new Date(), "yyyyMMdd_HHmmss")}.pdf`;
             doc.save(fileName);
@@ -191,6 +244,12 @@ export const ResultadosRelatorioSimples: React.FC<ResultadosSimplesProps> = ({
                                     Data
                                 </th>
                                 <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-primary uppercase tracking-wider">
+                                    Entrada 💡
+                                </th>
+                                <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-primary uppercase tracking-wider">
+                                    Saída 💡
+                                </th>
+                                <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-primary uppercase tracking-wider">
                                     Horas Trabalhadas
                                 </th>
                                 <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-primary uppercase tracking-wider">
@@ -211,6 +270,8 @@ export const ResultadosRelatorioSimples: React.FC<ResultadosSimplesProps> = ({
                                             {day.startDate}
                                             {isHoliday(dayDate) && <Badge variant="outline" className="text-destructive border-destructive/50 bg-destructive/5">Feriado</Badge>}
                                         </td>
+                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-right font-medium">{day.startHour || 'N/A'}</td> 
+                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-right font-medium">{day.endHour || 'N/A'}</td>   
                                         <td className="px-6 py-4 whitespace-nowrap text-sm text-right font-medium">{day.totalHours}</td>
                                         <td className={`px-6 py-4 whitespace-nowrap text-sm text-right font-bold ${day.balance.startsWith('-') ? 'text-destructive' : 'text-green-600'}`}>
                                             {day.balance}

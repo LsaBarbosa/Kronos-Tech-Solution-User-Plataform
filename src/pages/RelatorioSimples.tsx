@@ -9,8 +9,10 @@ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { useToast } from "@/hooks/use-toast";
 import Header from "@/components/Header";
 import Sidebar from "@/components/Sidebar";
-import { Download, Search, X } from "lucide-react";
-import { format } from "date-fns";
+// 💡 NOVO: Importado CalendarCheck
+import { Download, Search, X, CalendarCheck } from "lucide-react"; 
+// 💡 NOVO: Importados helpers do date-fns
+import { format, startOfMonth, endOfMonth, eachDayOfInterval } from "date-fns"; 
 import { ptBR } from "date-fns/locale";
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
@@ -95,6 +97,8 @@ const getEasterDate = (year) => {
 // Interface para os dados do relatório
 interface ReportDay {
   startDate: string;
+  startHour?: string; 
+  endHour?: string;   
   totalHours: string;
   balance: string;
 }
@@ -109,18 +113,18 @@ interface ReportData {
 
 interface Employee {
   employeeId: string;
-  fullName: string; // Updated from employeeName
+  fullName: string; 
 }
 
 const RelatorioSimples = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [selectedDates, setSelectedDates] = useState([]);
+  const [selectedDates, setSelectedDates] = useState<Date[]>([]);
   const [referenceTime, setReferenceTime] = useState("08:00");
   const [selectedEmployee, setSelectedEmployee] = useState("");
   const [employeeActive, setEmployeeActive] = useState("active");
   const [active, setRecordActive] = useState("active");
-  const [employees, setEmployees] = useState([]);
-  const [reportData, setReportData] = useState(null);
+  const [employees, setEmployees] = useState<Employee[]>([]);
+  const [reportData, setReportData] = useState<ReportData | null>(null);
   const [isPartner, setIsPartner] = useState(false);
   const { toast } = useToast();
 
@@ -186,6 +190,34 @@ const RelatorioSimples = () => {
     );
   };
 
+  // 💡 NOVO: Função para selecionar todas as datas do mês atual (até hoje)
+  const handleSelectAllDatesInMonth = () => {
+    const today = new Date();
+    // Define a referência como o mês e ano atuais
+    const referenceDate = new Date(); 
+    
+    // Obtém o primeiro dia do mês
+    const firstDayOfMonth = startOfMonth(referenceDate);
+    // Obtém o último dia do mês
+    const lastDayOfMonth = endOfMonth(referenceDate);
+
+    // Gera todas as datas no intervalo
+    const allDays = eachDayOfInterval({
+      start: firstDayOfMonth,
+      end: lastDayOfMonth,
+    });
+    
+    // Filtra as datas futuras (incluindo o dia atual)
+    const validDates = allDays.filter(date => date <= today);
+
+    setSelectedDates(validDates);
+
+    toast({
+        title: "Seleção Rápida",
+        description: `Todas as datas de ${format(firstDayOfMonth, "MMMM 'de' yyyy", { locale: ptBR })} (até hoje) foram selecionadas.`,
+    });
+  };
+
   const handleSearch = async () => {
     if (selectedDates.length === 0) {
       toast({
@@ -247,7 +279,7 @@ const RelatorioSimples = () => {
       console.error("Erro na busca:", error);
       toast({
         title: "Erro",
-        description: error.message || "Ocorreu um erro ao buscar o relatório.",
+        description: (error as Error).message || "Ocorreu um erro ao buscar o relatório.",
         variant: "destructive",
       });
     }
@@ -270,12 +302,16 @@ const RelatorioSimples = () => {
         format: 'a4'
       });
 
+      // 💡 ESTILO: TÍTULO PRINCIPAL COLORIDO E MAIOR
+      doc.setTextColor(0, 150, 136); // Azul-Petróleo Elegante
       doc.setFont("helvetica", "bold");
-      doc.setFontSize(18);
+      doc.setFontSize(22);
       doc.text('RELATÓRIO SIMPLES DE PONTO', 20, 25);
 
+      // Volta para estilo de texto normal
       doc.setFontSize(12);
       doc.setFont("helvetica", "normal");
+      doc.setTextColor(0, 0, 0); // Preto
       let yPosition = 40;
 
       if (reportData.employeeName) {
@@ -301,46 +337,73 @@ const RelatorioSimples = () => {
 
       // Adicionando os totais antes da tabela
       doc.setFont("helvetica", "bold");
+      // 💡 ESTILO: TOTAIS EM DESTAQUE E COLORIDOS
+      doc.setTextColor(40, 167, 69); // Verde
       doc.text(`Total de Horas Trabalhadas: ${reportData.totalHoursWorked}`, 20, yPosition);
       yPosition += 7;
+      doc.setTextColor(reportData.totalBalance.startsWith('-') ? 220 : 40, reportData.totalBalance.startsWith('-') ? 53 : 167, reportData.totalBalance.startsWith('-') ? 69 : 69); // Destaque de saldo
       doc.text(`Saldo Total: ${reportData.totalBalance}`, 20, yPosition);
       yPosition += 10;
+      doc.setFont("helvetica", "normal");
+      doc.setTextColor(0, 0, 0); // Volta para preto
 
       const tableData = reportData.days.map(day => {
         const dayDate = new Date(day.startDate.split('/').reverse().join('-'));
-        const holiday = isHoliday(dayDate) ? '🎉' : '';
+        const holiday = isHoliday(dayDate) ? ' 🎉' : '';
         return [
-          `${day.startDate} ${holiday}`,
+          `${day.startDate}${holiday}`,
+          day.startHour || 'N/A', 
+          day.endHour || 'N/A',   
           day.totalHours,
           day.balance,
         ];
       });
 
       autoTable(doc, {
-        head: [['Data', 'Total de Horas', 'Saldo do Dia']],
+        head: [['Data', 'Entrada', 'Saída', 'Total de Horas', 'Saldo do Dia']], 
         body: tableData,
         startY: yPosition,
         margin: { left: 20, right: 20 },
-        styles: {
-          fontSize: 9,
-          cellPadding: 3,
-          halign: 'center'
+        // ===================================
+        // 💡 INÍCIO DAS ALTERAÇÕES DE ESTILO (ELEGÂNCIA)
+        // ===================================
+        styles: { 
+            fontSize: 9,
+            cellPadding: 4, // Aumenta o padding para mais elegância
+            halign: 'center',
+            lineColor: [220, 220, 220], // Linhas mais claras
+            lineWidth: 0.1, // Linhas mais finas
         },
         headStyles: {
-          fillColor: [41, 128, 185],
-          textColor: [255, 255, 255],
-          fontSize: 10,
-          fontStyle: 'bold'
+            fillColor: [0, 150, 136], // NOVO: Azul-petróleo (Tema Principal)
+            textColor: [255, 255, 255],
+            fontSize: 11,
+            fontStyle: 'bold'
         },
+        alternateRowStyles: { // Efeito Zebra
+            fillColor: [240, 255, 240], // Honeydew (Verde/Azul claro suave)
+        },
+        // 💡 FIM DAS ALTERAÇÕES DE ESTILO DE TABELA
         columnStyles: {
-          2: { // Coluna do saldo
+          4: { // Coluna do saldo agora é a 4 (0-indexed)
             cellWidth: 25,
             halign: 'center'
           }
         },
         didParseCell: function (data) {
-          // Colorir saldo positivo/negativo
-          if (data.column.index === 2 && data.section === 'body') {
+          // 💡 ESTILO: Destaque Colorido para Feriado (Primeira Coluna)
+          if (data.column.index === 0 && data.section === 'body') {
+              const cellContent = data.cell.text[0];
+              if (cellContent && cellContent.includes('🎉')) {
+                  data.cell.styles.textColor = [255, 87, 34]; // Laranja vibrante (Accent)
+                  data.cell.styles.fontStyle = 'bold';
+                  // Remove o ícone 🎉 da célula para que a cor seja o único destaque
+                  data.cell.text[0] = data.cell.text[0].replace(' 🎉', '');
+              }
+          }
+          
+          // Colorir saldo positivo/negativo (Coluna do Saldo agora é a 4)
+          if (data.column.index === 4 && data.section === 'body') {
             const balance = data.cell.text[0];
             if (balance && balance.startsWith('-')) {
               data.cell.styles.textColor = [220, 53, 69]; // Vermelho para negativo
@@ -357,10 +420,12 @@ const RelatorioSimples = () => {
       for (let i = 1; i <= pageCount; i++) {
         doc.setPage(i);
         doc.setFontSize(8);
-        doc.setTextColor(128, 128, 128);
+        // 💡 ESTILO: Rodapé em Azul Suave
+        doc.setTextColor(100, 149, 237); // Cornflower Blue
         doc.text(`Página ${i} de ${pageCount}`, doc.internal.pageSize.width - 30, doc.internal.pageSize.height - 10);
         doc.text(`Gerado em: ${format(new Date(), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}`, 20, doc.internal.pageSize.height - 10);
       }
+      doc.setTextColor(0, 0, 0); // Volta ao preto para evitar vazamento
 
       const fileName = `relatorio_simples_${format(new Date(), "yyyyMMdd_HHmmss")}.pdf`;
       doc.save(fileName);
@@ -380,7 +445,7 @@ const RelatorioSimples = () => {
     }
   };
 
-  const removeDateSelection = (dateToRemove) => {
+  const removeDateSelection = (dateToRemove: Date) => {
     setSelectedDates(prev =>
       prev.filter(date => date.getTime() !== dateToRemove.getTime())
     );
@@ -464,6 +529,15 @@ const RelatorioSimples = () => {
                     Escolha as datas para o relatório
                   </p>
                 </div>
+                {/* 💡 NOVO: Botão para selecionar todas as datas do mês atual (até hoje) */}
+                <Button
+                    onClick={handleSelectAllDatesInMonth}
+                    variant="outline"
+                    className="w-full sm:w-auto border-2 border-green-600 text-green-600 hover:bg-green-600/10 font-semibold transition-colors"
+                >
+                    <CalendarCheck className="mr-2 h-5 w-5" />
+                    Selecionar Mês Atual
+                </Button>
                 <Card className="border-l-4 border-l-primary shadow-card">
                   <Calendar
                     mode="multiple"
@@ -747,6 +821,12 @@ const RelatorioSimples = () => {
                               Data
                             </th>
                             <th className="text-left py-3 px-4 font-semibold text-foreground">
+                              Entrada
+                            </th>
+                            <th className="text-left py-3 px-4 font-semibold text-foreground">
+                              Saída
+                            </th>
+                            <th className="text-left py-3 px-4 font-semibold text-foreground">
                               Total de Horas
                             </th>
                             <th className="text-left py-3 px-4 font-semibold text-foreground">
@@ -773,6 +853,12 @@ const RelatorioSimples = () => {
                                       </span>
                                     )}
                                   </div>
+                                </td>
+                                <td className="py-3 px-4 text-foreground">
+                                  {day.startHour || 'N/A'}
+                                </td>
+                                <td className="py-3 px-4 text-foreground">
+                                  {day.endHour || 'N/A'}
                                 </td>
                                 <td className="py-3 px-4 text-foreground">
                                   {day.totalHours}

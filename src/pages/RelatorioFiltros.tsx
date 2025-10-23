@@ -360,7 +360,7 @@ export const RelatorioFiltros: React.FC<RelatorioFiltrosProps> = ({
                                     className="data-[state=checked]:border-primary data-[state=checked]:text-primary border-primary/50"
                                 />
                                 <Label htmlFor="reg-ativo" className="text-sm cursor-pointer font-medium">
-                                    Ativo
+                                    Aprovado
                                 </Label>
                             </div>
 
@@ -372,7 +372,7 @@ export const RelatorioFiltros: React.FC<RelatorioFiltrosProps> = ({
                                     className="data-[state=checked]:border-primary data-[state=checked]:text-primary border-primary/50"
                                 />
                                 <Label htmlFor="reg-inativo" className="text-sm cursor-pointer font-medium">
-                                    Inativo
+                                    Reprovado
                                 </Label>
                             </div>
                         </RadioGroup>

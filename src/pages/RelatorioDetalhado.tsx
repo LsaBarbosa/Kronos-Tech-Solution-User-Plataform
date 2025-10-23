@@ -1,4 +1,4 @@
-// src/pages/RelatorioDetalhado.tsx (Atualizado)
+// src/pages/RelatorioDetalhado.tsx (Atualizado com novo estilo PDF)
 
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import { useToast } from "@/hooks/use-toast";
@@ -346,7 +346,7 @@ const RelatorioDetalhado = () => {
     };
 
 
-    // === LÓGICA DE DOWNLOAD PDF DETALHADA (RENOMEADA) ===
+    // === LÓGICA DE DOWNLOAD PDF DETALHADA (RENOMEADA E ESTILIZADA) ===
     const handleDownloadPDFDetailed = () => {
         const parseDate = (dateString: string) => {
             if (!dateString) return null;
@@ -377,13 +377,16 @@ const RelatorioDetalhado = () => {
                 format: 'a4'
             });
 
+            // 💡 ESTILO: TÍTULO PRINCIPAL COLORIDO E MAIOR
+            doc.setTextColor(0, 150, 136); // Azul-Petróleo Elegante
             doc.setFont("helvetica", "bold");
-            doc.setFontSize(18);
+            doc.setFontSize(22);
             doc.text('RELATÓRIO DETALHADO DE PONTO', 20, 25);
 
+            // Volta para estilo de texto normal
             doc.setFontSize(12);
             doc.setFont("helvetica", "normal");
-
+            doc.setTextColor(0, 0, 0); // Preto
             let yPosition = 40;
 
             if (reportData.length > 0 && reportData[0].employeeData) {
@@ -413,9 +416,10 @@ const RelatorioDetalhado = () => {
             doc.setFont("helvetica", "bold");
             yPosition += 5;
 
-            const COLOR_MAIN_RECORD = [245, 245, 245];
-            const COLOR_BREAK_RECORD = [230, 230, 250];
-            const COLOR_SEPARATOR = [200, 200, 200];
+            // 💡 ESTILO: NOVO ESQUEMA DE CORES PARA LINHAS
+            const COLOR_MAIN_RECORD = [240, 255, 240]; // Honeydew (Trabalho - Linha Mais Clara)
+            const COLOR_BREAK_RECORD = [230, 230, 250]; // Lavanda/Muito Claro (Pausa - Linha Suave)
+            const COLOR_SEPARATOR = [200, 200, 200];       // Cinza (Separador)
             const SEPARATOR_PADDING = 0.1
 
             const tableBody: any[] = [];
@@ -448,7 +452,7 @@ const RelatorioDetalhado = () => {
                     styles: {
                         ...cell.styles,
                         halign: 'center',
-                        cellPadding: isBreak ? 1 : 3,
+                        cellPadding: isBreak ? 2 : 4, // Ajustado padding para elegância
                         fontSize: isBreak ? 8 : 9,
                         fontStyle: fontStyle
                     }
@@ -481,12 +485,14 @@ const RelatorioDetalhado = () => {
                 styles: {
                     fontSize: 9,
                     cellPadding: 3,
-                    halign: 'center'
+                    halign: 'center',
+                    lineColor: [220, 220, 220], // Linhas mais claras
+                    lineWidth: 0.1, // Linhas mais finas
                 },
                 headStyles: {
-                    fillColor: [41, 128, 185],
+                    fillColor: [0, 150, 136], // NOVO: Azul-petróleo (Tema Principal)
                     textColor: [255, 255, 255],
-                    fontSize: 10,
+                    fontSize: 11,
                     fontStyle: 'bold'
                 },
                 columnStyles: {
@@ -506,10 +512,10 @@ const RelatorioDetalhado = () => {
                             data.cell.styles.fontStyle = 'italic';
                         } else if (balance) {
                             if (balance.toString().startsWith('-')) {
-                                data.cell.styles.textColor = [220, 53, 69];
+                                data.cell.styles.textColor = [220, 53, 69]; // Vermelho
                                 data.cell.styles.fontStyle = 'bold';
                             } else if (!balance.toString().startsWith('-') && balance !== '00:00') {
-                                data.cell.styles.textColor = [40, 167, 69];
+                                data.cell.styles.textColor = [40, 167, 69]; // Verde
                                 data.cell.styles.fontStyle = 'bold';
                             }
                         }
@@ -521,10 +527,13 @@ const RelatorioDetalhado = () => {
             for (let i = 1; i <= pageCount; i++) {
                 doc.setPage(i);
                 doc.setFontSize(8);
-                doc.setTextColor(128, 128, 128);
+                // 💡 ESTILO: Rodapé em Azul Suave
+                doc.setTextColor(100, 149, 237); // Cornflower Blue
                 doc.text(`Página ${i} de ${pageCount}`, doc.internal.pageSize.width - 30, doc.internal.pageSize.height - 10);
                 doc.text(`Gerado em: ${format(new Date(), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}`, 20, doc.internal.pageSize.height - 10);
             }
+            doc.setTextColor(0, 0, 0); // Volta ao preto para evitar vazamento
+
 
             const fileName = `relatorio_detalhado_${format(new Date(), "yyyyMMdd_HHmmss")}.pdf`;
             doc.save(fileName);
@@ -547,7 +556,7 @@ const RelatorioDetalhado = () => {
 
 
     // === LÓGICA DE DOWNLOAD PDF SIMPLES (RENOMEADA) ===
-    const handleDownloadPDFSimple = () => {
+  const handleDownloadPDFSimple = () => {
         if (!reportDataSimple || reportDataSimple.days.length === 0) {
             toast({
                 title: "Erro",
@@ -564,12 +573,16 @@ const RelatorioDetalhado = () => {
                 format: 'a4'
             });
 
+            // 💡 ESTILO: TÍTULO PRINCIPAL COLORIDO E MAIOR
+            doc.setTextColor(0, 150, 136); // Azul-Petróleo Elegante
             doc.setFont("helvetica", "bold");
-            doc.setFontSize(18);
+            doc.setFontSize(22);
             doc.text('RELATÓRIO SIMPLES DE PONTO', 20, 25);
 
+            // Volta para estilo de texto normal
             doc.setFontSize(12);
             doc.setFont("helvetica", "normal");
+            doc.setTextColor(0, 0, 0); // Preto
             let yPosition = 40;
 
             if (reportDataSimple.employeeName) {
@@ -585,21 +598,17 @@ const RelatorioDetalhado = () => {
             doc.text(`Carga horária diária: ${referenceTime}`, 20, yPosition);
             yPosition += 7;
 
-            if (selectedDates.length > 0) {
-                const validDates = selectedDates.filter(date => date && !isNaN(date.getTime()));
-                const datesList = validDates
-                    .map(date => format(date, "dd/MM/yyyy", { locale: ptBR }))
-                    .join(", ");
-                doc.text(`Datas: ${datesList}`, 20, yPosition);
-                yPosition += 10;
-            }
-
+            // Adicionando os totais antes da tabela
             doc.setFont("helvetica", "bold");
+            // 💡 ESTILO: TOTAIS EM DESTAQUE E COLORIDOS
+            doc.setTextColor(40, 167, 69); // Verde
             doc.text(`Total de Horas Trabalhadas: ${reportDataSimple.totalHoursWorked}`, 20, yPosition);
             yPosition += 7;
+            doc.setTextColor(reportDataSimple.totalBalance.startsWith('-') ? 220 : 40, reportDataSimple.totalBalance.startsWith('-') ? 53 : 167, reportDataSimple.totalBalance.startsWith('-') ? 69 : 69); // Destaque de saldo
             doc.text(`Saldo Total: ${reportDataSimple.totalBalance}`, 20, yPosition);
             yPosition += 10;
             doc.setFont("helvetica", "normal");
+            doc.setTextColor(0, 0, 0); // Volta para preto
 
             const tableData = reportDataSimple.days.map(day => {
                 const parts = day.startDate.split('/');
@@ -607,35 +616,57 @@ const RelatorioDetalhado = () => {
                 const holiday = isHoliday(dayDate) ? ' 🎉' : '';
                 return [
                     `${day.startDate}${holiday}`,
+                    day.startHour || 'N/A', // 💡 NOVO
+                    day.endHour || 'N/A',   // 💡 NOVO
                     day.totalHours,
                     day.balance,
                 ];
             });
 
             autoTable(doc, {
-                head: [['Data', 'Total de Horas', 'Saldo do Dia']],
+                head: [['Data', 'Entrada', 'Saída', 'Total de Horas', 'Saldo do Dia']], // 💡 NOVO TÍTULO
                 body: tableData,
                 startY: yPosition,
                 margin: { left: 20, right: 20 },
+                // ===================================
+                // 💡 INÍCIO DAS ALTERAÇÕES DE ESTILO (ELEGÂNCIA)
+                // ===================================
                 styles: {
                     fontSize: 9,
-                    cellPadding: 3,
-                    halign: 'center'
+                    cellPadding: 4, // Aumenta o padding para mais elegância
+                    halign: 'center',
+                    lineColor: [220, 220, 220], // Linhas mais claras
+                    lineWidth: 0.1, // Linhas mais finas
                 },
                 headStyles: {
-                    fillColor: [41, 128, 185],
+                    fillColor: [0, 150, 136], // NOVO: Azul-petróleo (Tema Principal)
                     textColor: [255, 255, 255],
-                    fontSize: 10,
+                    fontSize: 11,
                     fontStyle: 'bold'
                 },
+                alternateRowStyles: { // Efeito Zebra
+                    fillColor: [240, 255, 240], // Honeydew (Verde/Azul claro suave)
+                },
+                // 💡 FIM DAS ALTERAÇÕES DE ESTILO DE TABELA
                 columnStyles: {
-                    2: {
+                    4: { // Coluna do saldo agora é a 4 (0-indexed)
                         cellWidth: 25,
                         halign: 'center'
                     }
                 },
                 didParseCell: function (data) {
-                    if (data.column.index === 2 && data.section === 'body') {
+                    // 💡 ESTILO: Destaque Colorido para Feriado (Primeira Coluna)
+                    if (data.column.index === 0 && data.section === 'body') {
+                        const cellContent = data.cell.text[0];
+                        if (cellContent && cellContent.includes('🎉')) {
+                            data.cell.styles.textColor = [255, 87, 34]; // Laranja vibrante (Accent)
+                            data.cell.styles.fontStyle = 'bold';
+                            // Remove o ícone 🎉 da célula para que a cor seja o único destaque
+                            data.cell.text[0] = data.cell.text[0].replace(' 🎉', '');
+                        }
+                    }
+
+                    if (data.column.index === 4 && data.section === 'body') {
                         const balance = data.cell.text[0];
                         if (balance && balance.startsWith('-')) {
                             data.cell.styles.textColor = [220, 53, 69];
@@ -652,10 +683,12 @@ const RelatorioDetalhado = () => {
             for (let i = 1; i <= pageCount; i++) {
                 doc.setPage(i);
                 doc.setFontSize(8);
-                doc.setTextColor(128, 128, 128);
+                // 💡 ESTILO: Rodapé em Azul Suave
+                doc.setTextColor(100, 149, 237); // Cornflower Blue
                 doc.text(`Página ${i} de ${pageCount}`, doc.internal.pageSize.width - 30, doc.internal.pageSize.height - 10);
                 doc.text(`Gerado em: ${format(new Date(), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}`, 20, doc.internal.pageSize.height - 10);
             }
+            doc.setTextColor(0, 0, 0); // Volta ao preto para evitar vazamento
 
             const fileName = `relatorio_simples_${format(new Date(), "yyyyMMdd_HHmmss")}.pdf`;
             doc.save(fileName);
@@ -674,7 +707,7 @@ const RelatorioDetalhado = () => {
             });
         }
     };
-    // === FIM LÓGICA DE DOWNLOAD PDF SIMPLES ===
+     // === FIM LÓGICA DE DOWNLOAD PDF SIMPLES ===
 
 
     // === FUNÇÃO DE DOWNLOAD CSV DETALHADA (NOVA) ===
