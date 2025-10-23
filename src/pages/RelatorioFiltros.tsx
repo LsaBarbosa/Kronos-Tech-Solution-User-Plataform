@@ -93,7 +93,7 @@ export const RelatorioFiltros: React.FC<RelatorioFiltrosProps> = ({
                 </CardHeader>
                 <CardContent className="pt-6">
                     <Card className="border-l-4 border-l-primary shadow-card w-fit max-w-lg mx-auto">
-                        <Calendar 
+                        <Calendar
                             mode="multiple"
                             selected={selectedDates}
                             onSelect={handleDateSelect}
@@ -111,8 +111,12 @@ export const RelatorioFiltros: React.FC<RelatorioFiltrosProps> = ({
                                 holiday: allHolidays,
                             }}
                             modifiersClassNames={{
-                                selected: "bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground z-10",
-                                holiday: "bg-destructive/10 text-destructive font-semibold border border-destructive/20 hover:bg-destructive/20 hover:text-destructive !text-destructive",
+                                selected:
+                                    "bg-primary text-primary-foreground font-extrabold shadow-lg shadow-primary/20 hover:bg-primary/90 transition-all duration-200",
+
+                                // NOVO ESTILO para Feriados (Mais elegante e arredondado)
+                                holiday:
+                                    "bg-destructive/5 text-destructive font-bold border-2 border-destructive/30 rounded-full hover:bg-destructive/20 transition-all duration-200 shadow-md shadow-destructive/10 !text-destructive",
                             }}
                         />
                         <div className="grid grid-cols-1 gap-3 ml-4 mb-4 text-xs">
@@ -121,7 +125,7 @@ export const RelatorioFiltros: React.FC<RelatorioFiltrosProps> = ({
                                 <span className="text-muted-foreground">Data selecionada</span>
                             </div>
                             <div className="flex items-center gap-3">
-                                <div className="w-4 h-4 rounded bg-destructive/10 border-2 border-destructive/30"></div>
+                                <div className="w-4 h-4 rounded-full bg-destructive/5 border-2 border-destructive/30 shadow-sm shadow-destructive/10"></div>
                                 <span className="text-destructive font-semibold">Feriado nacional</span>
                             </div>
                             <div className="flex items-center gap-3">
@@ -148,7 +152,7 @@ export const RelatorioFiltros: React.FC<RelatorioFiltrosProps> = ({
                             </a>  para realizar a mudança
                         </p>
                         <p className="text-xs text-muted-foreground mb-4">
-                            3. Relatorio Simples: <br/>
+                            3. Relatorio Simples: <br />
                             * Retorna a data, as horas trabalhadas e o saldo do dia selecionado.
                         </p>
                         <p className="text-xs text-muted-foreground mb-4">
