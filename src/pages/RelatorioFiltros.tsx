@@ -94,7 +94,7 @@ export const RelatorioFiltros: React.FC<RelatorioFiltrosProps> = ({
                 <CardContent className="pt-6">
                     <Card className="border-l-4 border-l-primary shadow-2xl shadow-primary/10 w-lg  p-4 transition-all duration-300 hover:shadow-primary/20">
                         {/* CALENDÁRIO COM ESTILIZAÇÃO APERFEIÇOADA */}
-                      <Calendar
+                    <Calendar
                             mode="multiple"
                             selected={selectedDates}
                             onSelect={handleDateSelect}
@@ -102,11 +102,9 @@ export const RelatorioFiltros: React.FC<RelatorioFiltrosProps> = ({
                             locale={ptBR}
                             // Estilos base (classNames) ajustados
                             classNames={{
-                                // 🚀 AJUSTE PRINCIPAL AQUI: O 'day' usa o flex-1/h-10 definido no calendar.tsx.
-                                // Apenas adicionamos a transição e a cor de hover desejada.
+                                // Simplificado, dependendo do calendar.tsx para dimensões e centralização
                                 day: "font-normal aria-selected:opacity-100 relative rounded-lg transition-all duration-200",
-                                // A classe `day_selected` foi simplificada, a estilização principal da seleção fica nos `modifiersClassNames`.
-                                day_selected: "bg-transparent text-foreground rounded-lg",
+                                day_selected: "bg-transparent text-foreground rounded-lg ",
                                 // Estilo para 'Hoje' (Reforçado)
                                 day_today: "bg-primary/10 text-primary font-bold border-2 border-primary/50 hover:bg-primary/20 transition-colors duration-150 rounded-lg",
                                 day_outside: "text-muted-foreground opacity-50",
@@ -119,11 +117,10 @@ export const RelatorioFiltros: React.FC<RelatorioFiltrosProps> = ({
                                 holiday: allHolidays,
                             }}
                             modifiersClassNames={{
-                                // ESTILO FINAL COM AJUSTE DO HOVER: Aplica a cor sólida de seleção.
-                                // Destaque forte na seleção
-                                selected: "bg-primary text-primary-foreground font-extrabold shadow-lg shadow-primary/30 rounded-lg hover:bg-primary/90",
+                                // ESTILO FINAL OTIMIZADO: Adiciona borda de 4px para maior destaque responsivo
+                                selected: "bg-primary text-primary-foreground font-extrabold shadow-lg shadow-primary/30 rounded-lg hover:bg-primary/90 border-4 border-primary/50",
 
-                                // Feriados (Circular Elegante com Sombra)
+                                // Feriados (mantido com o refinamento anterior)
                                 holiday:
                                     " text-destructive font-bold rounded-lg border-2 border-destructive/50 bg-destructive/10 hover:bg-destructive/20 transition-all duration-300 ease-in-out shadow-lg shadow-destructive/10",
                             }}
