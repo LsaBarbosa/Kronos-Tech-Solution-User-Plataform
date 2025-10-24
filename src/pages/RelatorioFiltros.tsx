@@ -279,33 +279,7 @@ export const RelatorioFiltros: React.FC<RelatorioFiltrosProps> = ({
                         <div className="absolute bottom-4 left-4 w-8 h-8 bg-gradient-to-br from-secondary to-secondary/60 rounded-full blur-lg"></div>
                     </div>
 
-                    {/* SEÇÃO TIPO DE RELATÓRIO */}
-                    <div className="space-y-3 relative border-b border-primary/20 pb-4">
-                        <Label className="text-sm font-semibold text-foreground flex items-center gap-2">
-                            <div className="w-1.5 h-1.5 rounded-full bg-primary"></div>
-                            Tipo de Relatório
-                        </Label>
-                        <div className="p-3 rounded-xl bg-gradient-to-r from-primary/5 to-secondary/5 border border-primary/20 flex flex-wrap gap-4 shadow-inner">
-                            <div className="flex items-center space-x-3 p-2 rounded-lg hover:bg-primary/10 transition-colors cursor-pointer">
-                                <Checkbox
-                                    id="report-detailed"
-                                    checked={reportType === "detailed"}
-                                    onCheckedChange={() => handleReportTypeChange("detailed")}
-                                    className="data-[state=checked]:bg-primary data-[state=checked]:border-primary border-primary/50"
-                                />
-                                <Label htmlFor="report-detailed" className="text-sm cursor-pointer font-medium">Detalhado</Label>
-                            </div>
-                            <div className="flex items-center space-x-3 p-2 rounded-lg hover:bg-primary/10 transition-colors cursor-pointer">
-                                <Checkbox
-                                    id="report-simple"
-                                    checked={reportType === "simple"}
-                                    onCheckedChange={() => handleReportTypeChange("simple")}
-                                    className="data-[state=checked]:bg-primary data-[state=checked]:border-primary border-primary/50"
-                                />
-                                <Label htmlFor="report-simple" className="text-sm cursor-pointer font-medium">Simples</Label>
-                            </div>
-                        </div>
-                    </div>
+               
 
                     {/* CARGA HORÁRIA DIÁRIA */}
                     <div className="space-y-3 relative">
@@ -408,7 +382,35 @@ export const RelatorioFiltros: React.FC<RelatorioFiltrosProps> = ({
                             Incluir registros ativos ou inativos no relatório
                         </p>
                     </div>
-
+     {/* SEÇÃO TIPO DE RELATÓRIO */}
+                   <div className="space-y-3 relative border-b border-primary/20 pb-4">
+                        <Label className="text-sm font-semibold text-foreground flex items-center gap-2">
+                            <div className="w-1.5 h-1.5 rounded-full bg-primary"></div>
+                            Tipo de Relatório
+                        </Label>
+                        <RadioGroup
+                            value={reportType}
+                            onValueChange={handleReportTypeChange}
+                            className="p-3 rounded-xl bg-gradient-to-r from-primary/5 to-secondary/5 border border-primary/20 flex flex-wrap gap-4 shadow-inner"
+                        >
+                            <div className="flex items-center space-x-3 p-2 rounded-lg hover:bg-primary/10 transition-colors cursor-pointer">
+                                <RadioGroupItem 
+                                    value="detailed" 
+                                    id="report-detailed" 
+                                    className="data-[state=checked]:border-primary data-[state=checked]:text-primary border-primary/50"
+                                />
+                                <Label htmlFor="report-detailed" className="text-sm cursor-pointer font-medium">Detalhado</Label>
+                            </div>
+                            <div className="flex items-center space-x-3 p-2 rounded-lg hover:bg-primary/10 transition-colors cursor-pointer">
+                                <RadioGroupItem 
+                                    value="simple" 
+                                    id="report-simple" 
+                                    className="data-[state=checked]:border-primary data-[state=checked]:text-primary border-primary/50"
+                                />
+                                <Label htmlFor="report-simple" className="text-sm cursor-pointer font-medium">Simples</Label>
+                            </div>
+                        </RadioGroup>
+                    </div>
                     {/* STATUS DE REGISTRO (SELECT) */}
                     <div className="space-y-3 relative">
                         <Label className={`text-sm font-semibold text-foreground flex items-center gap-2 ${reportType === "simple" ? 'opacity-50' : ''}`}>
