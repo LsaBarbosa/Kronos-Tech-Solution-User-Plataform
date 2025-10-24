@@ -92,10 +92,9 @@ export const RelatorioFiltros: React.FC<RelatorioFiltrosProps> = ({
                     </CardDescription>
                 </CardHeader>
                 <CardContent className="pt-6">
-                    <Card className="border-l-4 border-l-primary shadow-2xl shadow-primary/10 w-fit max-w-lg mx-auto p-4 transition-all duration-300 hover:shadow-primary/20">
-
+                    <Card className="border-l-4 border-l-primary shadow-2xl shadow-primary/10 w-lg  p-4 transition-all duration-300 hover:shadow-primary/20">
                         {/* CALENDÁRIO COM ESTILIZAÇÃO APERFEIÇOADA */}
-                        <Calendar
+                      <Calendar
                             mode="multiple"
                             selected={selectedDates}
                             onSelect={handleDateSelect}
@@ -103,12 +102,14 @@ export const RelatorioFiltros: React.FC<RelatorioFiltrosProps> = ({
                             locale={ptBR}
                             // Estilos base (classNames) ajustados
                             classNames={{
-                                // Aprimoramento do Hover Padrão
-                                day: "h-9 w-9 p-0 font-normal aria-selected:opacity-100 hover:bg-primary/10 transition-colors duration-200 relative rounded-lg",
-                                day_selected: "bg-transparent text-foreground rounded-lg ",
-                                // Estilo para 'Hoje'
-                                day_today: "bg-primary/10 text-primary font-bold border-2 border-primary hover:bg-primary/20 transition-colors duration-150 rounded-lg",
-                                day_outside: "text-muted-foreground opacity-50 aria-selected:bg-primary/50 aria-selected:text-primary-foreground aria-selected:opacity-80",
+                                // 🚀 AJUSTE PRINCIPAL AQUI: O 'day' usa o flex-1/h-10 definido no calendar.tsx.
+                                // Apenas adicionamos a transição e a cor de hover desejada.
+                                day: "font-normal aria-selected:opacity-100 relative rounded-lg transition-all duration-200",
+                                // A classe `day_selected` foi simplificada, a estilização principal da seleção fica nos `modifiersClassNames`.
+                                day_selected: "bg-transparent text-foreground rounded-lg",
+                                // Estilo para 'Hoje' (Reforçado)
+                                day_today: "bg-primary/10 text-primary font-bold border-2 border-primary/50 hover:bg-primary/20 transition-colors duration-150 rounded-lg",
+                                day_outside: "text-muted-foreground opacity-50",
                                 day_disabled: "text-muted-foreground opacity-50",
                                 day_range_middle: "aria-selected:bg-primary/20 aria-selected:text-primary",
                                 day_hidden: "invisible",
@@ -118,12 +119,13 @@ export const RelatorioFiltros: React.FC<RelatorioFiltrosProps> = ({
                                 holiday: allHolidays,
                             }}
                             modifiersClassNames={{
-                                // ESTILO FINAL COM AJUSTE DO HOVER: Adicionado 'hover:bg-primary/90' para garantir que a cor da seleção se mantenha sólida.
-                                selected: "  text-primary-foreground font-extrabold    rounded-lg        ",
+                                // ESTILO FINAL COM AJUSTE DO HOVER: Aplica a cor sólida de seleção.
+                                // Destaque forte na seleção
+                                selected: "bg-primary text-primary-foreground font-extrabold shadow-lg shadow-primary/30 rounded-lg hover:bg-primary/90",
 
-                                // Feriados (Circular Elegante)
+                                // Feriados (Circular Elegante com Sombra)
                                 holiday:
-                                    "bg-destructive/10 text-destructive font-bold border-2 border-destructive/40 rounded-full hover:bg-destructive/30 transition-all duration-300 ease-in-out shadow-md shadow-destructive/20",
+                                    " text-destructive font-bold rounded-lg border-2 border-destructive/50 bg-destructive/10 hover:bg-destructive/20 transition-all duration-300 ease-in-out shadow-lg shadow-destructive/10",
                             }}
                         />
                         {/* LEGENDA DE DATAS */}
