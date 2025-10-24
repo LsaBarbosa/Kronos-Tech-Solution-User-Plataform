@@ -7,8 +7,10 @@ import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { CalendarIcon, Search, Download, FileText } from "lucide-react";
-import { format } from "date-fns";
+// Importado CalendarCheck para o botão de selecionar mês
+import { CalendarIcon, Search, Download, FileText, CalendarCheck } from "lucide-react"; 
+// Imports atualizados do date-fns para a lógica de seleção de mês
+import { format, startOfMonth, endOfMonth, eachDayOfInterval, startOfDay } from "date-fns"; 
 import { ptBR } from "date-fns/locale";
 import { Employee, statusOptions, allHolidays } from "@/utils/report-utils";
 
@@ -61,9 +63,26 @@ export const RelatorioFiltros: React.FC<RelatorioFiltrosProps> = ({
     onDownloadPDF,
     onDownloadCSV,
 }) => {
+    // 🚀 NOVO ESTADO: Mês atualmente exibido no calendário, iniciando com o dia atual
+    const [displayMonth, setDisplayMonth] = React.useState<Date | undefined>(startOfDay(new Date()));
 
     const handleDateSelect = (days: Date[] | undefined) => {
         setSelectedDates(days || []);
+    };
+    
+    // 🚀 NOVA FUNÇÃO: Selecionar todas as datas do mês visível
+    const handleSelectMonth = () => {
+        if (displayMonth) {
+            // 1. Encontra o primeiro dia do mês
+            const start = startOfMonth(displayMonth);
+            // 2. Encontra o último dia do mês
+            const end = endOfMonth(displayMonth);
+            // 3. Cria um array com todos os dias no intervalo
+            const daysInMonth = eachDayOfInterval({ start, end });
+            
+            // 4. Define as datas selecionadas
+            setSelectedDates(daysInMonth);
+        }
     };
 
     const handleReportTypeChange = (typeValue: "detailed" | "simple") => {
@@ -93,20 +112,38 @@ export const RelatorioFiltros: React.FC<RelatorioFiltrosProps> = ({
                 </CardHeader>
                 <CardContent className="pt-6">
                     <Card className="border-l-4 border-l-primary shadow-2xl shadow-primary/10 w-lg  p-4 transition-all duration-300 hover:shadow-primary/20">
+
+                        {/* 🚀 NOVO BOTÃO: SELECIONAR MÊS INTEIRO */}
+                        <Button
+                            onClick={handleSelectMonth}
+                            variant="outline"
+                            className="w-full mb-4 font-semibold border-2 border-primary/40 bg-primary/10 text-primary hover:bg-primary/20 transition-all duration-200 relative overflow-hidden shadow-md hover:shadow-lg hover:shadow-primary/20 transform hover:scale-[1.005]"
+                            disabled={!displayMonth}
+                        >
+                            <CalendarCheck className="mr-2 h-4 w-4 relative z-10" />
+                            <span className="relative z-10">
+                                Selecionar {displayMonth ? format(displayMonth, "MMMM 'de' yyyy", { locale: ptBR }) : "Mês Inteiro"}
+                            </span>
+                        </Button>
+                        
                         {/* CALENDÁRIO COM ESTILIZAÇÃO APERFEIÇOADA */}
-                    <Calendar
+                       <Calendar
                             mode="multiple"
                             selected={selectedDates}
                             onSelect={handleDateSelect}
+                            // 🚀 NOVAS PROPS PARA CONTROLE DO MÊS
+                            month={displayMonth} 
+                            onMonthChange={setDisplayMonth} 
+                            // ------------------------------------
                             className="w-full pointer-events-auto"
                             locale={ptBR}
                             // Estilos base (classNames) ajustados
                             classNames={{
-                                // Simplificado, dependendo do calendar.tsx para dimensões e centralização
+                                // Classes simplificadas e dependentes do calendar.tsx para dimensões/tamanho do texto
                                 day: "font-normal aria-selected:opacity-100 relative rounded-lg transition-all duration-200",
                                 day_selected: "bg-transparent text-foreground rounded-lg ",
                                 // Estilo para 'Hoje' (Reforçado)
-                                day_today: "bg-primary/10 text-primary font-bold border-2 border-primary/50 hover:bg-primary/20 transition-colors duration-150 rounded-lg",
+                                day_today: " font-normal aria-selected:opacity-100 border-2 border-primary/50 hover:bg-primary/20 transition-colors duration-150 rounded-lg",
                                 day_outside: "text-muted-foreground opacity-50",
                                 day_disabled: "text-muted-foreground opacity-50",
                                 day_range_middle: "aria-selected:bg-primary/20 aria-selected:text-primary",
@@ -119,10 +156,9 @@ export const RelatorioFiltros: React.FC<RelatorioFiltrosProps> = ({
                             modifiersClassNames={{
                                 // ESTILO FINAL OTIMIZADO: Adiciona borda de 4px para maior destaque responsivo
                                 selected: "bg-primary text-primary-foreground font-extrabold shadow-lg shadow-primary/30 rounded-lg hover:bg-primary/90 border-4 border-primary/50",
-
-                                // Feriados (mantido com o refinamento anterior)
+                                // Feriados (Circular Elegante com Sombra)
                                 holiday:
-                                    " text-destructive font-bold rounded-lg border-2 border-destructive/50 bg-destructive/10 hover:bg-destructive/20 transition-all duration-300 ease-in-out shadow-lg shadow-destructive/10",
+                                    " text-destructive font-normal aria-selected:opacity-100 rounded-lg border-2 border-destructive/50 bg-destructive/10 hover:bg-destructive/20 transition-all duration-300 ease-in-out shadow-lg shadow-destructive/10",
                             }}
                         />
                         {/* LEGENDA DE DATAS */}

@@ -1,4 +1,4 @@
-// calendar.tsx (Nova versão com texto maior)
+// calendar.tsx (Nova versão otimizada)
 
 import * as React from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
@@ -18,14 +18,14 @@ function Calendar({
   return (
     <DayPicker
       showOutsideDays={showOutsideDays}
-      // Contêiner principal com Padding suave (ajuste de padding)
+      // Contêiner principal com Padding suave 
       className={cn("p-4 sm:p-6", className)}
       classNames={{
-        // Estrutura Responsiva (mantida)
+        // Estrutura Responsiva
         months: "flex flex-col sm:flex-row space-y-4 sm:space-x-8 sm:space-y-0 w-full justify-center",
         month: "space-y-4 w-full",
         
-        // Cabeçalho e Navegação (mantida)
+        // Cabeçalho e Navegação
         caption: "flex justify-center pt-1 relative items-center w-full mb-2",
         caption_label: "text-base font-semibold text-foreground",
         nav: "space-x-1 flex items-center",
@@ -36,28 +36,30 @@ function Calendar({
         nav_button_previous: "absolute left-1",
         nav_button_next: "absolute right-1",
         
-        // Tabela de Dias (mantida)
+        // Tabela de Dias
         table: "w-full border-collapse space-y-1",
         head_row: "flex mb-2",
         head_cell:
           "text-muted-foreground rounded-md flex-1 font-medium text-xs sm:text-sm uppercase tracking-wider",
         row: "flex w-full mt-1.5 sm:mt-2",
         
-        // Células e Dias (Alteração Principal)
+        // Células e Dias (Otimização Principal)
+        // Aumento para h-11/h-12 para melhor toque em mobile
         cell: "h-11 sm:h-12 flex-1 text-center text-sm p-[2px] relative overflow-hidden",
         day: cn(
           buttonVariants({ variant: "ghost" }),
-          // 🚀 AJUSTE DE TAMANHO: De 'text-sm sm:text-base' para 'text-base sm:text-lg'
+          // 🚀 TEXTO MAIOR: 'text-base sm:text-lg'
           "h-11 sm:h-12 flex-1 p-0.5 font-normal aria-selected:opacity-100 text-base sm:text-lg rounded-lg transition-all duration-200",
-          "flex justify-center items-center",
-          "hover:bg-primary/15 hover:text-foreground/90"
+          "flex justify-center items-center", // Garante centralização
+          "hover:bg-primary/15 hover:text-foreground/90" 
         ),
         
-        // Estilos Padrão (mantidos)
+        // Estilos Padrão (corrigido o erro de tipagem anterior)
         day_selected: "bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground focus:bg-primary focus:text-primary-foreground",
         day_today: "bg-accent text-accent-foreground border-2 border-primary/50",
         day_outside: "text-muted-foreground opacity-50 aria-selected:bg-primary/50 aria-selected:text-primary-foreground aria-selected:opacity-80",
         day_disabled: "text-muted-foreground opacity-30",
+        // Estilo correto para intervalo de seleção
         day_range_middle: "aria-selected:bg-primary/10 aria-selected:text-primary", 
         day_hidden: "invisible",
         
