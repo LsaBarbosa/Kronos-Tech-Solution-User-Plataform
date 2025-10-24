@@ -1,4 +1,4 @@
-// calendar.tsx (Nova versão Corrigida)
+// calendar.tsx (Nova versão com texto maior)
 
 import * as React from "react";
 import { ChevronLeft, ChevronRight } from "lucide-react";
@@ -43,28 +43,23 @@ function Calendar({
           "text-muted-foreground rounded-md flex-1 font-medium text-xs sm:text-sm uppercase tracking-wider",
         row: "flex w-full mt-1.5 sm:mt-2",
         
-        // Células e Dias (Otimização Principal)
+        // Células e Dias (Alteração Principal)
         cell: "h-11 sm:h-12 flex-1 text-center text-sm p-[2px] relative overflow-hidden",
         day: cn(
           buttonVariants({ variant: "ghost" }),
-          // Base Day: Altura e centralização robusta para melhor usabilidade tátil
-          "h-11 sm:h-12 flex-1 p-0.5 font-normal aria-selected:opacity-100 text-sm sm:text-base rounded-lg transition-all duration-200",
-          "flex justify-center items-center", // Garante centralização
-          "hover:bg-primary/15 hover:text-foreground/90" 
+          // 🚀 AJUSTE DE TAMANHO: De 'text-sm sm:text-base' para 'text-base sm:text-lg'
+          "h-11 sm:h-12 flex-1 p-0.5 font-normal aria-selected:opacity-100 text-base sm:text-lg rounded-lg transition-all duration-200",
+          "flex justify-center items-center",
+          "hover:bg-primary/15 hover:text-foreground/90"
         ),
         
-        // Estilos Padrão (Agora Corretos)
-        // O estilo principal de seleção deve vir do `RelatorioFiltros.tsx` (modifiersClassNames)
+        // Estilos Padrão (mantidos)
         day_selected: "bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground focus:bg-primary focus:text-primary-foreground",
         day_today: "bg-accent text-accent-foreground border-2 border-primary/50",
         day_outside: "text-muted-foreground opacity-50 aria-selected:bg-primary/50 aria-selected:text-primary-foreground aria-selected:opacity-80",
         day_disabled: "text-muted-foreground opacity-30",
-        // ESTILO CORRIGIDO: Aplicando a cor de fundo para intervalo aqui
         day_range_middle: "aria-selected:bg-primary/10 aria-selected:text-primary", 
         day_hidden: "invisible",
-        
-        // PROPRIEDADE INVÁLIDA REMOVIDA:
-        // "&[aria-selected]": "bg-primary/10 text-primary-foreground", 
         
         ...classNames,
       }}
