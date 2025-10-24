@@ -77,7 +77,7 @@ export const RelatorioFiltros: React.FC<RelatorioFiltrosProps> = ({
 
     return (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            
+
             {/* CARD 1: SELEÇÃO DE DATAS */}
             <Card className="border-2 border-primary/20 shadow-xl hover:shadow-2xl transition-all duration-300 bg-gradient-to-br from-card via-card to-primary/5">
                 <CardHeader className="border-b border-primary/20 bg-gradient-to-r from-primary/10 via-primary/5 to-transparent">
@@ -93,7 +93,7 @@ export const RelatorioFiltros: React.FC<RelatorioFiltrosProps> = ({
                 </CardHeader>
                 <CardContent className="pt-6">
                     <Card className="border-l-4 border-l-primary shadow-2xl shadow-primary/10 w-fit max-w-lg mx-auto p-4 transition-all duration-300 hover:shadow-primary/20">
-                        
+
                         {/* CALENDÁRIO COM ESTILIZAÇÃO APERFEIÇOADA */}
                         <Calendar
                             mode="multiple"
@@ -104,8 +104,8 @@ export const RelatorioFiltros: React.FC<RelatorioFiltrosProps> = ({
                             // Estilos base (classNames) ajustados
                             classNames={{
                                 // Aprimoramento do Hover Padrão
-                                day: "h-9 w-9 p-0 font-normal aria-selected:opacity-100 hover:bg-primary/10  transition-colors duration-200 relative rounded-lg",
-                                day_selected: "bg-transparent text-foreground", 
+                                day: "h-9 w-9 p-0 font-normal aria-selected:opacity-100 hover:bg-primary/10 transition-colors duration-200 relative rounded-lg",
+                                day_selected: "bg-transparent text-foreground rounded-lg ",
                                 // Estilo para 'Hoje'
                                 day_today: "bg-primary/10 text-primary font-bold border-2 border-primary hover:bg-primary/20 transition-colors duration-150 rounded-lg",
                                 day_outside: "text-muted-foreground opacity-50 aria-selected:bg-primary/50 aria-selected:text-primary-foreground aria-selected:opacity-80",
@@ -119,9 +119,8 @@ export const RelatorioFiltros: React.FC<RelatorioFiltrosProps> = ({
                             }}
                             modifiersClassNames={{
                                 // ESTILO FINAL COM AJUSTE DO HOVER: Adicionado 'hover:bg-primary/90' para garantir que a cor da seleção se mantenha sólida.
-                                selected:
-                                    "bg-primary text-primary-foreground font-extrabold shadow-xl shadow-primary/40 rounded-lg border-2 border-primary/50 transition-all duration-300 ease-in-out transform hover:scale-[1.05] hover:shadow-primary/50 hover:bg-primary/90", 
-                                
+                                selected: "  text-primary-foreground font-extrabold    rounded-lg        ",
+
                                 // Feriados (Circular Elegante)
                                 holiday:
                                     "bg-destructive/10 text-destructive font-bold border-2 border-destructive/40 rounded-full hover:bg-destructive/30 transition-all duration-300 ease-in-out shadow-md shadow-destructive/20",
@@ -143,7 +142,7 @@ export const RelatorioFiltros: React.FC<RelatorioFiltrosProps> = ({
                             </div>
                         </div>
                     </Card>
-                    
+
                     {/* DICAS DE USO */}
                     <div className="mt-4 p-4 bg-gradient-to-br from-primary/5 to-secondary/5 rounded-xl border border-primary/20 backdrop-blur-sm shadow-inner shadow-primary/5">
                         <h4 className="text-sm font-bold text-primary mb-2 flex items-center gap-2">
