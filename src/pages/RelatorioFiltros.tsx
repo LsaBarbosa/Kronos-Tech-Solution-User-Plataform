@@ -7,10 +7,10 @@ import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-// Importado CalendarCheck para o botão de selecionar mês
-import { CalendarIcon, Search, Download, FileText, CalendarCheck } from "lucide-react"; 
-// Imports atualizados do date-fns para a lógica de seleção de mês
-import { format, startOfMonth, endOfMonth, eachDayOfInterval, startOfDay } from "date-fns"; 
+// Importado CalendarCheck e CalendarX (para remover)
+import { CalendarIcon, Search, Download, FileText, CalendarCheck, CalendarX } from "lucide-react"; 
+// Imports atualizados do date-fns para a lógica de seleção/remoção
+import { format, startOfMonth, endOfMonth, eachDayOfInterval, startOfDay, isSameDay } from "date-fns"; 
 import { ptBR } from "date-fns/locale";
 import { Employee, statusOptions, allHolidays } from "@/utils/report-utils";
 
@@ -63,25 +63,60 @@ export const RelatorioFiltros: React.FC<RelatorioFiltrosProps> = ({
     onDownloadPDF,
     onDownloadCSV,
 }) => {
-    // 🚀 NOVO ESTADO: Mês atualmente exibido no calendário, iniciando com o dia atual
     const [displayMonth, setDisplayMonth] = React.useState<Date | undefined>(startOfDay(new Date()));
 
     const handleDateSelect = (days: Date[] | undefined) => {
         setSelectedDates(days || []);
     };
     
-    // 🚀 NOVA FUNÇÃO: Selecionar todas as datas do mês visível
+    // 🚀 LÓGICA: Função para checar se o mês visível está totalmente selecionado
+    const isMonthFullySelected = React.useMemo(() => {
+        if (!displayMonth || selectedDates.length === 0) return false;
+
+        const daysInMonth = eachDayOfInterval({ 
+            start: startOfMonth(displayMonth), 
+            end: endOfMonth(displayMonth) 
+        });
+
+        if (daysInMonth.length === 0) return false;
+
+        // Verifica se cada dia do mês está incluído nas datas selecionadas
+        return daysInMonth.every(dayOfMonth => 
+            selectedDates.some(selectedDate => isSameDay(selectedDate, dayOfMonth))
+        );
+    }, [displayMonth, selectedDates]);
+
+    // 🚀 FUNÇÃO DE ALTERNÂNCIA (Toggle)
     const handleSelectMonth = () => {
-        if (displayMonth) {
-            // 1. Encontra o primeiro dia do mês
-            const start = startOfMonth(displayMonth);
-            // 2. Encontra o último dia do mês
-            const end = endOfMonth(displayMonth);
-            // 3. Cria um array com todos os dias no intervalo
-            const daysInMonth = eachDayOfInterval({ start, end });
+        if (!displayMonth) return;
+
+        const daysInMonth = eachDayOfInterval({ 
+            start: startOfMonth(displayMonth), 
+            end: endOfMonth(displayMonth) 
+        });
+
+        if (isMonthFullySelected) {
+            // Se o mês está selecionado, removemos as datas desse mês da seleção geral
+            const newSelectedDates = selectedDates.filter(selectedDate => {
+                return !daysInMonth.some(dayOfMonth => isSameDay(selectedDate, dayOfMonth));
+            });
+            setSelectedDates(newSelectedDates);
+        } else {
+            // Se o mês NÃO está totalmente selecionado, adicionamos as datas desse mês
+            // Primeiro, removemos quaisquer datas do mês que JÁ estejam selecionadas (para evitar duplicatas)
+            let newSelectedDates = selectedDates.filter(selectedDate => {
+                return !daysInMonth.some(dayOfMonth => isSameDay(selectedDate, dayOfMonth));
+            });
             
-            // 4. Define as datas selecionadas
-            setSelectedDates(daysInMonth);
+            // Depois, adicionamos todos os dias do mês
+            newSelectedDates = [...newSelectedDates, ...daysInMonth];
+
+            // Por fim, removemos duplicatas e ordenamos (opcional, mas recomendado)
+            const uniqueDates = Array.from(new Set(newSelectedDates.map(d => d.getTime())))
+                                    .map(time => new Date(time))
+                                    .sort((a, b) => a.getTime() - b.getTime());
+                                    
+            setSelectedDates(uniqueDates);
         }
     };
 
@@ -93,6 +128,7 @@ export const RelatorioFiltros: React.FC<RelatorioFiltrosProps> = ({
             }
         }
     };
+
 
     return (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
@@ -113,28 +149,34 @@ export const RelatorioFiltros: React.FC<RelatorioFiltrosProps> = ({
                 <CardContent className="pt-6">
                     <Card className="border-l-4 border-l-primary shadow-2xl shadow-primary/10 w-lg  p-4 transition-all duration-300 hover:shadow-primary/20">
 
-                        {/* 🚀 NOVO BOTÃO: SELECIONAR MÊS INTEIRO */}
+                         {/* 🚀 BOTÃO ALTERNÁVEL: Selecionar ou Remover Mês Inteiro */}
                         <Button
                             onClick={handleSelectMonth}
                             variant="outline"
-                            className="w-full mb-4 font-semibold border-2 border-primary/40 bg-primary/10 text-primary hover:bg-primary/20 transition-all duration-200 relative overflow-hidden shadow-md hover:shadow-lg hover:shadow-primary/20 transform hover:scale-[1.005]"
+                            // 🚀 ALTERAÇÃO DE ESTILOS e ICONE CONFORME O ESTADO
+                            className={`w-full mb-4 font-semibold border-2 transition-all duration-200 relative overflow-hidden shadow-md hover:shadow-lg transform hover:scale-[1.005] ${
+                                isMonthFullySelected
+                                    ? "border-destructive/40 bg-destructive/10 text-destructive hover:bg-destructive/60 hover:shadow-destructive/20"
+                                    : "border-primary/40 bg-primary/10 text-primary hover:bg-primary/40 hover:shadow-primary/20"
+                            }`}
                             disabled={!displayMonth}
                         >
-                            <CalendarCheck className="mr-2 h-4 w-4 relative z-10" />
+                            {isMonthFullySelected ? (
+                                <CalendarX className="mr-2 h-4 w-4 relative z-10" />
+                            ) : (
+                                <CalendarCheck className="mr-2 h-4 w-4 relative z-10" />
+                            )}
                             <span className="relative z-10">
-                                Selecionar {displayMonth ? format(displayMonth, "MMMM 'de' yyyy", { locale: ptBR }) : "Mês Inteiro"}
+                                {isMonthFullySelected ? "Remover" : "Selecionar"} {displayMonth ? format(displayMonth, "MMMM 'de' yyyy", { locale: ptBR }) : "Mês Inteiro"}
                             </span>
                         </Button>
-                        
                         {/* CALENDÁRIO COM ESTILIZAÇÃO APERFEIÇOADA */}
-                       <Calendar
+                     <Calendar
                             mode="multiple"
                             selected={selectedDates}
                             onSelect={handleDateSelect}
-                            // 🚀 NOVAS PROPS PARA CONTROLE DO MÊS
                             month={displayMonth} 
                             onMonthChange={setDisplayMonth} 
-                            // ------------------------------------
                             className="w-full pointer-events-auto"
                             locale={ptBR}
                             // Estilos base (classNames) ajustados
@@ -185,10 +227,10 @@ export const RelatorioFiltros: React.FC<RelatorioFiltrosProps> = ({
                             Dicas e Regras
                         </h4>
                         <ul className="list-disc list-inside text-xs space-y-2 text-muted-foreground ml-2">
-                            <li>O status **FOLGA** é atribuído no dia que não houver registro.</li>
-                            <li>Em caso de **FALTA**, navegue até a página <a href="status-do-registro" className="text-primary hover:text-primary/80 underline font-semibold transition-colors duration-150">Status do registro</a> para realizar a mudança.</li>
-                            <li>**Relatório Simples:** Retorna data, horas trabalhadas e saldo do dia.</li>
-                            <li>**Relatório Detalhado:** Retorna todos os registros e status do dia.</li>
+                            <li>O status <span className="text-primary hover:text-primary/80   font-semibold transition-colors duration-150">FOLGA</span> é atribuído no dia que não houver registro.</li>
+                            <li>Em caso de <span className="text-primary hover:text-primary/80   font-semibold transition-colors duration-150">FALTA</span>, navegue até a página <a href="status-do-registro" className="text-primary hover:text-primary/80 underline font-semibold transition-colors duration-150">Status do registro</a> para realizar a mudança.</li>
+                            <li> <span className="text-primary hover:text-primary/80   font-semibold transition-colors duration-150">Relatório Simples:</span> Retorna data, hora de entrada e saída, horas trabalhadas e saldo do dia.</li>
+                            <li> <span className="text-primary hover:text-primary/80   font-semibold transition-colors duration-150">Relatório Detalhado:</span> Retorna todos os registros e status do dia.</li>
                             <li>Clique no registro para solicitar alteração (data e hora).</li>
                         </ul>
                     </div>
