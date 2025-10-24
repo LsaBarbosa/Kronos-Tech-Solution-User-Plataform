@@ -104,7 +104,7 @@ export const RelatorioFiltros: React.FC<RelatorioFiltrosProps> = ({
                             // Estilos base (classNames) ajustados
                             classNames={{
                                 // Aprimoramento do Hover Padrão
-                                day: "h-9 w-9 p-0 font-normal aria-selected:opacity-100 hover:bg-primary/10 hover:text-primary transition-colors duration-200 relative rounded-lg", 
+                                day: "h-9 w-9 p-0 font-normal aria-selected:opacity-100 hover:bg-primary/10  transition-colors duration-200 relative rounded-lg",
                                 day_selected: "bg-transparent text-foreground", 
                                 // Estilo para 'Hoje'
                                 day_today: "bg-primary/10 text-primary font-bold border-2 border-primary hover:bg-primary/20 transition-colors duration-150 rounded-lg",
