@@ -163,7 +163,7 @@ export const RelatorioFiltros: React.FC<RelatorioFiltrosProps> = ({
                         </Button>
                         
                         {/* CALENDÁRIO COM ESTILIZAÇÃO APERFEIÇOADA */}
-                       <Calendar
+                    <Calendar
                             mode="multiple"
                             selected={selectedDates}
                             onSelect={handleDateSelect}
@@ -173,9 +173,13 @@ export const RelatorioFiltros: React.FC<RelatorioFiltrosProps> = ({
                             locale={ptBR}
                             // Estilos base (classNames) ajustados
                             classNames={{
-                                day: "font-normal aria-selected:opacity-100 relative rounded-lg transition-all duration-200",
-                                day_selected: "bg-transparent text-foreground rounded-lg ",
-                                day_today: "bg-primary/10 text-primary font-bold border-2 border-primary/50 hover:bg-primary/20 transition-colors duration-150 rounded-lg",
+                                day: "font-normal aria-selected:opacity-100  w-9 h-9 relative rounded-full transition-all duration-200",
+                                // A cor do texto principal é text-foreground, mas será sobreposta pelo modifiersClassNames.
+                                day_selected: "bg-transparent text-foreground rounded-full",
+                                
+                                // 🚀 CORREÇÃO DO DIA ATUAL: Garante que o texto seja foreground (preto/branco) e não seja removido.
+                                day_today: "bg-primary/50  w-9 h-9 text-foreground font-bold  border-primary/50 hover:bg-primary/10 transition-colors duration-150 rounded-full",
+                                
                                 day_outside: "text-muted-foreground opacity-50",
                                 day_disabled: "text-muted-foreground opacity-50",
                                 day_range_middle: "aria-selected:bg-primary/20 aria-selected:text-primary",
@@ -186,23 +190,29 @@ export const RelatorioFiltros: React.FC<RelatorioFiltrosProps> = ({
                                 holiday: allHolidays,
                             }}
                             modifiersClassNames={{
-                                selected: "bg-primary text-primary-foreground font-extrabold shadow-lg shadow-primary/30 rounded-lg hover:bg-primary/90 border-4 border-primary/50",
+                                // 🚀 SELEÇÃO: Cor de fundo forte (primary/red) com texto BRANCO (primary-foreground)
+                                selected: "bg-primary text-primary-foreground w-9 h-9 font-extrabold rounded-full shadow-xl shadow-primary/30 hover:bg-primary/90 transition-all duration-300",
+                                
+                                // 🚀 FERIADO: Fundo leve com texto contrastante (destructive)
                                 holiday:
-                                    " text-destructive font-bold rounded-lg border-2 border-destructive/50 bg-destructive/10 hover:bg-destructive/20 transition-all duration-300 ease-in-out shadow-lg shadow-destructive/10",
+                                    " bg-destructive/40 text-destructive font-bold  w-9 h-9 border border-destructive/50 rounded-full shadow-inner shadow-destructive/5 hover:bg-destructive/20 transition-all duration-200",
                             }}
                         />
                         {/* LEGENDA DE DATAS */}
-                        <div className="grid grid-cols-1 gap-3 ml-4 mb-4 text-xs pt-4 border-t border-border/50">
+                    <div className="grid grid-cols-1 gap-3 ml-4 mb-4 text-xs pt-4 border-t border-border/50">
+                            {/* Data selecionada (Agora Circular e Primary) */}
                             <div className="flex items-center gap-3">
-                                <div className="w-4 h-4 rounded-lg bg-primary shadow-sm shadow-primary/30"></div>
+                                <div className="w-4 h-4 rounded-full bg-primary shadow-sm shadow-primary/30"></div>
                                 <span className="text-muted-foreground">Data selecionada</span>
                             </div>
+                            {/* Feriado nacional (Circular, Border Destructive/Light background) */}
                             <div className="flex items-center gap-3">
-                                <div className="w-4 h-4 rounded-full bg-destructive/5 border-2 border-destructive/30 shadow-sm shadow-destructive/10"></div>
+                                <div className="w-4 h-4 rounded-full bg-destructive/10 border border-destructive/50 shadow-sm shadow-destructive/10"></div>
                                 <span className="text-destructive font-semibold">Feriado nacional</span>
                             </div>
+                            {/* Hoje (Retangular, Border Primary/Very Light background) */}
                             <div className="flex items-center gap-3">
-                                <div className="w-4 h-4 rounded-lg border-2 border-primary/50 bg-primary/10"></div>
+                                <div className="w-4 h-4 rounded-full border-2 border-primary/50 bg-primary/5"></div>
                                 <span className="text-muted-foreground">Hoje</span>
                             </div>
                         </div>

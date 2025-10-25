@@ -405,21 +405,34 @@ const RelatorioDetalhado = () => {
             doc.text(`Carga horária diária: ${referenceTime}`, 20, yPosition);
             yPosition += 7;
 
+
             if (selectedDates.length > 0) {
                 const validDates = selectedDates.filter(date => date && !isNaN(date.getTime()));
-                const datesList = validDates
-                    .map(date => format(date, "dd/MM/yyyy", { locale: ptBR }))
-                    .join(", ");
-                doc.text(`Datas: ${datesList}`, 20, yPosition);
-                yPosition += 10;
+
+                // 🚀 NOVO FILTRO: Obtém apenas as datas que são feriado (utilizando a função isHoliday)
+                const holidayDates = validDates.filter(date => isHoliday(date));
+
+                if (holidayDates.length > 0) {
+                    const datesList = holidayDates
+                        .map(date => format(date, "dd/MM/yy", { locale: ptBR }))
+                        .join(", ");
+
+                    // 🚀 NOVO TEXTO: Indica que são apenas os feriados
+                    doc.text(`Feriados Nacionais: ${datesList}`, 20, yPosition);
+                    yPosition += 10;
+                }
             }
+
             doc.setFont("helvetica", "bold");
             yPosition += 5;
+
+
 
             // 💡 ESTILO: NOVO ESQUEMA DE CORES PARA LINHAS
             const COLOR_MAIN_RECORD = [240, 255, 240]; // Honeydew (Trabalho - Linha Mais Clara)
             const COLOR_BREAK_RECORD = [230, 230, 250]; // Lavanda/Muito Claro (Pausa - Linha Suave)
             const COLOR_SEPARATOR = [200, 200, 200];       // Cinza (Separador)
+            const COLOR_HOLIDAY_ROW = [255, 230, 230];
             const SEPARATOR_PADDING = 0.1
 
             const tableBody: any[] = [];
@@ -429,12 +442,13 @@ const RelatorioDetalhado = () => {
 
                 const startDate = parseDate(item.startWork);
                 const endDate = parseDate(item.endWork);
+                const isItemHoliday = startDate && isHoliday(startDate);
 
                 const formattedStart = `${startDate ? format(startDate, "dd/MM/yyyy") : 'N/A'}\n${item.startHour}`;
                 const formattedEnd = `${endDate ? format(endDate, "dd/MM/yyyy") : 'N/A'}\n${item.endHour}`;
 
                 const statusLabel = getTranslatedStatus(item.statusRecord);
-                const fillColor = isBreak ? COLOR_BREAK_RECORD : COLOR_MAIN_RECORD;
+                const fillColor = isItemHoliday ? COLOR_HOLIDAY_ROW : (isBreak ? COLOR_BREAK_RECORD : COLOR_MAIN_RECORD);
                 const fontStyle = isBreak ? 'italic' : 'normal';
 
                 // Linha Única para Segmento de Trabalho OU Pausa
@@ -443,7 +457,8 @@ const RelatorioDetalhado = () => {
                     { content: formattedEnd, styles: { fillColor: fillColor } },
                     { content: item.hoursWork, styles: { fillColor: fillColor } },
                     { content: isBreak ? 'N/A' : item.balance, styles: { fillColor: fillColor } },
-                    { content: statusLabel, styles: { fillColor: fillColor } }
+                    { content: statusLabel, styles: { fillColor: fillColor } },
+                    { content: isItemHoliday ? `${statusLabel} (FERIADO)` : statusLabel, styles: { fillColor: fillColor } }
                 ];
 
                 // Aplica estilos de alinhamento e fonte padrão para a linha
@@ -556,7 +571,7 @@ const RelatorioDetalhado = () => {
 
 
     // === LÓGICA DE DOWNLOAD PDF SIMPLES (RENOMEADA) ===
-  const handleDownloadPDFSimple = () => {
+    const handleDownloadPDFSimple = () => {
         if (!reportDataSimple || reportDataSimple.days.length === 0) {
             toast({
                 title: "Erro",
@@ -613,59 +628,57 @@ const RelatorioDetalhado = () => {
             const tableData = reportDataSimple.days.map(day => {
                 const parts = day.startDate.split('/');
                 const dayDate = new Date(`${parts[2]}-${parts[1]}-${parts[0]}`);
+                // 💡 Marcador de Feriado mantido (usado no didParseCell abaixo)
                 const holiday = isHoliday(dayDate) ? ' 🎉' : '';
                 return [
                     `${day.startDate}${holiday}`,
-                    day.startHour || 'N/A', // 💡 NOVO
-                    day.endHour || 'N/A',   // 💡 NOVO
+                    day.startHour || 'N/A',
+                    day.endHour || 'N/A',
                     day.totalHours,
                     day.balance,
                 ];
             });
 
             autoTable(doc, {
-                head: [['Data', 'Entrada', 'Saída', 'Total de Horas', 'Saldo do Dia']], // 💡 NOVO TÍTULO
+                head: [['Data', 'Entrada', 'Saída', 'Total de Horas', 'Saldo do Dia']],
                 body: tableData,
                 startY: yPosition,
                 margin: { left: 20, right: 20 },
-                // ===================================
-                // 💡 INÍCIO DAS ALTERAÇÕES DE ESTILO (ELEGÂNCIA)
-                // ===================================
                 styles: {
                     fontSize: 9,
-                    cellPadding: 4, // Aumenta o padding para mais elegância
+                    cellPadding: 4,
                     halign: 'center',
-                    lineColor: [220, 220, 220], // Linhas mais claras
-                    lineWidth: 0.1, // Linhas mais finas
+                    lineColor: [220, 220, 220],
+                    lineWidth: 0.1,
                 },
                 headStyles: {
-                    fillColor: [0, 150, 136], // NOVO: Azul-petróleo (Tema Principal)
+                    fillColor: [0, 150, 136],
                     textColor: [255, 255, 255],
                     fontSize: 11,
                     fontStyle: 'bold'
                 },
-                alternateRowStyles: { // Efeito Zebra
-                    fillColor: [240, 255, 240], // Honeydew (Verde/Azul claro suave)
+                alternateRowStyles: {
+                    fillColor: [240, 255, 240],
                 },
-                // 💡 FIM DAS ALTERAÇÕES DE ESTILO DE TABELA
                 columnStyles: {
-                    4: { // Coluna do saldo agora é a 4 (0-indexed)
+                    4: {
                         cellWidth: 25,
                         halign: 'center'
                     }
                 },
                 didParseCell: function (data) {
-                    // 💡 ESTILO: Destaque Colorido para Feriado (Primeira Coluna)
+                    // 💡 LÓGICA DE DESTAQUE PARA FERIADO (USANDO O MARCADOR)
                     if (data.column.index === 0 && data.section === 'body') {
                         const cellContent = data.cell.text[0];
                         if (cellContent && cellContent.includes('🎉')) {
-                            data.cell.styles.textColor = [255, 87, 34]; // Laranja vibrante (Accent)
+                            data.cell.styles.textColor = [255, 87, 34]; // Laranja vibrante
                             data.cell.styles.fontStyle = 'bold';
-                            // Remove o ícone 🎉 da célula para que a cor seja o único destaque
+                            // Remove o ícone do texto da célula
                             data.cell.text[0] = data.cell.text[0].replace(' 🎉', '');
                         }
                     }
 
+                    // Lógica para Saldo
                     if (data.column.index === 4 && data.section === 'body') {
                         const balance = data.cell.text[0];
                         if (balance && balance.startsWith('-')) {
@@ -707,7 +720,7 @@ const RelatorioDetalhado = () => {
             });
         }
     };
-     // === FIM LÓGICA DE DOWNLOAD PDF SIMPLES ===
+    // === FIM LÓGICA DE DOWNLOAD PDF SIMPLES ===
 
 
     // === FUNÇÃO DE DOWNLOAD CSV DETALHADA (NOVA) ===

@@ -49,8 +49,8 @@ function Calendar({
         day: cn(
           buttonVariants({ variant: "ghost" }),
           // 🚀 TEXTO MAIOR: 'text-base sm:text-lg'
-          "h-11 sm:h-12 flex-1 p-0.5 font-normal aria-selected:opacity-100 text-base sm:text-lg rounded-lg transition-all duration-200",
-          "flex justify-center items-center", // Garante centralização
+          "h-10 w-10 mx-auto p-0.5 font-normal aria-selected:opacity-100 text-base sm:text-lg rounded-lg transition-all duration-200",
+          "flex justify-center items-center", 
           "hover:bg-primary/15 hover:text-foreground/90" 
         ),
         
