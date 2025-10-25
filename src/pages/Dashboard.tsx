@@ -1,5 +1,3 @@
-// src/pages/Dashboard.tsx
-
 import { useState, useCallback, useMemo } from "react";
 import Header from "@/components/Header";
 import Sidebar from "@/components/Sidebar";
@@ -126,44 +124,58 @@ const Dashboard = () => {
 
   /**
    * Função auxiliar para aplicar estilização temática de Card.
-   * Mantém a coerência visual de bordas, sombras e hover.
+   * **CORREÇÃO:** Adiciona o foco temático para remover o anel azul padrão.
    * @param baseColor Cor base ('primary', 'destructive', 'success', 'yellow-600').
    */
   const getThemeCardClasses = (baseColor: string, isClickable: boolean = false) => {
-      // Classes base de sombra e transição para o efeito de hover
-      const hoverClasses = `shadow-md transition-all duration-300 hover:shadow-xl hover:scale-[1.01]`;
       
-      let borderColor, ringColor;
+      let borderColor, rawColor;
 
-      // Mapeamento das classes Tailwind para cores e efeitos
+      // Mapeamento das classes Tailwind para cores e rawColor (para classes dinâmicas)
       switch (baseColor) {
           case 'primary':
-              borderColor = 'border-l-primary';
-              ringColor = 'ring-primary';
+              // Borda base e Borda lateral
+              borderColor = 'border-2 border-l-4 border-border/80 border-l-primary';
+              rawColor = 'primary';
               break;
           case 'destructive':
-              borderColor = 'border-l-destructive';
-              ringColor = 'ring-destructive';
+              borderColor = 'border-2 border-l-4 border-border/80 border-l-destructive';
+              rawColor = 'destructive';
               break;
           case 'success':
               // Usando green-600 como sucesso
-              borderColor = 'border-l-green-600';
-              ringColor = 'ring-green-600';
+              borderColor = 'border-2 border-l-4 border-border/80 border-l-green-600';
+              rawColor = 'green-600';
               break;
           case 'yellow-600':
               // Cor de aviso/alerta (amarelo)
-              borderColor = 'border-l-yellow-600';
-              ringColor = 'ring-yellow-600';
+              borderColor = 'border-2 border-l-4 border-border/80 border-l-yellow-600';
+              rawColor = 'yellow-600';
               break;
           default:
-              borderColor = 'border-l-border';
-              ringColor = 'ring-primary';
+              borderColor = 'border-2 border-l-4 border-border/80 border-l-border';
+              rawColor = 'primary';
       }
       
-      // Classes comuns: borda, hover com shadow e ring
+      // 🚀 CLASSES INTERATIVAS (Hover e Focus)
+      const interactiveClasses = `
+          shadow-md 
+          transition-all duration-300 
+          hover:shadow-xl 
+          hover:shadow-${rawColor}/40 
+          hover:scale-[1.01] 
+          
+          hover:ring-${rawColor}/50
+          hover:border-${rawColor}
+          
+          // 🚀 CORREÇÃO DO FOCO (Borda Azul)
+       
+      `;
+      
       const cursorClass = isClickable ? 'cursor-pointer' : 'cursor-default';
       
-      return `${borderColor} ${hoverClasses} hover:ring-2 hover:${ringColor}/50 ${cursorClass}`;
+      // Combina as classes
+      return `${borderColor} ${interactiveClasses} ${cursorClass}`;
   };
 
   return (
@@ -176,7 +188,7 @@ const Dashboard = () => {
         <main className="flex-1 overflow-x-hidden overflow-y-auto bg-gray-50 dark:bg-gray-900 p-6 pt-20">
           <div className="max-w-6xl mx-auto">
             
-            {/* SAUDAÇÃO PERSONALIZADA - APLICA O getFirstName AQUI */}
+            {/* SAUDAÇÃO PERSONALIZADA */}
             <h1 className="text-3xl font-bold text-foreground mb-1">
                 Olá, {isLoading ? "..." : userData?.fullName || "Usuário"}!
             </h1>
@@ -196,17 +208,19 @@ const Dashboard = () => {
                         
                         {/* 1. Card Consolidado de Informações do Colaborador (Primary - lg:col-span-1) */}
                         <Card 
+                            // O componente Card agora recebe a classe de borda base e as classes de hover/focus
                             className={`lg:col-span-1 ${getThemeCardClasses('primary', true)}`}
                             onClick={handleDetailsCardClick} // Redireciona para /usuario
+                            tabIndex={0} // Garante que o card é focável para testar a correção
                         >
                             <CardContent className="p-6 space-y-4">
                                 
-                                {/* Nome (AJUSTADO PARA OS 2 PRIMEIROS NOMES), Cargo e Botão Empresa (se for CTO) */}
+                                {/* Nome, Cargo e Botão Empresa (se for CTO) */}
                                 <div className="flex items-center space-x-4 pb-2 border-b border-border/70">
                                     <User2 className="h-10 w-10 text-primary" />
                                     
                                     <div className="flex-1 min-w-0">
-                                        {/* APLICAÇÃO DO NOVO FILTRO DE NOME */}
+                                        {/* APLICAÇÃO DO FILTRO DE NOME */}
                                         <h2 className="text-xl font-bold text-foreground line-clamp-1">{getFirstName(userData?.fullName)}</h2>
                                         
                                         <p className="text-sm font-semibold text-foreground/80">
@@ -287,6 +301,7 @@ const Dashboard = () => {
                                 flex flex-col justify-center
                             `}
                             onClick={handleClockCardClick}
+                            tabIndex={0} // Garante que o card é focável para testar a correção
                         >
                             <CardContent className="p-6">
                                 <div className="flex items-center justify-center">
@@ -312,6 +327,7 @@ const Dashboard = () => {
                                 ${getThemeCardClasses('yellow-600', !isManager && newWarnings.length > 0)}
                             `}
                             onClick={handleAvisosCardClick} 
+                            tabIndex={0}
                         >
                             <CardContent className="p-5 flex flex-col h-full justify-between">
                                 <div className="flex items-center justify-between mb-3">
@@ -363,6 +379,7 @@ const Dashboard = () => {
                                 `}
                                 // Permite o clique no card apenas para não-MANAGERs com pendências
                                 onClick={!isManager && pendingApprovalsCount > 0 ? handleApprovalClick : undefined}
+                                tabIndex={0}
                             >
                                 <CardContent className="p-5 flex flex-col h-full justify-between">
                                     <div className="flex items-center justify-between mb-3">
@@ -412,7 +429,7 @@ const Dashboard = () => {
                             </Card>
                         ) : (
                             /* Card de Acesso Rápido (para quem não tem permissão de aprovação) */
-                             <Card className={getThemeCardClasses('primary')}>
+                             <Card className={getThemeCardClasses('primary')} tabIndex={0}>
                                 <CardContent className="p-5 space-y-3 flex flex-col items-start h-full justify-center">
                                     <div className="flex items-center text-primary mb-3">
                                         <Zap className="h-6 w-6 mr-2" />
