@@ -43,7 +43,7 @@ export interface UserData {
  * Interface para os dados necessários para a mudança de senha.
  */
 export interface ChangePasswordData {
-  oldPassword?: string;
+  currentPassword?: string;
   newPassword: string;
   confirmPassword: string;
 }

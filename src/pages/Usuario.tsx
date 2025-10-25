@@ -24,7 +24,7 @@ import { getRoleDisplayName } from "@/types/dashboard";
 const Usuario = () => {
   // 💡 ESTADO DE UI (Sidebar e Senha) é o único estado mantido localmente
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [showOldPassword, setShowOldPassword] = useState(false);
+  const [showCurrentPassword, setShowCurrentPassword] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const handleToggleSidebar = useCallback(() => setSidebarOpen((prev) => !prev), []);
@@ -96,7 +96,7 @@ const Usuario = () => {
   const isPasswordChangeDisabled = (
     !passwordData.newPassword || 
     passwordData.newPassword !== passwordData.confirmPassword || 
-    !passwordData.oldPassword
+    !passwordData.currentPassword
   );
 
   return (
@@ -306,11 +306,11 @@ const Usuario = () => {
                           <div className="space-y-3 p-4 border rounded-lg bg-background">
                             {/* Old Password */}
                             <div className="relative">
-                              <Label htmlFor="oldPassword">Senha Atual</Label>
+                              <Label htmlFor="currentPassword">Senha Atual</Label>
                               <Input
-                                id="oldPassword"
-                                type={showOldPassword ? "text" : "password"}
-                                value={passwordData.oldPassword || ""}
+                                id="currentPassword"
+                                type={showCurrentPassword ? "text" : "password"}
+                                value={passwordData.currentPassword || ""}
                                 onChange={handlePasswordChange} 
                                 required
                                 disabled={isSavingPassword}  
@@ -320,10 +320,10 @@ const Usuario = () => {
                                 variant="ghost"
                                 size="icon"
                                 className="absolute right-0 top-[1.4rem] h-8 w-8 text-muted-foreground"
-                                onClick={() => setShowOldPassword((prev) => !prev)}
+                                onClick={() => setShowCurrentPassword((prev) => !prev)}
                                 disabled={isSavingPassword}
                               >
-                                {showOldPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                                {showCurrentPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                               </Button>
                             </div>
 
@@ -352,9 +352,9 @@ const Usuario = () => {
 
                             {/* Confirm New Password */}
                             <div className="relative">
-                              <Label htmlFor="confirmNewPassword">Confirmar Nova Senha</Label>
+                              <Label htmlFor="confirmPassword">Confirmar Nova Senha</Label>
                               <Input
-                                id="confirmNewPassword"
+                                id="confirmPassword"
                                 type={showConfirmPassword ? "text" : "password"}
                                 // FIX 2: AQUI ESTAVA O ERRO! Lendo 'confirmPassword'
                                 value={passwordData.confirmPassword}

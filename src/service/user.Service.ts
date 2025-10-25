@@ -103,7 +103,7 @@ export const changePassword = async (data: ChangePasswordData): Promise<void> =>
   
   // Remove a confirmação da senha para o payload da API
   const apiPayload = { 
-      oldPassword: data.oldPassword, 
+     currentPassword: data.currentPassword,
       newPassword: data.newPassword,
       confirmPassword: data.confirmPassword 
   };

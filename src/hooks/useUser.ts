@@ -65,7 +65,7 @@ export const useUser = (): UseUserReturn => {
   const [passwordData, setPasswordData] = useState<ChangePasswordData>({
     newPassword: "",
     confirmPassword: "",
-    oldPassword: "",
+    currentPassword: "",
   });
   // --- FUNÇÕES DE CARREGAMENTO ---
 
@@ -144,7 +144,7 @@ export const useUser = (): UseUserReturn => {
   const togglePasswordFields = useCallback(() => {
       setShowPasswordFields(prev => !prev);
       // Limpa o formulário ao fechar
-      setPasswordData({ oldPassword: "", newPassword: "", confirmPassword: "" });
+      setPasswordData({ currentPassword: "", newPassword: "", confirmPassword: "" });
   }, []);
 
 
@@ -231,7 +231,7 @@ const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
 
 
  const handleChangePassword = useCallback(async () => {
-    if (!passwordData.oldPassword || !passwordData.newPassword || !passwordData.confirmPassword) {
+    if (!passwordData.currentPassword || !passwordData.newPassword || !passwordData.confirmPassword) {
         toast({ title: "Erro", description: "Preencha todos os campos de senha.", variant: "destructive" });
         return;
     }
@@ -246,7 +246,7 @@ const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
       await changePassword(passwordData); // Chama o Serviço de API
       
       // Limpa os campos de senha após o sucesso
-   setPasswordData({ oldPassword: "", newPassword: "", confirmPassword: "" });
+   setPasswordData({ currentPassword: "", newPassword: "", confirmPassword: "" });
       setShowPasswordFields(false);
       toast({ title: "Sucesso", description: "Senha alterada com sucesso.", variant: "default" });
     } catch (error: any) {
