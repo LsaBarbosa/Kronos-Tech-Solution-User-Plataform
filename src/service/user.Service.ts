@@ -48,7 +48,7 @@ const handleResponse = async (response: Response): Promise<any> => {
  */
 export const fetchAccountData = async (): Promise<UserAccountData> => {
   const headers = getAuthHeaders();
-  const response = await fetch(`${API_BASE_URL}user/account`, { headers });
+  const response = await fetch(`${API_BASE_URL}users/own-profile`, { headers });
   return await handleResponse(response) as UserAccountData;
 };
 
@@ -57,7 +57,7 @@ export const fetchAccountData = async (): Promise<UserAccountData> => {
  */
 export const fetchUserData = async (employeeId: string): Promise<UserData> => {
   const headers = getAuthHeaders();
-  const response = await fetch(`${API_BASE_URL}employee/${employeeId}/details`, { headers });
+  const response = await fetch(`${API_BASE_URL}employee/own-profile`, { headers });
   return await handleResponse(response) as UserData;
 };
 
@@ -68,8 +68,8 @@ export const fetchUserData = async (employeeId: string): Promise<UserData> => {
  */
 export const updateEmail = async (employeeId: string, newEmail: string): Promise<void> => {
   const headers = getAuthHeaders();
-  const response = await fetch(`${API_BASE_URL}employee/${employeeId}/email`, {
-    method: "PUT",
+  const response = await fetch(`${API_BASE_URL}employee/update-own-profile`, {
+    method: "PATCH",
     headers: headers,
     body: JSON.stringify({ email: newEmail }),
   });
@@ -82,8 +82,8 @@ export const updateEmail = async (employeeId: string, newEmail: string): Promise
  */
 export const updatePhone = async (employeeId: string, newPhone: string): Promise<void> => {
   const headers = getAuthHeaders();
-  const response = await fetch(`${API_BASE_URL}employee/${employeeId}/phone`, {
-    method: "PUT",
+  const response = await fetch(`${API_BASE_URL}employee/update-own-profile`, {
+    method: "PATCH",
     headers: headers,
     body: JSON.stringify({ phone: cleanNumberString(newPhone) }),
   });
@@ -95,7 +95,7 @@ export const updatePhone = async (employeeId: string, newPhone: string): Promise
  * Atualiza a senha do usuário.
  */
 export const changePassword = async (data: ChangePasswordData): Promise<void> => {
-  if (data.newPassword !== data.confirmNewPassword) {
+  if (data.newPassword !== data.confirmPassword) {
     throw new Error("As novas senhas não coincidem.");
   }
   
@@ -104,10 +104,11 @@ export const changePassword = async (data: ChangePasswordData): Promise<void> =>
   // Remove a confirmação da senha para o payload da API
   const apiPayload = { 
       oldPassword: data.oldPassword, 
-      newPassword: data.newPassword 
+      newPassword: data.newPassword,
+      confirmPassword: data.confirmPassword 
   };
 
-  const response = await fetch(`${API_BASE_URL}user/change-password`, {
+  const response = await fetch(`${API_BASE_URL}users/password`, {
     method: "PUT",
     headers: headers,
     body: JSON.stringify(apiPayload),
