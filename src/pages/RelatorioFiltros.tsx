@@ -225,10 +225,10 @@ export const RelatorioFiltros: React.FC<RelatorioFiltrosProps> = ({
                             Dicas e Regras
                         </h4>
                         <ul className="list-disc list-inside text-xs space-y-2 text-muted-foreground ml-2">
-                            <li>O status **FOLGA** é atribuído no dia que não houver registro.</li>
-                            <li>Em caso de **FALTA**, navegue até a página <a href="status-do-registro" className="text-primary hover:text-primary/80 underline font-semibold transition-colors duration-150">Status do registro</a> para realizar a mudança.</li>
-                            <li>**Relatório Simples:** Retorna data, horas trabalhadas e saldo do dia.</li>
-                            <li>**Relatório Detalhado:** Retorna todos os registros e status do dia.</li>
+                            <li>O status  <span className="text-primary hover:text-primary/80  font-semibold transition-colors duration-150">FOLGA</span> é atribuído no dia que não houver registro.</li>
+                            <li>Em caso de  <span className="text-primary hover:text-primary/80  font-semibold transition-colors duration-150">FALTA</span>, navegue até a página <a href="status-do-registro" className="text-primary hover:text-primary/80 underline font-semibold transition-colors duration-150">Status do registro</a> para realizar a mudança.</li>
+                            <li> <span className="text-primary hover:text-primary/80  font-semibold transition-colors duration-150">Relatório Simples:</span>  Retorna data, horas trabalhadas e saldo do dia.</li>
+                            <li> <span className="text-primary hover:text-primary/80  font-semibold transition-colors duration-150">Relatório Detalhado:</span>  Retorna todos os registros e status do dia.</li>
                             <li>Clique no registro para solicitar alteração (data e hora).</li>
                         </ul>
                     </div>
