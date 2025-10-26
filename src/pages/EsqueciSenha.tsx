@@ -123,7 +123,7 @@ const EsqueciSenha = () => {
           <div className="text-center pt-2">
             <Button
               variant="link"
-              onClick={() => navigate("/login")}
+              onClick={() => navigate("/")}
               className="text-sm text-muted-foreground hover:text-primary transition-smooth"
               disabled={isSubmitting}
             >
