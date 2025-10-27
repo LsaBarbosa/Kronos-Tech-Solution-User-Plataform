@@ -35,6 +35,7 @@ import { RegistroEdicaoModal } from "@/components/RegistroEdicaoModal";
 // Componentes da UI que sobraram
 import { Card } from "@/components/ui/card";
 import { RelatorioFiltros } from "./RelatorioFiltros";
+import { Info } from "lucide-react";
 
 // === FUNÇÃO UTILITÁRIA PARA GERAÇÃO DE CSV (NOVA) ===
 const generateCSV = (data: any[], headers: string[], fileName: string) => {
@@ -97,8 +98,8 @@ const RelatorioDetalhado = () => {
     const statusRegistroTips = (
     <>
     <h1 className="text-lg font-bold text-primary mb-2 flex items-center gap-2">
-             Instruções
-        </h1>
+                    <Info className="w-5 h-5 text-primary"/> Instruções
+                  </h1>
         <br />
         <h4 className="text-sm font-bold text-primary mb-2 flex items-center gap-2">
             <div className="w-2 h-2 rounded-full bg-primary  "></div>

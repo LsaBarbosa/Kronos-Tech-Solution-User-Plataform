@@ -8,7 +8,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { useToast } from "@/hooks/use-toast";
 import Header from "@/components/Header";
 import Sidebar from "@/components/Sidebar";
-import { Save } from "lucide-react";
+import { Info, Save } from "lucide-react";
 import { API_BASE_URL } from "@/config/api";
 
 // 💡 NOVO: Componente de Filtros Modular
@@ -60,9 +60,9 @@ const StatusRegistro = () => {
 
        const statusRegistroTips = (
     <>
-    <h1 className="text-lg font-bold text-primary mb-2 flex items-center gap-2">
-             Instruções
-        </h1>
+   <h1 className="text-lg font-bold text-primary mb-2 flex items-center gap-2">
+                    <Info className="w-5 h-5 text-primary"/> Instruções
+                  </h1>
         <br />
         <h4 className="text-sm font-bold text-primary mb-2 flex items-center gap-2">
             <div className="w-2 h-2 rounded-full bg-primary  "></div>

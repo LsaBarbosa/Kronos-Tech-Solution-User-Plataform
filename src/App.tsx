@@ -12,7 +12,6 @@ import NotFound from "./pages/NotFound";
 import Empresa from "./pages/Empresa";
 import CriarEmpresa from "./pages/CriarEmpresa";
 import BuscarEmpresa from "./pages/BuscarEmpresa";
-
 import RelatorioSimples from "./pages/RelatorioSimples";
 import RelatorioDetalhado from "./pages/RelatorioDetalhado";
 import Documentos from "./pages/Documentos";
@@ -79,7 +78,6 @@ const App = () => (
               <Route path="/avisos" element={<Avisos />} />
               <Route path="/criar-aviso" element={<CriarAviso />} />
             </Route>
-
             {/* Rota de Not Found (pública) */}
             <Route path="*" element={<NotFound />} />
           </Routes>
@@ -88,5 +86,4 @@ const App = () => (
     </ThemeProvider>
   </QueryClientProvider>
 );
-
 export default App;
