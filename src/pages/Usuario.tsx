@@ -1,10 +1,8 @@
-// src/pages/Usuario.tsx
-
 import { useState, useCallback } from "react"; 
 import Header from "@/components/Header";
 import Sidebar from "@/components/Sidebar";
 // 💡 Ícones que indicam funcionalidade e estado
-import { User, Lock, Eye, EyeOff, Save, X, Pencil, Briefcase, Phone, MapPin, AtSign, CircleUserRound, Loader2, CircleCheck, CircleX } from "lucide-react";
+import { User, Lock, Eye, EyeOff, Save, X, Pencil, Briefcase, Phone, MapPin, AtSign, CircleUserRound, Loader2, CircleCheck, CircleX, DollarSign, Home } from "lucide-react";
 // 💡 Componentes de UI
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -106,104 +104,19 @@ const Usuario = () => {
       <div className="flex-1 flex flex-col overflow-hidden">
         <Header toggleSidebar={handleToggleSidebar} />
         
-        <main className="flex-1 overflow-x-hidden overflow-y-auto bg-gray-50 dark:bg-gray-900 p-6 pt-20">
+        <main className="flex-1 overflow-x-hidden overflow-y-auto bg-gray-50 dark:bg-gray-900 p-4 sm:p-6 pt-20">
           <div className="max-w-6xl mx-auto">
-            <h1 className="text-3xl font-bold mb-6 text-foreground">Meu Perfil</h1>
+            <h1 className="text-3xl font-bold mb-6 text-foreground bg-gradient-to-r from-foreground to-primary bg-clip-text text-transparent">Meu Perfil</h1>
             
             <div className="grid gap-6 md:grid-cols-2">
               
               {/* CARD DE DADOS PESSOAIS */}
-              <Card className="shadow-lg border-l-4 border-l-primary">
-                <CardHeader className="flex flex-row items-center justify-between">
-                  <CardTitle className="text-xl flex items-center gap-2">
-                    <CircleUserRound className="h-5 w-5 text-primary" /> Dados Pessoais
+              <Card className="shadow-2xl border-l-4 border-l-primary hover:shadow-primary/20 transition-shadow">
+                <CardHeader>
+                  <CardTitle className="text-xl flex items-center gap-2 text-primary font-extrabold">
+                    <CircleUserRound className="h-6 w-6 text-primary" /> Dados Pessoais
                   </CardTitle>
-                  <CardDescription>Informações de perfil</CardDescription>
-                </CardHeader>
-                <CardContent className="space-y-4">
-                  {isLoading ? (
-                    <SkeletonCard />
-                  ) : (
-                    <div className="space-y-4">
-                      
-                      {/* Full Name Field */}
-                      <div>
-                        <Label className="text-sm font-medium text-muted-foreground">Nome Completo</Label>
-                        <div className="mt-1 p-3 bg-muted rounded-lg">
-                          <p className="text-foreground font-semibold">{userData?.fullName}</p>
-                        </div>
-                      </div>
-
-                      {/* CPF Field */}
-                      <div>
-                        <Label className="text-sm font-medium text-muted-foreground">CPF</Label>
-                        <div className="mt-1 p-3 bg-muted rounded-lg">
-                          <p className="text-foreground">{userData?.maskedCpf}</p>
-                        </div>
-                      </div>
-
-                      <Separator />
-
-                      {/* Job Position Field */}
-                      <div>
-                        <Label htmlFor="jobPosition" className="text-sm font-medium text-muted-foreground">
-                          Cargo
-                        </Label>
-                        <div className="mt-1 p-3 bg-muted rounded-lg flex items-center gap-2">
-                          <Briefcase className="h-4 w-4 text-muted-foreground flex-shrink-0" />
-                          <p className="text-foreground">{userData?.jobPosition}</p>
-                        </div>
-                      </div>
-
-                      {/* Role Field */}
-                      <div>
-                        <Label className="text-sm font-medium text-muted-foreground">Tipo de Usuário</Label>
-                        <div className="mt-1 p-3 bg-muted rounded-lg">
-                          <p className="text-foreground font-semibold">
-                            {getRoleDisplayName(userAccountData?.role || 'PARTNER')}
-                          </p>
-                        </div>
-                      </div>
-                      
-                      {/* Status da Conta Field */}
-                      <div>
-                        <Label className="text-sm font-medium text-muted-foreground">Status da Conta</Label>
-                        <div className="mt-1 p-3 bg-muted rounded-lg flex items-center gap-2">
-                          {userAccountData?.active ? (
-                            <>
-                              <CircleCheck className="h-5 w-5 text-green-500" />
-                              <p className="text-foreground text-sm">Ativa</p>
-                            </>
-                          ) : (
-                            <>
-                              <CircleX className="h-5 w-5 text-destructive" />
-                              <p className="text-foreground text-sm">Inativa</p>
-                            </>
-                          )}
-                        </div>
-                      </div>
-                      
-                      {/* Último Login */}
-                      <div>
-                        <Label className="text-sm font-medium text-muted-foreground">Último Login</Label>
-                        <div className="mt-1 p-3 bg-muted rounded-lg">
-                          <p className="text-foreground text-sm">
-                            {formatDateString(userData?.lastLogin)}
-                          </p>
-                        </div>
-                      </div>
-                    </div>
-                  )}
-                </CardContent>
-              </Card>
-
-              {/* CARD DE CONTATO E SEGURANÇA */}
-              <Card className="shadow-lg border-l-4 border-l-secondary">
-                <CardHeader className="flex flex-row items-center justify-between">
-                  <CardTitle className="text-xl flex items-center gap-2">
-                    <Lock className="h-5 w-5 text-secondary" /> Contato e Segurança
-                  </CardTitle>
-                  <CardDescription>Informações de acesso</CardDescription>
+                  <CardDescription>Informações de identificação e função no sistema.</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-6">
                   {isLoading ? (
@@ -211,31 +124,140 @@ const Usuario = () => {
                   ) : (
                     <div className="space-y-4">
                       
+                      {/* Full Name Field */}
+                      <div className="data-field-group">
+                        <Label className="text-sm font-medium text-muted-foreground">Nome Completo</Label>
+                        <div className="mt-1 p-3 bg-muted rounded-xl border border-border/50 shadow-inner">
+                          <p className="text-foreground font-semibold">{userData?.fullName}</p>
+                        </div>
+                      </div>
+
+                      {/* CPF Field */}
+                      <div className="data-field-group">
+                        <Label className="text-sm font-medium text-muted-foreground">CPF</Label>
+                        <div className="mt-1 p-3 bg-muted rounded-xl border border-border/50 shadow-inner">
+                          <p className="text-foreground">{userData?.maskedCpf}</p>
+                        </div>
+                      </div>
+
+                      <Separator className="bg-border/50" />
+
+                      {/* Job Position Field */}
+                      <div className="data-field-group">
+                        <Label htmlFor="jobPosition" className="text-sm font-medium text-muted-foreground">
+                          Cargo
+                        </Label>
+                        <div className="mt-1 p-3 bg-muted rounded-xl flex items-center gap-2 border border-border/50 shadow-inner">
+                          <Briefcase className="h-4 w-4 text-primary flex-shrink-0" />
+                          <p className="text-foreground">{userData?.jobPosition}</p>
+                        </div>
+                      </div>
+                      
+                       {/* Salary Field (Adicionado ícone de dinheiro) */}
+                      <div className="data-field-group">
+                        <Label htmlFor="salary" className="text-sm font-medium text-muted-foreground">
+                          Remuneração
+                        </Label>
+                        <div className="mt-1 p-3 bg-muted rounded-xl flex items-center gap-2 border border-border/50 shadow-inner">
+                          <DollarSign className="h-4 w-4 text-primary flex-shrink-0" />
+                          <p className="text-foreground">{userData?.salary}</p>
+                        </div>
+                      </div>
+                         
+                         {/* homeoffice Field (Adicionado ícone de casa) */}
+                      <div className="data-field-group">
+                        <Label htmlFor="homeOffice" className="text-sm font-medium text-muted-foreground">
+                          Local de Trabalho
+                        </Label>
+                        <div className="mt-1 p-3 bg-muted rounded-xl flex items-center gap-2 border border-border/50 shadow-inner">
+                          <Home className="h-4 w-4 text-primary flex-shrink-0" />
+                          {/* Lógica de exibição Remoto/Escritório */}
+                          <p className="text-foreground">
+                            {userData?.homeOffice === true ? 'Remoto' : 
+                             userData?.homeOffice === false ? 'Escritório' : 'N/A'}
+                          </p>
+                        </div>
+                      </div>
+
+                      {/* Role Field */}
+                      <div className="data-field-group">
+                        <Label className="text-sm font-medium text-muted-foreground">Tipo de Usuário</Label>
+                        <div className="mt-1 p-3 bg-muted rounded-xl border border-border/50 shadow-inner">
+                          <p className="text-foreground font-semibold">
+                            {getRoleDisplayName(userAccountData?.role || 'PARTNER')}
+                          </p>
+                        </div>
+                      </div>
+                      
+                      {/* Status da Conta Field */}
+                      <div className="data-field-group">
+                        <Label className="text-sm font-medium text-muted-foreground">Status da Conta</Label>
+                        <div className="mt-1 p-3 bg-muted rounded-xl flex items-center gap-2 border border-border/50 shadow-inner">
+                          {userAccountData?.active ? (
+                            <>
+                              <CircleCheck className="h-5 w-5 text-green-500" />
+                              <p className="text-foreground text-sm font-medium text-green-500">Ativa</p>
+                            </>
+                          ) : (
+                            <>
+                              <CircleX className="h-5 w-5 text-destructive" />
+                              <p className="text-foreground text-sm font-medium text-destructive">Inativa</p>
+                            </>
+                          )}
+                        </div>
+                      </div>
+                      
+                      
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
+
+              {/* CARD DE CONTATO E SEGURANÇA */}
+              <Card className="shadow-2xl border-l-4 border-l-secondary hover:shadow-secondary/20 transition-shadow">
+                <CardHeader>
+                  <CardTitle className="text-xl flex items-center gap-2 text-primary font-extrabold">
+                    <Lock className="h-6 w-6 text-primary font-extrabold" /> Contato e Segurança
+                  </CardTitle>
+                  <CardDescription>Gerencie suas informações de contato e credenciais de acesso.</CardDescription>
+                </CardHeader>
+                <CardContent className="space-y-6">
+                  {isLoading ? (
+                    <SkeletonCard />
+                  ) : (
+                    <div className="space-y-6">
+                      
                       {/* Email Field */}
-                      <div>
+                      <div className="data-field-group">
                         <Label htmlFor="email" className="text-sm font-medium text-muted-foreground">
                           E-mail
                         </Label>
                         <div className="mt-1 flex items-center gap-2">
                           <div className="relative flex-1">
+                            {/* Ícone fixo */}
                             <AtSign className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground z-10" />
                             <Input
                               id="email"
                               type="email"
                               value={newEmail}
-                              onChange={handleEmailChange} // 💡 Handler do hook
-                              disabled={!isEditingEmail}
-                              className={`pl-10 pr-10 ${isEditingEmail ? "bg-card border-primary" : "bg-muted border-transparent"}`}
+                              onChange={handleEmailChange}
+                              disabled={!isEditingEmail || isUpdatingContact} // Adicionado isUpdatingContact para desabilitar durante o save
+                              className={`pl-10 pr-10 rounded-xl ${isEditingEmail ? "bg-card border-primary/80" : "bg-muted border-transparent"}`}
                             />
                           </div>
                           {isEditingEmail ? (
                             <div className="flex gap-1">
-                              <Button variant="ghost" size="sm" onClick={handleSaveEmail} className="p-1 h-auto hover:bg-green-600/10">
-                                {/* 💡 Usa o estado de isEditingEmail para o loader (substituindo o loading state local) */}
-                                {isUpdatingContact ? <Loader2 className="h-4 w-4 text-green-600 animate-spin" /> : <Save className="h-4 w-4 text-green-600" />} 
+                              <Button 
+                                variant="ghost" 
+                                size="sm" 
+                                onClick={handleSaveEmail} 
+                                className="p-2 h-auto text-green-600 hover:bg-green-600/10 disabled:opacity-50"
+                                disabled={isUpdatingContact} // Desabilita o save se já estiver salvando
+                              >
+                                {isUpdatingContact ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />} 
                               </Button>
-                              <Button variant="ghost" size="sm" onClick={toggleEditingEmail} className="p-1 h-auto hover:bg-red-600/10">
-                                <X className="h-4 w-4 text-red-600" />
+                              <Button variant="ghost" size="sm" onClick={toggleEditingEmail} className="p-2 h-auto text-red-600 hover:bg-red-600/10">
+                                <X className="h-4 w-4" />
                               </Button>
                             </div>
                           ) : (
@@ -243,38 +265,44 @@ const Usuario = () => {
                               variant="ghost"
                               size="sm"
                               onClick={toggleEditingEmail}
-                              className="p-1 h-auto hover:bg-muted-foreground/10"
+                              className="p-2 h-auto text-muted-foreground hover:bg-muted-foreground/10"
                             >
-                              <Pencil className="h-4 w-4 text-muted-foreground" />
+                              <Pencil className="h-4 w-4" />
                             </Button>
                           )}
                         </div>
                       </div>
 
                       {/* Phone Field */}
-                      <div>
+                      <div className="data-field-group">
                         <Label htmlFor="phone" className="text-sm font-medium text-muted-foreground">
                           Telefone
                         </Label>
                         <div className="mt-1 flex items-center gap-2">
                           <div className="relative flex-1">
+                            {/* Ícone fixo */}
                             <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground z-10" />
                             <Input
                               id="phone"
                               type="tel"
                               value={newPhone}
-                              onChange={handlePhoneChange} // 💡 Handler do hook
-                              disabled={!isEditingPhone}
-                              className={`pl-10 pr-10 ${isEditingPhone ? "bg-card border-primary" : "bg-muted border-transparent"}`}
+                              onChange={handlePhoneChange}
+                              disabled={!isEditingPhone || isUpdatingContact} // Adicionado isUpdatingContact para desabilitar durante o save
+                              className={`pl-10 pr-10 rounded-xl ${isEditingPhone ? "bg-card border-primary/80" : "bg-muted border-transparent"}`}
                             />
                           </div>
                           {isEditingPhone ? (
                             <div className="flex gap-1">
-                              <Button variant="ghost" size="sm" onClick={handleSavePhone} className="p-1 h-auto hover:bg-green-600/10">
-                                {/* 💡 Usa o estado de isEditingPhone para o loader (substituindo o loading state local) */}
-                                {isUpdatingContact ? <Loader2 className="h-4 w-4 text-green-600 animate-spin" /> : <Save className="h-4 w-4 text-green-600" />}
+                              <Button 
+                                variant="ghost" 
+                                size="sm" 
+                                onClick={handleSavePhone} 
+                                className="p-2 h-auto text-green-600 hover:bg-green-600/10 disabled:opacity-50"
+                                disabled={isUpdatingContact} // Desabilita o save se já estiver salvando
+                              >
+                                {isUpdatingContact ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
                               </Button>
-                              <Button variant="ghost" size="sm" onClick={toggleEditingPhone} className="p-1 h-auto hover:bg-red-600/10">
+                              <Button variant="ghost" size="sm" onClick={toggleEditingPhone} className="p-2 h-auto text-red-600 hover:bg-red-600/10">
                                 <X className="h-4 w-4 text-red-600" />
                               </Button>
                             </div>
@@ -283,27 +311,33 @@ const Usuario = () => {
                               variant="ghost"
                               size="sm"
                               onClick={toggleEditingPhone}
-                              className="p-1 h-auto hover:bg-muted-foreground/10"
+                              className="p-2 h-auto text-muted-foreground hover:bg-muted-foreground/10"
                             >
-                              <Pencil className="h-4 w-4 text-muted-foreground" />
+                              <Pencil className="h-4 w-4" />
                             </Button>
                           )}
                         </div>
                       </div>
 
-                      <Separator />
+                      <Separator className="bg-border/50" />
 
-               {/* Password Section */}
+                      {/* Password Section */}
                       <div className="space-y-4">
-                        <div className="flex justify-between items-center">
+                        <div className="flex justify-between items-center pb-1">
                           <h3 className="text-md font-semibold text-foreground">Alterar Senha</h3>
-                          <Button variant="outline" size="sm" onClick={togglePasswordFields}>
+                          <Button 
+                            variant="outline" 
+                            size="sm" 
+                            onClick={togglePasswordFields} 
+                            className="text-primary hover:bg-primary/35 border-primary/20"
+                          >
                             {showPasswordFields ? "Cancelar" : "Alterar Senha"}
                           </Button>
                         </div>
 
                         {showPasswordFields && (
-                          <div className="space-y-3 p-4 border rounded-lg bg-background">
+                          <div className="space-y-4 p-4 border border-secondary/30 rounded-xl bg-secondary/5 shadow-inner">
+                            
                             {/* Old Password */}
                             <div className="relative">
                               <Label htmlFor="currentPassword">Senha Atual</Label>
@@ -314,12 +348,13 @@ const Usuario = () => {
                                 onChange={handlePasswordChange} 
                                 required
                                 disabled={isSavingPassword}  
+                                className="pr-10"
                               />
                               <Button
                                 type="button"
                                 variant="ghost"
                                 size="icon"
-                                className="absolute right-0 top-[1.4rem] h-8 w-8 text-muted-foreground"
+                                className="absolute right-1 top-[1.4rem] h-8 w-8 text-muted-foreground hover:text-foreground"
                                 onClick={() => setShowCurrentPassword((prev) => !prev)}
                                 disabled={isSavingPassword}
                               >
@@ -337,12 +372,13 @@ const Usuario = () => {
                                 onChange={handlePasswordChange} 
                                 required
                                 disabled={isSavingPassword}  
+                                className="pr-10"
                               />
                               <Button
                                 type="button"
                                 variant="ghost"
                                 size="icon"
-                                className="absolute right-0 top-[1.4rem] h-8 w-8 text-muted-foreground"
+                                className="absolute right-1 top-[1.4rem] h-8 w-8 text-muted-foreground hover:text-foreground"
                                 onClick={() => setShowNewPassword((prev) => !prev)}
                                 disabled={isSavingPassword}
                               >
@@ -356,17 +392,17 @@ const Usuario = () => {
                               <Input
                                 id="confirmPassword"
                                 type={showConfirmPassword ? "text" : "password"}
-                                // FIX 2: AQUI ESTAVA O ERRO! Lendo 'confirmPassword'
                                 value={passwordData.confirmPassword}
                                 onChange={handlePasswordChange} 
                                 required
                                 disabled={isSavingPassword}  
+                                className="pr-10"
                               />
                               <Button
                                 type="button"
                                 variant="ghost"
                                 size="icon"
-                                className="absolute right-0 top-[1.4rem] h-8 w-8 text-muted-foreground"
+                                className="absolute right-1 top-[1.4rem] h-8 w-8 text-muted-foreground hover:text-foreground"
                                 onClick={() => setShowConfirmPassword((prev) => !prev)}
                                 disabled={isSavingPassword}
                               >
@@ -375,15 +411,15 @@ const Usuario = () => {
                             </div>
                             
                             {/* Mensagem de erro de Confirmação */}
-                            {/* FIX 3: AQUI ESTAVA O ERRO! Comparando 'confirmPassword' */}
                             {passwordData.newPassword && passwordData.confirmPassword && passwordData.newPassword !== passwordData.confirmPassword && (
-                                <p className="text-sm font-medium text-destructive mt-1">As senhas não coincidem.</p>
+                                <p className="text-sm font-medium text-destructive mt-2 p-2 bg-destructive/10 rounded-lg">As senhas não coincidem.</p>
                             )}
 
                             <Button 
                               onClick={handleChangePassword} // Handler do hook
-                              className="w-full mt-4"
-                              disabled={isPasswordChangeDisabled}
+                              // MODIFICADO: Uso de hover:bg-primary/80 e shadow-primary/50 com hover:shadow-lg
+                              className="w-full mt-4 bg-primary hover:bg-primary/80 text-white shadow-md shadow-primary/50 hover:shadow-lg transition-all"
+                              disabled={isPasswordChangeDisabled || isSavingPassword}
                             >
                               {isSavingPassword ? ( // Usa o loading state
                                   <>
@@ -398,16 +434,16 @@ const Usuario = () => {
                         )}
                       </div>
 
-                      <Separator />
+                      <Separator className="bg-border/50" />
 
                       {/* Address Field */}
-                      <div>
+                      <div className="data-field-group">
                         <Label htmlFor="address" className="text-sm font-medium text-muted-foreground">
                           Endereço
                         </Label>
-                        <div className="mt-1 p-3 bg-muted rounded-lg">
+                        <div className="mt-1 p-3 bg-muted rounded-xl border border-border/50 shadow-inner">
                           <p className="text-foreground flex items-center gap-2">
-                            <MapPin className="h-4 w-4 text-muted-foreground flex-shrink-0" />
+                            <MapPin className="h-4 w-4 text-secondary flex-shrink-0" />
                             {/* Assumindo que userData.address.street/number/city/state existem */}
                             {userData?.address.street}, {userData?.address.number} - {userData?.address.city}/{userData?.address.state}
                           </p>

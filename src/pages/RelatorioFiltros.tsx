@@ -151,8 +151,8 @@ export const RelatorioFiltros: React.FC<RelatorioFiltrosProps> = ({
                             variant="outline"
                             className={`w-full mb-4 font-semibold border-2 transition-all duration-200 relative overflow-hidden shadow-md hover:shadow-lg transform hover:scale-[1.005] ${
                                 isMonthFullySelected
-                                    ? "border-destructive/40 bg-destructive/10 text-destructive hover:bg-destructive/20 hover:shadow-destructive/20"
-                                    : "border-primary/40 bg-primary/10 text-primary hover:bg-primary/20 hover:shadow-primary/20"
+                                    ? "border-destructive/40 bg-destructive/10 text-destructive hover:bg-destructive/50 hover:shadow-destructive/20"
+                                    : "border-primary/40 bg-primary/10 text-primary hover:bg-primary/50 hover:shadow-primary/20"
                             }`}
                             disabled={!displayMonth}
                         >
