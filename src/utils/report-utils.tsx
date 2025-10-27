@@ -93,7 +93,7 @@ export const statusOptions = [
     { value: "DAY_OFF", label: "Folga" },
     { value: "ABSENCE", label: "Falta" },
     { value: "PENDING_APPROVAL", label: "Aguardando Aprovação" },
-    { value: "DOCTOR_APPOINTMENT", label: "Consulta Médica" },
+    { value: "DOCTOR_APPOINTMENT", label: "Abono" },
     { value: "IMPLICIT_BREAK", label: "Pausa (Automática)" }, // NOVO STATUS
 ];
 

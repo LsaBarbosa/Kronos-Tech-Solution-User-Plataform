@@ -418,9 +418,9 @@ const StatusRegistro = () => {
                                             <SelectValue placeholder="Selecione um novo status" />
                                         </SelectTrigger>
                                         <SelectContent>
-                                            {statusOptions
-                                                // 💡 Filtra para remover os status que não devem ser definidos manualmente (ex: Pausa, etc.)
-                                                .filter(opt => opt.value !== "IMPLICIT_BREAK" && opt.value !== "UPDATED" && opt.value !== "UPDATE_REJECTED" && opt.value !== "PENDING_APPROVAL")
+                                        {statusOptions
+                                                // 💡 NOVO FILTRO: Inclui APENAS Folga, Falta e Abono (DOCTOR_APPOINTMENT)
+                                                .filter(opt => ["DAY_OFF", "ABSENCE", "DOCTOR_APPOINTMENT"].includes(opt.value))
                                                 .map((option) => (
                                                 <SelectItem
                                                     key={option.value}
