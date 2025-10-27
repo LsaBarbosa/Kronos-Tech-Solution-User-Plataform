@@ -72,7 +72,7 @@ const Sidebar = ({ isOpen, toggleSidebar }: SidebarProps) => {
       {/* 2. Sidebar Principal (Deslizante) */}
       <div
         className={cn(
-          "fixed top-0 left-0 z-50 h-full w-80 bg-background border-r border-border shadow-xl transform transition-transform duration-300 ease-in-out",
+          "fixed top-0 left-0 z-50 h-full w-80 bg-background border-r border-border shadow-xl transform transition-transform duration-200 ease-in-out",
           // Aplica o deslize (slide-in/slide-out)
           isOpen ? "translate-x-0" : "-translate-x-full"
         )}
@@ -366,18 +366,7 @@ const Sidebar = ({ isOpen, toggleSidebar }: SidebarProps) => {
                     </CollapsibleContent>
                   </Collapsible>
 
-                  {/* 7.4 Criar Aviso */}
-                  <Button
-                    variant="ghost"
-                    className="w-full justify-start sidebar-fixed-height-sm px-4 pl-12 text-left sidebar-text-sm hover:bg-primary/10 hover:text-foreground transition-colors"
-                    onClick={() => {
-                      navigate("/criar-aviso");
-                      toggleSidebar();
-                    }}
-                  >
-                    <MessageSquarePlus className="mr-2 sidebar-icon-xs" />
-                    <span>Criar Aviso</span>
-                  </Button>
+        
                 </CollapsibleContent>
               </Collapsible>
             )}
