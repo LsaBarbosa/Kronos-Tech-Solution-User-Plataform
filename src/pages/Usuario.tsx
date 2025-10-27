@@ -3,56 +3,62 @@
 import { useState, useCallback } from "react"; 
 import Header from "@/components/Header";
 import Sidebar from "@/components/Sidebar";
-import { User, Lock, Eye, EyeOff, Save, X, Pencil, Briefcase, Phone, MapPin, AtSign, CircleUserRound, Loader2 } from "lucide-react";
+// 💡 Ícones que indicam funcionalidade e estado
+import { User, Lock, Eye, EyeOff, Save, X, Pencil, Briefcase, Phone, MapPin, AtSign, CircleUserRound, Loader2, CircleCheck, CircleX } from "lucide-react";
+// 💡 Componentes de UI
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
+// 💡 Utilitários de data e helpers
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 
 // 💡 Importa o hook customizado com toda a lógica de estado, API e actions
 import { useUser } from "@/hooks/useUser"; 
 // 💡 Importa funções utilitárias (como mapeamento de cargo)
-import { getRoleDisplayName } from "@/types/dashboard"; // Reutilizando a função do Dashboard types
+import { getRoleDisplayName } from "@/types/dashboard"; 
 
 const Usuario = () => {
   // 💡 ESTADO DE UI (Sidebar e Senha) é o único estado mantido localmente
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [showOldPassword, setShowOldPassword] = useState(false);
+  const [showCurrentPassword, setShowCurrentPassword] = useState(false);
   const [showNewPassword, setShowNewPassword] = useState(false);
-  const [showConfirmNewPassword, setShowConfirmNewPassword] = useState(false);
+  const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const handleToggleSidebar = useCallback(() => setSidebarOpen((prev) => !prev), []);
 
   // 💡 HOOK: Desestrutura toda a lógica de dados, API e handlers
   const {
-    userAccountData,
-    userData,
+    userAccountData, // Dados da conta (username, role, active)
+    userData,        // Dados detalhados do funcionário
     isLoading,
     isEditingEmail,
     isEditingPhone,
     showPasswordFields,
-    newEmail,
-    newPhone,
-    passwordData,
+    isSavingPassword,
+    newEmail,         // Estado de edição do email (gerenciado pelo hook)
+    newPhone,         // Estado de edição do telefone (gerenciado pelo hook)
+    passwordData,     // Formulário de senha (gerenciado pelo hook)
     toggleEditingEmail,
     toggleEditingPhone,
-    handleEmailChange,
-    handlePhoneChange,
-    handlePasswordChange,
-    handleSaveEmail,
-    handleSavePhone,
-    handleChangePassword,
+    handleEmailChange, // Handler de mudança de input do email
+    handlePhoneChange, // Handler de mudança de input do telefone
+    handlePasswordChange, // Handler de mudança de input da senha
+    handleSaveEmail,      // Chamada de API para salvar email
+    handleSavePhone,      // Chamada de API para salvar telefone
+    handleChangePassword, // Chamada de API para salvar senha
     togglePasswordFields,
-    // refetchUserData, // Deixamos o refetch fora do retorno do componente para clareza
   } = useUser();
+  
+  // Variáveis auxiliares para a apresentação
+  const isUpdatingContact = isEditingEmail || isEditingPhone;
+  
+ 
 
-  // -----------------------------------------------------------
   // --- Funções de Apresentação Puras ---
-  // -----------------------------------------------------------
-
+  
   const SkeletonCard = () => (
     <div className="space-y-4">
       <Skeleton className="h-6 w-1/3" />
@@ -75,12 +81,23 @@ const Usuario = () => {
         return dateString;
     }
   };
-
-  const isPasswordChangeDisabled = !passwordData.newPassword || passwordData.newPassword !== passwordData.confirmNewPassword || !passwordData.oldPassword;
-
-  // -----------------------------------------------------------
-  // --- Renderização do Componente ---
-  // -----------------------------------------------------------
+  
+  const formatPhoneDisplay = (phone: string | undefined) => {
+    if (!phone) return "N/A";
+    const cleaned = ('' + phone).replace(/\D/g, '').slice(0, 11);
+    const match = cleaned.match(/^(\d{2})(\d{5})(\d{4})$/);
+    if (match) {
+      return `(${match[1]}) ${match[2]}-${match[3]}`;
+    }
+    return phone;
+  };
+  
+  // Validação local para desabilitar o botão de senha
+  const isPasswordChangeDisabled = (
+    !passwordData.newPassword || 
+    passwordData.newPassword !== passwordData.confirmPassword || 
+    !passwordData.currentPassword
+  );
 
   return (
     <div className="flex h-screen bg-background">
@@ -148,6 +165,24 @@ const Usuario = () => {
                         </div>
                       </div>
                       
+                      {/* Status da Conta Field */}
+                      <div>
+                        <Label className="text-sm font-medium text-muted-foreground">Status da Conta</Label>
+                        <div className="mt-1 p-3 bg-muted rounded-lg flex items-center gap-2">
+                          {userAccountData?.active ? (
+                            <>
+                              <CircleCheck className="h-5 w-5 text-green-500" />
+                              <p className="text-foreground text-sm">Ativa</p>
+                            </>
+                          ) : (
+                            <>
+                              <CircleX className="h-5 w-5 text-destructive" />
+                              <p className="text-foreground text-sm">Inativa</p>
+                            </>
+                          )}
+                        </div>
+                      </div>
+                      
                       {/* Último Login */}
                       <div>
                         <Label className="text-sm font-medium text-muted-foreground">Último Login</Label>
@@ -196,7 +231,8 @@ const Usuario = () => {
                           {isEditingEmail ? (
                             <div className="flex gap-1">
                               <Button variant="ghost" size="sm" onClick={handleSaveEmail} className="p-1 h-auto hover:bg-green-600/10">
-                                <Save className="h-4 w-4 text-green-600" />
+                                {/* 💡 Usa o estado de isEditingEmail para o loader (substituindo o loading state local) */}
+                                {isUpdatingContact ? <Loader2 className="h-4 w-4 text-green-600 animate-spin" /> : <Save className="h-4 w-4 text-green-600" />} 
                               </Button>
                               <Button variant="ghost" size="sm" onClick={toggleEditingEmail} className="p-1 h-auto hover:bg-red-600/10">
                                 <X className="h-4 w-4 text-red-600" />
@@ -235,7 +271,8 @@ const Usuario = () => {
                           {isEditingPhone ? (
                             <div className="flex gap-1">
                               <Button variant="ghost" size="sm" onClick={handleSavePhone} className="p-1 h-auto hover:bg-green-600/10">
-                                <Save className="h-4 w-4 text-green-600" />
+                                {/* 💡 Usa o estado de isEditingPhone para o loader (substituindo o loading state local) */}
+                                {isUpdatingContact ? <Loader2 className="h-4 w-4 text-green-600 animate-spin" /> : <Save className="h-4 w-4 text-green-600" />}
                               </Button>
                               <Button variant="ghost" size="sm" onClick={toggleEditingPhone} className="p-1 h-auto hover:bg-red-600/10">
                                 <X className="h-4 w-4 text-red-600" />
@@ -256,7 +293,7 @@ const Usuario = () => {
 
                       <Separator />
 
-                      {/* Password Section */}
+               {/* Password Section */}
                       <div className="space-y-4">
                         <div className="flex justify-between items-center">
                           <h3 className="text-md font-semibold text-foreground">Alterar Senha</h3>
@@ -269,22 +306,24 @@ const Usuario = () => {
                           <div className="space-y-3 p-4 border rounded-lg bg-background">
                             {/* Old Password */}
                             <div className="relative">
-                              <Label htmlFor="oldPassword">Senha Atual</Label>
+                              <Label htmlFor="currentPassword">Senha Atual</Label>
                               <Input
-                                id="oldPassword"
-                                type={showOldPassword ? "text" : "password"}
-                                value={passwordData.oldPassword || ""}
-                                onChange={handlePasswordChange} // 💡 Handler do hook
+                                id="currentPassword"
+                                type={showCurrentPassword ? "text" : "password"}
+                                value={passwordData.currentPassword || ""}
+                                onChange={handlePasswordChange} 
                                 required
+                                disabled={isSavingPassword}  
                               />
                               <Button
                                 type="button"
                                 variant="ghost"
                                 size="icon"
                                 className="absolute right-0 top-[1.4rem] h-8 w-8 text-muted-foreground"
-                                onClick={() => setShowOldPassword((prev) => !prev)}
+                                onClick={() => setShowCurrentPassword((prev) => !prev)}
+                                disabled={isSavingPassword}
                               >
-                                {showOldPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                                {showCurrentPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                               </Button>
                             </div>
 
@@ -295,8 +334,9 @@ const Usuario = () => {
                                 id="newPassword"
                                 type={showNewPassword ? "text" : "password"}
                                 value={passwordData.newPassword}
-                                onChange={handlePasswordChange} // 💡 Handler do hook
+                                onChange={handlePasswordChange} 
                                 required
+                                disabled={isSavingPassword}  
                               />
                               <Button
                                 type="button"
@@ -304,6 +344,7 @@ const Usuario = () => {
                                 size="icon"
                                 className="absolute right-0 top-[1.4rem] h-8 w-8 text-muted-foreground"
                                 onClick={() => setShowNewPassword((prev) => !prev)}
+                                disabled={isSavingPassword}
                               >
                                 {showNewPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                               </Button>
@@ -311,31 +352,40 @@ const Usuario = () => {
 
                             {/* Confirm New Password */}
                             <div className="relative">
-                              <Label htmlFor="confirmNewPassword">Confirmar Nova Senha</Label>
+                              <Label htmlFor="confirmPassword">Confirmar Nova Senha</Label>
                               <Input
-                                id="confirmNewPassword"
-                                type={showConfirmNewPassword ? "text" : "password"}
-                                value={passwordData.confirmNewPassword}
-                                onChange={handlePasswordChange} // 💡 Handler do hook
+                                id="confirmPassword"
+                                type={showConfirmPassword ? "text" : "password"}
+                                // FIX 2: AQUI ESTAVA O ERRO! Lendo 'confirmPassword'
+                                value={passwordData.confirmPassword}
+                                onChange={handlePasswordChange} 
                                 required
+                                disabled={isSavingPassword}  
                               />
                               <Button
                                 type="button"
                                 variant="ghost"
                                 size="icon"
                                 className="absolute right-0 top-[1.4rem] h-8 w-8 text-muted-foreground"
-                                onClick={() => setShowConfirmNewPassword((prev) => !prev)}
+                                onClick={() => setShowConfirmPassword((prev) => !prev)}
+                                disabled={isSavingPassword}
                               >
-                                {showConfirmNewPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                                {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
                               </Button>
                             </div>
+                            
+                            {/* Mensagem de erro de Confirmação */}
+                            {/* FIX 3: AQUI ESTAVA O ERRO! Comparando 'confirmPassword' */}
+                            {passwordData.newPassword && passwordData.confirmPassword && passwordData.newPassword !== passwordData.confirmPassword && (
+                                <p className="text-sm font-medium text-destructive mt-1">As senhas não coincidem.</p>
+                            )}
 
                             <Button 
-                              onClick={handleChangePassword} // 💡 Handler do hook
+                              onClick={handleChangePassword} // Handler do hook
                               className="w-full mt-4"
                               disabled={isPasswordChangeDisabled}
                             >
-                              {isEditingEmail ? ( // Reutiliza o loading state do email/phone para a senha
+                              {isSavingPassword ? ( // Usa o loading state
                                   <>
                                     <Loader2 className="h-4 w-4 animate-spin mr-2" />
                                     Alterando...

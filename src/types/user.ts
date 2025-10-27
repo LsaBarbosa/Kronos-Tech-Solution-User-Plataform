@@ -2,7 +2,6 @@
 
 /**
  * Interface para os dados básicos da conta do usuário (geralmente do token ou endpoint de conta).
- * A role e o employeeId vêm do token/dados da conta.
  */
 export interface UserAccountData {
   userId: string;
@@ -14,15 +13,15 @@ export interface UserAccountData {
 
 /**
  * Interface para os dados detalhados do colaborador/usuário.
- * 💡 ATUALIZADO: Inclui todos os campos do payload da API + role (adicionada no hook).
+ * Combina informações do EmployeeProfile (EmployeeResponse) com a role.
  */
 export interface UserData {
   employeeId: string;
   fullName: string;
-  maskedCpf: string; // <-- NOVO
+  maskedCpf: string;
   jobPosition: string;
   email: string;
-  salary: number; // <-- NOVO
+  salary: number;
   phone: string;
   address: {
     street: string;
@@ -31,11 +30,11 @@ export interface UserData {
     city: string;
     state: string;
   };
-  companyName: string; // <-- NOVO
-  lastSeenMessageTimestamp: string | null; // <-- NOVO
-  homeOffice: boolean; // <-- NOVO
+  companyName: string;
+  lastSeenMessageTimestamp: string | null;
+  homeOffice: boolean;
   
-  // Adicionado no hook (vem do UserAccountData/Token) para conveniência
+  // A role é injetada a partir do token no hook para conveniência
   role?: 'PARTNER' | 'MANAGER' | 'ADMIN' | 'CTO' | 'USER' | string; 
   lastLogin?: string; // Mantido
 }
@@ -44,9 +43,9 @@ export interface UserData {
  * Interface para os dados necessários para a mudança de senha.
  */
 export interface ChangePasswordData {
-  oldPassword?: string;
+  currentPassword?: string;
   newPassword: string;
-  confirmNewPassword: string;
+  confirmPassword: string;
 }
 
 // --- Funções Utilitárias Puras ---

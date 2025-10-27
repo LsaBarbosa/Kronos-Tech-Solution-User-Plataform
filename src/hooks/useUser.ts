@@ -3,10 +3,19 @@
 import { useState, useEffect, useCallback } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
-// 💡 CORREÇÃO 8: Importa UserData com todos os novos campos
-import { UserAccountData, UserData, ChangePasswordData, cleanNumberString } from "@/types/user";
-import { fetchAccountData, fetchUserData, updateEmail, updatePhone, changePassword } from "@/service/user.Service";
+import { UserAccountData, UserData, ChangePasswordData, cleanNumberString } from "@/types/user"; // Assumindo cleanNumberString está em types/user
+import { 
+    fetchAccountData, 
+    fetchUserData, 
+    updateEmail, 
+    updatePhone, 
+    changePassword 
+} from "@/service/user.Service";
 
+/**
+ * Interface para o retorno do hook useUser.
+ * Expõe todos os dados, estados de UI e funções de manipulação.
+ */
 interface UseUserReturn {
   // Estados de Dados
   userAccountData: UserAccountData | null;
@@ -16,6 +25,7 @@ interface UseUserReturn {
   isEditingEmail: boolean;
   isEditingPhone: boolean;
   showPasswordFields: boolean;
+  isSavingPassword: boolean; // NOVO: Loading do salvamento de senha
   // Campos Editáveis
   newEmail: string;
   newPhone: string;
@@ -30,194 +40,221 @@ interface UseUserReturn {
   handleSavePhone: () => Promise<void>;
   handleChangePassword: () => Promise<void>;
   togglePasswordFields: () => void;
-  refetchUserData: () => void;
 }
 
 export const useUser = (): UseUserReturn => {
   const { toast } = useToast();
   const navigate = useNavigate();
+
+  // --- ESTADOS PRINCIPAIS ---
   const [userAccountData, setUserAccountData] = useState<UserAccountData | null>(null);
   const [userData, setUserData] = useState<UserData | null>(null);
   const [isLoading, setIsLoading] = useState(true);
+
+  // --- ESTADOS DE EDIÇÃO E FORMULÁRIOS ---
   const [isEditingEmail, setIsEditingEmail] = useState(false);
   const [isEditingPhone, setIsEditingPhone] = useState(false);
   const [showPasswordFields, setShowPasswordFields] = useState(false);
+  
+  // NOVO: Estado para gerenciar o loading da alteração de senha
+  const [isSavingPassword, setIsSavingPassword] = useState(false);
 
   // Campos de edição e senha
   const [newEmail, setNewEmail] = useState("");
   const [newPhone, setNewPhone] = useState("");
   const [passwordData, setPasswordData] = useState<ChangePasswordData>({
     newPassword: "",
-    confirmNewPassword: "",
-    oldPassword: "", // Adicionado para consistência
+    confirmPassword: "",
+    currentPassword: "",
   });
-
-  // --- Funções de Busca ---
+  // --- FUNÇÕES DE CARREGAMENTO ---
 
   const loadUserData = useCallback(async (accountData: UserAccountData) => {
     try {
-      // Busca os dados detalhados do perfil (inclui campos como salary, companyName, etc.)
-      const data = await fetchUserData(accountData.employeeId);
+      // Busca dados detalhados do funcionário usando o employeeId
+      const employeeResponse = await fetchUserData(accountData.employeeId);
       
-      // 💡 CORREÇÃO 9: Combina os dados detalhados com a role do token (UserAccountData)
-      const fullUserData: UserData = {
-          ...data,
-          role: accountData.role, // Adiciona a role que vem do token/account data
-      } as UserData; // Fazemos o cast para UserData, pois os campos se complementam
+      // Inicializa os campos de edição com os dados atuais
+      setNewEmail(employeeResponse.email || "");
+      setNewPhone(employeeResponse.phone || "");
 
-      setUserData(fullUserData); 
-      setNewEmail(fullUserData.email);
-      setNewPhone(fullUserData.phone);
-    } catch (error: any) {
-      console.error("Erro ao buscar dados do usuário:", error);
+      // Combina e define os dados do usuário
+      setUserData({ ...employeeResponse, role: accountData.role });
+
       toast({
-        title: "Erro",
-        description: error.message || "Não foi possível carregar os dados detalhados.",
+        title: "Dados carregados com sucesso",
+        description: "Informações do usuário atualizadas.",
+      });
+    } catch (error) {
+      toast({
+        title: "Erro ao carregar dados",
+        description: `Não foi possível carregar as informações detalhadas.`,
         variant: "destructive",
       });
-      // Se houver erro de token, o fetchAccountData já deve ter cuidado disso,
-      // mas mantemos o erro de dados aqui.
+      console.error(error);
+    } finally {
+      setIsLoading(false);
     }
   }, [toast]);
 
   const loadAccountData = useCallback(async () => {
-    setIsLoading(true);
     try {
-      const account = await fetchAccountData(); // 💡 Chama o Serviço (Retorna employeeId e role)
-      setUserAccountData(account);
-      // Se tivermos os dados da conta, buscamos os detalhes do perfil
-      if (account.employeeId) {
-          await loadUserData(account);
-      }
-    } catch (error: any) {
-      console.error("Erro ao carregar dados iniciais:", error);
+      const accountData = await fetchAccountData();
+      setUserAccountData(accountData);
+      await loadUserData(accountData); // Carrega dados detalhados após a conta
+    } catch (error) {
       toast({
         title: "Erro de Autenticação",
-        description: error.message || "Não foi possível carregar os dados da sua conta.",
+        description: `Sessão expirada ou falha ao buscar dados. Redirecionando para login.`,
         variant: "destructive",
       });
-       // Redireciona para o login em caso de falha grave de autenticação
-       if (error.message.includes("Token")) navigate("/login");
-    } finally {
-      setIsLoading(false);
+      // Em caso de falha crítica (ex: token inválido), força o logout
+      localStorage.removeItem("token");
+      navigate("/login");
     }
-  }, [toast, loadUserData, navigate]);
+  }, [loadUserData, toast, navigate]);
 
+  // EFEITO: Carrega dados na montagem
   useEffect(() => {
     loadAccountData();
   }, [loadAccountData]);
 
-  // --- Handlers de UI e Edição ---
-  // ... (Restante do código omitido por não ter sido alterado)
-  
-  const toggleEditingEmail = () => {
-    if (isEditingEmail && userData) {
-        setNewEmail(userData.email); // Reverte ao valor original ao cancelar
-    }
-    setIsEditingEmail((prev) => !prev);
-  };
-  
-  const toggleEditingPhone = () => {
-    if (isEditingPhone && userData) {
-        setNewPhone(userData.phone); // Reverte ao valor original ao cancelar
-    }
-    setIsEditingPhone((prev) => !prev);
-  };
+  // --- HANDLERS DE UI ---
 
-  const togglePasswordFields = () => {
-    setShowPasswordFields((prev) => !prev);
-    // Limpa os campos ao fechar para segurança
-    setPasswordData({ oldPassword: "", newPassword: "", confirmNewPassword: "" });
-  };
+  const toggleEditingEmail = useCallback(() => {
+    setIsEditingEmail((prev) => {
+      // Ao cancelar, reseta para o valor original
+      if (prev && userData) {
+        setNewEmail(userData.email || "");
+      }
+      return !prev;
+    });
+  }, [userData]);
+
+  const toggleEditingPhone = useCallback(() => {
+    setIsEditingPhone((prev) => {
+      // Ao cancelar, reseta para o valor original
+      if (prev && userData) {
+        setNewPhone(userData.phone || "");
+      }
+      return !prev;
+    });
+  }, [userData]);
   
-  const handleEmailChange = (e: React.ChangeEvent<HTMLInputElement>) => setNewEmail(e.target.value);
-  
-  // Limpeza de telefone no input (apenas para números)
-  const handlePhoneChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-      const maskedValue = e.target.value; // Manter a máscara no input
-      setNewPhone(maskedValue);
-  };
-  
-  const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const togglePasswordFields = useCallback(() => {
+      setShowPasswordFields(prev => !prev);
+      // Limpa o formulário ao fechar
+      setPasswordData({ currentPassword: "", newPassword: "", confirmPassword: "" });
+  }, []);
+
+
+  const handleEmailChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    setNewEmail(e.target.value);
+  }, []);
+
+  const handlePhoneChange = useCallback((e: React.ChangeEvent<HTMLInputElement>) => {
+    // Permite apenas números e limita a 11 dígitos (DD + 9xxxx-xxxx)
+    const sanitizedValue = e.target.value.replace(/\D/g, '').slice(0, 11);
+    setNewPhone(sanitizedValue);
+  }, []);
+
+const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     const { id, value } = e.target;
-    setPasswordData(prev => ({ ...prev, [id]: value }));
+    // 💡 IMPORTANTE: Usa o ID como chave (que deve ser 'confirmNewPassword')
+    setPasswordData(prev => ({ ...prev, [id]: value })); 
   };
-
-  // --- Handlers de Persistência (Chamadas de Serviço) ---
+  // --- HANDLERS DE SALVAMENTO (API) ---
 
   const handleSaveEmail = useCallback(async () => {
-    if (!userAccountData?.employeeId || !newEmail) return;
+    if (!newEmail.trim() || !userAccountData) {
+      toast({ title: "Erro", description: "O e-mail não pode ser vazio.", variant: "destructive" });
+      return;
+    }
     
-    // Simples validação de formato
+    // Simples validação de formato de e-mail (opcional, pode ser mais robusta)
     if (!/\S+@\S+\.\S+/.test(newEmail)) {
-        toast({ title: "Erro de Validação", description: "O formato do e-mail é inválido.", variant: "destructive" });
-        return;
+      toast({ title: "Erro", description: "O e-mail inserido não é válido.", variant: "destructive" });
+      return;
     }
 
+    setIsLoading(true); // Usa o loading geral para edições de contato
     try {
-      await updateEmail(userAccountData.employeeId, newEmail); // 💡 Chama o Serviço
+      await updateEmail(userAccountData.employeeId, newEmail);
       
-      // Atualiza o estado localmente
-      setUserData(prev => prev ? { ...prev, email: newEmail } : null);
+      // Atualiza o estado local com o novo email formatado
+      setUserData((prev) => (prev ? { ...prev, email: newEmail } : null));
       setIsEditingEmail(false);
-      toast({ title: "Sucesso", description: "E-mail salvo com sucesso.", variant: "default" });
+      
+      toast({ title: "Sucesso", description: "E-mail atualizado.", variant: "default" });
     } catch (error: any) {
-      toast({ title: "Erro ao salvar", description: error.message, variant: "destructive" });
+      toast({ 
+          title: "Erro ao salvar e-mail", 
+          description: error.message || "Tente novamente mais tarde.", 
+          variant: "destructive" 
+      });
+    } finally {
+      setIsLoading(false);
     }
-  }, [userAccountData, newEmail, toast]);
+  }, [newEmail, userAccountData, toast]);
 
   const handleSavePhone = useCallback(async () => {
-    if (!userAccountData?.employeeId || !newPhone) return;
-    
-    const cleanPhone = cleanNumberString(newPhone);
-    if (cleanPhone.length < 10) {
-        toast({ title: "Erro de Validação", description: "O número de telefone está incompleto.", variant: "destructive" });
-        return;
+    if (!newPhone.trim() || !userAccountData) {
+      toast({ title: "Erro", description: "O telefone não pode ser vazio.", variant: "destructive" });
+      return;
     }
 
+    const cleanedPhone = cleanNumberString(newPhone);
+    if (cleanedPhone.length !== 11) {
+      toast({ title: "Erro", description: "O telefone deve conter 11 dígitos (DD + 9xxxx-xxxx).", variant: "destructive" });
+      return;
+    }
+
+    setIsLoading(true); // Usa o loading geral para edições de contato
     try {
-      await updatePhone(userAccountData.employeeId, cleanPhone); // 💡 Chama o Serviço
+      await updatePhone(userAccountData.employeeId, newPhone);
       
-      // Atualiza o estado localmente (manter a string formatada se preferir, ou a API deve retornar a formatada)
-      setUserData(prev => prev ? { ...prev, phone: newPhone } : null); 
+      // Atualiza o estado local com o novo telefone
+      setUserData((prev) => (prev ? { ...prev, phone: newPhone } : null));
       setIsEditingPhone(false);
-      toast({ title: "Sucesso", description: "Telefone salvo com sucesso.", variant: "default" });
+      
+      toast({ title: "Sucesso", description: "Telefone atualizado.", variant: "default" });
     } catch (error: any) {
-      toast({ title: "Erro ao salvar", description: error.message, variant: "destructive" });
+      toast({ 
+          title: "Erro ao salvar telefone", 
+          description: error.message || "Tente novamente mais tarde.", 
+          variant: "destructive" 
+      });
+    } finally {
+      setIsLoading(false);
     }
-  }, [userAccountData, newPhone, toast]);
+  }, [newPhone, userAccountData, toast]);
 
-  const handleChangePassword = useCallback(async () => {
-    // Validação local de campos obrigatórios e confirmação
-    if (!passwordData.oldPassword || !passwordData.newPassword || !passwordData.confirmNewPassword) {
+
+ const handleChangePassword = useCallback(async () => {
+    if (!passwordData.currentPassword || !passwordData.newPassword || !passwordData.confirmPassword) {
         toast({ title: "Erro", description: "Preencha todos os campos de senha.", variant: "destructive" });
         return;
     }
-    if (passwordData.newPassword !== passwordData.confirmNewPassword) {
+    if (passwordData.newPassword !== passwordData.confirmPassword) {
         toast({ title: "Erro", description: "As novas senhas não coincidem.", variant: "destructive" });
         return;
     }
 
+    setIsSavingPassword(true);// INÍCIO DO LOADING ESPECÍFICO DE SENHA
+
     try {
-      await changePassword(passwordData); // 💡 Chama o Serviço
+      await changePassword(passwordData); // Chama o Serviço de API
       
       // Limpa os campos de senha após o sucesso
-      setPasswordData({ oldPassword: "", newPassword: "", confirmNewPassword: "" });
+   setPasswordData({ currentPassword: "", newPassword: "", confirmPassword: "" });
       setShowPasswordFields(false);
       toast({ title: "Sucesso", description: "Senha alterada com sucesso.", variant: "default" });
     } catch (error: any) {
       toast({ title: "Erro ao alterar senha", description: error.message, variant: "destructive" });
+    } finally {
+      setIsSavingPassword(false); // <--- FIM DO LOADING
     }
   }, [passwordData, toast]);
-
-  const refetchUserData = () => {
-    if (userAccountData) {
-        loadUserData(userAccountData);
-    } else {
-        loadAccountData();
-    }
-  }
-
 
   return {
     userAccountData,
@@ -226,6 +263,7 @@ export const useUser = (): UseUserReturn => {
     isEditingEmail,
     isEditingPhone,
     showPasswordFields,
+    isSavingPassword, // NOVO: Exportado
     newEmail,
     newPhone,
     passwordData,
@@ -238,6 +276,5 @@ export const useUser = (): UseUserReturn => {
     handleSavePhone,
     handleChangePassword,
     togglePasswordFields,
-    refetchUserData,
   };
 };
