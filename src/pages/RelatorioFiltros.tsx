@@ -32,6 +32,8 @@ interface RelatorioFiltrosProps {
     onSearch: () => void;
     onDownloadPDF?: () => void;
     onDownloadCSV?: () => void;
+    hideTips?: boolean;
+    customTips?: React.ReactNode
 }
 
 const isHoliday = (date: Date) => {
@@ -60,6 +62,8 @@ export const RelatorioFiltros: React.FC<RelatorioFiltrosProps> = ({
     onSearch,
     onDownloadPDF,
     onDownloadCSV,
+    hideTips,
+    customTips
 }) => {
     const [displayMonth, setDisplayMonth] = React.useState<Date | undefined>(startOfDay(new Date()));
 
@@ -219,19 +223,16 @@ export const RelatorioFiltros: React.FC<RelatorioFiltrosProps> = ({
                     </Card>
 
                     {/* DICAS DE USO */}
-                    <div className="mt-4 p-4 bg-gradient-to-br from-primary/5 to-secondary/5 rounded-xl border border-primary/20 backdrop-blur-sm shadow-inner shadow-primary/5">
-                        <h4 className="text-sm font-bold text-primary mb-2 flex items-center gap-2">
-                            <div className="w-2 h-2 rounded-full bg-primary animate-pulse"></div>
-                            Dicas e Regras
-                        </h4>
-                        <ul className="list-disc list-inside text-xs space-y-2 text-muted-foreground ml-2">
-                            <li>O status  <span className="text-primary hover:text-primary/80  font-semibold transition-colors duration-150">FOLGA</span> é atribuído no dia que não houver registro.</li>
-                            <li>Em caso de  <span className="text-primary hover:text-primary/80  font-semibold transition-colors duration-150">FALTA</span>, navegue até a página <a href="status-do-registro" className="text-primary hover:text-primary/80 underline font-semibold transition-colors duration-150">Status do registro</a> para realizar a mudança.</li>
-                            <li> <span className="text-primary hover:text-primary/80  font-semibold transition-colors duration-150">Relatório Simples:</span>  Retorna data, horas trabalhadas e saldo do dia.</li>
-                            <li> <span className="text-primary hover:text-primary/80  font-semibold transition-colors duration-150">Relatório Detalhado:</span>  Retorna todos os registros e status do dia.</li>
-                            <li>Clique no registro para solicitar alteração (data e hora).</li>
-                        </ul>
-                    </div>
+                  {customTips && ( // 👈 CONDIÇÃO: Renderiza APENAS se customTips for fornecido
+    <div className="mt-4 p-4 bg-gradient-to-br from-primary/5 to-secondary/5 rounded-xl border border-primary/20 backdrop-blur-sm shadow-inner shadow-primary/5">
+        {/*
+            Renderiza o conteúdo passado pela prop. 
+            O componente pai (StatusRegistro) será responsável por formatar este conteúdo
+            (ex: título, lista <ul>, etc.).
+        */}
+        {customTips}
+    </div>
+)}
 
                     {selectedDates.length > 0 && (
                         <div className="mt-4 p-4 bg-gradient-to-br from-primary/10 to-secondary/10 rounded-xl border-2 border-primary/30 backdrop-blur-sm shadow-md shadow-primary/10">

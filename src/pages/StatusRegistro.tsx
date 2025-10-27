@@ -58,6 +58,34 @@ const StatusRegistro = () => {
         statusRecord: "",
     });
 
+       const statusRegistroTips = (
+    <>
+    <h1 className="text-lg font-bold text-primary mb-2 flex items-center gap-2">
+             Instruções
+        </h1>
+        <br />
+        <h4 className="text-sm font-bold text-primary mb-2 flex items-center gap-2">
+            <div className="w-2 h-2 rounded-full bg-primary  "></div>
+              <span  className=" animate-pulse"> Alteração de Status</span>
+        </h4>
+        <ul className="list-disc list-inside text-xs space-y-2 text-muted-foreground ml-2">
+            <li>
+                Para corrigir o status de um dia, selecione as datas, o funcionário e o status atual no filtro.
+            </li>
+        <li>
+                Após buscar os registros, clique na linha para abrir o modal de edição.
+            </li>
+            <li>
+                O botão **Salvar Status** no modal será habilitado apenas quando um novo valor for selecionado.
+            </li>
+            <li>
+                Esta tela permite alterar o registro para: FALTA, FOLGA, ABONO.
+            </li>
+        </ul>
+    </>
+);
+
+   
     // 1. Busca de Funcionários (Mantida e reutilizada)
     const fetchEmployees = useCallback(async () => {
         // ... (Lógica fetchEmployees igual à original) ...
@@ -325,6 +353,7 @@ const StatusRegistro = () => {
                             Pesquise os registros e atualize o status de um dia específico.
                         </p>
                     </div>
+                    
 
                     {/* 💡 INTEGRAÇÃO: Utiliza o componente de filtros modular */}
                     <RelatorioFiltros
@@ -344,6 +373,7 @@ const StatusRegistro = () => {
                         employees={employees}
                         isPartner={isPartner}
                         onSearch={handleSearch}
+                        customTips={statusRegistroTips}
                         
                     />
 

@@ -93,6 +93,55 @@ const RelatorioDetalhado = () => {
     const [managers, setManagers] = useState<Manager[]>([]);
     const [isPartner, setIsPartner] = useState(false);
 
+
+    const statusRegistroTips = (
+    <>
+    <h1 className="text-lg font-bold text-primary mb-2 flex items-center gap-2">
+             Instruções
+        </h1>
+        <br />
+        <h4 className="text-sm font-bold text-primary mb-2 flex items-center gap-2">
+            <div className="w-2 h-2 rounded-full bg-primary  "></div>
+              <span  className=" animate-pulse">Relatório Detalhado</span>
+        </h4>
+        <ul className="list-disc list-inside text-xs space-y-2 text-muted-foreground ml-2">
+            <li>
+                Retorna todos registros feitos na data slecionada.
+            </li>
+            <li>
+                É possível filtrar pelo status do registro.
+            </li>
+            <br/>
+        </ul>
+          <h4 className="text-sm font-bold text-primary mb-2 flex items-center gap-2">
+            <div className="w-2 h-2 rounded-full bg-primary  "></div>
+            <span  className=" animate-pulse">Relatório Simples</span>
+        </h4>
+        <ul className="list-disc list-inside text-xs space-y-2 text-muted-foreground ml-2">
+            <li>
+                 Retorna a primeira e a última hora registrada e o saldo de horas da data slecionada.
+            </li>
+            
+        </ul>
+        <br/>
+         <h4 className="text-sm font-bold text-primary mb-2 flex items-center gap-2">
+            <div className="w-2 h-2 rounded-full bg-primary  "></div>
+               <span  className=" animate-pulse">Ajuste no ponto</span>
+        </h4>
+        <ul className="list-disc list-inside text-xs space-y-2 text-muted-foreground ml-2">
+            <li>
+                 Após  ageração do relatório detalhado, clique no registro e envie a solicitação.
+            </li>
+            <li>
+                 A solicitação será enviada so gestor que aprovará ou negará a requisição.
+            </li>
+            <li>
+                 Solicitações não aprovadas em 30 dias devem ser refeitas.
+            </li>
+        </ul>
+    </>
+);
+
     // REMOVIDO: O estado de pausas aninhadas (editBreaks) não é mais necessário
     // const [editBreaks, setEditBreaks] = useState<BreakEditItem[]>([]); 
 
@@ -1017,6 +1066,7 @@ const RelatorioDetalhado = () => {
                         onSearch={handleSearchClick}
                         onDownloadPDF={handleDownloadPDF} // Passa o novo router de PDF
                         onDownloadCSV={handleDownloadCSV} // Passa o novo router de CSV
+                        customTips={statusRegistroTips}
                     />
 
                     {/* EXIBIÇÃO CONDICIONAL DOS RESULTADOS */}
