@@ -15,8 +15,8 @@ import { Employee, statusOptions, allHolidays } from "@/utils/report-utils";
 interface RelatorioFiltrosProps {
     selectedDates: Date[];
     setSelectedDates: React.Dispatch<React.SetStateAction<Date[]>>;
-    referenceTime: string;
-    setReferenceTime: React.Dispatch<React.SetStateAction<string>>;
+    referenceTime?: string;
+    setReferenceTime?: React.Dispatch<React.SetStateAction<string>>;
     selectedEmployee: string;
     setSelectedEmployee: React.Dispatch<React.SetStateAction<string>>;
     employeeActive: string;
@@ -30,8 +30,10 @@ interface RelatorioFiltrosProps {
     employees: Employee[];
     isPartner: boolean;
     onSearch: () => void;
-    onDownloadPDF: () => void;
-    onDownloadCSV: () => void;
+    onDownloadPDF?: () => void;
+    onDownloadCSV?: () => void;
+    hideTips?: boolean;
+    customTips?: React.ReactNode
 }
 
 const isHoliday = (date: Date) => {
@@ -60,6 +62,8 @@ export const RelatorioFiltros: React.FC<RelatorioFiltrosProps> = ({
     onSearch,
     onDownloadPDF,
     onDownloadCSV,
+    hideTips,
+    customTips
 }) => {
     const [displayMonth, setDisplayMonth] = React.useState<Date | undefined>(startOfDay(new Date()));
 
@@ -219,19 +223,16 @@ export const RelatorioFiltros: React.FC<RelatorioFiltrosProps> = ({
                     </Card>
 
                     {/* DICAS DE USO */}
-                    <div className="mt-4 p-4 bg-gradient-to-br from-primary/5 to-secondary/5 rounded-xl border border-primary/20 backdrop-blur-sm shadow-inner shadow-primary/5">
-                        <h4 className="text-sm font-bold text-primary mb-2 flex items-center gap-2">
-                            <div className="w-2 h-2 rounded-full bg-primary animate-pulse"></div>
-                            Dicas e Regras
-                        </h4>
-                        <ul className="list-disc list-inside text-xs space-y-2 text-muted-foreground ml-2">
-                            <li>O status  <span className="text-primary hover:text-primary/80  font-semibold transition-colors duration-150">FOLGA</span> é atribuído no dia que não houver registro.</li>
-                            <li>Em caso de  <span className="text-primary hover:text-primary/80  font-semibold transition-colors duration-150">FALTA</span>, navegue até a página <a href="status-do-registro" className="text-primary hover:text-primary/80 underline font-semibold transition-colors duration-150">Status do registro</a> para realizar a mudança.</li>
-                            <li> <span className="text-primary hover:text-primary/80  font-semibold transition-colors duration-150">Relatório Simples:</span>  Retorna data, horas trabalhadas e saldo do dia.</li>
-                            <li> <span className="text-primary hover:text-primary/80  font-semibold transition-colors duration-150">Relatório Detalhado:</span>  Retorna todos os registros e status do dia.</li>
-                            <li>Clique no registro para solicitar alteração (data e hora).</li>
-                        </ul>
-                    </div>
+                  {customTips && ( // 👈 CONDIÇÃO: Renderiza APENAS se customTips for fornecido
+    <div className="mt-4 p-4 bg-gradient-to-br from-primary/5 to-secondary/5 rounded-xl border border-primary/20 backdrop-blur-sm shadow-inner shadow-primary/5">
+        {/*
+            Renderiza o conteúdo passado pela prop. 
+            O componente pai (StatusRegistro) será responsável por formatar este conteúdo
+            (ex: título, lista <ul>, etc.).
+        */}
+        {customTips}
+    </div>
+)}
 
                     {selectedDates.length > 0 && (
                         <div className="mt-4 p-4 bg-gradient-to-br from-primary/10 to-secondary/10 rounded-xl border-2 border-primary/30 backdrop-blur-sm shadow-md shadow-primary/10">
@@ -390,27 +391,28 @@ export const RelatorioFiltros: React.FC<RelatorioFiltrosProps> = ({
 
 
           {/* CARGA HORÁRIA DIÁRIA */}
-                    <div className="space-y-3 relative">
-                        <Label htmlFor="reference-time" className="text-sm font-semibold text-foreground flex items-center gap-2">
-                            <div className="w-1.5 h-1.5 rounded-full bg-primary"></div>
-                            Carga Horária diária
-                        </Label>
-                        <div className="relative group">
-                            <Input
-                                id="reference-time"
-                                type="time"
-                                value={referenceTime}
-                                onChange={(e) => setReferenceTime(e.target.value)}
-                                className="focus:border-primary focus:ring-2 focus:ring-primary/40 border-primary/30 bg-background hover:border-primary/50 transition-all duration-200 shadow-sm"
-                            />
-                            <div className="absolute inset-0 rounded-md bg-gradient-to-r from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none border border-transparent group-hover:border-primary/30"></div>
-                        </div>
-                        <p className="text-xs text-muted-foreground flex items-center gap-1">
-                            <div className="w-1 h-1 rounded-full bg-muted-foreground/50"></div>
-                            Horário de referência para cálculo do relatório
-                        </p>
-                    </div>
-
+                   {setReferenceTime && ( // 👈 NOVA CONDIÇÃO: Renderiza APENAS se setReferenceTime for fornecido
+    <div className="space-y-3 relative">
+        <Label htmlFor="reference-time" className="text-sm font-semibold text-foreground flex items-center gap-2">
+            <div className="w-1.5 h-1.5 rounded-full bg-primary"></div>
+            Carga Horária diária
+        </Label>
+        <div className="relative group">
+            <Input
+                id="reference-time"
+                type="time"
+                value={referenceTime}
+                onChange={(e) => setReferenceTime(e.target.value)}
+                className="focus:border-primary focus:ring-2 focus:ring-primary/40 border-primary/30 bg-background hover:border-primary/50 transition-all duration-200 shadow-sm"
+            />
+            <div className="absolute inset-0 rounded-md bg-gradient-to-r from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none border border-transparent group-hover:border-primary/30"></div>
+        </div>
+        <p className="text-xs text-muted-foreground flex items-center gap-1">
+            <div className="w-1 h-1 rounded-full bg-muted-foreground/50"></div>
+            Horário de referência para cálculo do relatório
+        </p>
+    </div>
+)}
 
                     {/* SEÇÃO STATUS DE REGISTRO (VISÍVEL SOMENTE SE reportType === "detailed") */}
                     {reportType === "detailed" && (
@@ -460,29 +462,34 @@ export const RelatorioFiltros: React.FC<RelatorioFiltrosProps> = ({
                         </Button>
 
                         {/* BOTÃO DOWNLOAD PDF (DESTRUCTIVE/ALERTA) */}
-                        <Button
-                            onClick={onDownloadPDF}
-                            size="lg"
-                            variant="outline"
-                            disabled={selectedDates.length === 0}
-                            className="group w-full font-semibold border-2 border-red-600/40 bg-gradient-to-r from-red-600/10 to-red-600/5 text-red-600 hover:bg-red-600/15 transition-all duration-200 relative overflow-hidden shadow-md hover:shadow-lg hover:shadow-red-600/20 transform hover:scale-[1.005]"
-                        >
-                            <Download className="mr-2 h-4 w-4 relative z-10" />
-                            <span className="relative z-10">Download PDF</span>
-                        </Button>
+                       {/* BOTÃO DOWNLOAD PDF (DESTRUCTIVE/ALERTA) */}
+    {onDownloadPDF && ( // 👈 NOVA CONDIÇÃO: Renderiza APENAS se onDownloadPDF for fornecido
+        <Button
+            onClick={onDownloadPDF}
+            size="lg"
+            variant="outline"
+            disabled={selectedDates.length === 0}
+            className="group w-full font-semibold border-2 border-red-600/40 bg-gradient-to-r from-red-600/10 to-red-600/5 text-red-600 hover:bg-red-600/15 transition-all duration-200 relative overflow-hidden shadow-md hover:shadow-lg hover:shadow-red-600/20 transform hover:scale-[1.005]"
+        >
+            <Download className="mr-2 h-4 w-4 relative z-10" />
+            <span className="relative z-10">Download PDF</span>
+        </Button>
+    )}
 
-                        {/* BOTÃO DOWNLOAD CSV (SUCCESS/CONFIRMAÇÃO) */}
-                        <Button
-                            onClick={onDownloadCSV}
-                            size="lg"
-                            variant="outline"
-                            disabled={selectedDates.length === 0}
-                            className="group w-full font-semibold border-2 border-green-600/40 bg-gradient-to-r from-green-600/10 to-green-600/5 text-green-600 hover:bg-green-600/15 transition-all duration-200 relative overflow-hidden shadow-md hover:shadow-lg hover:shadow-green-600/20 transform hover:scale-[1.005]"
-                        >
-                            <FileText className="mr-2 h-4 w-4 relative z-10" />
-                            <span className="relative z-10">Download CSV</span>
-                        </Button>
-                    </div>
+    {/* BOTÃO DOWNLOAD CSV (SUCCESS/CONFIRMAÇÃO) */}
+    {onDownloadCSV && ( // 👈 NOVA CONDIÇÃO: Renderiza APENAS se onDownloadCSV for fornecido
+        <Button
+            onClick={onDownloadCSV}
+            size="lg"
+            variant="outline"
+            disabled={selectedDates.length === 0}
+            className="group w-full font-semibold border-2 border-green-600/40 bg-gradient-to-r from-green-600/10 to-green-600/5 text-green-600 hover:bg-green-600/15 transition-all duration-200 relative overflow-hidden shadow-md hover:shadow-lg hover:shadow-green-600/20 transform hover:scale-[1.005]"
+        >
+            <FileText className="mr-2 h-4 w-4 relative z-10" />
+            <span className="relative z-10">Download CSV</span>
+        </Button>
+    )}
+</div>
                 </CardContent>
             </Card>
         </div>
