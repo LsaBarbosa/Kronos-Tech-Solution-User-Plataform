@@ -1,8 +1,10 @@
+// src/pages/Usuario.tsx
+
 import { useState, useCallback } from "react"; 
 import Header from "@/components/Header";
 import Sidebar from "@/components/Sidebar";
 // 💡 Ícones que indicam funcionalidade e estado
-import { User, Lock, Eye, EyeOff, Save, X, Pencil, Briefcase, Phone, MapPin, AtSign, CircleUserRound, Loader2, CircleCheck, CircleX, DollarSign, Home } from "lucide-react";
+import { User, Lock, Eye, EyeOff, Save, X, Pencil, Briefcase, Phone, MapPin, AtSign, CircleUserRound, Loader2, CircleCheck, CircleX, Home, DollarSign, IdCardIcon, User2Icon, LucideIdCard, IdCard, SquareUser } from "lucide-react";
 // 💡 Componentes de UI
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -50,7 +52,7 @@ const Usuario = () => {
     togglePasswordFields,
   } = useUser();
   
-  // Variáveis auxiliares para a apresentação
+  // Variáveis auxiliares para a apresentação (Mantida, mas é o isLoading que indica o salvamento)
   const isUpdatingContact = isEditingEmail || isEditingPhone;
   
  
@@ -104,56 +106,57 @@ const Usuario = () => {
       <div className="flex-1 flex flex-col overflow-hidden">
         <Header toggleSidebar={handleToggleSidebar} />
         
-        <main className="flex-1 overflow-x-hidden overflow-y-auto bg-gray-50 dark:bg-gray-900 p-4 sm:p-6 pt-20">
+        <main className="flex-1 overflow-x-hidden overflow-y-auto bg-gray-50 dark:bg-gray-900 p-6 pt-20">
           <div className="max-w-6xl mx-auto">
-            <h1 className="text-3xl font-bold mb-6 text-foreground bg-gradient-to-r from-foreground to-primary bg-clip-text text-transparent">Meu Perfil</h1>
+            <h1 className="text-3xl font-bold mb-6 text-foreground">Meu Perfil</h1>
             
             <div className="grid gap-6 md:grid-cols-2">
               
               {/* CARD DE DADOS PESSOAIS */}
-              <Card className="shadow-2xl border-l-4 border-l-primary hover:shadow-primary/20 transition-shadow">
-                <CardHeader>
-                  <CardTitle className="text-xl flex items-center gap-2 text-primary font-extrabold">
-                    <CircleUserRound className="h-6 w-6 text-primary" /> Dados Pessoais
+              <Card className="shadow-lg border-l-4 border-l-primary text-primary">
+                <CardHeader className="flex flex-row items-center justify-between">
+                  <CardTitle className="text-xl flex  items-center gap-2">
+                    <CircleUserRound className="h-5 w-5 text-primary" /> Dados Pessoais
                   </CardTitle>
-                  <CardDescription>Informações de identificação e função no sistema.</CardDescription>
+                  <CardDescription>Informações de perfil</CardDescription>
                 </CardHeader>
-                <CardContent className="space-y-6">
+                <CardContent className="space-y-4">
                   {isLoading ? (
                     <SkeletonCard />
                   ) : (
                     <div className="space-y-4">
                       
                       {/* Full Name Field */}
-                      <div className="data-field-group">
+                      <div>
                         <Label className="text-sm font-medium text-muted-foreground">Nome Completo</Label>
-                        <div className="mt-1 p-3 bg-muted rounded-xl border border-border/50 shadow-inner">
+                         <div className="mt-1 p-3 bg-muted rounded-xl flex items-center gap-2 border border-border/50 shadow-inner">
+                          <User2Icon className="h-4 w-4 text-primary flex-shrink-0" />
                           <p className="text-foreground font-semibold">{userData?.fullName}</p>
                         </div>
                       </div>
 
                       {/* CPF Field */}
-                      <div className="data-field-group">
+                      <div>
                         <Label className="text-sm font-medium text-muted-foreground">CPF</Label>
-                        <div className="mt-1 p-3 bg-muted rounded-xl border border-border/50 shadow-inner">
+                         <div className="mt-1 p-3 bg-muted rounded-xl flex items-center gap-2 border border-border/50 shadow-inner">
+                          <IdCard className="h-4 w-4 text-primary flex-shrink-0" />
                           <p className="text-foreground">{userData?.maskedCpf}</p>
                         </div>
                       </div>
 
-                      <Separator className="bg-border/50" />
+                      <Separator />
 
                       {/* Job Position Field */}
-                      <div className="data-field-group">
+                      <div>
                         <Label htmlFor="jobPosition" className="text-sm font-medium text-muted-foreground">
                           Cargo
                         </Label>
-                        <div className="mt-1 p-3 bg-muted rounded-xl flex items-center gap-2 border border-border/50 shadow-inner">
+                        <div className="mt-1 p-3 bg-muted rounded-lg flex items-center gap-2">
                           <Briefcase className="h-4 w-4 text-primary flex-shrink-0" />
                           <p className="text-foreground">{userData?.jobPosition}</p>
                         </div>
                       </div>
-                      
-                       {/* Salary Field (Adicionado ícone de dinheiro) */}
+     {/* Salary Field (Adicionado ícone de dinheiro) */}
                       <div className="data-field-group">
                         <Label htmlFor="salary" className="text-sm font-medium text-muted-foreground">
                           Remuneração
@@ -178,11 +181,12 @@ const Usuario = () => {
                           </p>
                         </div>
                       </div>
-
+                        <Separator />
                       {/* Role Field */}
-                      <div className="data-field-group">
+                      <div>
                         <Label className="text-sm font-medium text-muted-foreground">Tipo de Usuário</Label>
-                        <div className="mt-1 p-3 bg-muted rounded-xl border border-border/50 shadow-inner">
+                        <div className="mt-1 p-3 bg-muted rounded-xl flex items-center gap-2 border border-border/50 shadow-inner">
+                              <SquareUser className="h-4 w-4 text-primary flex-shrink-0" />
                           <p className="text-foreground font-semibold">
                             {getRoleDisplayName(userAccountData?.role || 'PARTNER')}
                           </p>
@@ -190,18 +194,18 @@ const Usuario = () => {
                       </div>
                       
                       {/* Status da Conta Field */}
-                      <div className="data-field-group">
+                      <div>
                         <Label className="text-sm font-medium text-muted-foreground">Status da Conta</Label>
-                        <div className="mt-1 p-3 bg-muted rounded-xl flex items-center gap-2 border border-border/50 shadow-inner">
+                        <div className="mt-1 p-3 bg-muted rounded-lg flex items-center gap-2">
                           {userAccountData?.active ? (
                             <>
                               <CircleCheck className="h-5 w-5 text-green-500" />
-                              <p className="text-foreground text-sm font-medium text-green-500">Ativa</p>
+                              <p className="text-foreground text-sm">Ativa</p>
                             </>
                           ) : (
                             <>
                               <CircleX className="h-5 w-5 text-destructive" />
-                              <p className="text-foreground text-sm font-medium text-destructive">Inativa</p>
+                              <p className="text-foreground text-sm">Inativa</p>
                             </>
                           )}
                         </div>
@@ -214,50 +218,57 @@ const Usuario = () => {
               </Card>
 
               {/* CARD DE CONTATO E SEGURANÇA */}
-              <Card className="shadow-2xl border-l-4 border-l-secondary hover:shadow-secondary/20 transition-shadow">
-                <CardHeader>
-                  <CardTitle className="text-xl flex items-center gap-2 text-primary font-extrabold">
-                    <Lock className="h-6 w-6 text-primary font-extrabold" /> Contato e Segurança
+              <Card className="shadow-lg border-l-4 border-l-secondary">
+                <CardHeader className="flex flex-row items-center text-primary justify-between">
+                  <CardTitle className="text-xl flex items-center gap-2">
+                    <Lock className="h-5 w-5 text-primary" /> Contato e Segurança
                   </CardTitle>
-                  <CardDescription>Gerencie suas informações de contato e credenciais de acesso.</CardDescription>
+                  <CardDescription>Informações de acesso</CardDescription>
                 </CardHeader>
                 <CardContent className="space-y-6">
                   {isLoading ? (
                     <SkeletonCard />
                   ) : (
-                    <div className="space-y-6">
+                    <div className="space-y-4">
                       
                       {/* Email Field */}
-                      <div className="data-field-group">
+                      <div>
                         <Label htmlFor="email" className="text-sm font-medium text-muted-foreground">
                           E-mail
                         </Label>
                         <div className="mt-1 flex items-center gap-2">
                           <div className="relative flex-1">
-                            {/* Ícone fixo */}
-                            <AtSign className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground z-10" />
+                            <AtSign className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-primary z-10" />
                             <Input
                               id="email"
                               type="email"
                               value={newEmail}
-                              onChange={handleEmailChange}
-                              disabled={!isEditingEmail || isUpdatingContact} // Adicionado isUpdatingContact para desabilitar durante o save
-                              className={`pl-10 pr-10 rounded-xl ${isEditingEmail ? "bg-card border-primary/80" : "bg-muted border-transparent"}`}
+                              onChange={handleEmailChange} // 💡 Handler do hook
+                              // FIX 1: Desabilita se não estiver em edição OU se estiver salvando (usando isLoading)
+                              disabled={!isEditingEmail || isLoading}
+                              className={`pl-10 pr-10  ${isEditingEmail ? "bg-card border-primary" : "bg-muted border-transparent"}`}
                             />
                           </div>
                           {isEditingEmail ? (
-                            <div className="flex gap-1">
+                            <div className="flex gap-1 ">
                               <Button 
                                 variant="ghost" 
                                 size="sm" 
                                 onClick={handleSaveEmail} 
-                                className="p-2 h-auto text-green-600 hover:bg-green-600/10 disabled:opacity-50"
-                                disabled={isUpdatingContact} // Desabilita o save se já estiver salvando
+                                className="p-1 h-auto hover:bg-green-600/10"
+                                disabled={isLoading} // FIX 2: Desabilita o botão enquanto estiver salvando
                               >
-                                {isUpdatingContact ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />} 
+                                {/* FIX 3: Usa isLoading para o loader do botão de salvar */}
+                                {isLoading ? <Loader2 className="h-4 w-4 text-green-600 animate-spin" /> : <Save className="h-4 w-4 text-green-600" />} 
                               </Button>
-                              <Button variant="ghost" size="sm" onClick={toggleEditingEmail} className="p-2 h-auto text-red-600 hover:bg-red-600/10">
-                                <X className="h-4 w-4" />
+                              <Button 
+                                variant="ghost" 
+                                size="sm" 
+                                onClick={toggleEditingEmail} 
+                                className="p-1 h-auto hover:bg-red-600/10"
+                                disabled={isLoading} // Desabilita o cancelar durante o salvamento
+                              >
+                                <X className="h-4 w-4 text-red-600" />
                               </Button>
                             </div>
                           ) : (
@@ -265,30 +276,31 @@ const Usuario = () => {
                               variant="ghost"
                               size="sm"
                               onClick={toggleEditingEmail}
-                              className="p-2 h-auto text-muted-foreground hover:bg-muted-foreground/10"
+                              className="p-1 h-auto hover:bg-muted-foreground/10"
                             >
-                              <Pencil className="h-4 w-4" />
+                              <Pencil className="h-4 w-4 text-primary" />
                             </Button>
                           )}
                         </div>
                       </div>
 
                       {/* Phone Field */}
-                      <div className="data-field-group">
+                      <div>
                         <Label htmlFor="phone" className="text-sm font-medium text-muted-foreground">
                           Telefone
                         </Label>
                         <div className="mt-1 flex items-center gap-2">
                           <div className="relative flex-1">
-                            {/* Ícone fixo */}
-                            <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-muted-foreground z-10" />
+                            <Phone className="absolute left-3 top-1/2 transform -translate-y-1/2 h-4 w-4 text-primary" />
                             <Input
                               id="phone"
                               type="tel"
-                              value={newPhone}
-                              onChange={handlePhoneChange}
-                              disabled={!isEditingPhone || isUpdatingContact} // Adicionado isUpdatingContact para desabilitar durante o save
-                              className={`pl-10 pr-10 rounded-xl ${isEditingPhone ? "bg-card border-primary/80" : "bg-muted border-transparent"}`}
+                              // FIX 4: Aplica a máscara para exibição no modo edição
+                              value={formatPhoneDisplay(newPhone)}
+                              onChange={handlePhoneChange} // 💡 Handler do hook
+                              // FIX 5: Desabilita se não estiver em edição OU se estiver salvando (usando isLoading)
+                              disabled={!isEditingPhone || isLoading}
+                              className={`pl-10 pr-10 ${isEditingPhone ? "bg-card border-primary" : "bg-muted border-transparent"}`}
                             />
                           </div>
                           {isEditingPhone ? (
@@ -297,12 +309,19 @@ const Usuario = () => {
                                 variant="ghost" 
                                 size="sm" 
                                 onClick={handleSavePhone} 
-                                className="p-2 h-auto text-green-600 hover:bg-green-600/10 disabled:opacity-50"
-                                disabled={isUpdatingContact} // Desabilita o save se já estiver salvando
+                                className="p-1 h-auto hover:bg-green-600/10"
+                                disabled={isLoading} // FIX 6: Desabilita o botão enquanto estiver salvando
                               >
-                                {isUpdatingContact ? <Loader2 className="h-4 w-4 animate-spin" /> : <Save className="h-4 w-4" />}
+                                {/* FIX 7: Usa isLoading para o loader do botão de salvar */}
+                                {isLoading ? <Loader2 className="h-4 w-4 text-green-600 animate-spin" /> : <Save className="h-4 w-4 text-green-600" />}
                               </Button>
-                              <Button variant="ghost" size="sm" onClick={toggleEditingPhone} className="p-2 h-auto text-red-600 hover:bg-red-600/10">
+                              <Button 
+                                variant="ghost" 
+                                size="sm" 
+                                onClick={toggleEditingPhone} 
+                                className="p-1 h-auto hover:bg-red-600/10"
+                                disabled={isLoading} // Desabilita o cancelar durante o salvamento
+                              >
                                 <X className="h-4 w-4 text-red-600" />
                               </Button>
                             </div>
@@ -311,33 +330,27 @@ const Usuario = () => {
                               variant="ghost"
                               size="sm"
                               onClick={toggleEditingPhone}
-                              className="p-2 h-auto text-muted-foreground hover:bg-muted-foreground/10"
+                              className="p-1 h-auto hover:bg-muted-foreground/10"
                             >
-                              <Pencil className="h-4 w-4" />
+                              <Pencil className="h-4 w-4 text-primary" />
                             </Button>
                           )}
                         </div>
                       </div>
 
-                      <Separator className="bg-border/50" />
+                      <Separator />
 
-                      {/* Password Section */}
+               {/* Password Section */}
                       <div className="space-y-4">
-                        <div className="flex justify-between items-center pb-1">
-                          <h3 className="text-md font-semibold text-foreground">Alterar Senha</h3>
-                          <Button 
-                            variant="outline" 
-                            size="sm" 
-                            onClick={togglePasswordFields} 
-                            className="text-primary hover:bg-primary/35 border-primary/20"
-                          >
+                        <div className="flex justify-between items-center">
+                          <h3 className="text-md font-semibold ">Alterar Senha</h3>
+                          <Button variant="outline" size="sm" onClick={togglePasswordFields} className=" border-primary/40 bg-primary/15 text-grey hover:bg-primary/80 hover:shadow-primary/20">
                             {showPasswordFields ? "Cancelar" : "Alterar Senha"}
                           </Button>
                         </div>
 
                         {showPasswordFields && (
-                          <div className="space-y-4 p-4 border border-secondary/30 rounded-xl bg-secondary/5 shadow-inner">
-                            
+                          <div className="space-y-3 p-4 border rounded-lg bg-background">
                             {/* Old Password */}
                             <div className="relative">
                               <Label htmlFor="currentPassword">Senha Atual</Label>
@@ -348,13 +361,12 @@ const Usuario = () => {
                                 onChange={handlePasswordChange} 
                                 required
                                 disabled={isSavingPassword}  
-                                className="pr-10"
                               />
                               <Button
                                 type="button"
                                 variant="ghost"
                                 size="icon"
-                                className="absolute right-1 top-[1.4rem] h-8 w-8 text-muted-foreground hover:text-foreground"
+                                className="absolute right-0 top-[1.4rem] h-8 w-8  text-muted-foreground"
                                 onClick={() => setShowCurrentPassword((prev) => !prev)}
                                 disabled={isSavingPassword}
                               >
@@ -372,13 +384,12 @@ const Usuario = () => {
                                 onChange={handlePasswordChange} 
                                 required
                                 disabled={isSavingPassword}  
-                                className="pr-10"
                               />
                               <Button
                                 type="button"
                                 variant="ghost"
                                 size="icon"
-                                className="absolute right-1 top-[1.4rem] h-8 w-8 text-muted-foreground hover:text-foreground"
+                                className="absolute right-0 top-[1.4rem] h-8 w-8 text-muted-foreground"
                                 onClick={() => setShowNewPassword((prev) => !prev)}
                                 disabled={isSavingPassword}
                               >
@@ -396,30 +407,28 @@ const Usuario = () => {
                                 onChange={handlePasswordChange} 
                                 required
                                 disabled={isSavingPassword}  
-                                className="pr-10"
                               />
                               <Button
                                 type="button"
                                 variant="ghost"
                                 size="icon"
-                                className="absolute right-1 top-[1.4rem] h-8 w-8 text-muted-foreground hover:text-foreground"
+                                className="absolute right-0 top-[1.4rem] h-8 w-8 text-muted-foreground"
                                 onClick={() => setShowConfirmPassword((prev) => !prev)}
                                 disabled={isSavingPassword}
                               >
-                                {showConfirmPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                                {showConfirmPassword ? <EyeOff className="h-4 w-4  b " /> : <Eye className="h-4 w-4"  />}
                               </Button>
                             </div>
                             
                             {/* Mensagem de erro de Confirmação */}
                             {passwordData.newPassword && passwordData.confirmPassword && passwordData.newPassword !== passwordData.confirmPassword && (
-                                <p className="text-sm font-medium text-destructive mt-2 p-2 bg-destructive/10 rounded-lg">As senhas não coincidem.</p>
+                                <p className="text-sm font-medium text-destructive mt-1">As senhas não coincidem.</p>
                             )}
 
                             <Button 
                               onClick={handleChangePassword} // Handler do hook
-                              // MODIFICADO: Uso de hover:bg-primary/80 e shadow-primary/50 com hover:shadow-lg
-                              className="w-full mt-4 bg-primary hover:bg-primary/80 text-white shadow-md shadow-primary/50 hover:shadow-lg transition-all"
-                              disabled={isPasswordChangeDisabled || isSavingPassword}
+                              className="w-full mt-4 border-primary/40 bg-primary/15 text-grey hover:bg-primary/80 hover:shadow-primary/20"
+                              disabled={isPasswordChangeDisabled}
                             >
                               {isSavingPassword ? ( // Usa o loading state
                                   <>
@@ -434,16 +443,16 @@ const Usuario = () => {
                         )}
                       </div>
 
-                      <Separator className="bg-border/50" />
+                      <Separator />
 
                       {/* Address Field */}
-                      <div className="data-field-group">
+                      <div>
                         <Label htmlFor="address" className="text-sm font-medium text-muted-foreground">
                           Endereço
                         </Label>
-                        <div className="mt-1 p-3 bg-muted rounded-xl border border-border/50 shadow-inner">
+                        <div className="mt-1 p-3 bg-muted rounded-lg">
                           <p className="text-foreground flex items-center gap-2">
-                            <MapPin className="h-4 w-4 text-secondary flex-shrink-0" />
+                            <MapPin className="h-4 w-4 text-primary flex-shrink-0" />
                             {/* Assumindo que userData.address.street/number/city/state existem */}
                             {userData?.address.street}, {userData?.address.number} - {userData?.address.city}/{userData?.address.state}
                           </p>
