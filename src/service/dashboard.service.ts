@@ -1,7 +1,7 @@
 // src/services/dashboardService.ts
 
 import { API_BASE_URL } from "@/config/api"; 
-import { PendingApproval } from "@/types/recordApproval"; 
+import { ITimeRecordApprovalResponse } from "@/types/recordApproval"; 
 import { WarningMessage } from "@/types/dashboard"; 
 // 💡 CORREÇÃO 6: Importando UserData do local correto
 import { UserData } from "@/types/user";
@@ -50,11 +50,11 @@ export const fetchUserProfile = async (): Promise<UserData> => {
  * Busca a lista de aprovações pendentes (e retorna o array).
  * Endpoint corrigido para 'records/pending-approvals'
  */
-export const fetchPendingApprovalsCount = async (): Promise<PendingApproval[]> => {
+export const fetchPendingApprovalsCount = async (): Promise<ITimeRecordApprovalResponse[]> => {
     const headers = getAuthHeaders();
     const response = await fetch(`${API_BASE_URL}records/pending-approvals`, { headers });
     const data = await handleResponse(response);
-    return data as PendingApproval[]; 
+    return data as ITimeRecordApprovalResponse[]; 
 };
 
 /**

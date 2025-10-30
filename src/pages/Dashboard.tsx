@@ -227,7 +227,7 @@ const Dashboard = () => {
                                         <Button 
                                             variant="ghost" 
                                             size="sm" 
-                                            className="flex-shrink-0 text-primary hover:bg-primary/10"
+                                            className="flex-shrink-0 text-primary hover:bg-primary/40"
                                             onClick={handleCompanyButtonClick} // Handler com stopPropagation
                                             title="Gerenciar Empresa"
                                         >
@@ -273,7 +273,7 @@ const Dashboard = () => {
                                         <Button 
                                             variant="ghost" 
                                             size="icon" 
-                                            className="h-7 w-7 text-primary hover:bg-primary/10"
+                                            className="h-7 w-7 text-primary hover:bg-primary/40"
                                             onClick={(e) => {
                                                 e.stopPropagation(); // IMPORTANTE: Impede o clique no card
                                                 toggleSalary();
@@ -339,7 +339,7 @@ const Dashboard = () => {
                                         <Button 
                                             variant="ghost" 
                                             size="sm" 
-                                            className="w-full justify-start text-yellow-600 hover:bg-yellow-600/10"
+                                            className="w-full justify-start text-yellow-600 hover:bg-yellow-600/40"
                                             onClick={(e) => { e.stopPropagation(); navigate("/criar-aviso"); }}
                                         >
                                             <PlusCircle className="w-4 h-4 mr-2" /> Criar Aviso
@@ -347,7 +347,7 @@ const Dashboard = () => {
                                         <Button 
                                             variant="ghost" 
                                             size="sm" 
-                                            className="w-full justify-start text-yellow-600 hover:bg-yellow-600/10"
+                                            className="w-full justify-start text-yellow-600 hover:bg-yellow-600/40"
                                             onClick={(e) => { e.stopPropagation(); handleWarningClick(); }} // Marca como visto e navega
                                         >
                                             <ListChecks className="w-4 h-4 mr-2" /> Ver Todos Avisos
@@ -357,7 +357,7 @@ const Dashboard = () => {
                                     <Button 
                                         variant="ghost" 
                                         size="sm" 
-                                        className="mt-2 -mx-3 justify-start text-yellow-600 hover:bg-yellow-600/10"
+                                        className="mt-2 -mx-3 justify-start text-yellow-600 hover:bg-yellow-600/40"
                                         onClick={handleAvisosCardClick} // Redireciona
                                     >
                                         Ver Avisos <ArrowRight className="w-4 h-4 ml-1" />
@@ -393,7 +393,7 @@ const Dashboard = () => {
                                         <Button 
                                             variant="ghost" 
                                             size="sm" 
-                                            className={`w-full justify-start ${pendingApprovalsCount > 0 ? 'text-destructive hover:bg-destructive/10' : 'text-green-600 hover:bg-green-600/10'}`}
+                                            className={`w-full justify-start ${pendingApprovalsCount > 0 ? 'text-destructive hover:bg-destructive/40' : 'text-green-600 hover:bg-green-600/40'}`}
                                             onClick={(e) => { e.stopPropagation(); handleApprovalClick(); }}
                                         >
                                              <ListChecks className="w-4 h-4 mr-2" /> {pendingApprovalsCount > 0 ? 'Revisar Pendências' : 'Apuração de Horas'}
@@ -401,7 +401,7 @@ const Dashboard = () => {
                                         <Button 
                                             variant="ghost" 
                                             size="sm" 
-                                            className="w-full justify-start text-primary hover:bg-primary/10"
+                                            className="w-full justify-start text-primary hover:bg-primary/40"
                                             onClick={(e) => { e.stopPropagation(); navigate("/status-do-registro"); }}
                                         >
                                             <ActivitySquare className="w-4 h-4 mr-2" /> Status do Registro
@@ -420,7 +420,7 @@ const Dashboard = () => {
                                     <Button 
                                         variant="outline" 
                                         size="sm" 
-                                        className="w-full justify-start text-primary hover:bg-primary/10"
+                                        className="w-full justify-start text-primary hover:bg-primary/40"
                                         onClick={(e) => { e.stopPropagation(); navigate("/meus-documentos"); }}
                                     >
                                         <FileCheck className="w-4 h-4 mr-2" /> Meus Documentos
@@ -428,7 +428,7 @@ const Dashboard = () => {
                                     <Button 
                                         variant="outline" 
                                         size="sm" 
-                                        className="w-full justify-start text-primary hover:bg-primary/10"
+                                        className="w-full justify-start text-primary hover:bg-primary/40"
                                         onClick={(e) => { e.stopPropagation(); navigate("/relatorio-detalhado"); }}
                                     >
                                         <ArrowRight className="w-4 h-4 mr-2" /> Meu Relatório

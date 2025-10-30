@@ -5,7 +5,7 @@ import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 // Importação do serviço (mantida)
 import { fetchUserProfile, fetchPendingApprovalsCount, fetchAllWarnings, updateLastSeenMessageTimestamp } from "@/service/dashboard.service";
-import { PendingApproval } from "@/types/recordApproval"; 
+import { ITimeRecordApprovalResponse } from "@/types/recordApproval"; 
 // 💡 CORREÇÃO 1: Removendo a importação de UserProfile que não existe mais em dashboard.ts
 import { WarningMessage, hasApprovalPermission } from "@/types/dashboard";
 // 💡 CORREÇÃO 2: Importando o tipo UserData (o novo tipo completo) de user.ts
@@ -44,7 +44,7 @@ export const useDashboardData = (): UseDashboardDataReturn => {
              return { count: 0 };
         }
         try {
-            const approvals: PendingApproval[] = await fetchPendingApprovalsCount();
+            const approvals: ITimeRecordApprovalResponse[] = await fetchPendingApprovalsCount();
             return { count: approvals.length };
         } catch (error) {
             console.error("Erro ao buscar aprovações:", error);
