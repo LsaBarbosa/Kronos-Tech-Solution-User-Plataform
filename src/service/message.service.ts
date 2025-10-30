@@ -2,7 +2,7 @@
 
 import { API_BASE_URL } from "@/config/api"; // Assumindo que esta constante existe
 import { Message, MessagePayload } from "@/types/message";
-import { EmployeeListItem } from "@/types/employee"; 
+import { EmployeeData } from "@/types/employee"; 
 
 // --- Funções Auxiliares (Puras) ---
 
@@ -91,7 +91,7 @@ export const postMessage = async (payload: MessagePayload): Promise<void> => {
 /**
  * Busca a lista de colaboradores ativos para seleção de destinatários.
  */
-export const fetchActiveEmployees = async (): Promise<EmployeeListItem[]> => {
+export const fetchActiveEmployees = async (): Promise<EmployeeData[]> => {
     const headers = getAuthHeaders();
     const response = await fetch(`${API_BASE_URL}employee?active=true`, { headers });
 
@@ -101,7 +101,7 @@ export const fetchActiveEmployees = async (): Promise<EmployeeListItem[]> => {
     return data.employees.map((emp: any) => ({
         employeeId: emp.employeeId,
         fullName: emp.fullName,
-    })) as EmployeeListItem[];
+    })) as EmployeeData[];
 };
 
 /**

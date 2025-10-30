@@ -1,25 +1,32 @@
 // src/types/recordApproval.ts
 
-/**
- * Interface para os dados da solicitação pendente.
- */
-export interface PendingApproval {
+export interface ITimeRecordApprovalResponse {
   timeRecordId: number;
   partnerName: string;
   managerUsername: string;
-  newStartWork: string;
-  newEndWork: string;
-  currentStartWork: string;
-  currentEndWork: string;
+  newStartWork: string; // LocalDateTime
+  newEndWork: string; // LocalDateTime
+  currentStartWork: string; // LocalDateTime
+  currentEndWork: string | null; // LocalDateTime
 }
 
-/**
- * Interface para padronizar o objeto de erro da API.
- */
-export interface ApiErrorResponse {
-  status: number;
-  title: string;
-  detail: string;
-  timestamp: string;
-  message?: string;
+// Tipo para a resposta paginada do backend
+export interface ITimeRecordApprovalPageResponse {
+  approvals: ITimeRecordApprovalResponse[];
+  totalPages: number;
+  totalElements: number;
+  currentPage: number;
+  isFirst: boolean;
+  isLast: boolean;
+}
+
+// Parâmetros de query para a chamada de serviço
+export interface IPendingApprovalQueryParams {
+  page: number;
+  employeeName: string; // Pode ser string vazia se não houver filtro
+}
+
+// Outros tipos se existirem...
+export interface IUpdateStatusRequest {
+  statusRecord: string;
 }

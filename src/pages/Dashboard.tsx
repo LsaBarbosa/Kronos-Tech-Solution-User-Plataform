@@ -5,7 +5,7 @@ import Clock from "@/components/Clock";
 import { 
     ArrowRight, Loader2, Clock as ClockIcon, FileCheck, DollarSign, Mail, 
     Briefcase, Phone, MessageSquareWarning, Zap, User2, Building, Eye, EyeOff, 
-    PlusCircle, ListChecks, ActivitySquare 
+    PlusCircle, ListChecks, ActivitySquare, AlertTriangle // Novo ícone para pendências
 } from "lucide-react"; 
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card"; 
@@ -124,7 +124,7 @@ const Dashboard = () => {
 
   /**
    * Função auxiliar para aplicar estilização temática de Card.
-   * **CORREÇÃO:** Adiciona o foco temático para remover o anel azul padrão.
+   * **ATUALIZADO:** Adiciona classes de borda lateral e sombra para consistência.
    * @param baseColor Cor base ('primary', 'destructive', 'success', 'yellow-600').
    */
   const getThemeCardClasses = (baseColor: string, isClickable: boolean = false) => {
@@ -135,41 +135,35 @@ const Dashboard = () => {
       switch (baseColor) {
           case 'primary':
               // Borda base e Borda lateral
-              borderColor = 'border-2 border-l-4 border-border/80 border-l-primary';
+              borderColor = 'border-l-4 border-l-primary';
               rawColor = 'primary';
               break;
           case 'destructive':
-              borderColor = 'border-2 border-l-4 border-border/80 border-l-destructive';
+              borderColor = 'border-l-4 border-l-destructive';
               rawColor = 'destructive';
               break;
           case 'success':
               // Usando green-600 como sucesso
-              borderColor = 'border-2 border-l-4 border-border/80 border-l-green-600';
+              borderColor = 'border-l-4 border-l-green-600';
               rawColor = 'green-600';
               break;
           case 'yellow-600':
               // Cor de aviso/alerta (amarelo)
-              borderColor = 'border-2 border-l-4 border-border/80 border-l-yellow-600';
+              borderColor = 'border-l-4 border-l-yellow-600';
               rawColor = 'yellow-600';
               break;
           default:
-              borderColor = 'border-2 border-l-4 border-border/80 border-l-border';
+              borderColor = 'border-l-4 border-l-border';
               rawColor = 'primary';
       }
       
       // 🚀 CLASSES INTERATIVAS (Hover e Focus)
       const interactiveClasses = `
-          shadow-md 
+          shadow-card
           transition-all duration-300 
           hover:shadow-xl 
-          hover:shadow-${rawColor}/40 
-          hover:scale-[1.01] 
-          
-          hover:ring-${rawColor}/50
-          hover:border-${rawColor}
-          
-          // 🚀 CORREÇÃO DO FOCO (Borda Azul)
-       
+          hover:shadow-${rawColor}/20
+          hover:border-l-primary/80 
       `;
       
       const cursorClass = isClickable ? 'cursor-pointer' : 'cursor-default';
@@ -190,7 +184,7 @@ const Dashboard = () => {
             
             {/* SAUDAÇÃO PERSONALIZADA */}
             <h1 className="text-3xl font-bold text-foreground mb-1">
-                Olá, {isLoading ? "..." : userData?.fullName || "Usuário"}!
+                Olá, {isLoading ? "..." : getFirstName(userData?.fullName) || "Usuário"}!
             </h1>
             <p className="text-lg text-muted-foreground mb-6">
                 Seja bem-vindo(a) ao seu painel de controle.
@@ -208,10 +202,10 @@ const Dashboard = () => {
                         
                         {/* 1. Card Consolidado de Informações do Colaborador (Primary - lg:col-span-1) */}
                         <Card 
-                            // O componente Card agora recebe a classe de borda base e as classes de hover/focus
+                            // Aplica a borda lateral e sombra
                             className={`lg:col-span-1 ${getThemeCardClasses('primary', true)}`}
                             onClick={handleDetailsCardClick} // Redireciona para /usuario
-                            tabIndex={0} // Garante que o card é focável para testar a correção
+                            tabIndex={0} 
                         >
                             <CardContent className="p-6 space-y-4">
                                 
@@ -295,13 +289,14 @@ const Dashboard = () => {
 
                         {/* Relógio (Clock) - Click para Relatório para TODOS */}
                         <Card 
+                            // Aplica a borda lateral e sombra
                             className={`
                                 lg:col-span-2 
                                 ${getThemeCardClasses('primary', true)} 
                                 flex flex-col justify-center
                             `}
                             onClick={handleClockCardClick}
-                            tabIndex={0} // Garante que o card é focável para testar a correção
+                            tabIndex={0} 
                         >
                             <CardContent className="p-6">
                                 <div className="flex items-center justify-center">
@@ -371,65 +366,52 @@ const Dashboard = () => {
                             </CardContent>
                         </Card>
                         
-                        {/* 2. Cartão de Solicitações de Aprovação Pendentes (Destructive/Success) OU Acesso Rápido */}
+                        {/* 2. Cartão de Solicitações de Aprovação Pendentes (Destructive/Success) */}
                         {hasApprovalPermission ? (
                             <Card 
+                                // Determina a cor com base na contagem de pendências
                                 className={`
-                                    ${pendingApprovalsCount > 0 ? getThemeCardClasses('destructive', !isManager) : getThemeCardClasses('success', !isManager)}
+                                    ${pendingApprovalsCount > 0 ? getThemeCardClasses('destructive', true) : getThemeCardClasses('success', true)}
                                 `}
-                                // Permite o clique no card apenas para não-MANAGERs com pendências
-                                onClick={!isManager && pendingApprovalsCount > 0 ? handleApprovalClick : undefined}
+                                // Permite o clique no card para todos que têm permissão de aprovação
+                                onClick={handleApprovalClick}
                                 tabIndex={0}
                             >
                                 <CardContent className="p-5 flex flex-col h-full justify-between">
                                     <div className="flex items-center justify-between mb-3">
                                         <p className="text-sm font-medium text-muted-foreground">Solicitações de Aprovação</p>
-                                        <FileCheck className={`h-6 w-6 ${pendingApprovalsCount > 0 ? 'text-destructive' : 'text-green-600'}`} />
+                                        <AlertTriangle className={`h-6 w-6 ${pendingApprovalsCount > 0 ? 'text-destructive' : 'text-green-600'}`} />
                                     </div>
+                                    
+                                    {/* Exibe a contagem real, estilizado como 4xl */}
                                     <p className={`text-4xl font-extrabold ${pendingApprovalsCount > 0 ? 'text-destructive' : 'text-green-600'}`}>
                                         {pendingApprovalsCount}
                                     </p>
                                     
-                                    {/* Links Condicionais para MANAGER */}
-                                    {isManager ? (
-                                        <div className="mt-4 space-y-1">
-                                            <Button 
-                                                variant="ghost" 
-                                                size="sm" 
-                                                className={`w-full justify-start ${pendingApprovalsCount > 0 ? 'text-destructive hover:bg-destructive/10' : 'text-green-600 hover:bg-green-600/10'}`}
-                                                onClick={(e) => { e.stopPropagation(); handleApprovalClick(); }}
-                                            >
-                                                 <ListChecks className="w-4 h-4 mr-2" /> Apuração de Horas
-                                            </Button>
-                                            <Button 
-                                                variant="ghost" 
-                                                size="sm" 
-                                                className="w-full justify-start text-primary hover:bg-primary/10"
-                                                onClick={(e) => { e.stopPropagation(); navigate("/status-do-registro"); }}
-                                            >
-                                                <ActivitySquare className="w-4 h-4 mr-2" /> Status do Registro
-                                            </Button>
-                                        </div>
-                                    ) : pendingApprovalsCount > 0 && (
+                                    {/* Links Condicionais */}
+                                    <div className="mt-4 space-y-1">
                                         <Button 
                                             variant="ghost" 
                                             size="sm" 
-                                            className="mt-2 -mx-3 justify-start text-destructive hover:bg-destructive/10"
-                                            onClick={handleApprovalClick}
+                                            className={`w-full justify-start ${pendingApprovalsCount > 0 ? 'text-destructive hover:bg-destructive/10' : 'text-green-600 hover:bg-green-600/10'}`}
+                                            onClick={(e) => { e.stopPropagation(); handleApprovalClick(); }}
                                         >
-                                            Revisar <ArrowRight className="w-4 h-4 ml-1" />
+                                             <ListChecks className="w-4 h-4 mr-2" /> {pendingApprovalsCount > 0 ? 'Revisar Pendências' : 'Apuração de Horas'}
                                         </Button>
-                                    )}
-                                    {pendingApprovalsCount === 0 && !isManager && (
-                                         <p className="text-sm font-medium text-muted-foreground mt-2">
-                                            Tudo aprovado!
-                                         </p>
-                                    )}
+                                        <Button 
+                                            variant="ghost" 
+                                            size="sm" 
+                                            className="w-full justify-start text-primary hover:bg-primary/10"
+                                            onClick={(e) => { e.stopPropagation(); navigate("/status-do-registro"); }}
+                                        >
+                                            <ActivitySquare className="w-4 h-4 mr-2" /> Status do Registro
+                                        </Button>
+                                    </div>
                                 </CardContent>
                             </Card>
                         ) : (
                             /* Card de Acesso Rápido (para quem não tem permissão de aprovação) */
-                             <Card className={getThemeCardClasses('primary')} tabIndex={0}>
+                             <Card className={getThemeCardClasses('primary', true)} onClick={() => navigate("/meus-documentos")} tabIndex={0}>
                                 <CardContent className="p-5 space-y-3 flex flex-col items-start h-full justify-center">
                                     <div className="flex items-center text-primary mb-3">
                                         <Zap className="h-6 w-6 mr-2" />
@@ -439,7 +421,7 @@ const Dashboard = () => {
                                         variant="outline" 
                                         size="sm" 
                                         className="w-full justify-start text-primary hover:bg-primary/10"
-                                        onClick={() => navigate("/meus-documentos")}
+                                        onClick={(e) => { e.stopPropagation(); navigate("/meus-documentos"); }}
                                     >
                                         <FileCheck className="w-4 h-4 mr-2" /> Meus Documentos
                                     </Button>
@@ -447,7 +429,7 @@ const Dashboard = () => {
                                         variant="outline" 
                                         size="sm" 
                                         className="w-full justify-start text-primary hover:bg-primary/10"
-                                        onClick={() => navigate("/relatorio-detalhado")}
+                                        onClick={(e) => { e.stopPropagation(); navigate("/relatorio-detalhado"); }}
                                     >
                                         <ArrowRight className="w-4 h-4 mr-2" /> Meu Relatório
                                     </Button>

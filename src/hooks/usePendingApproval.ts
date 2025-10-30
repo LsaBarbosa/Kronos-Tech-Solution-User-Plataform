@@ -1,104 +1,78 @@
-// src/hooks/usePendingApprovals.ts
+// src/hooks/usePendingApproval.ts
 
-import { useState, useEffect, useCallback } from "react";
-import { useToast } from "@/hooks/use-toast"; //
-import { PendingApproval } from "@/types/recordApproval";
-import { fetchPendingApprovals, approveRecord, rejectRecord } from "@/service/record.service";
+import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
+import { toast } from "@/components/ui/use-toast"; // Assumindo o caminho correto
+import {
+  ITimeRecordApprovalPageResponse,
+  IPendingApprovalQueryParams,
+} from "@/types/recordApproval"; 
+import { 
+    fetchPendingApprovals, 
+    approveTimeRecordChange, 
+    rejectTimeRecordChange 
+} from "@/service/pendingApproval.service"; 
 
-interface UsePendingApprovalsReturn {
-  pendingApprovals: PendingApproval[];
-  isLoading: boolean;
-  handleApprove: (timeRecordId: number, partnerName: string) => Promise<void>;
-  handleReject: (timeRecordId: number, partnerName: string) => Promise<void>;
-  refetchApprovals: () => void;
-}
+/**
+ * Hook para gerenciar a listagem, aprovação e rejeição de solicitações de ponto.
+ */
+export const usePendingApprovals = (params: IPendingApprovalQueryParams) => {
+  const queryClient = useQueryClient();
 
-export const usePendingApprovals = (): UsePendingApprovalsReturn => {
-  const [pendingApprovals, setPendingApprovals] = useState<PendingApproval[]>([]);
-  const [isLoading, setIsLoading] = useState(true);
-  const { toast } = useToast(); //
+  // 1. Listagem Paginada e Filtrada
+  const { data, isLoading, error } = useQuery<ITimeRecordApprovalPageResponse>({
+    queryKey: ["pendingApprovals", params.page, params.employeeName],
+    queryFn: () => fetchPendingApprovals(params), 
+    staleTime: 1000 * 60 * 5, 
+    // CORREÇÃO: Usando placeholderData para manter os dados anteriores
+    placeholderData: (previousData) => previousData, 
+  });
 
-  // Função centralizada de busca (memoizada com useCallback)
-  const loadPendingApprovals = useCallback(async () => {
-    setIsLoading(true);
-    try {
-      const data = await fetchPendingApprovals();
-      setPendingApprovals(data);
-      
+  // 2. Mutação para Aprovação
+  const approveMutation = useMutation({
+    mutationFn: (id: number) => approveTimeRecordChange(id), 
+    onSuccess: () => {
       toast({
-        title: "Sucesso",
-        description: `Foram encontradas ${data.length} solicitações de alteração pendentes.`,
-        className: "border-success bg-success text-white font-medium shadow-lg"
+        title: "✅ Aprovado com sucesso!",
+        description: "O registro de ponto foi atualizado e aprovado.",
       });
-      
-    } catch (error: any) {
-      console.error("Erro ao buscar solicitações:", error);
+      // Invalida a query para forçar o refetch dos dados da página atual
+      queryClient.invalidateQueries({ queryKey: ["pendingApprovals"] });
+    },
+    onError: (e: any) => {
       toast({
-        title: "Erro",
-        description: error.message || "Ocorreu um erro ao buscar as solicitações.",
-        variant: "destructive"
+        title: "❌ Erro ao Aprovar",
+        description: e.message || "Não foi possível aprovar a solicitação.", 
+        variant: "destructive",
       });
-    } finally {
-      setIsLoading(false);
-    }
-  }, [toast]);
+    },
+  });
 
-  // Efeito para carregar os dados na montagem (depende de loadPendingApprovals)
-  useEffect(() => {
-    loadPendingApprovals();
-  }, [loadPendingApprovals]);
-
-  // Handler de Aprovação (chama o serviço e atualiza o estado localmente)
-  const handleApprove = useCallback(async (timeRecordId: number, partnerName: string) => {
-    try {
-      await approveRecord(timeRecordId);
-      
-      // Atualiza o estado localmente para feedback instantâneo
-      setPendingApprovals(prev => prev.filter(req => req.timeRecordId !== timeRecordId));
-
+  // 3. Mutação para Rejeição
+  const rejectMutation = useMutation({
+    mutationFn: (id: number) => rejectTimeRecordChange(id), 
+    onSuccess: () => {
       toast({
-        title: "Solicitação Aprovada",
-        description: `A alteração de registro de ${partnerName} foi aprovada com sucesso.`,
-        className: "border-success bg-success text-white font-medium shadow-lg"
+        title: "✅ Rejeitado com sucesso!",
+        description: "A solicitação de alteração foi rejeitada.",
       });
-    } catch (error: any) {
-      console.error("Erro ao aprovar:", error);
+      // Invalida a query para forçar o refetch dos dados da página atual
+      queryClient.invalidateQueries({ queryKey: ["pendingApprovals"] });
+    },
+    onError: (e: any) => {
       toast({
-        title: "Erro ao Aprovar",
-        description: error.message || "Ocorreu um erro ao aprovar a solicitação. Tente novamente.",
-        variant: "destructive"
+        title: "❌ Erro ao Rejeitar",
+        description: e.message || "Não foi possível rejeitar a solicitação.", 
+        variant: "destructive",
       });
-    }
-  }, [toast]);
-
-  // Handler de Rejeição (chama o serviço e atualiza o estado localmente)
-  const handleReject = useCallback(async (timeRecordId: number, partnerName: string) => {
-    try {
-      await rejectRecord(timeRecordId);
-      
-      // Atualiza o estado localmente para feedback instantâneo
-      setPendingApprovals(prev => prev.filter(req => req.timeRecordId !== timeRecordId));
-
-      toast({
-        title: "Solicitação Rejeitada",
-        description: `A alteração de registro de ${partnerName} foi rejeitada.`,
-        className: "border-destructive bg-destructive text-white font-medium shadow-lg"
-      });
-    } catch (error: any) {
-      console.error("Erro ao rejeitar:", error);
-      toast({
-        title: "Erro ao Rejeitar",
-        description: error.message || "Ocorreu um erro ao rejeitar a solicitação. Tente novamente.",
-        variant: "destructive"
-      });
-    }
-  }, [toast]);
+    },
+  });
 
   return {
-    pendingApprovals,
+    data,
     isLoading,
-    handleApprove,
-    handleReject,
-    refetchApprovals: loadPendingApprovals, // Permite recarregar externamente
+    error,
+    approve: approveMutation.mutate,
+    reject: rejectMutation.mutate,
+    isMutating: approveMutation.isPending || rejectMutation.isPending, 
   };
 };
