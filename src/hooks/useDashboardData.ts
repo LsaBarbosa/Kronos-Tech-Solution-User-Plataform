@@ -5,7 +5,7 @@ import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 // Importação do serviço (mantida)
 import { fetchUserProfile, fetchPendingApprovalsCount, fetchAllWarnings, updateLastSeenMessageTimestamp } from "@/service/dashboard.service";
-import { ITimeRecordApprovalResponse } from "@/types/recordApproval"; 
+import { ITimeRecordApprovalPageResponse, ITimeRecordApprovalResponse } from "@/types/recordApproval"; 
 // 💡 CORREÇÃO 1: Removendo a importação de UserProfile que não existe mais em dashboard.ts
 import { WarningMessage, hasApprovalPermission } from "@/types/dashboard";
 // 💡 CORREÇÃO 2: Importando o tipo UserData (o novo tipo completo) de user.ts
@@ -39,13 +39,17 @@ export const useDashboardData = (): UseDashboardDataReturn => {
 
 
     // 1. Busca de Aprovações Pendentes (separada para reuso)
-    const fetchApprovalsCount = useCallback(async (role: string) => {
+   const fetchApprovalsCount = useCallback(async (role: string) => {
         if (!hasApprovalPermission(role)) {
              return { count: 0 };
         }
         try {
-            const approvals: ITimeRecordApprovalResponse[] = await fetchPendingApprovalsCount();
-            return { count: approvals.length };
+            // 💡 CHAMA o serviço que retorna o objeto de paginação completo
+            const pageResponse: ITimeRecordApprovalPageResponse = await fetchPendingApprovalsCount();
+            
+            // ✅ LÓGICA CORRIGIDA: Usa o campo totalElements do payload para o contador
+            return { count: pageResponse.totalElements };
+            
         } catch (error) {
             console.error("Erro ao buscar aprovações:", error);
             return { count: 0 };
