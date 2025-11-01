@@ -8,7 +8,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { useToast } from "@/hooks/use-toast";
 import Header from "@/components/Header";
 import Sidebar from "@/components/Sidebar";
-import { Info, Save } from "lucide-react";
+import { Info, Save, ZapOff } from "lucide-react"; // 💡 ALTERADO: Adicionado ZapOff
 import { API_BASE_URL } from "@/config/api";
 
 // 💡 NOVO: Componente de Filtros Modular
@@ -279,6 +279,63 @@ const StatusRegistro = () => {
     }
 
 
+    // 5. Função para alternar o status de ativação do registro (Inativar/Ativar)
+    const handleToggleActivateRecord = async () => {
+        const { timeRecordId, employeeId } = statusUpdate; // Reutiliza os IDs do estado do modal
+        const currentAction = selectedRecord?.active ? "Inativar" : "Ativar";
+
+        if (!timeRecordId || !employeeId) {
+            toast({ 
+                title: "Erro", 
+                description: "Dados de registro incompletos para inativação/ativação. Verifique se um funcionário foi selecionado.", 
+                variant: "destructive" 
+            });
+            return;
+        }
+
+        try {
+            const token = localStorage.getItem("token");
+            if (!token) {
+                throw new Error("Token de autenticação não encontrado.");
+            }
+
+            // Endpoint conforme informação do backend: PATCH records/toggle-activate/{employeeId}/{timeRecordId}
+            const endpoint = `${API_BASE_URL}records/toggle-activate/${employeeId}/${timeRecordId}`;
+
+            const response = await fetch(endpoint, {
+                method: "PATCH", 
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${token}`,
+                },
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.detail || `Erro ao ${currentAction.toLowerCase()} o registro de ponto.`);
+            }
+
+            toast({
+                title: "Sucesso",
+                description: `Registro de ponto ${currentAction.toLowerCase()} com sucesso.`,
+            });
+
+            setEditModalOpen(false);
+            
+            // Recarrega os dados para mostrar o status atualizado
+            handleSearch();
+
+        } catch (error: any) {
+            console.error(`Erro ao ${currentAction.toLowerCase()} registro:`, error);
+            toast({
+                title: "Erro",
+                description: error.message || `Ocorreu um erro ao ${currentAction.toLowerCase()} o registro.`,
+                variant: "destructive",
+            });
+        }
+    }
+
+
     useEffect(() => {
         fetchEmployees();
     }, [fetchEmployees]);
@@ -435,23 +492,37 @@ const StatusRegistro = () => {
                                 </div>
                             </div>
 
-                            <div className="flex justify-end space-x-2 pt-4">
+                            <div className="flex justify-between items-center pt-4">
+                                {/* NOVO: Botão para Inativar/Ativar Registro */}
                                 <Button
                                     type="button"
-                                    variant="outline"
-                                    onClick={() => setEditModalOpen(false)}
+                                    variant="destructive"
+                                    onClick={handleToggleActivateRecord}
+                                    disabled={!statusUpdate.timeRecordId || !statusUpdate.employeeId}
                                 >
-                                    Cancelar
+                                    <ZapOff className="h-4 w-4 mr-2" />
+                                    {/* O texto é dinâmico, pois o endpoint faz um TOGGLE */}
+                                    {selectedRecord?.active ? "Inativar Registro" : "Ativar Registro"}
                                 </Button>
-                                <Button
-                                    type="button"
-                                    onClick={handleUpdateStatus}
-                                    className="bg-primary hover:bg-primary/90"
-                                    disabled={!statusUpdate.timeRecordId || !statusUpdate.employeeId || !statusUpdate.statusRecord}
-                                >
-                                    <Save className="h-4 w-4 mr-2" />
-                                    Salvar Status
-                                </Button>
+                                
+                                <div className="flex space-x-2">
+                                    <Button
+                                        type="button"
+                                        variant="outline"
+                                        onClick={() => setEditModalOpen(false)}
+                                    >
+                                        Cancelar
+                                    </Button>
+                                    <Button
+                                        type="button"
+                                        onClick={handleUpdateStatus}
+                                        className="bg-primary hover:bg-primary/90"
+                                        disabled={!statusUpdate.timeRecordId || !statusUpdate.employeeId || !statusUpdate.statusRecord}
+                                    >
+                                        <Save className="h-4 w-4 mr-2" />
+                                        Salvar Status
+                                    </Button>
+                                </div>
                             </div>
                         </DialogContent>
                     </Dialog>
