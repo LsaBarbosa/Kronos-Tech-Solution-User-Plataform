@@ -303,7 +303,7 @@ const StatusRegistro = () => {
             const endpoint = `${API_BASE_URL}records/toggle-activate/${employeeId}/${timeRecordId}`;
 
             const response = await fetch(endpoint, {
-                method: "PATCH", 
+                method: "PUT", 
                 headers: {
                     "Content-Type": "application/json",
                     Authorization: `Bearer ${token}`,
