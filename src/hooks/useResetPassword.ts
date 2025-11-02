@@ -58,6 +58,7 @@ export const useResetPassword = (): UseResetPasswordReturn => {
             const payload: ResetPasswordPayload = {
                 token: token,
                 newPassword: data.newPassword,
+                confirmPassword: data.confirmPassword,
             };
 
             await resetPassword(payload); // 💡 Chama o Serviço

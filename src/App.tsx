@@ -46,6 +46,7 @@ const App = () => (
           <Routes>
 
             <Route path="/" element={<TokenRedirect />} />
+            <Route path="/login" element={<Login />} />
             <Route path="/esqueci-a-senha" element={<EsqueciSenha />} />
             <Route path="/resetar-senha" element={<ResetPassword />} />
 

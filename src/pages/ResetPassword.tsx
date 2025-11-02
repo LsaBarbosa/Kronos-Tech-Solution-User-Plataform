@@ -49,7 +49,7 @@ const ResetPassword = () => {
               <p className="font-semibold text-foreground">
                 Senha redefinida com sucesso! Redirecionando para o login...
               </p>
-              <Button onClick={() => navigate("/login")} className="w-full">
+              <Button onClick={() => navigate("/")} className="w-full">
                 Ir para o Login
               </Button>
             </div>
