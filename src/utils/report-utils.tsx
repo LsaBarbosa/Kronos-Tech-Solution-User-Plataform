@@ -2,8 +2,8 @@
 
 import { z } from "zod";
 import { API_BASE_URL } from "@/config/api";
-import { format } from "date-fns";
-
+import { format, parse, isValid } from "date-fns"; // Adicionado 'parse' e 'isValid'
+import { ptBR } from 'date-fns/locale'; //
 // --- Interfaces ---
 
 // Interface DetailedReportItem simplificada (sem a lista 'breaks')
@@ -111,6 +111,31 @@ export const decodeToken = (token: string) => {
         console.error("Failed to decode token", error);
         return null;
     }
+};
+
+const parseDateString = (dateString: string): Date => {
+    // Tenta parsear DD/MM/YYYY (Formato de ReportDay)
+    let parsedDate = parse(dateString, "dd/MM/yyyy", new Date());
+    if (isValid(parsedDate)) return parsedDate;
+
+    // Tenta parsear DD-MM-YYYY (Formato de DetailedReportItem)
+    parsedDate = parse(dateString, "dd-MM-yyyy", new Date());
+    if (isValid(parsedDate)) return parsedDate;
+
+    return new Date('Invalid Date'); // Retorna data inválida se falhar
+};
+
+// NOVO: Função para formatar a data, incluindo o dia da semana por extenso
+export const formatDateWithDayOfWeek = (dateString: string): string => {
+    const date = parseDateString(dateString);
+
+    if (!isValid(date)) {
+        return dateString; // Retorna a string original se for inválida
+    }
+
+    // Formato desejado: "Segunda-feira, 01/01/2024"
+    // EEEE: dia da semana por extenso.
+    return format(date, "EEEE, dd/MM/yyyy", { locale: ptBR });
 };
 
 const getEasterDate = (year: number): Date => {

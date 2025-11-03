@@ -4,7 +4,7 @@ import React from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { CalendarIcon, Download, Edit, Coffee } from "lucide-react"; // Usando Coffee para Pausa
-import { DetailedReportItem, statusOptions, getStatusColor, getTranslatedStatus } from "@/utils/report-utils";
+import { DetailedReportItem, statusOptions, getStatusColor, getTranslatedStatus, formatDateWithDayOfWeek } from "@/utils/report-utils"; // <--- ALTERADO
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
 import autoTable from "jspdf-autotable";
@@ -31,19 +31,8 @@ export const ResultadosRelatorioDetalhado: React.FC<ResultadosDetalhadoProps> = 
 
     // Lógica do PDF Detalhado (Atualizada para Pausa como registro principal e Estilizada)
     const handleDownload = () => {
-        const parseDate = (dateString: string) => {
-            if (!dateString) return null;
-            const parts = dateString.split('-'); // DD-MM-YYYY
-            if (parts.length === 3) {
-                const [day, month, year] = parts;
-                const date = new Date(`${year}/${month}/${day}`);
-                if (!isNaN(date.getTime())) {
-                    return date;
-                }
-            }
-            return null;
-        };
-
+        // A função local 'parseDate' FOI REMOVIDA
+        
         if (reportData.length === 0) {
             toast({
                 title: "Erro",
@@ -110,11 +99,13 @@ export const ResultadosRelatorioDetalhado: React.FC<ResultadosDetalhadoProps> = 
             reportData.forEach(item => {
                 const isBreak = item.statusRecord === 'IMPLICIT_BREAK';
                 
-                const startDate = parseDate(item.startWork);
-                const endDate = parseDate(item.endWork);
+                // NOVO: Usando a função utilitária para obter a data formatada
+                const formattedDateStart = formatDateWithDayOfWeek(item.startWork); // <--- NOVO
+                const formattedDateEnd = formatDateWithDayOfWeek(item.endWork);   // <--- NOVO
 
-                const formattedStart = `${startDate ? format(startDate, "dd/MM/yyyy") : 'N/A'}\n${item.startHour}`;
-                const formattedEnd = `${endDate ? format(endDate, "dd/MM/yyyy") : 'N/A'}\n${item.endHour}`;
+                // Constrói a célula do PDF: "Dia da Semana, DD/MM/YYYY\nHH:MM"
+                const formattedStart = `${formattedDateStart}\n${item.startHour}`; // <--- ALTERADO
+                const formattedEnd = `${formattedDateEnd}\n${item.endHour}`;       // <--- ALTERADO
 
                 const statusLabel = getTranslatedStatus(item.statusRecord);
                 const fillColor = isBreak ? COLOR_BREAK_RECORD : COLOR_MAIN_RECORD;
@@ -156,7 +147,7 @@ export const ResultadosRelatorioDetalhado: React.FC<ResultadosDetalhadoProps> = 
             }
 
             autoTable(doc, {
-                head: [['Início (Data/Hora)', 'Fim (Data/Hora)', 'Duração', 'Saldo', 'Status']], 
+                head: [['Início (Data/Dia da Semana/Hora)', 'Fim (Data/Dia da Semana/Hora)', 'Duração', 'Saldo', 'Status']], 
                 body: tableBody,
                 startY: yPosition,
                 margin: { left: 20, right: 20 },

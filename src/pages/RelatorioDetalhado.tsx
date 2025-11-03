@@ -23,6 +23,7 @@ import {
     isHoliday,
     statusOptions,
     getTranslatedStatus,
+    formatDateWithDayOfWeek,
 } from "@/utils/report-utils";
 import { API_BASE_URL } from "@/config/api";
 
@@ -395,476 +396,282 @@ const RelatorioDetalhado = () => {
         }
     };
 
-
-    // === LÓGICA DE DOWNLOAD PDF DETALHADA (RENOMEADA E ESTILIZADA) ===
-    const handleDownloadPDFDetailed = () => {
-        const parseDate = (dateString: string) => {
-            if (!dateString) return null;
-            const parts = dateString.split('-'); // DD-MM-YYYY
-            if (parts.length === 3) {
-                const [day, month, year] = parts;
-                const date = new Date(`${year}/${month}/${day}`);
-                if (!isNaN(date.getTime())) {
-                    return date;
-                }
-            }
-            return null;
-        };
-
-        if (reportData.length === 0) {
-            toast({
-                title: "Erro",
-                description: "Gere o relatório detalhado primeiro para poder fazer o download.",
-                variant: "destructive"
-            });
-            return;
+   // FUNÇÕES AUXILIARES NECESSÁRIAS
+const parseDate = (dateString: string): Date | null => {
+    if (!dateString) return null;
+    const parts = dateString.split('-'); // DD-MM-YYYY
+    if (parts.length === 3) {
+        const [day, month, year] = parts;
+        // Ajuste para evitar o problema de fuso horário ao criar a data
+        const date = new Date(parseInt(year), parseInt(month) - 1, parseInt(day), 12); // Usar meio-dia (12h)
+        
+        // Checagem de validade extra para garantir que a data não seja inválida
+        if (!isNaN(date.getTime()) && date.getDate() === parseInt(day)) {
+            return date;
         }
+    }
+    return null;
+};
+    
+const COLOR_HEADER = [4, 60, 107]; // Azul escuro
+const COLOR_MAIN_RECORD = [255, 255, 255]; // Branco (para registros normais)
+const COLOR_BREAK_RECORD = [230, 240, 255]; // Azul muito claro (para pausas)
+const COLOR_HOLIDAY_ROW = [255, 245, 245]; // Vermelho muito claro (para feriados)
+    
+// === LÓGICA DE DOWNLOAD PDF DETALHADA (RENOMEADA E ESTILIZADA) ===
+const handleDownloadPDFDetailed = () => {
+    // 1. CHECAGEM INICIAL (MANTIDA)
+    if (reportData.length === 0) {
+        toast({ title: "Erro", description: "Não há dados para gerar o PDF.", variant: "destructive" });
+        return;
+    }
 
-        try {
-            const doc = new jsPDF({
-                orientation: 'landscape',
-                unit: 'mm',
-                format: 'a4'
-            });
+    const doc = new jsPDF();
+    const fileName = `relatorio_detalhado_${format(new Date(), 'yyyyMMdd_HHmmss')}.pdf`;
 
-            // 💡 ESTILO: TÍTULO PRINCIPAL COLORIDO E MAIOR
-            doc.setTextColor(0, 150, 136); // Azul-Petróleo Elegante
-            doc.setFont("helvetica", "bold");
-            doc.setFontSize(22);
-            doc.text('RELATÓRIO DETALHADO DE PONTO', 20, 25);
+    // 2. 🚀 CORREÇÃO DE ERRO DE EXECUÇÃO: USO DE OPTIONAL CHAINING
+    const employeeName = reportData[0]?.employeeData?.employeeName || 'N/A';
+    const companyName = reportData[0]?.employeeData?.companyName || 'N/A';
+    // -----------------------------------------------------------
 
-            // Volta para estilo de texto normal
-            doc.setFontSize(12);
-            doc.setFont("helvetica", "normal");
-            doc.setTextColor(0, 0, 0); // Preto
-            let yPosition = 40;
+    // Datas únicas para checagem de feriado (Usando parseDate e isHoliday)
+    const uniqueDates = Array.from(new Set(reportData.map(item => item.startWork)));
+    const validDates = uniqueDates.map(dateStr => parseDate(dateStr)).filter((d): d is Date => d !== null);
+    const holidayDates = validDates.filter(date => isHoliday(date));
+    const holidayList = holidayDates.map(date => format(date, 'dd/MM/yy')).join(', ');
+    
+    // --- Cabeçalho
+    doc.setFontSize(18);
+    doc.text("RELATÓRIO DETALHADO DE PONTO", 14, 20);
+    doc.setFontSize(10);
+    doc.text(`Funcionário: ${employeeName}`, 14, 30);
+    doc.text(`Empresa: ${companyName}`, 14, 35);
+    doc.text(`Carga horária diária: ${referenceTime}`, 14, 40);
+    
+    // 🚀 NOVO: Lista de Feriados no cabeçalho
+    doc.text(`Feriados no Período: ${holidayList || 'Nenhum'}`, 14, 45);
+    
+    doc.text(`Período de Referência: ${format(selectedDates[0], 'dd/MM/yyyy')} a ${format(selectedDates[selectedDates.length - 1], 'dd/MM/yyyy')}`, 14, 50);
 
-            if (reportData.length > 0 && reportData[0].employeeData) {
-                doc.text(`Funcionário: ${reportData[0].employeeData.employeeName}`, 20, yPosition);
-                yPosition += 7;
-                doc.text(`Empresa: ${reportData[0].employeeData.companyName}`, 20, yPosition);
-                yPosition += 7;
+    // --- Corpo da Tabela
+    const tableBody: any[] = [];
+
+    reportData.forEach((item, index) => {
+        const isBreak = item.statusRecord === 'IMPLICIT_BREAK';
+        const formattedDateStart = formatDateWithDayOfWeek(item.startWork); // 'DD-MM-YYYY' -> 'Dia, DD/MM/YYYY'
+        const formattedDateEnd = formatDateWithDayOfWeek(item.endWork);   // 'DD-MM-YYYY' -> 'Dia, DD/MM/YYYY'
+
+        const formattedStart = `${formattedDateStart}\n${item.startHour}`;
+        const formattedEnd = `${formattedDateEnd}\n${item.endHour}`;
+        
+        // 🚀 NOVO: Checa se o registro é feriado
+        const startDate = parseDate(item.startWork);
+        const isItemHoliday = startDate && isHoliday(startDate);
+
+        const statusLabel = getTranslatedStatus(item.statusRecord);
+        
+        // 🚀 NOVO: Define a cor da linha com base no status e feriado
+        const fillColor = isItemHoliday ? COLOR_HOLIDAY_ROW : (isBreak ? COLOR_BREAK_RECORD : COLOR_MAIN_RECORD);
+        const fontStyle = isBreak ? 'italic' : 'normal';
+
+        const rowCells = [
+            { content: formattedStart, styles: { fontStyle: fontStyle } },
+            { content: formattedEnd, styles: { fontStyle: fontStyle } },
+            { content: item.hoursWork, styles: { fontStyle: fontStyle } },
+            { content: isBreak ? 'N/A' : item.balance, styles: { fontStyle: fontStyle } },
+            // 🚀 NOVO: Adiciona (FERIADO) ao status
+            { content: isItemHoliday ? `${statusLabel} (FERIADO)` : statusLabel, styles: { fontStyle: fontStyle } }    
+        ];
+
+        // 3. 🚀 CORREÇÃO DO ESTILO DA LINHA: Aplica o fillColor individualmente a cada célula
+        tableBody.push(rowCells.map(cell => ({
+            ...cell,
+            styles: {
+                ...cell.styles,
+                fillColor: fillColor,
             }
+        })));
+    });
 
-            if (status) {
-                const statusLabel = getTranslatedStatus(status);
-                doc.text(`Status: ${statusLabel}`, 20, yPosition);
-                yPosition += 7;
-            }
+    // --- autoTable
+    autoTable(doc, {
+        head: [['Início da Jornada)', 'Fim da Jornada', 'Duração', 'Saldo', 'Status']],
+        body: tableBody,
+        startY: 55,
+        theme: 'striped',
+        headStyles: { 
+            fillColor: COLOR_HEADER, 
+            textColor: 255, 
+            halign: 'center', 
+            valign: 'middle' 
+        },
+        bodyStyles: { 
+            fontSize: 10,
+            halign: 'center',
+        },
+        // Remove didParseCell que duplicava a lógica de cor
+    });
 
-            doc.text(`Carga horária diária: ${referenceTime}`, 20, yPosition);
-            yPosition += 7;
+    // --- Rodapé
+    const pageCount = doc.getNumberOfPages();
+    for (let i = 1; i <= pageCount; i++) {
+        doc.setPage(i);
+        doc.setFontSize(8);
+        doc.text(`Gerado em: ${format(new Date(), 'dd/MM/yyyy HH:mm', { locale: ptBR })} | Página ${i} de ${pageCount}`, 14, doc.internal.pageSize.height - 10);
+    }
 
-
-            if (selectedDates.length > 0) {
-                const validDates = selectedDates.filter(date => date && !isNaN(date.getTime()));
-
-                // 🚀 NOVO FILTRO: Obtém apenas as datas que são feriado (utilizando a função isHoliday)
-                const holidayDates = validDates.filter(date => isHoliday(date));
-
-                if (holidayDates.length > 0) {
-                    const datesList = holidayDates
-                        .map(date => format(date, "dd/MM/yy", { locale: ptBR }))
-                        .join(", ");
-
-                    // 🚀 NOVO TEXTO: Indica que são apenas os feriados
-                    doc.text(`Feriados Nacionais: ${datesList}`, 20, yPosition);
-                    yPosition += 10;
-                }
-            }
-
-            doc.setFont("helvetica", "bold");
-            yPosition += 5;
-
-
-
-            // 💡 ESTILO: NOVO ESQUEMA DE CORES PARA LINHAS
-            const COLOR_MAIN_RECORD = [240, 255, 240]; // Honeydew (Trabalho - Linha Mais Clara)
-            const COLOR_BREAK_RECORD = [230, 230, 250]; // Lavanda/Muito Claro (Pausa - Linha Suave)
-            const COLOR_SEPARATOR = [200, 200, 200];       // Cinza (Separador)
-            const COLOR_HOLIDAY_ROW = [255, 230, 230];
-            const SEPARATOR_PADDING = 0.1
-
-            const tableBody: any[] = [];
-
-            reportData.forEach((item, index) => {
-                const isBreak = item.statusRecord === 'IMPLICIT_BREAK';
-
-                const startDate = parseDate(item.startWork);
-                const endDate = parseDate(item.endWork);
-                const isItemHoliday = startDate && isHoliday(startDate);
-
-                const formattedStart = `${startDate ? format(startDate, "dd/MM/yyyy") : 'N/A'}\n${item.startHour}`;
-                const formattedEnd = `${endDate ? format(endDate, "dd/MM/yyyy") : 'N/A'}\n${item.endHour}`;
-
-                const statusLabel = getTranslatedStatus(item.statusRecord);
-                const fillColor = isItemHoliday ? COLOR_HOLIDAY_ROW : (isBreak ? COLOR_BREAK_RECORD : COLOR_MAIN_RECORD);
-                const fontStyle = isBreak ? 'italic' : 'normal';
-
-                // Linha Única para Segmento de Trabalho OU Pausa
-                const rowCells = [
-                    { content: formattedStart, styles: { fillColor: fillColor } },
-                    { content: formattedEnd, styles: { fillColor: fillColor } },
-                    { content: item.hoursWork, styles: { fillColor: fillColor } },
-                    { content: isBreak ? 'N/A' : item.balance, styles: { fillColor: fillColor } },
-                    { content: statusLabel, styles: { fillColor: fillColor } },
-                    { content: isItemHoliday ? `${statusLabel} (FERIADO)` : statusLabel, styles: { fillColor: fillColor } }
-                ];
-
-                // Aplica estilos de alinhamento e fonte padrão para a linha
-                tableBody.push(rowCells.map(cell => ({
-                    ...cell,
-                    styles: {
-                        ...cell.styles,
-                        halign: 'center',
-                        cellPadding: isBreak ? 2 : 4, // Ajustado padding para elegância
-                        fontSize: isBreak ? 8 : 9,
-                        fontStyle: fontStyle
-                    }
-                })));
-
-
-                // Adiciona a linha separadora SOMENTE no final de cada REGISTRO
-                if (index < reportData.length - 1) {
-                    tableBody.push([
-                        { content: '', colSpan: 5, styles: { fillColor: COLOR_SEPARATOR, cellPadding: SEPARATOR_PADDING } }
-                    ]);
-                }
-            });
-
-
-            yPosition += 10;
-
-            if (tableBody.length > 0) {
-                // Remove a última linha separadora extra se ela foi adicionada no final
-                if (tableBody[tableBody.length - 1][0].styles.fillColor[0] === COLOR_SEPARATOR[0]) {
-                    tableBody.pop();
-                }
-            }
-
-            autoTable(doc, {
-                head: [['Início (Data/Hora)', 'Fim (Data/Hora)', 'Duração', 'Saldo', 'Status']],
-                body: tableBody,
-                startY: yPosition,
-                margin: { left: 20, right: 20 },
-                styles: {
-                    fontSize: 9,
-                    cellPadding: 3,
-                    halign: 'center',
-                    lineColor: [220, 220, 220], // Linhas mais claras
-                    lineWidth: 0.1, // Linhas mais finas
-                },
-                headStyles: {
-                    fillColor: [0, 150, 136], // NOVO: Azul-petróleo (Tema Principal)
-                    textColor: [255, 255, 255],
-                    fontSize: 11,
-                    fontStyle: 'bold'
-                },
-                columnStyles: {
-                    3: { // Coluna do Saldo
-                        cellWidth: 20,
-                        halign: 'center'
-                    }
-                },
-                didParseCell: function (data) {
-                    if (data.column.index === 3 && data.section === 'body') {
-                        const balance = data.cell.text[0];
-                        const status = data.row.raw[4].content;
-
-                        // Não aplica cor ao Saldo se for Pausa
-                        if (status === getTranslatedStatus('IMPLICIT_BREAK') || balance === 'N/A') {
-                            data.cell.styles.textColor = [0, 0, 0]; // Preto
-                            data.cell.styles.fontStyle = 'italic';
-                        } else if (balance) {
-                            if (balance.toString().startsWith('-')) {
-                                data.cell.styles.textColor = [220, 53, 69]; // Vermelho
-                                data.cell.styles.fontStyle = 'bold';
-                            } else if (!balance.toString().startsWith('-') && balance !== '00:00') {
-                                data.cell.styles.textColor = [40, 167, 69]; // Verde
-                                data.cell.styles.fontStyle = 'bold';
-                            }
-                        }
-                    }
-                }
-            });
-
-            const pageCount = doc.getNumberOfPages();
-            for (let i = 1; i <= pageCount; i++) {
-                doc.setPage(i);
-                doc.setFontSize(8);
-                // 💡 ESTILO: Rodapé em Azul Suave
-                doc.setTextColor(100, 149, 237); // Cornflower Blue
-                doc.text(`Página ${i} de ${pageCount}`, doc.internal.pageSize.width - 30, doc.internal.pageSize.height - 10);
-                doc.text(`Gerado em: ${format(new Date(), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}`, 20, doc.internal.pageSize.height - 10);
-            }
-            doc.setTextColor(0, 0, 0); // Volta ao preto para evitar vazamento
-
-
-            const fileName = `relatorio_detalhado_${format(new Date(), "yyyyMMdd_HHmmss")}.pdf`;
-            doc.save(fileName);
-
-            toast({
-                title: "PDF Gerado",
-                description: "Relatório detalhado baixado com sucesso!",
-            });
-
-        } catch (error) {
-            console.error("Erro ao gerar PDF:", error);
-            toast({
-                title: "Erro",
-                description: (error as Error).message || "Não foi possível gerar o PDF. Tente novamente.",
-                variant: "destructive",
-            });
-        }
-    };
+    doc.save(fileName);
+};
+   
     // === FIM LÓGICA DE DOWNLOAD PDF DETALHADA ===
 
 
     // === LÓGICA DE DOWNLOAD PDF SIMPLES (RENOMEADA) ===
-    const handleDownloadPDFSimple = () => {
-        if (!reportDataSimple || reportDataSimple.days.length === 0) {
-            toast({
-                title: "Erro",
-                description: "Gere o relatório simples primeiro para poder fazer o download.",
-                variant: "destructive"
-            });
-            return;
-        }
+  const handleDownloadPDFSimple = () => {
+    if (!reportDataSimple || reportDataSimple.days.length === 0) {
+        toast({ title: "Erro", description: "Não há dados para gerar o PDF.", variant: "destructive" });
+        return;
+    }
 
-        try {
-            const doc = new jsPDF({
-                orientation: 'portrait',
-                unit: 'mm',
-                format: 'a4'
-            });
+    const doc = new jsPDF();
+    const fileName = `relatorio_simples_${format(new Date(), 'yyyyMMdd_HHmmss')}.pdf`;
 
-            // 💡 ESTILO: TÍTULO PRINCIPAL COLORIDO E MAIOR
-            doc.setTextColor(0, 150, 136); // Azul-Petróleo Elegante
-            doc.setFont("helvetica", "bold");
-            doc.setFontSize(22);
-            doc.text('RELATÓRIO SIMPLES DE PONTO', 20, 25);
+    const employeeName = reportDataSimple.employeeName || 'N/A';
+    const companyName = reportDataSimple.companyName || 'N/A';
 
-            // Volta para estilo de texto normal
-            doc.setFontSize(12);
-            doc.setFont("helvetica", "normal");
-            doc.setTextColor(0, 0, 0); // Preto
-            let yPosition = 40;
+    // --- Cabeçalho
+    doc.setFontSize(18);
+    doc.text("RELATÓRIO SIMPLES DE PONTO", 14, 20);
+    doc.setFontSize(10);
+    doc.text(`Funcionário: ${employeeName}`, 14, 30);
+    doc.text(`Empresa: ${companyName}`, 14, 35);
+    doc.text(`Carga horária diária: ${referenceTime}`, 14, 40);
+    doc.text(`Total de Horas Trabalhadas: ${reportDataSimple.totalHoursWorked}`, 14, 45);
+    doc.text(`Saldo Total: ${reportDataSimple.totalBalance}`, 14, 50);
+    doc.text(`Período de Referência: ${format(selectedDates[0], 'dd/MM/yyyy')} a ${format(selectedDates[selectedDates.length - 1], 'dd/MM/yyyy')}`, 14, 55);
 
-            if (reportDataSimple.employeeName) {
-                doc.text(`Funcionário: ${reportDataSimple.employeeName}`, 20, yPosition);
-                yPosition += 7;
-            }
 
-            if (reportDataSimple.companyName) {
-                doc.text(`Empresa: ${reportDataSimple.companyName}`, 20, yPosition);
-                yPosition += 7;
-            }
+    // --- Corpo da Tabela
+    const tableData = reportDataSimple.days.map(day => {
+        const parts = day.startDate.split('/'); // Assumindo DD/MM/YYYY no day.startDate
+        const dayDate = new Date(`${parts[2]}-${parts[1]}-${parts[0]}`); // Cria Date para isHoliday
+        const holiday = isHoliday(dayDate) ? ' 🎉' : '';
 
-            doc.text(`Carga horária diária: ${referenceTime}`, 20, yPosition);
-            yPosition += 7;
+        // 🚀 NOVO: Formatação com Dia da Semana
+        const formattedDateWithDayOfWeek = formatDateWithDayOfWeek(day.startDate);
 
-            // Adicionando os totais antes da tabela
-            doc.setFont("helvetica", "bold");
-            // 💡 ESTILO: TOTAIS EM DESTAQUE E COLORIDOS
-            doc.setTextColor(40, 167, 69); // Verde
-            doc.text(`Total de Horas Trabalhadas: ${reportDataSimple.totalHoursWorked}`, 20, yPosition);
-            yPosition += 7;
-            doc.setTextColor(reportDataSimple.totalBalance.startsWith('-') ? 220 : 40, reportDataSimple.totalBalance.startsWith('-') ? 53 : 167, reportDataSimple.totalBalance.startsWith('-') ? 69 : 69); // Destaque de saldo
-            doc.text(`Saldo Total: ${reportDataSimple.totalBalance}`, 20, yPosition);
-            yPosition += 10;
-            doc.setFont("helvetica", "normal");
-            doc.setTextColor(0, 0, 0); // Volta para preto
+        return [
+            `${formattedDateWithDayOfWeek}${holiday}`, // AGORA INCLUI O DIA DA SEMANA
+            day.startHour || 'N/A',
+            day.endHour || 'N/A',
+            day.totalHours,
+            day.balance,
+        ];
+    });
 
-            const tableData = reportDataSimple.days.map(day => {
-                const parts = day.startDate.split('/');
-                const dayDate = new Date(`${parts[2]}-${parts[1]}-${parts[0]}`);
-                // 💡 Marcador de Feriado mantido (usado no didParseCell abaixo)
-                const holiday = isHoliday(dayDate) ? ' 🎉' : '';
-                return [
-                    `${day.startDate}${holiday}`,
-                    day.startHour || 'N/A',
-                    day.endHour || 'N/A',
-                    day.totalHours,
-                    day.balance,
-                ];
-            });
+    // --- autoTable
+    autoTable(doc, {
+        head: [['Data', 'Entrada', 'Saída', 'Total de Horas', 'Saldo do Dia']],
+        body: tableData,
+        startY: 65,
+        theme: 'striped',
+        headStyles: { 
+            fillColor: COLOR_HEADER, 
+            textColor: 255, 
+            halign: 'center', 
+            valign: 'middle' 
+        },
+        bodyStyles: { fontSize: 10 },
+    });
+    
+    // --- Rodapé
+    const pageCount = doc.getNumberOfPages();
+    for (let i = 1; i <= pageCount; i++) {
+        doc.setPage(i);
+        doc.setFontSize(8);
+        doc.text(`Gerado em: ${format(new Date(), 'dd/MM/yyyy HH:mm', { locale: ptBR })} | Página ${i} de ${pageCount}`, 14, doc.internal.pageSize.height - 10);
+    }
 
-            autoTable(doc, {
-                head: [['Data', 'Entrada', 'Saída', 'Total de Horas', 'Saldo do Dia']],
-                body: tableData,
-                startY: yPosition,
-                margin: { left: 20, right: 20 },
-                styles: {
-                    fontSize: 9,
-                    cellPadding: 4,
-                    halign: 'center',
-                    lineColor: [220, 220, 220],
-                    lineWidth: 0.1,
-                },
-                headStyles: {
-                    fillColor: [0, 150, 136],
-                    textColor: [255, 255, 255],
-                    fontSize: 11,
-                    fontStyle: 'bold'
-                },
-                alternateRowStyles: {
-                    fillColor: [240, 255, 240],
-                },
-                columnStyles: {
-                    4: {
-                        cellWidth: 25,
-                        halign: 'center'
-                    }
-                },
-                didParseCell: function (data) {
-                    // 💡 LÓGICA DE DESTAQUE PARA FERIADO (USANDO O MARCADOR)
-                    if (data.column.index === 0 && data.section === 'body') {
-                        const cellContent = data.cell.text[0];
-                        if (cellContent && cellContent.includes('🎉')) {
-                            data.cell.styles.textColor = [255, 87, 34]; // Laranja vibrante
-                            data.cell.styles.fontStyle = 'bold';
-                            // Remove o ícone do texto da célula
-                            data.cell.text[0] = data.cell.text[0].replace(' 🎉', '');
-                        }
-                    }
-
-                    // Lógica para Saldo
-                    if (data.column.index === 4 && data.section === 'body') {
-                        const balance = data.cell.text[0];
-                        if (balance && balance.startsWith('-')) {
-                            data.cell.styles.textColor = [220, 53, 69];
-                            data.cell.styles.fontStyle = 'bold';
-                        } else if (balance && !balance.startsWith('-') && balance !== '00:00') {
-                            data.cell.styles.textColor = [40, 167, 69];
-                            data.cell.styles.fontStyle = 'bold';
-                        }
-                    }
-                }
-            });
-
-            const pageCount = doc.getNumberOfPages();
-            for (let i = 1; i <= pageCount; i++) {
-                doc.setPage(i);
-                doc.setFontSize(8);
-                // 💡 ESTILO: Rodapé em Azul Suave
-                doc.setTextColor(100, 149, 237); // Cornflower Blue
-                doc.text(`Página ${i} de ${pageCount}`, doc.internal.pageSize.width - 30, doc.internal.pageSize.height - 10);
-                doc.text(`Gerado em: ${format(new Date(), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}`, 20, doc.internal.pageSize.height - 10);
-            }
-            doc.setTextColor(0, 0, 0); // Volta ao preto para evitar vazamento
-
-            const fileName = `relatorio_simples_${format(new Date(), "yyyyMMdd_HHmmss")}.pdf`;
-            doc.save(fileName);
-
-            toast({
-                title: "PDF Gerado",
-                description: "Relatório simples baixado com sucesso!",
-            });
-
-        } catch (error) {
-            console.error("Erro ao gerar PDF:", error);
-            toast({
-                title: "Erro",
-                description: (error as Error).message || "Não foi possível gerar o PDF. Tente novamente.",
-                variant: "destructive",
-            });
-        }
-    };
+    doc.save(fileName);
+};
     // === FIM LÓGICA DE DOWNLOAD PDF SIMPLES ===
 
 
     // === FUNÇÃO DE DOWNLOAD CSV DETALHADA (NOVA) ===
-    const handleDownloadCSVDetailed = () => {
-        if (reportData.length === 0) {
-            toast({
-                title: "Erro",
-                description: "Gere o relatório detalhado primeiro para poder fazer o download CSV.",
-                variant: "destructive"
-            });
-            return;
-        }
+  // FUNÇÃO DE DOWNLOAD CSV DETALHADA (Corrigida)
+const handleDownloadCSVDetailed = () => {
+    if (reportData.length === 0) {
+        toast({ title: "Erro", description: "Não há dados para gerar o CSV.", variant: "destructive" });
+        return;
+    }
 
-        // Define as colunas do CSV (Cabeçalho)
-        const csvHeaders = ['Data Início', 'Hora Início', 'Data Fim', 'Hora Fim', 'Duração', 'Saldo', 'Status', 'Funcionário', 'Empresa'];
+    const headers = [
+        "Data Início", "Hora Início", "Data Fim", "Hora Fim", "Duração", "Saldo", "Status", "Funcionário", "Empresa"
+    ];
 
-        // Mapeia os dados detalhados para o formato de linhas CSV
-        const csvData = reportData.map(item => {
-            const statusLabel = getTranslatedStatus(item.statusRecord);
+    // 🚀 CORREÇÃO DE TIPAGEM: Mapeia para um array de arrays de strings (string[][])
+    const csvDataRows = reportData.map(item => {
+        return [
+            item.startWork, // DD-MM-YYYY
+            item.startHour,
+            item.endWork, // DD-MM-YYYY
+            item.endHour,
+            item.hoursWork,
+            item.statusRecord === 'IMPLICIT_BREAK' ? 'N/A' : item.balance,
+            getTranslatedStatus(item.statusRecord), 
+            item.employeeData.employeeName,
+            item.employeeData.companyName,
+        ];
+    });
 
-            return [
-                item.startWork, // DD-MM-YYYY
-                item.startHour,
-                item.endWork, // DD-MM-YYYY
-                item.endHour,
-                item.hoursWork,
-                // Garantir que o saldo seja exportado corretamente
-                item.statusRecord === 'IMPLICIT_BREAK' ? 'N/A' : item.balance,
-                statusLabel,
-                item.employeeData.employeeName,
-                item.employeeData.companyName,
-            ];
-        });
+    const fileName = `relatorio_detalhado_csv_${format(new Date(), 'yyyyMMdd_HHmmss')}.csv`;
+    
+    // O generateCSV precisa ser chamado com (data: string[][], headers: string[], fileName: string)
+    generateCSV(csvDataRows, headers, fileName); 
 
-        const fileName = `relatorio_detalhado_csv_${format(new Date(), "yyyyMMdd_HHmmss")}.csv`;
-
-        generateCSV(csvData, csvHeaders, fileName);
-
-        toast({
-            title: "CSV Gerado",
-            description: "Relatório detalhado baixado em formato CSV!",
-        });
-    };
+    toast({ title: "CSV Gerado", description: "Relatório detalhado baixado em formato CSV!", });
+};
     // === FIM LÓGICA DE DOWNLOAD CSV DETALHADA ===
 
 
     // === FUNÇÃO DE DOWNLOAD CSV SIMPLES (NOVA) ===
-    const handleDownloadCSVSimple = () => {
-        if (!reportDataSimple || reportDataSimple.days.length === 0) {
-            toast({
-                title: "Erro",
-                description: "Gere o relatório simples primeiro para poder fazer o download CSV.",
-                variant: "destructive"
-            });
-            return;
-        }
+  // FUNÇÃO DE DOWNLOAD CSV SIMPLES (Corrigida)
+// FUNÇÃO DE DOWNLOAD CSV SIMPLES (Corrigida)
+const handleDownloadCSVSimple = () => {
+    if (!reportDataSimple || reportDataSimple.days.length === 0) {
+        toast({ title: "Erro", description: "Não há dados para gerar o CSV.", variant: "destructive" });
+        return;
+    }
 
-        // Define as colunas do CSV (Cabeçalho)
-        const csvHeaders = ['Data', 'Total de Horas', 'Saldo do Dia', 'Total Trabalhado Geral', 'Saldo Total Geral'];
+    const headers = [
+        "Data", "Entrada", "Saída", "Total de Horas", "Saldo do Dia"
+    ];
 
-        // Linhas de totais para inclusão no início do arquivo CSV
-        const totalRows = [
-            ['TOTAIS:', '', '', reportDataSimple.totalHoursWorked, reportDataSimple.totalBalance],
-            ['--- Detalhes por Dia ---', '', '', '', ''],
+    // 🚀 CORREÇÃO DE TIPAGEM: Mapeia para um array de arrays de strings (string[][])
+    const csvDataRows = reportDataSimple.days.map(day => {
+        const parts = day.startDate.split('/');
+        const dayDate = new Date(`${parts[2]}-${parts[1]}-${parts[0]}`);
+        const holiday = isHoliday(dayDate) ? ' (Feriado)' : '';
+
+        // 🚀 NOVO: Formatação com Dia da Semana
+        const formattedDateWithDayOfWeek = formatDateWithDayOfWeek(day.startDate);
+
+        return [
+            `${formattedDateWithDayOfWeek}${holiday}`, // Inclui dia da semana e marcador
+            day.startHour || 'N/A',
+            day.endHour || 'N/A',
+            day.totalHours,
+            day.balance,
         ];
+    });
 
-        // Mapeia os dados por dia
-        const dayRows = reportDataSimple.days.map(day => {
-            // Formatamos as datas (DD/MM/YYYY) e adicionamos o indicador de feriado
-            const parts = day.startDate.split('/');
-            const dayDate = new Date(`${parts[2]}-${parts[1]}-${parts[0]}`);
-            const holiday = isHoliday(dayDate) ? ' (Feriado)' : '';
+    const fileName = `relatorio_simples_csv_${format(new Date(), 'yyyyMMdd_HHmmss')}.csv`;
 
-            return [
-                `${day.startDate}${holiday}`,
-                day.totalHours,
-                day.balance,
-                '', // Coluna vazia para alinhar com totais
-                '', // Coluna vazia para alinhar com totais
-            ];
-        });
+    // O generateCSV precisa ser chamado com (data: string[][], headers: string[], fileName: string)
+    generateCSV(csvDataRows, headers, fileName);
 
-        const csvData = [...totalRows, ...dayRows];
-
-        const fileName = `relatorio_simples_csv_${format(new Date(), "yyyyMMdd_HHmmss")}.csv`;
-
-        // Passa as colunas do cabeçalho original para a função gerarCSV
-        generateCSV(csvData, csvHeaders, fileName);
-
-        toast({
-            title: "CSV Gerado",
-            description: "Relatório simples baixado em formato CSV!",
-        });
-    };
+    toast({ title: "CSV Gerado", description: "Relatório simples baixado em formato CSV!", });
+};
     // === FIM LÓGICA DE DOWNLOAD CSV SIMPLES ===
 
 

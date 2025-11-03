@@ -5,7 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { CalendarIcon, Download } from "lucide-react";
 // Usando ReportDataSimple do utils, mas estendemos a tipagem aqui para os novos campos
-import { ReportDataSimple, isHoliday } from "@/utils/report-utils";
+import { ReportDataSimple, isHoliday, formatDateWithDayOfWeek } from "@/utils/report-utils"; // <--- ALTERADO
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
 import autoTable from "jspdf-autotable";
@@ -112,8 +112,12 @@ export const ResultadosRelatorioSimples: React.FC<ResultadosSimplesProps> = ({
                 const parts = day.startDate.split('/'); // DD/MM/YYYY
                 const dayDate = new Date(`${parts[2]}-${parts[1]}-${parts[0]}`);
                 const holiday = isHoliday(dayDate) ? ' 🎉' : '';
+                
+                // NOVO: Usa a função do utils para formatar a data com o dia da semana
+                const formattedDateWithDayOfWeek = formatDateWithDayOfWeek(day.startDate); // <--- NOVO
+                
                 return [
-                    `${day.startDate}${holiday}`,
+                    `${formattedDateWithDayOfWeek}${holiday}`, // <--- ALTERADO (Agora inclui o dia da semana)
                     day.startHour || 'N/A', // 💡 NOVO
                     day.endHour || 'N/A',   // 💡 NOVO
                     day.totalHours,

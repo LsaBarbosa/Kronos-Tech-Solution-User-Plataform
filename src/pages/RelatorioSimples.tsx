@@ -18,6 +18,7 @@ import jsPDF from 'jspdf';
 import 'jspdf-autotable';
 import autoTable from "jspdf-autotable";
 import { API_BASE_URL } from "@/config/api";
+import { formatDateWithDayOfWeek } from "@/utils/report-utils";
 
 // Auxiliary function to get authentication headers
 const getAuthHeaders = () => {
@@ -348,10 +349,17 @@ const RelatorioSimples = () => {
       doc.setTextColor(0, 0, 0); // Volta para preto
 
       const tableData = reportData.days.map(day => {
-        const dayDate = new Date(day.startDate.split('/').reverse().join('-'));
-        const holiday = isHoliday(dayDate) ? ' 🎉' : '';
-        return [
-          `${day.startDate}${holiday}`,
+      
+    const parts = day.startDate.split('/'); // DD/MM/YYYY
+    // Recria a data a partir do formato DD/MM/YYYY
+    const dayDate = new Date(`${parts[2]}-${parts[1]}-${parts[0]}`); 
+    const holiday = isHoliday(dayDate) ? ' 🎉' : '';
+
+    // NOVO: Usa a função utilitária
+    const formattedDateWithDayOfWeek = formatDateWithDayOfWeek(day.startDate); 
+
+    return [
+        `${formattedDateWithDayOfWeek}${holiday}`,
           day.startHour || 'N/A', 
           day.endHour || 'N/A',   
           day.totalHours,
