@@ -7,10 +7,15 @@ import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { CalendarIcon, Search, Download, FileText, CalendarCheck, CalendarX } from "lucide-react"; 
+
+// 🚀 NOVAS IMPORTAÇÕES PARA O COMBOBOX DE BUSCA
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Command, CommandInput, CommandItem, CommandList, CommandEmpty } from "@/components/ui/command";
+import { Check, CalendarIcon, Search, Download, FileText, CalendarCheck, CalendarX } from "lucide-react"; 
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, startOfDay, isSameDay } from "date-fns"; 
 import { ptBR } from "date-fns/locale";
 import { Employee, statusOptions, allHolidays } from "@/utils/report-utils";
+import { cn } from "@/lib/utils"; // Assumindo que a função de utilidade cn está disponível
 
 interface RelatorioFiltrosProps {
     selectedDates: Date[];
@@ -66,6 +71,9 @@ export const RelatorioFiltros: React.FC<RelatorioFiltrosProps> = ({
     customTips
 }) => {
     const [displayMonth, setDisplayMonth] = React.useState<Date | undefined>(startOfDay(new Date()));
+    
+    // 🚀 NOVO ESTADO: Controla a abertura/fechamento do Combobox (Popover)
+    const [open, setOpen] = React.useState(false); 
 
     const handleDateSelect = (days: Date[] | undefined) => {
         setSelectedDates(days || []);
@@ -363,29 +371,82 @@ export const RelatorioFiltros: React.FC<RelatorioFiltrosProps> = ({
                         </div>
                     )}
 
-                    {/* FUNCIONÁRIO (SELECT) */}
+                    {/* 🚀 FUNCIONÁRIO (COMBOBOX COM BUSCA) */}
                     {!isPartner && (
                         <div className="space-y-3 relative">
                             <Label className="text-sm font-semibold text-foreground flex items-center gap-2">
                                 <div className="w-1.5 h-1.5 rounded-full bg-primary"></div>
                                 Funcionário
                             </Label>
-                            <Select value={selectedEmployee} onValueChange={setSelectedEmployee} disabled={isPartner}>
-                                <SelectTrigger className="focus:border-primary focus:ring-2 focus:ring-primary/40 border-primary/30 bg-background hover:border-primary/50 transition-all duration-200 shadow-sm">
-                                    <SelectValue placeholder="Selecione um funcionário" />
-                                </SelectTrigger>
-                                <SelectContent className="border-primary/20">
-                                    {employees.map((employee) => (
-                                        <SelectItem
-                                            key={employee.employeeId}
-                                            value={employee.employeeId}
-                                            className="hover:bg-primary/10 focus:bg-primary/10 transition-colors duration-150"
-                                        >
-                                            {employee.fullName}
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
+                            
+                            <Popover open={open} onOpenChange={setOpen}>
+                                <PopoverTrigger asChild>
+                                    <Button
+                                        variant="outline"
+                                        role="combobox"
+                                        aria-expanded={open}
+                                        className="w-full justify-between focus:ring-2 focus:ring-primary/40 border-primary/30 bg-background hover:border-primary/50 transition-all duration-200 shadow-sm"
+                                        disabled={isPartner}
+                                    >
+                                        {/* Exibe o nome do funcionário selecionado ou o placeholder */}
+                                        {selectedEmployee
+                                            ? employees.find((employee) => employee.employeeId === selectedEmployee)?.fullName
+                                            : "Selecione um funcionário..."}
+                                        <Search className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                                    </Button>
+                                </PopoverTrigger>
+                                
+                                <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
+                                    <Command>
+                                        {/* Input de busca */}
+                                        <CommandInput placeholder="Buscar funcionário..." />
+                                        
+                                        <CommandList>
+                                            {/* Mensagem de lista vazia */}
+                                            <CommandEmpty>Nenhum funcionário encontrado.</CommandEmpty>
+                                            
+                                            {/* Opção padrão: Todos os Funcionários */}
+                                            <CommandItem
+                                                key="all-employees"
+                                                value="all-employees" // Valor para busca interna
+                                                onSelect={() => {
+                                                    setSelectedEmployee("");
+                                                    setOpen(false);
+                                                }}
+                                            >
+                                                <Check
+                                                    className={cn(
+                                                        "mr-2 h-4 w-4",
+                                                        selectedEmployee === "" ? "opacity-100 text-primary" : "opacity-0"
+                                                    )}
+                                                />
+                                                Todos os Funcionários
+                                            </CommandItem>
+                                            
+                                            {/* Mapeia a lista de funcionários */}
+                                            {employees.map((employee) => (
+                                                <CommandItem
+                                                    key={employee.employeeId}
+                                                    // Usar o nome completo para a busca do Command
+                                                    value={employee.fullName} 
+                                                    onSelect={() => {
+                                                        setSelectedEmployee(employee.employeeId);
+                                                        setOpen(false);
+                                                    }}
+                                                >
+                                                    <Check
+                                                        className={cn(
+                                                            "mr-2 h-4 w-4",
+                                                            selectedEmployee === employee.employeeId ? "opacity-100 text-primary" : "opacity-0"
+                                                        )}
+                                                    />
+                                                    {employee.fullName}
+                                                </CommandItem>
+                                            ))}
+                                        </CommandList>
+                                    </Command>
+                                </PopoverContent>
+                            </Popover>
                         </div>
                     )}
 
