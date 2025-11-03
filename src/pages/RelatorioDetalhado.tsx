@@ -523,7 +523,6 @@ const handleDownloadPDFDetailed = () => {
     doc.save(fileName);
 };
    
-    // === FIM LÓGICA DE DOWNLOAD PDF DETALHADA ===
 
 
     // === LÓGICA DE DOWNLOAD PDF SIMPLES (RENOMEADA) ===
@@ -536,14 +535,14 @@ const handleDownloadPDFDetailed = () => {
     const doc = new jsPDF();
     const fileName = `relatorio_simples_${format(new Date(), 'yyyyMMdd_HHmmss')}.pdf`;
 
-    const employeeName = reportDataSimple.employeeName || 'N/A';
-    const companyName = reportDataSimple.companyName || 'N/A';
+const employeeName = reportDataSimple.employeeName || 'N/A';
+    const companyName = reportDataSimple.companyName || 'N/A';    
 
     // --- Cabeçalho
     doc.setFontSize(18);
     doc.text("RELATÓRIO SIMPLES DE PONTO", 14, 20);
     doc.setFontSize(10);
-    doc.text(`Funcionário: ${employeeName}`, 14, 30);
+doc.text(`Funcionário: ${employeeName}`, 14, 30);
     doc.text(`Empresa: ${companyName}`, 14, 35);
     doc.text(`Carga horária diária: ${referenceTime}`, 14, 40);
     doc.text(`Total de Horas Trabalhadas: ${reportDataSimple.totalHoursWorked}`, 14, 45);

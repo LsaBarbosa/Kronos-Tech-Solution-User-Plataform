@@ -37,12 +37,12 @@ export interface ReportDay {
 }
 
 export interface ReportDataSimple {
+    employeeName?: string;
+    companyName?: string;
     totalHoursWorked: string;
     totalBreakHours: string;
     totalBalance: string;
     days: ReportDay[];
-    employeeName?: string;
-    companyName?: string;
 }
 
 export interface Employee {
