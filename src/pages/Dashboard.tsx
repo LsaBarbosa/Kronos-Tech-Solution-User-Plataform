@@ -1,3 +1,5 @@
+// ARQUIVO: src/pages/Dashboard.tsx (Com alterações no Card de Pendências)
+
 import { useState, useCallback, useMemo } from "react";
 import Header from "@/components/Header";
 import Sidebar from "@/components/Sidebar";
@@ -5,7 +7,9 @@ import Clock from "@/components/Clock";
 import { 
     ArrowRight, Loader2, Clock as ClockIcon, FileCheck, DollarSign, Mail, 
     Briefcase, Phone, MessageSquareWarning, Zap, User2, Building, Eye, EyeOff, 
-    PlusCircle, ListChecks, ActivitySquare, AlertTriangle // Novo ícone para pendências
+    PlusCircle, ListChecks, ActivitySquare, AlertTriangle, Plane, // ÍCONE: Plane
+    TreePalm,
+    MailWarning
 } from "lucide-react"; 
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card"; 
@@ -13,6 +17,7 @@ import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 
 import { useDashboardData } from "@/hooks/useDashboardData";
+import { useVacationCount } from "@/hooks/useVacationCount"; // Importação do NOVO HOOK
 import { getRoleDisplayName } from "@/types/dashboard";
 
 // Função utilitária para formatar o salário
@@ -32,7 +37,7 @@ const formatPhone = (phone: string | undefined) => {
     if (match) {
       return `(${match[1]}) ${match[2]}-${match[3]}`;
     }
-    const matchShort = cleaned.match(/^(\d{2})(\d{4})(\d{4})$/);
+    const matchShort = cleaned.match(/^(\d{2})(\d{\d})(\d{4})$/);
      if (matchShort) {
       return `(${matchShort[1]}) ${matchShort[2]}-${matchShort[3]}`;
     }
@@ -40,22 +45,8 @@ const formatPhone = (phone: string | undefined) => {
 };
 
 /**
- * Função auxiliar para extrair o primeiro e o segundo nome.
- * Ex: "Lucas Sant Anna Barbosa" -> "Lucas Sant"
- * Ex: "Lucas SantAnna" -> "Lucas SantAnna"
+ * Função auxiliar para extrair o primeiro nome (para a saudação)
  */
-const getTwoNames = (fullName: string | undefined): string => {
-    if (!fullName) return "Colaborador";
-    // Usa split por espaço para separar as palavras
-    const names = fullName.trim().split(/\s+/);
-    if (names.length >= 2) {
-        // Retorna o primeiro e o segundo elemento
-        return `${names[0]} ${names[1]}`;
-    }
-    return fullName; // Retorna o nome completo se tiver 1 ou 0 palavras
-};
-
-// NOVO: Função para obter apenas o primeiro nome (para a saudação)
 const getFirstName = (fullName: string | undefined): string => {
     if (!fullName) return "Usuário";
     return fullName.trim().split(/\s+/)[0];
@@ -74,17 +65,26 @@ const Dashboard = () => {
   const {
     userData,
     isLoading,
-    pendingApprovalsCount,
+    pendingApprovalsCount, // Contagem de TimeRecords (Horas)
     newWarnings,
     hasApprovalPermission,
     fetchProfile, 
     handleWarningClick,
   } = useDashboardData();
   
+  // 1. OBTENÇÃO DA CONTAGEM DE FÉRIAS
+  const { pendingVacationCount } = useVacationCount(); 
+
   // Handlers de Navegação
   const handleApprovalClick = useCallback(() => {
-    navigate("/apuracao-horas"); 
+    navigate("/apuracao-horas"); // Pendências de TimeRecord
   }, [navigate]);
+
+  // NOVO HANDLER para Férias (usado nos botões de detalhe)
+  const handleVacationApprovalClick = useCallback(() => {
+    navigate("/ferias"); // Rota para a nova tela de aprovação de férias
+  }, [navigate]);
+
 
   const handleClockCardClick = useCallback(() => { // Card Controle de Ponto
     navigate("/relatorio-detalhado"); 
@@ -121,7 +121,9 @@ const Dashboard = () => {
     }
   }, [isManager, newWarnings.length, handleWarningClick]);
   
-
+  // 2. SOMA TOTAL DE PENDÊNCIAS
+  const totalPendingCount = useMemo(() => pendingApprovalsCount + pendingVacationCount, [pendingApprovalsCount, pendingVacationCount]);
+  
   /**
    * Função auxiliar para aplicar estilização temática de Card.
    * **ATUALIZADO:** Adiciona classes de borda lateral e sombra para consistência.
@@ -203,7 +205,7 @@ const Dashboard = () => {
                         {/* 1. Card Consolidado de Informações do Colaborador (Primary - lg:col-span-1) */}
                         <Card 
                             // Aplica a borda lateral e sombra
-                            className={`lg:col-span-1 ${getThemeCardClasses('primary', true)}`}
+                            className={`lg:col-span-1 ${getThemeCardClasses('border-t-gray-primary', true)}`}
                             onClick={handleDetailsCardClick} // Redireciona para /usuario
                             tabIndex={0} 
                         >
@@ -292,7 +294,7 @@ const Dashboard = () => {
                             // Aplica a borda lateral e sombra
                             className={`
                                 lg:col-span-2 
-                                ${getThemeCardClasses('primary', true)} 
+                                ${getThemeCardClasses('border-t-gray-primary', true)} 
                                 flex flex-col justify-center
                             `}
                             onClick={handleClockCardClick}
@@ -319,7 +321,7 @@ const Dashboard = () => {
                         {/* 1. Cartão de Novos Avisos (Yellow/Alert) */}
                         <Card 
                             className={`
-                                ${getThemeCardClasses('yellow-600', !isManager && newWarnings.length > 0)}
+                                ${getThemeCardClasses('border-t-gray-primary', !isManager && newWarnings.length > 0)}
                             `}
                             onClick={handleAvisosCardClick} 
                             tabIndex={0}
@@ -327,9 +329,9 @@ const Dashboard = () => {
                             <CardContent className="p-5 flex flex-col h-full justify-between">
                                 <div className="flex items-center justify-between mb-3">
                                     <p className="text-sm font-medium text-muted-foreground">Novos Avisos</p>
-                                    <MessageSquareWarning className={`h-6 w-6 ${newWarnings.length > 0 || isManager ? 'text-yellow-600' : 'text-muted-foreground'}`} />
+                                    <MessageSquareWarning className={`h-6 w-6 ${newWarnings.length > 0 || isManager ? 'text-yellow-600' :  'text-muted-foreground'}`} />
                                 </div>
-                                <p className={`text-4xl font-extrabold ${newWarnings.length > 0 ? 'text-yellow-600' : 'text-foreground/70'}`}>
+                                <p className={`text-4xl font-extrabold  ${newWarnings.length > 0 ? 'text-yellow-600' : 'text-yellow-600' }`}>
                                     {newWarnings.length}
                                 </p>
                                 
@@ -342,7 +344,7 @@ const Dashboard = () => {
                                             className="w-full justify-start text-yellow-600 hover:bg-yellow-600/40"
                                             onClick={(e) => { e.stopPropagation(); navigate("/criar-aviso"); }}
                                         >
-                                            <PlusCircle className="w-4 h-4 mr-2" /> Criar Aviso
+                                            <PlusCircle className="w-4 h-4 mr-2 text-gray-200" /> Criar Aviso
                                         </Button>
                                         <Button 
                                             variant="ghost" 
@@ -350,7 +352,7 @@ const Dashboard = () => {
                                             className="w-full justify-start text-yellow-600 hover:bg-yellow-600/40"
                                             onClick={(e) => { e.stopPropagation(); handleWarningClick(); }} // Marca como visto e navega
                                         >
-                                            <ListChecks className="w-4 h-4 mr-2" /> Ver Todos Avisos
+                                            <ListChecks className="w-4 h-4 mr-2 text-gray-200" /> Ver Todos Avisos
                                         </Button>
                                     </div>
                                 ) : newWarnings.length > 0 && (
@@ -360,7 +362,7 @@ const Dashboard = () => {
                                         className="mt-2 -mx-3 justify-start text-yellow-600 hover:bg-yellow-600/40"
                                         onClick={handleAvisosCardClick} // Redireciona
                                     >
-                                        Ver Avisos <ArrowRight className="w-4 h-4 ml-1" />
+                                    <MailWarning className="w-4 h-4 ml-1 " />Ver Avisos
                                     </Button>
                                 )}
                             </CardContent>
@@ -369,69 +371,97 @@ const Dashboard = () => {
                         {/* 2. Cartão de Solicitações de Aprovação Pendentes (Destructive/Success) */}
                         {hasApprovalPermission ? (
                             <Card 
-                                // Determina a cor com base na contagem de pendências
+                                // Determina a cor com base na contagem total de pendências
                                 className={`
-                                    ${pendingApprovalsCount > 0 ? getThemeCardClasses('destructive', true) : getThemeCardClasses('success', true)}
+                                    ${totalPendingCount > 0 ? getThemeCardClasses('destructive', true) : getThemeCardClasses('border-t-gray-primary', true)}
                                 `}
-                                // Permite o clique no card para todos que têm permissão de aprovação
-                                onClick={handleApprovalClick}
+                                // O clique geral no card é para Apuração de Horas
+                                onClick={handleApprovalClick} 
                                 tabIndex={0}
                             >
                                 <CardContent className="p-5 flex flex-col h-full justify-between">
                                     <div className="flex items-center justify-between mb-3">
-                                        <p className="text-sm font-medium text-muted-foreground">Solicitações de Aprovação</p>
-                                        <AlertTriangle className={`h-6 w-6 ${pendingApprovalsCount > 0 ? 'text-destructive' : 'text-green-600'}`} />
+                                        <p className="text-sm font-medium text-muted-foreground">Total de Pendências</p>
+                                        <AlertTriangle className={`h-6 w-6 ${totalPendingCount > 0 ? 'text-destructive' : 'text-green-600'}`} />
                                     </div>
                                     
-                                    {/* Exibe a contagem real, estilizado como 4xl */}
-                                    <p className={`text-4xl font-extrabold ${pendingApprovalsCount > 0 ? 'text-destructive' : 'text-green-600'}`}>
-                                        {pendingApprovalsCount}
+                                    {/* Exibe a contagem TOTAL, estilizado como 4xl */}
+                                    <p className={`text-4xl font-extrabold ${totalPendingCount > 0 ? 'text-destructive' : 'text-green-600'}`}>
+                                        {totalPendingCount}
                                     </p>
                                     
-                                    {/* Links Condicionais */}
-                                    <div className="mt-4 space-y-1">
+                                    <Separator className="my-3 bg-border/80" />
+                                    
+                                    {/* 3. LINKS CONSOLIDADOS COM CONTADOR AO LADO DO TEXTO (CORREÇÃO APLICADA AQUI) */}
+                                    <div className="space-y-2">
+                                        {/* Botão 1: Aprovação de Horas */}
                                         <Button 
                                             variant="ghost" 
                                             size="sm" 
-                                            className={`w-full justify-start ${pendingApprovalsCount > 0 ? 'text-destructive hover:bg-destructive/40' : 'text-green-600 hover:bg-green-600/40'}`}
+                                            className={`
+                                                w-full justify-between pr-0 
+                                                text-foreground hover:bg-primary/20
+                                            `}
                                             onClick={(e) => { e.stopPropagation(); handleApprovalClick(); }}
                                         >
-                                             <ListChecks className="w-4 h-4 mr-2" /> {pendingApprovalsCount > 0 ? 'Revisar Pendências' : 'Apuração de Horas'}
+                                            <div className="flex items-center text-green-600 text-sm font-medium">
+                                                <ListChecks className="w-4 h-4 mr-2 text-gray-200" /> Apuração de Horas
+                                            </div>
+                                            <span 
+                                                className={`text-sm font-extrabold px-3 py-1 rounded-full ${pendingApprovalsCount > 0 ? 'bg-destructive text-white' : 'bg-green-600/70 text-foreground'}`}
+                                            >
+                                                {pendingApprovalsCount}
+                                            </span>
                                         </Button>
+                                        
+                                        {/* Botão 2: Gestão de Férias */}
                                         <Button 
                                             variant="ghost" 
                                             size="sm" 
-                                            className="w-full justify-start text-primary hover:bg-primary/40"
-                                            onClick={(e) => { e.stopPropagation(); navigate("/status-do-registro"); }}
+                                            className={`
+                                                w-full justify-between pr-0
+                                                text-foreground hover:bg-primary/20
+                                            `}
+                                            onClick={(e) => { e.stopPropagation(); handleVacationApprovalClick(); }}
                                         >
-                                            <ActivitySquare className="w-4 h-4 mr-2" /> Status do Registro
+                                            <div className="flex items-center  text-green-600 text-sm font-medium">
+                                                <Plane className="w-4 h-4 mr-2 text-gray-200" /> Gestão de Férias
+                                            </div>
+                                            <span 
+                                                className={`text-sm font-extrabold px-3 py-1 rounded-full ${pendingVacationCount > 0 ? 'bg-destructive text-white' : 'bg-green-600/70 text-foreground'}`}
+                                            >
+                                                {pendingVacationCount}
+                                            </span>
                                         </Button>
                                     </div>
+
+                                    {/* REMOVIDOS os links redundantes de baixo */}
+
                                 </CardContent>
                             </Card>
                         ) : (
                             /* Card de Acesso Rápido (para quem não tem permissão de aprovação) */
-                             <Card className={getThemeCardClasses('primary', true)} onClick={() => navigate("/meus-documentos")} tabIndex={0}>
+                             <Card className={getThemeCardClasses('border-t-gray-primary', true)} onClick={() => navigate("/meus-documentos")} tabIndex={0}>
                                 <CardContent className="p-5 space-y-3 flex flex-col items-start h-full justify-center">
                                     <div className="flex items-center text-primary mb-3">
                                         <Zap className="h-6 w-6 mr-2" />
-                                        <p className="text-base font-bold text-primary">Acesso Rápido</p>
+                                        <p className="text-base font-bold   text-foreground">Acesso Rápido</p>
                                     </div>
                                     <Button 
                                         variant="outline" 
                                         size="sm" 
                                         className="w-full justify-start text-primary hover:bg-primary/40"
-                                        onClick={(e) => { e.stopPropagation(); navigate("/meus-documentos"); }}
+                                        onClick={(e) => { e.stopPropagation(); navigate("/enviar-documento-colaborador"); }}
                                     >
-                                        <FileCheck className="w-4 h-4 mr-2" /> Meus Documentos
+                                        <FileCheck className="w-4 h-4 mr-2 text-foreground " /> Enviar Documentos
                                     </Button>
                                     <Button 
                                         variant="outline" 
                                         size="sm" 
                                         className="w-full justify-start text-primary hover:bg-primary/40"
-                                        onClick={(e) => { e.stopPropagation(); navigate("/relatorio-detalhado"); }}
+                                        onClick={(e) => { e.stopPropagation(); navigate("/solicitar-ferias"); }}
                                     >
-                                        <ArrowRight className="w-4 h-4 mr-2" /> Meu Relatório
+                                        <TreePalm className="w-4 h-4 mr-2 text-foreground" /> Solicitar Férias
                                     </Button>
                                 </CardContent>
                             </Card>

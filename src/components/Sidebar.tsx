@@ -1,6 +1,6 @@
 // src/components/Sidebar.tsx
 
-import { X, Home, BarChart3, ChevronDown, ChevronRight, User, Shield, Users, Clock, FilePlus, Upload, LogOut, UserCheck, UserPlus, Folder, FolderOpen, Calculator, ClipboardCheck, Building2, Bell, MessageSquarePlus } from "lucide-react";
+import { X, Home, BarChart3, ChevronDown, ChevronRight, User, Shield, Users, Clock, FilePlus, Upload, LogOut, UserCheck, UserPlus, Folder, FolderOpen, Calculator, ClipboardCheck, Building2, Bell, MessageSquarePlus, TreePalm } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { cn } from "@/lib/utils";
@@ -331,8 +331,8 @@ const Sidebar = ({ isOpen, toggleSidebar }: SidebarProps) => {
                         variant="ghost"
                         className="w-full justify-start sidebar-fixed-height-sm px-4 pl-12 text-left sidebar-text-sm hover:bg-primary/10 hover:text-foreground transition-colors group"
                       >
-                        <Folder className="mr-2 sidebar-icon-xs text-muted-foreground group-hover:text-foreground transition-colors" />
-                        <span className="flex-1">Documentos</span>
+                        <TreePalm className="mr-2 sidebar-icon-xs text-muted-foreground group-hover:text-foreground transition-colors" />
+                        <span className="flex-1">Férias</span>
                         {adminDocumentosOpen ? (
                           <ChevronDown className="sidebar-icon-xxs text-muted-foreground group-hover:text-foreground transition-colors" />
                         ) : (
@@ -345,23 +345,12 @@ const Sidebar = ({ isOpen, toggleSidebar }: SidebarProps) => {
                         variant="ghost"
                         className="w-full justify-start sidebar-fixed-height-xs px-4 pl-20 text-left sidebar-text-xs hover:bg-primary/10 hover:text-foreground transition-colors"
                         onClick={() => {
-                          navigate("/documentos");
+                          navigate("/ferias");
                           toggleSidebar();
                         }}
                       >
-                        <FolderOpen className="mr-2 sidebar-icon-xxs" />
-                        <span>Buscar Documentos</span>
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        className="w-full justify-start sidebar-fixed-height-xs px-4 pl-20 text-left sidebar-text-xs hover:bg-primary/10 hover:text-foreground transition-colors"
-                        onClick={() => {
-                          navigate("/enviar-documentos");
-                          toggleSidebar();
-                        }}
-                      >
-                        <Upload className="mr-2 sidebar-icon-xxs" />
-                        <span>Enviar Documentos</span>
+                        <TreePalm className="mr-2 sidebar-icon-xxs" />
+                        <span>Gestão de Férias</span>
                       </Button>
                     </CollapsibleContent>
                   </Collapsible>
@@ -370,6 +359,17 @@ const Sidebar = ({ isOpen, toggleSidebar }: SidebarProps) => {
                 </CollapsibleContent>
               </Collapsible>
             )}
+              <Button
+              variant="ghost"
+              className="w-full justify-start sidebar-fixed-height px-4 text-left hover:bg-primary/10 hover:text-foreground transition-colors group"
+              onClick={() => {
+                          navigate("/solicitar-ferias");
+                          toggleSidebar();
+                        }}
+            >
+              <TreePalm className="mr-3 sidebar-icon-sm text-primary group-hover:text-primary transition-colors" />
+              <span className="font-medium sidebar-text-sm">Solicitar Férias</span>
+            </Button>
             
             {/* 8. Sair */}
             <Button

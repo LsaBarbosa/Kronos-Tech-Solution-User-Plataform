@@ -3,9 +3,6 @@
 import { API_BASE_URL } from "@/config/api"; 
 import { ITimeRecordApprovalPageResponse, IPendingApprovalQueryParams } from "@/types/recordApproval";
 
-// --- Funções Auxiliares (Puras) ---
-// Nota: Em uma aplicação real, estas estariam em um arquivo utilitário comum (@/utils/api-utils.ts)
-// Mas, para respeitar o padrão de escopo do seu exemplo, as incluímos ou assumimos sua acessibilidade.
 
 const getAuthHeaders = () => {
     const token = localStorage.getItem('token');

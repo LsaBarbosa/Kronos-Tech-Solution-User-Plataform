@@ -33,6 +33,8 @@ import CriarManager from "./pages/CriarManager";
 import TokenRedirect from "./pages/TokenRedirect";
  import AtualizarEmpresa from "./pages/AtualizarEmpresa";
 import PendingApprovals from "./pages/PendingApprovals";
+import VacationApprovals from "./pages/VacationApprovals";
+import RequestVacation from "./pages/RequestVacation";
 
 const queryClient = new QueryClient();
 
@@ -77,6 +79,8 @@ const App = () => (
               <Route path="/status-do-registro" element={<StatusRegistro />} />
               <Route path="/avisos" element={<Avisos />} />
               <Route path="/criar-aviso" element={<CriarAviso />} />
+              <Route path="/ferias" element={<VacationApprovals />} />
+              <Route path="/solicitar-ferias" element={<RequestVacation />} />
             </Route>
             {/* Rota de Not Found (pública) */}
             <Route path="*" element={<NotFound />} />
