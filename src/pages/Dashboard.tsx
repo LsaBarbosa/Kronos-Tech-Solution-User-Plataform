@@ -205,7 +205,7 @@ const Dashboard = () => {
                         {/* 1. Card Consolidado de Informações do Colaborador (Primary - lg:col-span-1) */}
                         <Card 
                             // Aplica a borda lateral e sombra
-                            className={`lg:col-span-1 ${getThemeCardClasses('border-t-gray-primary', true)}`}
+                            className={`lg:col-span-1 ${getThemeCardClasses('primary', true)}`}
                             onClick={handleDetailsCardClick} // Redireciona para /usuario
                             tabIndex={0} 
                         >
@@ -294,7 +294,7 @@ const Dashboard = () => {
                             // Aplica a borda lateral e sombra
                             className={`
                                 lg:col-span-2 
-                                ${getThemeCardClasses('border-t-gray-primary', true)} 
+                                ${getThemeCardClasses('primary', true)} 
                                 flex flex-col justify-center
                             `}
                             onClick={handleClockCardClick}
@@ -321,7 +321,7 @@ const Dashboard = () => {
                         {/* 1. Cartão de Novos Avisos (Yellow/Alert) */}
                         <Card 
                             className={`
-                                ${getThemeCardClasses('border-t-gray-primary', !isManager && newWarnings.length > 0)}
+                                ${getThemeCardClasses('yellow-600', !isManager && newWarnings.length > 0)}
                             `}
                             onClick={handleAvisosCardClick} 
                             tabIndex={0}
@@ -329,9 +329,9 @@ const Dashboard = () => {
                             <CardContent className="p-5 flex flex-col h-full justify-between">
                                 <div className="flex items-center justify-between mb-3">
                                     <p className="text-sm font-medium text-muted-foreground">Novos Avisos</p>
-                                    <MessageSquareWarning className={`h-6 w-6 ${newWarnings.length > 0 || isManager ? 'text-yellow-600' :  'text-muted-foreground'}`} />
+                                    <MessageSquareWarning className={`h-6 w-6 ${newWarnings.length > 0 || isManager ? 'text-yellow-600' : 'text-muted-foreground'}`} />
                                 </div>
-                                <p className={`text-4xl font-extrabold  ${newWarnings.length > 0 ? 'text-yellow-600' : 'text-yellow-600' }`}>
+                                <p className={`text-4xl font-extrabold ${newWarnings.length > 0 ? 'text-yellow-600' : 'text-foreground/70'}`}>
                                     {newWarnings.length}
                                 </p>
                                 
@@ -344,7 +344,7 @@ const Dashboard = () => {
                                             className="w-full justify-start text-yellow-600 hover:bg-yellow-600/40"
                                             onClick={(e) => { e.stopPropagation(); navigate("/criar-aviso"); }}
                                         >
-                                            <PlusCircle className="w-4 h-4 mr-2 text-gray-200" /> Criar Aviso
+                                            <PlusCircle className="w-4 h-4 mr-2" /> Criar Aviso
                                         </Button>
                                         <Button 
                                             variant="ghost" 
@@ -352,7 +352,7 @@ const Dashboard = () => {
                                             className="w-full justify-start text-yellow-600 hover:bg-yellow-600/40"
                                             onClick={(e) => { e.stopPropagation(); handleWarningClick(); }} // Marca como visto e navega
                                         >
-                                            <ListChecks className="w-4 h-4 mr-2 text-gray-200" /> Ver Todos Avisos
+                                            <ListChecks className="w-4 h-4 mr-2" /> Ver Todos Avisos
                                         </Button>
                                     </div>
                                 ) : newWarnings.length > 0 && (
@@ -362,7 +362,7 @@ const Dashboard = () => {
                                         className="mt-2 -mx-3 justify-start text-yellow-600 hover:bg-yellow-600/40"
                                         onClick={handleAvisosCardClick} // Redireciona
                                     >
-                                    <MailWarning className="w-4 h-4 ml-1 " />Ver Avisos
+                                        Ver Avisos <ArrowRight className="w-4 h-4 ml-1" />
                                     </Button>
                                 )}
                             </CardContent>
@@ -373,7 +373,7 @@ const Dashboard = () => {
                             <Card 
                                 // Determina a cor com base na contagem total de pendências
                                 className={`
-                                    ${totalPendingCount > 0 ? getThemeCardClasses('destructive', true) : getThemeCardClasses('border-t-gray-primary', true)}
+                                    ${totalPendingCount > 0 ? getThemeCardClasses('destructive', true) : getThemeCardClasses('success', true)}
                                 `}
                                 // O clique geral no card é para Apuração de Horas
                                 onClick={handleApprovalClick} 
@@ -394,7 +394,8 @@ const Dashboard = () => {
                                     
                                     {/* 3. LINKS CONSOLIDADOS COM CONTADOR AO LADO DO TEXTO (CORREÇÃO APLICADA AQUI) */}
                                     <div className="space-y-2">
-                                        {/* Botão 1: Aprovação de Horas */}
+                                        
+                                        {/* Botão 1: Apuração de Horas */}
                                         <Button 
                                             variant="ghost" 
                                             size="sm" 
@@ -404,11 +405,13 @@ const Dashboard = () => {
                                             `}
                                             onClick={(e) => { e.stopPropagation(); handleApprovalClick(); }}
                                         >
-                                            <div className="flex items-center text-green-600 text-sm font-medium">
-                                                <ListChecks className="w-4 h-4 mr-2 text-gray-200" /> Apuração de Horas
+                                            {/* Rótulo e Ícone */}
+                                            <div className="flex items-center text-sm font-medium text-foreground">
+                                                <ListChecks className="w-4 h-4 mr-2 text-primary" /> Solicitação de alteração no Ponto
                                             </div>
+                                            {/* Contador */}
                                             <span 
-                                                className={`text-sm font-extrabold px-3 py-1 rounded-full ${pendingApprovalsCount > 0 ? 'bg-destructive text-white' : 'bg-green-600/70 text-foreground'}`}
+                                                className={`text-sm font-extrabold px-3 py-1 rounded-full ${pendingApprovalsCount > 0 ? 'bg-destructive text-white' : 'bg-primary/20 text-foreground'}`}
                                             >
                                                 {pendingApprovalsCount}
                                             </span>
@@ -424,28 +427,27 @@ const Dashboard = () => {
                                             `}
                                             onClick={(e) => { e.stopPropagation(); handleVacationApprovalClick(); }}
                                         >
-                                            <div className="flex items-center  text-green-600 text-sm font-medium">
-                                                <Plane className="w-4 h-4 mr-2 text-gray-200" /> Gestão de Férias
+                                            {/* Rótulo e Ícone */}
+                                            <div className="flex items-center text-sm font-medium text-foreground">
+                                                <Plane className="w-4 h-4 mr-2 text-primary" /> Solicitação de Férias
                                             </div>
+                                            {/* Contador */}
                                             <span 
-                                                className={`text-sm font-extrabold px-3 py-1 rounded-full ${pendingVacationCount > 0 ? 'bg-destructive text-white' : 'bg-green-600/70 text-foreground'}`}
+                                                className={`text-sm font-extrabold px-3 py-1 rounded-full ${pendingVacationCount > 0 ? 'bg-destructive text-white' : 'bg-primary/20 text-foreground'}`}
                                             >
                                                 {pendingVacationCount}
                                             </span>
                                         </Button>
                                     </div>
-
-                                    {/* REMOVIDOS os links redundantes de baixo */}
-
                                 </CardContent>
                             </Card>
                         ) : (
-                            /* Card de Acesso Rápido (para quem não tem permissão de aprovação) */
-                             <Card className={getThemeCardClasses('border-t-gray-primary', true)} onClick={() => navigate("/meus-documentos")} tabIndex={0}>
+                            /* Card de Acesso Rápido */
+                             <Card className={getThemeCardClasses('primary', true)} onClick={() => navigate("/meus-documentos")} tabIndex={0}>
                                 <CardContent className="p-5 space-y-3 flex flex-col items-start h-full justify-center">
                                     <div className="flex items-center text-primary mb-3">
                                         <Zap className="h-6 w-6 mr-2" />
-                                        <p className="text-base font-bold   text-foreground">Acesso Rápido</p>
+                                        <p className="text-base font-bold text-foreground">Acesso Rápido</p>
                                     </div>
                                     <Button 
                                         variant="outline" 

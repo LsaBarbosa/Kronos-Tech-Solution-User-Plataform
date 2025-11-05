@@ -97,52 +97,60 @@ const RelatorioDetalhado = () => {
 
 
     const statusRegistroTips = (
-    <>
-    <h1 className="text-lg font-bold text-primary mb-2 flex items-center gap-2">
-                    <Info className="w-5 h-5 text-primary"/> Instruções
-                  </h1>
-        <br />
-        <h4 className="text-sm font-bold text-primary mb-2 flex items-center gap-2">
-            <div className="w-2 h-2 rounded-full bg-primary  "></div>
-              <span  className=" animate-pulse">Relatório Detalhado</span>
-        </h4>
-        <ul className="list-disc list-inside text-xs space-y-2 text-muted-foreground ml-2">
-            <li>
-                Retorna todos registros feitos na data slecionada.
-            </li>
-            <li>
-                É possível filtrar pelo status do registro.
-            </li>
-            <br/>
-        </ul>
-          <h4 className="text-sm font-bold text-primary mb-2 flex items-center gap-2">
-            <div className="w-2 h-2 rounded-full bg-primary  "></div>
-            <span  className=" animate-pulse">Relatório Simples</span>
-        </h4>
-        <ul className="list-disc list-inside text-xs space-y-2 text-muted-foreground ml-2">
-            <li>
-                 Retorna a primeira e a última hora registrada e o saldo de horas da data slecionada.
-            </li>
+  <div className="space-y-3"> 
+            <h1 className="text-lg font-bold text-primary flex items-center gap-2">
+                <Info className="w-5 h-5 text-primary"/> Instruções
+            </h1>
             
-        </ul>
-        <br/>
-         <h4 className="text-sm font-bold text-primary mb-2 flex items-center gap-2">
-            <div className="w-2 h-2 rounded-full bg-primary  "></div>
-               <span  className=" animate-pulse">Ajuste no ponto</span>
-        </h4>
-        <ul className="list-disc list-inside text-xs space-y-2 text-muted-foreground ml-2">
-            <li>
-                 Após  ageração do relatório detalhado, clique no registro e envie a solicitação.
-            </li>
-            <li>
-                 A solicitação será enviada so gestor que aprovará ou negará a requisição.
-            </li>
-            <li>
-                 Solicitações não aprovadas em 30 dias devem ser refeitas.
-            </li>
-        </ul>
-    </>
-);
+            {/* Conteúdo Detalhado */}
+            <div className="pt-2"> 
+                <h4 className="text-sm font-bold text-primary flex items-center gap-2">
+                    <div className="w-2 h-2 rounded-full bg-primary"></div>
+                    <span className="animate-pulse">Relatório Detalhado</span>
+                </h4>
+                <ul className="list-disc list-inside text-xs space-y-1 text-muted-foreground ml-2 pt-1">
+                    <li>
+                        Retorna todos registros feitos na data slecionada.
+                    </li>
+                    <li>
+                        É possível filtrar pelo status do registro.
+                    </li>
+                </ul>
+            </div>
+            
+            {/* Conteúdo Simples */}
+            <div className="pt-2"> 
+                <h4 className="text-sm font-bold text-primary flex items-center gap-2">
+                    <div className="w-2 h-2 rounded-full bg-primary"></div>
+                    <span className="animate-pulse">Relatório Simples</span>
+                </h4>
+                <ul className="list-disc list-inside text-xs space-y-1 text-muted-foreground ml-2 pt-1">
+                    <li>
+                         Retorna a primeira e a última hora registrada e o saldo de horas da data slecionada.
+                    </li>
+                </ul>
+            </div>
+            
+            {/* Conteúdo Ajuste */}
+            <div className="pt-2"> 
+                <h4 className="text-sm font-bold text-primary flex items-center gap-2">
+                    <div className="w-2 h-2 rounded-full bg-primary"></div>
+                    <span className="animate-pulse">Ajuste no ponto</span>
+                </h4>
+                <ul className="list-disc list-inside text-xs space-y-1 text-muted-foreground ml-2 pt-1">
+                    <li>
+                         Após a geração do relatório detalhado, clique no registro e envie a solicitação.
+                    </li>
+                    <li>
+                         A solicitação será enviada so gestor que aprovará ou negará a requisição.
+                    </li>
+                    <li>
+                         Solicitações não aprovadas em 30 dias devem ser refeitas.
+                    </li>
+                </ul>
+            </div>
+        </div>
+    );
 
     // REMOVIDO: O estado de pausas aninhadas (editBreaks) não é mais necessário
     // const [editBreaks, setEditBreaks] = useState<BreakEditItem[]>([]); 
