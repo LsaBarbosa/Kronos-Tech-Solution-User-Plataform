@@ -12,11 +12,9 @@ import NotFound from "./pages/NotFound";
 import Empresa from "./pages/Empresa";
 import CriarEmpresa from "./pages/CriarEmpresa";
 import BuscarEmpresa from "./pages/BuscarEmpresa";
-
 import RelatorioSimples from "./pages/RelatorioSimples";
 import RelatorioDetalhado from "./pages/RelatorioDetalhado";
 import Documentos from "./pages/Documentos";
-import AtestadoMedico from "./pages/AtestadoMedico";
 import EnviarDocumentos from "./pages/EnviarDocumentos";
 import EnviarAtestado from "./pages/DocumentoColaborador";
 import Usuario from "./pages/Usuario";
@@ -24,8 +22,7 @@ import CriarColaborador from "./pages/CriarColaborador";
 import ListaColaboradores from "./pages/ListaColaboradores";
 import ListaUsuarios from "./pages/ListaUsuarios";
 import RelatorioHoras from "./pages/RelatorioHoras";
-import ApuracaoHoras from "./pages/ApuracaoHoras";
-import Avisos from "./pages/Avisos";
+ import Avisos from "./pages/Avisos";
 import CriarAviso from "./pages/CriarAviso";
 import StatusRegistro from "./pages/StatusRegistro";
 import EsqueciSenha from "./pages/EsqueciSenha";
@@ -34,8 +31,10 @@ import DocumentoColaborador from "./pages/DocumentoColaborador";
 import ProtectedRoute from "./components/ProtectedRoute";
 import CriarManager from "./pages/CriarManager";
 import TokenRedirect from "./pages/TokenRedirect";
-import SolicitacoesAprovacao from "./pages/ApuracaoHoras";
-import AtualizarEmpresa from "./pages/AtualizarEmpresa";
+ import AtualizarEmpresa from "./pages/AtualizarEmpresa";
+import PendingApprovals from "./pages/PendingApprovals";
+import VacationApprovals from "./pages/VacationApprovals";
+import RequestVacation from "./pages/RequestVacation";
 
 const queryClient = new QueryClient();
 
@@ -49,6 +48,7 @@ const App = () => (
           <Routes>
 
             <Route path="/" element={<TokenRedirect />} />
+            <Route path="/login" element={<Login />} />
             <Route path="/esqueci-a-senha" element={<EsqueciSenha />} />
             <Route path="/resetar-senha" element={<ResetPassword />} />
 
@@ -68,19 +68,20 @@ const App = () => (
               <Route path="/documentos" element={<Documentos />} />
               <Route path="/enviar-documentos" element={<EnviarDocumentos />} />
               <Route path="/enviar-documento-colaborador" element={<DocumentoColaborador />} />
-              <Route path="/atestado-medico" element={<AtestadoMedico />} />
+             
               <Route path="/usuario" element={<Usuario />} />
               <Route path="/criar-colaborador" element={<CriarColaborador />} />
               <Route path="/criar-administrador" element={<CriarManager />} />
               <Route path="/lista-colaboradores" element={<ListaColaboradores />} />
               <Route path="/lista-usuarios" element={<ListaUsuarios />} />
               <Route path="/relatorio-horas" element={<RelatorioHoras />} />
-              <Route path="/apuracao-horas" element={<ApuracaoHoras />} />
+              <Route path="/apuracao-horas" element={<PendingApprovals />} />
               <Route path="/status-do-registro" element={<StatusRegistro />} />
               <Route path="/avisos" element={<Avisos />} />
               <Route path="/criar-aviso" element={<CriarAviso />} />
+              <Route path="/ferias" element={<VacationApprovals />} />
+              <Route path="/solicitar-ferias" element={<RequestVacation />} />
             </Route>
-
             {/* Rota de Not Found (pública) */}
             <Route path="*" element={<NotFound />} />
           </Routes>
@@ -89,5 +90,4 @@ const App = () => (
     </ThemeProvider>
   </QueryClientProvider>
 );
-
 export default App;

@@ -1,12 +1,14 @@
-import React, { useState, useRef, useEffect } from "react";
+// src/pages/EnviarDocumentos.tsx
+
+import React, { useState, useRef, useEffect, useCallback } from "react";
 import Header from "@/components/Header";
 import Sidebar from "@/components/Sidebar";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
-import { Checkbox } from "@/components/ui/checkbox"; // Adicionado para manter a coerência de componentes
-import { Upload, FileText, X, UserCheck, UserX } from "lucide-react";
+import { Checkbox } from "@/components/ui/checkbox"; 
+import { Upload, FileText, X, UserCheck, UserX, Info, MessageSquareWarningIcon, LucideFileWarning, FileWarning } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { API_BASE_URL } from "@/config/api";
 
@@ -110,7 +112,8 @@ export default function EnviarDocumentos() {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [employees, setEmployees] = useState<Employee[]>([]);
   const [selectedEmployeeId, setSelectedEmployeeId] = useState("");
-  const [selectedDocumentType, setSelectedDocumentType] = useState("PAYSLIP"); // Valor padrão
+  // Estado inicial vazio para ser definido dinamicamente no useEffect
+  const [selectedDocumentType, setSelectedDocumentType] = useState(""); 
   const [activeEmployeeFilter, setActiveEmployeeFilter] = useState("true");
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [isDragOver, setIsDragOver] = useState(false);
@@ -119,8 +122,11 @@ export default function EnviarDocumentos() {
   const [isPartner, setIsPartner] = useState(false);
   const [currentUserId, setCurrentUserId] = useState("");
   const [currentUserName, setCurrentUserName] = useState("");
+  // Estado para armazenar a role do usuário
+  const [userRole, setUserRole] = useState(""); 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
+  const handleToggleSidebar = useCallback(() => setSidebarOpen((prev) => !prev), []);
 
   useEffect(() => {
     const token = localStorage.getItem('token');
@@ -129,53 +135,70 @@ export default function EnviarDocumentos() {
     }
 
     const decoded = decodeToken(token);
-    const userRole = decoded?.role;
+    const userRole = decoded?.role; 
     const userId = decoded?.employeeId;
     const userName = decoded?.fullName;
 
+    const isManager = userRole === 'MANAGER'; 
+    
     setIsPartner(userRole === 'PARTNER');
     setCurrentUserId(userId || "");
     setCurrentUserName(userName || "");
+    setUserRole(userRole || "");
 
-    if (userRole === 'PARTNER') {
-      setEmployees([{ id: userId, name: userName }]);
-      setSelectedEmployeeId(userId);
-      return;
+    // AJUSTE CRÍTICO: Definir selectedEmployeeId automaticamente para NÃO-MANAGERS
+    if (!isManager) {
+        // Para PARTNER e qualquer outro usuário não-MANAGER, 
+        // o ID selecionado é o do próprio usuário logado.
+        setEmployees([{ id: userId, name: userName }]); 
+        setSelectedEmployeeId(userId || ""); // Define o ID do próprio usuário (RESOLVE O PROBLEMA DO BOTÃO)
+    } else {
+        // Para MANAGER, o ID deve ser limpo para que ele selecione um.
+        setSelectedEmployeeId(""); 
     }
+    
+    // Lógica de definição do tipo de documento padrão
+    if (isManager) {
+        setSelectedDocumentType("PAYSLIP"); 
+    } else {
+        setSelectedDocumentType("DOCTOR_APPOINTMENT"); 
+    }
+    
+    // Lógica de busca de funcionários (Somente para MANAGER)
+    if (isManager) { 
+        const fetchEmployees = async () => {
+            setIsFetchingEmployees(true);
+            try {
+                const headers = getAuthHeaders();
+                if (Object.keys(headers).length === 0) {
+                    return;
+                }
 
-    const fetchEmployees = async () => {
-      setIsFetchingEmployees(true);
-      try {
-        const headers = getAuthHeaders();
-        if (Object.keys(headers).length === 0) {
-          return;
-        }
+                const response = await fetch(`${API_BASE_URL}employee?active=${activeEmployeeFilter}`, { headers });
+                if (!response.ok) {
+                    const errorData = await response.json();
+                    throw new Error(errorData.detail ||"Erro ao buscar funcionários.");
+                }
+                const data = await response.json();
+                const formattedEmployees: Employee[] = data.employees.map((emp: any) => ({
+                    id: emp.employeeId,
+                    name: emp.fullName,
+                }));
+                setEmployees(formattedEmployees);
+            } catch (error) {
+                console.error("Erro ao buscar funcionários:", error);
+                toast({
+                    title: "Erro",
+                    description: "Erro ao buscar a lista de funcionários. Tente novamente.",
+                    variant: "destructive",
+                });
+            } finally {
+                setIsFetchingEmployees(false);
+            }
+        };
 
-        const response = await fetch(`${API_BASE_URL}employee?active=${activeEmployeeFilter}`, { headers });
-        if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.detail ||"Erro ao buscar funcionários.");
-        }
-        const data = await response.json();
-        const formattedEmployees: Employee[] = data.employees.map((emp: any) => ({
-          id: emp.employeeId,
-          name: emp.fullName,
-        }));
-        setEmployees(formattedEmployees);
-        setSelectedEmployeeId("");
-      } catch (error) {
-        console.error("Erro ao buscar funcionários:", error);
-        toast({
-          title: "Erro",
-          description: "Erro ao buscar a lista de funcionários. Tente novamente.",
-          variant: "destructive",
-        });
-      } finally {
-        setIsFetchingEmployees(false);
-      }
-    };
-
-    fetchEmployees();
+        fetchEmployees();
+    }
   }, [activeEmployeeFilter]);
 
   const handleDragOver = (e: React.DragEvent) => {
@@ -239,6 +262,7 @@ export default function EnviarDocumentos() {
   };
 
   const handleUpload = async () => {
+    // A verificação de !selectedEmployeeId agora só impede o MANAGER de avançar sem selecionar.
     if (!selectedFile || !selectedEmployeeId) {
       toast({
         title: "Erro",
@@ -248,14 +272,13 @@ export default function EnviarDocumentos() {
       return;
     }
 
-    // Validação de 5MB está no handleFileSelect, mas repetimos aqui para segurança caso selectedFile seja setado de outra forma
     if (selectedFile.size > MAX_UPLOAD_SIZE_BYTES) {
       toast({
         title: "Arquivo muito grande",
         description: `O arquivo "${selectedFile.name}" excede o limite máximo de 5MB. Por favor, utilize um arquivo menor.`,
         variant: "destructive",
       });
-      return; // Interrompe o processo aqui, se for maior que 5MB.
+      return; 
     }
 
 
@@ -272,7 +295,7 @@ export default function EnviarDocumentos() {
       formData.append("file", finalFile); // Usa o arquivo comprimido (ou original)
 
       const searchParams = new URLSearchParams({
-        employeeId: selectedEmployeeId,
+        employeeId: selectedEmployeeId, // Usará o ID selecionado (Manager) ou o ID do próprio usuário (outros)
         type: selectedDocumentType,
       });
 
@@ -294,7 +317,10 @@ export default function EnviarDocumentos() {
 
       // Reset form
       setSelectedFile(null);
-      setSelectedEmployeeId("");
+      // Mantém o ID selecionado se for um Manager, limpa para outros
+      if (userRole !== 'MANAGER') {
+         setSelectedEmployeeId("");
+      }
       if (fileInputRef.current) {
         fileInputRef.current.value = "";
       }
@@ -319,12 +345,18 @@ export default function EnviarDocumentos() {
     }
   };
 
+  // LÓGICA DE VISIBILIDADE DOS CAMPOS
+  const isManager = userRole === 'MANAGER';
+  // A área de seleção de funcionário só é mostrada para o MANAGER
+  const showEmployeeSelectionArea = isManager;
+
+
   return (
     <div className="min-h-screen bg-background">
-      <Header onMenuClick={() => setSidebarOpen(!sidebarOpen)} />
-
-      <div className="flex flex-col sm:flex-row min-h-screen">
-        <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+       <Sidebar isOpen={sidebarOpen} toggleSidebar={handleToggleSidebar} />
+      
+      <div className="flex-1 flex flex-col overflow-hidden">
+        <Header toggleSidebar={handleToggleSidebar} />
 
         <main className="flex-1 mobile-container py-4 pt-20 pb-8">
           <div className="max-w-4xl mx-auto">
@@ -344,7 +376,9 @@ export default function EnviarDocumentos() {
                   </CardDescription>
                 </CardHeader>
                 <CardContent className="p-4 sm:p-6 space-y-6">
-                  {/* Employee Status Selection */}
+                  
+                  {/* Employee Status Selection (Somente MANAGER) */}
+                  {showEmployeeSelectionArea && ( 
                   <div className="space-y-2">
                     <Label htmlFor="employee-status" className="text-sm font-medium">Status do Funcionário</Label>
                     <Select value={activeEmployeeFilter} onValueChange={setActiveEmployeeFilter} disabled={isPartner}>
@@ -367,8 +401,10 @@ export default function EnviarDocumentos() {
                       </SelectContent>
                     </Select>
                   </div>
+                  )}
 
-                  {/* Employee Selection */}
+                  {/* Employee Selection (Somente MANAGER) */}
+                  {showEmployeeSelectionArea && ( 
                   <div className="space-y-2">
                     <Label htmlFor="employee" className="text-sm font-medium">Funcionário</Label>
                     <Select
@@ -388,6 +424,7 @@ export default function EnviarDocumentos() {
                       </SelectContent>
                     </Select>
                   </div>
+                  )}
 
                   {/* File Upload Area */}
                   <div className="space-y-2">
@@ -451,26 +488,54 @@ export default function EnviarDocumentos() {
                         <SelectValue placeholder="Selecione o tipo" />
                       </SelectTrigger>
                       <SelectContent>
+                        
+                        {/* Renderização Condicional para PAYSLIP (Somente MANAGER) */}
+                        {isManager && (
+                            <SelectItem value="PAYSLIP">Contracheque</SelectItem>
+                        )}
                       
                         <SelectItem value="DOCTOR_APPOINTMENT">Atestado</SelectItem>
                         <SelectItem value="EMPLOYEE_DOCUMENTS">Documentos Pessoais</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
-                  <div className="p-4 bg-primary/5 rounded-lg border border-primary/20">
-                    <p className="text-sm text-primary mb-1">💡 Dica de uso:</p>
-                    <p className="text-xs text-gray-text">
-                      1. Selecione um colaborador para enviar o arquivo<br />
-                      2. Apenas os Administradores e o colaborador selecionado podem ver os seus documentos.<br />
-                    </p>
-                    <p className="text-xs text-gray-text mt-2">
-                      ⚠️ Imagens serão automaticamente otimizadas (comprimidas).<br />
-                      ⚠️ Arquivo com mais de 5MB não serão aceitos no sistema.
-                    </p>
-                  </div>
+                           {/* CARD DE INSTRUÇÕES (ESTILIZADO) */}
+              <div className="p-4 bg-gradient-to-r from-primary/5 to-transparent rounded-xl border-2 border-primary/20 shadow-inner shadow-primary/5">
+                <>
+                  <h1 className="text-lg font-bold text-primary mb-2 flex items-center gap-2">
+                    <Info className="w-5 h-5 text-primary"/> Instruções
+                  </h1>
+                  <br />
+                  <h4 className="text-sm font-bold text-primary mb-2 flex items-center gap-2">
+                    <div className="w-2 h-2 rounded-full bg-primary shadow-lg shadow-primary/40"></div>
+                      <span > Busca por Documentos</span>
+                  </h4>
+                  <ul className="list-disc list-inside text-xs space-y-2 text-muted-foreground ml-2">
+                    <li>
+                      Se você é um administrador,  Selecione um colaborador para enviar o arquivoe o tipo de Documento.
+                    </li>
+                    <li>
+                      Apenas os Administradores e o colaborador destinatário podem ver os seus documentos.
+                    </li>
+                    </ul>
+                     <br />
+                     <h4 className="text-sm font-bold text-primary mb-2 flex items-center gap-2">
+                    <MessageSquareWarningIcon className="w-5 h-5 text-primary"/>  Atenção
+                  </h4>
+                  <ul className="list-disc list-inside text-xs space-y-2 text-muted-foreground ml-2">
+                    <li>
+                     Arquivos com mais de 5MB não serão aceitos.
+                    </li>
+                    
+                    </ul>
+                  
+                </>
+              </div>
+                
                   {/* Submit Button */}
                   <div className="pt-2 sm:pt-4">
                     <Button
+                      // O botão agora só está desabilitado se não houver arquivo OU se for Manager e não tiver selecionado um employeeId
                       onClick={handleUpload}
                       disabled={!selectedFile || !selectedEmployeeId || isUploading}
                       className="w-full bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 text-primary-foreground shadow-lg hover:shadow-xl transition-all duration-300 touch-target disabled:opacity-50 disabled:cursor-not-allowed"

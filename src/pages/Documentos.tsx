@@ -1,10 +1,12 @@
-import { useState, useEffect } from "react";
+// src/pages/Documentos.tsx (Aperfeiçoado)
+
+import { useState, useEffect, useCallback } from "react";
 import Header from "@/components/Header";
 import Sidebar from "@/components/Sidebar";
-import { Download, FileText, Calendar, Search, UserCheck, UserX, Trash2 } from "lucide-react";
+import { Download, FileText, Calendar, Search, UserCheck, UserX, Trash2, Loader2, Info } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
-import { Card } from "@/components/ui/card";
+import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
@@ -327,6 +329,9 @@ const Documentos = () => {
     return type === "PAYSLIP" ? "Contracheque" : "Atestado";
   };
 
+    const handleToggleSidebar = () => setSidebarOpen((prev) => !prev);
+
+
   return (
     <div className="min-h-screen bg-background relative overflow-hidden">
       {/* Animated Background and Header/Sidebar components */}
@@ -367,8 +372,11 @@ const Documentos = () => {
         </div>
       </div>
 
-      <Header onMenuClick={() => setSidebarOpen(!sidebarOpen)} />
-      <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+    <Sidebar isOpen={sidebarOpen} toggleSidebar={handleToggleSidebar} />
+
+      <div className="flex-1 flex flex-col overflow-hidden">
+        {/* 💡 CORREÇÃO: Header usa 'toggleSidebar' */}
+        <Header toggleSidebar={handleToggleSidebar} />
 
       <main className="pt-16 mobile-container py-4 sm:py-20 space-y-6 sm:space-y-8 relative z-10">
         <div className="space-y-2">
@@ -379,98 +387,122 @@ const Documentos = () => {
             Selecione um funcionário e tipo de documento para visualizar e baixar os arquivos disponíveis.
           </p>
         </div>
- <Card className="border-l-4 border-l-primary shadow-card">
+        
+        {/* CARD PRINCIPAL (Filtros) */}
+        <Card className="border-l-4 border-l-primary shadow-card">
                
-        <Card className="p-4 sm:p-6 card-hover">
-          <div className="space-y-4 sm:space-y-6">
-            <h3 className="text-lg sm:text-xl font-semibold text-foreground orange-underline">
-              Filtros de Busca
-            </h3>
+          <Card className="p-4 sm:p-6 card-hover">
+            <div className="space-y-4 sm:space-y-6">
+              <h3 className="text-lg sm:text-xl font-semibold text-foreground orange-underline">
+                Filtros de Busca
+              </h3>
 
-            <div className="mobile-form-grid lg:grid-cols-3 gap-4 sm:gap-6">
-              <div className="space-y-2">
-                <Label htmlFor="employee-status" className="text-sm font-medium">Status do Funcionário</Label>
-                <Select value={activeEmployeeFilter} onValueChange={setActiveEmployeeFilter} disabled={isPartner}>
-                  <SelectTrigger className="touch-target">
-                    <SelectValue placeholder={isFetchingEmployees ? "Carregando..." : "Status"} />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="true">
-                      <div className="flex items-center">
-                        <UserCheck className="w-4 h-4 mr-2 text-green-500" />
-                        <span>Ativo</span>
-                      </div>
-                    </SelectItem>
-                    <SelectItem value="false">
-                      <div className="flex items-center">
-                        <UserX className="w-4 h-4 mr-2 text-red-500" />
-                        <span>Inativo</span>
-                      </div>
-                    </SelectItem>
-                  </SelectContent>
-                </Select>
+             <div className="mobile-form-grid lg:grid-cols-3 gap-4 sm:gap-6">
+                
+              {/* 1. Status do Funcionário (Somente para MANAGER) */}
+                {!isPartner && (
+                  <div className="space-y-2">
+                    <Label htmlFor="employee-status" className="text-sm font-medium">Status do Funcionário</Label>
+                    <Select value={activeEmployeeFilter} onValueChange={setActiveEmployeeFilter}>
+                      <SelectTrigger className="touch-target">
+                        <SelectValue placeholder={isFetchingEmployees ? "Carregando..." : "Status"} />
+                      </SelectTrigger>
+                      <SelectContent>
+                        <SelectItem value="true">
+                          <div className="flex items-center">
+                            <UserCheck className="w-4 h-4 mr-2 text-green-500" />
+                            <span>Ativo</span>
+                          </div>
+                        </SelectItem>
+                        <SelectItem value="false">
+                          <div className="flex items-center">
+                            <UserX className="w-4 h-4 mr-2 text-red-500" />
+                            <span>Inativo</span>
+                          </div>
+                        </SelectItem>
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
+                
+                {/* 2. Lista de Funcionários (SOMENTE para MANAGER) */}
+                {!isPartner && (
+                  <div className="space-y-2">
+                    <Label htmlFor="employee" className="text-sm font-medium">Funcionário</Label>
+                    <Select
+                      value={selectedEmployeeId}
+                      onValueChange={setSelectedEmployeeId}
+                      // Removido disabled={isPartner} pois o componente não é renderizado
+                    >
+                      <SelectTrigger className="touch-target">
+                        <SelectValue placeholder={"Selecione um funcionário"} />
+                      </SelectTrigger>
+                      <SelectContent>
+                        {employees.map((employee) => (
+                          <SelectItem key={employee.id} value={employee.id}>
+                            {employee.name}
+                          </SelectItem>
+                        ))}
+                      </SelectContent>
+                    </Select>
+                  </div>
+                )}
+
+                {/* 3. Tipo de Documento (Ajustado para col-span-3 se for PARTNER) */}
+                <div className={cn("space-y-2", isPartner && "lg:col-span-3")}>
+                  <Label htmlFor="document-type" className="text-sm font-medium">Tipo de Documento</Label>
+                  <Select value={selectedDocumentType} onValueChange={setSelectedDocumentType}>
+                    <SelectTrigger className="touch-target">
+                      <SelectValue placeholder="Selecione o tipo" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      <SelectItem value="PAYSLIP">Contracheque</SelectItem>
+                      <SelectItem value="DOCTOR_APPOINTMENT">Atestado</SelectItem>
+                      <SelectItem value="EMPLOYEE_DOCUMENTS">Documentos Pessoais</SelectItem>
+                    </SelectContent>
+                  </Select>
+                </div>
+              </div>
+              {/* CARD DE INSTRUÇÕES (ESTILIZADO) */}
+              <div className="p-4 bg-gradient-to-r from-primary/5 to-transparent rounded-xl border-2 border-primary/20 shadow-inner shadow-primary/5">
+                <>
+                  <h1 className="text-lg font-bold text-primary mb-2 flex items-center gap-2">
+                    <Info className="w-5 h-5 text-primary"/> Instruções
+                  </h1>
+                  <br />
+                  <h4 className="text-sm font-bold text-primary mb-2 flex items-center gap-2">
+                    <div className="w-2 h-2 rounded-full bg-primary shadow-lg shadow-primary/40"></div>
+                      <span className="animate-pulse"> Busca por Documentos</span>
+                  </h4>
+                  <ul className="list-disc list-inside text-xs space-y-2 text-muted-foreground ml-2">
+                    <li>
+                      Se você é um administrador, selecione o colaborador e tipo de documento.
+                    </li>
+                    <li>
+                      Clique em Buscar Documentos para carregar a lista de arquivos disponíveis.
+                    </li>
+                  </ul>
+                </>
               </div>
 
-              <div className="space-y-2">
-                <Label htmlFor="employee" className="text-sm font-medium">Funcionário</Label>
-                <Select
-                  value={selectedEmployeeId}
-                  onValueChange={setSelectedEmployeeId}
-                  disabled={isPartner}
+              <div className="pt-2">
+                <Button
+                  onClick={handleSearch}
+                  disabled={!selectedEmployeeId || !selectedDocumentType || isSearching || isFetchingEmployees}
+                  className="w-full sm:w-auto bg-primary hover:bg-primary/90 text-white touch-target shadow-button"
+                  size="lg"
                 >
-                  <SelectTrigger className="touch-target">
-                    <SelectValue placeholder={isPartner ? currentUserName : "Selecione um funcionário"} />
-                  </SelectTrigger>
-                  <SelectContent>
-                    {employees.map((employee) => (
-                      <SelectItem key={employee.id} value={employee.id}>
-                        {employee.name}
-                      </SelectItem>
-                    ))}
-                  </SelectContent>
-                </Select>
-              </div>
-
-              <div className="space-y-2">
-                <Label htmlFor="document-type" className="text-sm font-medium">Tipo de Documento</Label>
-                <Select value={selectedDocumentType} onValueChange={setSelectedDocumentType}>
-                  <SelectTrigger className="touch-target">
-                    <SelectValue placeholder="Selecione o tipo" />
-                  </SelectTrigger>
-                  <SelectContent>
-                    <SelectItem value="PAYSLIP">Contracheque</SelectItem>
-                    <SelectItem value="DOCTOR_APPOINTMENT">Atestado</SelectItem>
-                    <SelectItem value="EMPLOYEE_DOCUMENTS">Documentos Pessoais</SelectItem>
-                  </SelectContent>
-                </Select>
+                  <Search className="w-4 h-4 mr-2" />
+                  {isSearching ? "Buscando..." : "Buscar Documentos"}
+                </Button>
               </div>
             </div>
-            <div className="p-4 bg-primary/5 rounded-lg border border-primary/20">
-              <p className="text-sm text-primary mb-1">💡 Dica de uso:</p>
-              <p className="text-xs text-gray-text">
-                1. Se você não é um administrador, não se preocupe, o sistema automaticamente seleciona seu cadastro.<br />
-                2. Apenas você e seus Administradores podem ver os seus documentos.<br />
-                3. Após a geração dos documentos, é possivel filtrar para selecionar uma data específica.<br />
-                4. Clique no arquivo desejado para que se inicie o Download.
-              </p>
-            </div>
-            <div className="pt-2">
-              <Button
-                onClick={handleSearch}
-                disabled={!selectedEmployeeId || !selectedDocumentType || isSearching || isFetchingEmployees}
-                className="w-full sm:w-auto bg-primary hover:bg-primary/90 text-white touch-target"
-                size="lg"
-              >
-                <Search className="w-4 h-4 mr-2" />
-                {isSearching ? "Buscando..." : "Buscar Documentos"}
-              </Button>
-            </div>
-          </div>
+          </Card>
         </Card>
-        </Card>
+        {/* FIM CARD PRINCIPAL */}
 
         {hasSearched && (
-          <Card className="p-4 sm:p-6 card-hover">
+          <Card className="p-4 sm:p-6 card-hover border-l-4 border-l-secondary">
             <div className="space-y-4 sm:space-y-6">
               <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
                 <h3 className="text-lg sm:text-xl font-semibold text-foreground orange-underline">
@@ -506,6 +538,7 @@ const Documentos = () => {
 
               {isSearching ? (
                 <div className="text-center py-8 sm:py-12 space-y-3">
+                  <Loader2 className="h-8 w-8 animate-spin text-primary mx-auto" />
                   <p className="text-sm sm:text-base text-muted-foreground">
                     Carregando documentos...
                   </p>
@@ -525,34 +558,41 @@ const Documentos = () => {
                   {filteredDocuments.map((document) => (
                     <div
                       key={document.id}
-                      className="p-3 border border-gray-border rounded-lg hover:bg-gray-light/50 transition-colors"
+                      // MODIFICADO: Estilo do item da lista (flex, borda e hover)
+                      className="flex items-center justify-between p-3 border border-border/50 rounded-lg bg-card/80 transition-all duration-200 hover:border-primary/50 hover:shadow-lg hover:shadow-primary/10"
                     >
+                      {/* Link - ocupa o máximo de espaço possível */}
                       <a
                         href="#"
                         onClick={(e) => {
                           e.preventDefault();
                           handleDownload(document);
                         }}
-                        className="flex items-center justify-between group hover:text-primary"
+                        // MODIFICADO: Ocupa o espaço restante para alinhar
+                        className="flex flex-1 items-center space-x-3 group hover:text-primary min-w-0" 
                       >
-                        <div className="flex items-center space-x-3">
-                          <FileText className="w-4 h-4 text-orange-primary" />
-                          <div>
-                            <h4 className="font-medium text-foreground group-hover:text-orange-primary">
-                              {document.name}
-                            </h4>
-                            <p className="text-sm text-muted-foreground">
-                              {formatDate(document.createdAt)}
-                            </p>
-                          </div>
+                        {/* Ícone usa primary/80 por padrão, e primary no hover do grupo */}
+                        <FileText className="w-5 h-5 text-primary/80 group-hover:text-primary flex-shrink-0" />
+                        <div className="flex-1 min-w-0 truncate">
+                          {/* Hover do texto para primary */}
+                          <h4 className="font-medium text-foreground group-hover:text-primary truncate">
+                            {document.name}
+                          </h4>
+                          <p className="text-sm text-muted-foreground">
+                            {formatDate(document.createdAt)}
+                          </p>
                         </div>
-                        <Download className="w-4 h-4 opacity-0 group-hover:opacity-100 transition-opacity" />
+                        {/* Ícone de Download alinhado à direita e com cor temática */}
+                        <Download className="w-4 h-4 text-primary opacity-50 group-hover:opacity-100 transition-opacity flex-shrink-0 ml-4" />
                       </a>
+                       
+                       {/* Botão de Excluir */}
                        <Button
                           variant="ghost"
                           size="icon"
                           onClick={() => handleDeleteDocument(document.id, document.name)}
-                          className="h-8 w-8 text-destructive hover:bg-destructive/10"
+                          // Mantido: Destructive hover e alinhamento
+                          className="h-8 w-8 text-destructive hover:bg-destructive/10 flex-shrink-0 ml-2"
                           title="Excluir"
                         >
                           <Trash2 className="w-4 h-4" />
@@ -566,6 +606,8 @@ const Documentos = () => {
         )}
       </main>
     </div>
+        </div>
+
   );
 };
 

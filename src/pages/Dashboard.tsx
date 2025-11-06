@@ -1,281 +1,479 @@
-import { useState, useEffect, useCallback, useMemo } from "react";
+// ARQUIVO: src/pages/Dashboard.tsx (Com alterações no Card de Pendências)
+
+import { useState, useCallback, useMemo } from "react";
 import Header from "@/components/Header";
 import Sidebar from "@/components/Sidebar";
 import Clock from "@/components/Clock";
-import EmployeeBadge from "@/components/EmployeeBadge";
-import { useToast } from "@/hooks/use-toast";
-import { API_BASE_URL } from "@/config/api";
-import { Bell, MessageSquareWarning } from "lucide-react";
+import { 
+    ArrowRight, Loader2, Clock as ClockIcon, FileCheck, DollarSign, Mail, 
+    Briefcase, Phone, MessageSquareWarning, Zap, User2, Building, Eye, EyeOff, 
+    PlusCircle, ListChecks, ActivitySquare, AlertTriangle, Plane, // ÍCONE: Plane
+    TreePalm,
+    MailWarning
+} from "lucide-react"; 
 import { useNavigate } from "react-router-dom";
-import { Card } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card"; 
+import { Button } from "@/components/ui/button";
+import { Separator } from "@/components/ui/separator";
 
-// Interface atualizada para receber o novo campo da API
-interface UserProfile {
-  fullName: string;
-  jobPosition: string;
-  email: string;
-  salary: number;
-  phone: string;
-  companyName: string;
-  lastSeenMessageTimestamp?: string; // Este campo virá do backend
-}
+import { useDashboardData } from "@/hooks/useDashboardData";
+import { useVacationCount } from "@/hooks/useVacationCount"; // Importação do NOVO HOOK
+import { getRoleDisplayName } from "@/types/dashboard";
 
-// Interface para garantir que os avisos tenham a propriedade 'createdAt'
-interface Warning {
-  messageId: string;
-  createdAt: string;
-  // adicione outros campos se necessário
-  [key: string]: any;
-}
+// Função utilitária para formatar o salário
+const formatSalary = (salary: number | undefined) => {
+    if (salary === undefined || salary === null) return "N/A";
+    return new Intl.NumberFormat('pt-BR', {
+      style: 'currency',
+      currency: 'BRL'
+    }).format(salary);
+};
+
+// Função utilitária para formatar o telefone
+const formatPhone = (phone: string | undefined) => {
+    if (!phone) return "N/A";
+    const cleaned = ('' + phone).replace(/\D/g, '');
+    const match = cleaned.match(/^(\d{2})(\d{5})(\d{4})$/);
+    if (match) {
+      return `(${match[1]}) ${match[2]}-${match[3]}`;
+    }
+    const matchShort = cleaned.match(/^(\d{2})(\d{\d})(\d{4})$/);
+     if (matchShort) {
+      return `(${matchShort[1]}) ${matchShort[2]}-${matchShort[3]}`;
+    }
+    return phone;
+};
+
+/**
+ * Função auxiliar para extrair o primeiro nome (para a saudação)
+ */
+const getFirstName = (fullName: string | undefined): string => {
+    if (!fullName) return "Usuário";
+    return fullName.trim().split(/\s+/)[0];
+};
+
 
 const Dashboard = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [userData, setUserData] = useState<UserProfile | null>(null);
-  const [isLoading, setIsLoading] = useState(true);
-  const [pendingApprovalsCount, setPendingApprovalsCount] = useState<number>(0);
-  const { toast } = useToast();
+  const [showSalary, setShowSalary] = useState(false); // Estado para mostrar/esconder salário
+  
+  const handleToggleSidebar = useCallback(() => setSidebarOpen((prev) => !prev), []);
+  const toggleSalary = useCallback(() => setShowSalary(prev => !prev), []); // Toggle do salário
+  
   const navigate = useNavigate();
 
-  // Estado para guardar TODOS os avisos da empresa
-  const [allCompanyWarnings, setAllCompanyWarnings] = useState<Warning[]>([]);
+  const {
+    userData,
+    isLoading,
+    pendingApprovalsCount, // Contagem de TimeRecords (Horas)
+    newWarnings,
+    hasApprovalPermission,
+    fetchProfile, 
+    handleWarningClick,
+  } = useDashboardData();
+  
+  // 1. OBTENÇÃO DA CONTAGEM DE FÉRIAS
+  const { pendingVacationCount } = useVacationCount(); 
 
-  const getAuthHeaders = useCallback(() => {
-    const token = localStorage.getItem("token");
-    if (!token) {
-      throw new Error("Token de autenticação não encontrado.");
+  // Handlers de Navegação
+  const handleApprovalClick = useCallback(() => {
+    navigate("/apuracao-horas"); // Pendências de TimeRecord
+  }, [navigate]);
+
+  // NOVO HANDLER para Férias (usado nos botões de detalhe)
+  const handleVacationApprovalClick = useCallback(() => {
+    navigate("/ferias"); // Rota para a nova tela de aprovação de férias
+  }, [navigate]);
+
+
+  const handleClockCardClick = useCallback(() => { // Card Controle de Ponto
+    navigate("/relatorio-detalhado"); 
+  }, [navigate]);
+
+  // Redirecionamento do Card de Detalhes do Usuário
+  const handleDetailsCardClick = useCallback(() => {
+    navigate("/usuario");
+  }, [navigate]);
+  
+  const isCto = useMemo(() => userData?.role === 'CTO', [userData?.role]);
+  const isManager = useMemo(() => userData?.role === 'MANAGER', [userData?.role]); 
+  
+  // Handler para o link da empresa (clique na span dentro do card)
+  const handleCompanyLinkClick = useCallback((event: React.MouseEvent<HTMLSpanElement, MouseEvent>) => {
+    event.stopPropagation(); // Impede que o clique suba para o Card e navegue para /usuario
+    if (isCto) {
+      navigate("/empresa");
     }
-    return {
-      "Content-Type": "application/json",
-      Authorization: `Bearer ${token}`,
-    };
-  }, []);
+  }, [isCto, navigate]);
 
- const fetchProfile = useCallback(async () => {
-    setIsLoading(true);
-    try {
-      const headers = getAuthHeaders();
-      const response = await fetch(`${API_BASE_URL}employee/own-profile`, {
-        method: "GET",
-        headers: headers,
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.detail || "Falha ao buscar os dados do perfil do usuário.");
-      }
-
-      const data = await response.json();
-      setUserData(data);
-    } catch (error: any) {
-      console.error("Erro ao buscar o perfil:", error);
-      toast({
-        title: "Erro de Conexão",
-        description: error.message,
-        variant: "destructive",
-      });
-    } finally {
-      setIsLoading(false);
+  // Handler para o botão da empresa (clique no botão dentro do card)
+  const handleCompanyButtonClick = useCallback((event: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
+    event.stopPropagation(); // Impede que o clique suba para o Card e navegue para /usuario
+    if (isCto) {
+      navigate("/empresa");
     }
-  }, []);
+  }, [isCto, navigate]);
 
-  const fetchPendingApprovals = useCallback(async () => {
-    try {
-      const headers = getAuthHeaders();
-      const response = await fetch(`${API_BASE_URL}records/pending-approvals`, {
-        method: "GET",
-        headers,
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.detail ||"Falha ao buscar aprovações pendentes.");
-      }
-      const data = await response.json();
-      setPendingApprovalsCount(data.length);
-    } catch (error: any) {
-      console.error("Erro ao buscar aprovações pendentes:", error);
+  // Handler para o Card de Avisos para não-MANAGERs
+  const handleAvisosCardClick = useCallback(() => {
+    if (!isManager && newWarnings.length > 0) {
+        handleWarningClick(); // Marca como visto e navega para /avisos
     }
-  }, [getAuthHeaders]);
+  }, [isManager, newWarnings.length, handleWarningClick]);
+  
+  // 2. SOMA TOTAL DE PENDÊNCIAS
+  const totalPendingCount = useMemo(() => pendingApprovalsCount + pendingVacationCount, [pendingApprovalsCount, pendingVacationCount]);
+  
+  /**
+   * Função auxiliar para aplicar estilização temática de Card.
+   * **ATUALIZADO:** Adiciona classes de borda lateral e sombra para consistência.
+   * @param baseColor Cor base ('primary', 'destructive', 'success', 'yellow-600').
+   */
+  const getThemeCardClasses = (baseColor: string, isClickable: boolean = false) => {
+      
+      let borderColor, rawColor;
 
-  // Busca todos os avisos da empresa
-  const fetchWarnings = useCallback(async () => {
-    try {
-      const headers = getAuthHeaders();
-      const response = await fetch(`${API_BASE_URL}messages`, {
-        method: "GET",
-        headers,
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.detail ||"Falha ao buscar os avisos.");
-       }
-      const data = await response.json();
-      setAllCompanyWarnings(data);
-    } catch (error: any) {
-      console.error("Erro ao buscar os avisos:", error);
-    }
-  }, [getAuthHeaders]);
-
-  useEffect(() => {
-    fetchProfile();
-    fetchPendingApprovals();
-    fetchWarnings();
-  }, [fetchProfile, fetchPendingApprovals, fetchWarnings]);
-
-  // Hook que calcula quais avisos são "novos"
-  const newWarnings = useMemo(() => {
-    if (!userData || !allCompanyWarnings.length) {
-      return [];
-    }
-    // Se o usuário nunca visualizou, todos os avisos são novos
-    if (!userData.lastSeenMessageTimestamp) {
-      return allCompanyWarnings;
-    }
-
-    const lastSeenDate = new Date(userData.lastSeenMessageTimestamp);
-
-    // Filtra apenas os avisos criados DEPOIS da última visualização
-    return allCompanyWarnings.filter(warning => {
-      const warningDate = new Date(warning.createdAt);
-      return warningDate > lastSeenDate;
-    });
-  }, [allCompanyWarnings, userData]);
-
-  const handleReminderClick = () => {
-    navigate("/apuracao-horas");
-  };
-
-  // Função que chama a nova API do backend ao clicar na notificação
- const handleWarningClick = async () => {
-    try {
-      const headers = getAuthHeaders();
-      const response = await fetch(`${API_BASE_URL}employee/mark-messages-seen`, {
-        method: "POST",
-        headers,
-      });
-
-      // Se a chamada para marcar como visto falhar, exibe um erro e não continua.
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.detail || "Falha ao marcar avisos como vistos.");
+      // Mapeamento das classes Tailwind para cores e rawColor (para classes dinâmicas)
+      switch (baseColor) {
+          case 'primary':
+              // Borda base e Borda lateral
+              borderColor = 'border-l-4 border-l-primary';
+              rawColor = 'primary';
+              break;
+          case 'destructive':
+              borderColor = 'border-l-4 border-l-destructive';
+              rawColor = 'destructive';
+              break;
+          case 'success':
+              // Usando green-600 como sucesso
+              borderColor = 'border-l-4 border-l-green-600';
+              rawColor = 'green-600';
+              break;
+          case 'yellow-600':
+              // Cor de aviso/alerta (amarelo)
+              borderColor = 'border-l-4 border-l-yellow-600';
+              rawColor = 'yellow-600';
+              break;
+          default:
+              borderColor = 'border-l-4 border-l-border';
+              rawColor = 'primary';
       }
       
-      // --- CORREÇÃO PRINCIPAL AQUI ---
-      // Após o sucesso, chamamos a função `fetchProfile()` novamente.
-      // Isso garante que o `userData` seja atualizado com os dados mais recentes do banco,
-      // incluindo o novo `lastSeenMessageTimestamp`.
-      await fetchProfile();
-
-    } catch (error: any) {
-      toast({
-        title: "Erro ao marcar como visto",
-        description: error.message || "Não foi possível atualizar o status dos avisos.",
-        variant: "destructive",
-      });
-    } finally {
-      // Navega para a página de avisos independentemente do resultado
-      navigate("/avisos");
-    }
+      // 🚀 CLASSES INTERATIVAS (Hover e Focus)
+      const interactiveClasses = `
+          shadow-card
+          transition-all duration-300 
+          hover:shadow-xl 
+          hover:shadow-${rawColor}/20
+          hover:border-l-primary/80 
+      `;
+      
+      const cursorClass = isClickable ? 'cursor-pointer' : 'cursor-default';
+      
+      // Combina as classes
+      return `${borderColor} ${interactiveClasses} ${cursorClass}`;
   };
+
   return (
-    <div className="min-h-screen bg-background relative overflow-hidden">
-      {/* Animated Background */}
-      <div className="fixed inset-0 z-0">
-        {/* Gradient Background */}
-        <div 
-          className="absolute inset-0 opacity-5"
-          style={{
-            background: 'linear-gradient(-45deg, hsl(var(--black-primary)), hsl(var(--primary)), hsl(var(--black-primary)), hsl(var(--primary)))',
-            backgroundSize: '400% 400%',
-            animation: 'gradient-flow 15s ease-in-out infinite'
-          }}
-        />
-        
-        {/* Floating Geometric Shapes */}
-        <div className="absolute inset-0">
-          <div 
-            className="absolute top-1/4 left-1/4 w-32 h-32 opacity-3"
-            style={{
-              background: 'linear-gradient(135deg, hsl(var(--primary) / 0.1), transparent)',
-              borderRadius: '30% 70% 70% 30% / 30% 30% 70% 70%',
-              animation: 'float-shapes 20s ease-in-out infinite'
-            }}
-          />
-          <div 
-            className="absolute top-3/4 right-1/4 w-48 h-48 opacity-2"
-            style={{
-              background: 'linear-gradient(45deg, hsl(var(--black-primary) / 0.05), transparent)',
-              borderRadius: '70% 30% 30% 70% / 70% 70% 30% 30%',
-              animation: 'float-shapes 25s ease-in-out infinite reverse'
-            }}
-          />
-          <div 
-            className="absolute top-1/2 right-1/3 w-24 h-24 opacity-4"
-            style={{
-              background: 'radial-gradient(circle, hsl(var(--primary) / 0.08), transparent)',
-              borderRadius: '50%',
-              animation: 'float-shapes 18s ease-in-out infinite 5s'
-            }}
-          />
-        </div>
-      </div>
-      
-      <Header onMenuClick={() => setSidebarOpen(!sidebarOpen)} />
-      <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+    <div className="flex h-screen bg-background">
+      <Sidebar isOpen={sidebarOpen} toggleSidebar={handleToggleSidebar} />
 
-      <main className="pt-16 px-4 md:px-6 flex items-center justify-center min-h-[calc(100vh-4rem)] relative z-10">
-        <div className="max-w-md w-full space-y-6 md:space-y-8 text-center">
-          <div className="space-y-4">
-            <h1 className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-foreground to-primary bg-clip-text text-transparent px-2">
-              Bem-vindo ao seu painel
-            </h1>
+      <div className="flex-1 flex flex-col overflow-hidden">
+        <Header toggleSidebar={handleToggleSidebar} />
 
-            {/* Notificação de Aprovações Pendentes */}
-            {pendingApprovalsCount > 0 && (
-              <div
-                className="flex justify-center mt-6 cursor-pointer"
-                onClick={handleReminderClick}
-                title="Ir para Apuração de Horas"
-              >
-                <div className="bg-primary/10 border border-primary/20 text-primary rounded-full px-4 py-2 flex items-center space-x-2 animate-pulse hover:bg-primary/20 transition-colors">
-                  <Bell className="h-5 w-5" />
-                  <span className="font-semibold">{pendingApprovalsCount}</span>
-                  <span>{pendingApprovalsCount === 1 ? "aprovação pendente" : "aprovações pendentes"}</span>
-                </div>
-              </div>
-            )}
+        <main className="flex-1 overflow-x-hidden overflow-y-auto bg-gray-50 dark:bg-gray-900 p-6 pt-20">
+          <div className="max-w-6xl mx-auto">
             
-            {/* Notificação de Novos Avisos (lógica atualizada) */}
-            {newWarnings.length > 0 && (
-              <div
-                className="flex justify-center mt-4 cursor-pointer"
-                onClick={handleWarningClick}
-                title="Ir para Avisos"
-              >
-                <div className="bg-yellow-500/10 border border-yellow-500/20 text-yellow-600 dark:text-yellow-400 rounded-full px-4 py-2 flex items-center space-x-2 animate-pulse hover:bg-yellow-500/20 transition-colors">
-                  <MessageSquareWarning className="h-5 w-5" />
-                  <span className="font-semibold">{newWarnings.length}</span>
-                  <span>{newWarnings.length === 1 ? "novo aviso" : "novos avisos"}</span>
-                </div>
-              </div>
-            )}
+            {/* SAUDAÇÃO PERSONALIZADA */}
+            <h1 className="text-3xl font-bold text-foreground mb-1">
+                Olá, {isLoading ? "..." : getFirstName(userData?.fullName) || "Usuário"}!
+            </h1>
+            <p className="text-lg text-muted-foreground mb-6">
+                Seja bem-vindo(a) ao seu painel de controle.
+            </p>
 
-            <div className="flex justify-center mt-6">
-              <Clock />
-            </div>
-            <div className="flex justify-center mt-6">
-              <Card className="border-l-4 border-l-primary shadow-card">
-              <EmployeeBadge
-                userData={userData}
-                isLoading={isLoading}
-                onUpdateSuccess={fetchProfile}
-              />
-              </Card>
-            </div>
+            {isLoading ? (
+                <div className="flex justify-center py-12">
+                     <Loader2 className="h-10 w-10 animate-spin text-primary" />
+                </div>
+            ) : (
+                <div className="space-y-6">
+                    
+                    {/* Linha Principal - Informações do Colaborador e Relógio */}
+                    <div className="grid grid-cols-1 lg:grid-cols-3 gap-6">
+                        
+                        {/* 1. Card Consolidado de Informações do Colaborador (Primary - lg:col-span-1) */}
+                        <Card 
+                            // Aplica a borda lateral e sombra
+                            className={`lg:col-span-1 ${getThemeCardClasses('primary', true)}`}
+                            onClick={handleDetailsCardClick} // Redireciona para /usuario
+                            tabIndex={0} 
+                        >
+                            <CardContent className="p-6 space-y-4">
+                                
+                                {/* Nome, Cargo e Botão Empresa (se for CTO) */}
+                                <div className="flex items-center space-x-4 pb-2 border-b border-border/70">
+                                    <User2 className="h-10 w-10 text-primary" />
+                                    
+                                    <div className="flex-1 min-w-0">
+                                        {/* APLICAÇÃO DO FILTRO DE NOME */}
+                                        <h2 className="text-xl font-bold text-foreground line-clamp-1">{getFirstName(userData?.fullName)}</h2>
+                                        
+                                        <p className="text-sm font-semibold text-foreground/80">
+                                            {userData?.jobPosition || "N/A"} 
+                                            <span className="text-muted-foreground ml-1 font-normal">({getRoleDisplayName(userData?.role || '')})</span>
+                                        </p>
+                                    </div>
+                                    
+                                    {isCto && (
+                                        <Button 
+                                            variant="ghost" 
+                                            size="sm" 
+                                            className="flex-shrink-0 text-primary hover:bg-primary/40"
+                                            onClick={handleCompanyButtonClick} // Handler com stopPropagation
+                                            title="Gerenciar Empresa"
+                                        >
+                                            <Briefcase className="w-4 h-4 mr-1" /> Empresa
+                                        </Button>
+                                    )}
+                                </div>
+
+                                {/* Detalhes Consolidados */}
+                                <div className="space-y-3">
+                                    <h3 className="text-base font-semibold text-muted-foreground">Detalhes Profissionais</h3>
+                                    
+                                    {/* Empresa (com clique se for CTO) */}
+                                    <p className="flex items-center gap-2 text-sm text-muted-foreground">
+                                        <Building className="h-4 w-4 text-primary/80" />
+                                        <span 
+                                            className={`text-foreground font-medium ${isCto ? 'underline cursor-pointer hover:text-primary' : ''}`}
+                                            onClick={handleCompanyLinkClick} // Handler com stopPropagation
+                                            title={isCto ? "Clique para ir para a Empresa" : undefined}
+                                        >
+                                            {userData?.companyName || "N/A"}
+                                        </span>
+                                    </p>
+                                    
+                                    {/* Email */}
+                                    <p className="flex items-center gap-2 text-sm text-muted-foreground">
+                                        <Mail className="h-4 w-4 text-primary/80" />
+                                        <span className="text-foreground line-clamp-1">{userData?.email || "N/A"}</span>
+                                    </p>
+                                    
+                                    {/* Telefone */}
+                                    <p className="flex items-center gap-2 text-sm text-muted-foreground">
+                                        <Phone className="h-4 w-4 text-primary/80" />
+                                        <span className="text-foreground">{formatPhone(userData?.phone) || "N/A"}</span>
+                                    </p>
+                                    
+                                    {/* Salário (com Toggle) */}
+                                    <div className="flex items-center gap-2 text-base text-muted-foreground pt-2">
+                                        <DollarSign className="h-5 w-5 text-primary" />
+                                        <span className="text-primary font-bold text-lg">
+                                            {showSalary ? formatSalary(userData?.salary) : "R$ *****,**"}
+                                        </span>
+                                        <Button 
+                                            variant="ghost" 
+                                            size="icon" 
+                                            className="h-7 w-7 text-primary hover:bg-primary/40"
+                                            onClick={(e) => {
+                                                e.stopPropagation(); // IMPORTANTE: Impede o clique no card
+                                                toggleSalary();
+                                            }}
+                                            title={showSalary ? "Ocultar Salário" : "Exibir Salário"}
+                                        >
+                                            {showSalary ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
+                                        </Button>
+                                    </div>
+                                </div>
+                            </CardContent>
+                        </Card>
+
+                        {/* Relógio (Clock) - Click para Relatório para TODOS */}
+                        <Card 
+                            // Aplica a borda lateral e sombra
+                            className={`
+                                lg:col-span-2 
+                                ${getThemeCardClasses('primary', true)} 
+                                flex flex-col justify-center
+                            `}
+                            onClick={handleClockCardClick}
+                            tabIndex={0} 
+                        >
+                            <CardContent className="p-6">
+                                <div className="flex items-center justify-center">
+                                    <ClockIcon className="h-8 w-8 mr-4 text-primary" />
+                                    <h2 className="text-2xl font-bold text-foreground">Controle de Ponto Online</h2>
+                                    <ArrowRight className="h-5 w-5 ml-4 text-primary/80" />
+                                </div>
+                                <div className="flex justify-center mt-4">
+                                    <Clock /> 
+                                </div>
+                                <p className="text-center text-sm text-muted-foreground mt-4">Clique para acessar o Relatório Completo</p>
+                            </CardContent>
+                        </Card>
+                    </div>
+
+
+                    {/* Linha de Notificações / Estatísticas (2 Cards) */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-2 gap-6 pt-6">
+                        
+                        {/* 1. Cartão de Novos Avisos (Yellow/Alert) */}
+                        <Card 
+                            className={`
+                                ${getThemeCardClasses('yellow-600', !isManager && newWarnings.length > 0)}
+                            `}
+                            onClick={handleAvisosCardClick} 
+                            tabIndex={0}
+                        >
+                            <CardContent className="p-5 flex flex-col h-full justify-between">
+                                <div className="flex items-center justify-between mb-3">
+                                    <p className="text-sm font-medium text-muted-foreground">Novos Avisos</p>
+                                    <MessageSquareWarning className={`h-6 w-6 ${newWarnings.length > 0 || isManager ? 'text-yellow-600' : 'text-muted-foreground'}`} />
+                                </div>
+                                <p className={`text-4xl font-extrabold ${newWarnings.length > 0 ? 'text-yellow-600' : 'text-foreground/70'}`}>
+                                    {newWarnings.length}
+                                </p>
+                                
+                                {/* Links Condicionais para MANAGER */}
+                                {isManager ? (
+                                    <div className="mt-4 space-y-1">
+                                        <Button 
+                                            variant="ghost" 
+                                            size="sm" 
+                                            className="w-full justify-start text-yellow-600 hover:bg-yellow-600/40"
+                                            onClick={(e) => { e.stopPropagation(); navigate("/criar-aviso"); }}
+                                        >
+                                            <PlusCircle className="w-4 h-4 mr-2" /> Criar Aviso
+                                        </Button>
+                                        <Button 
+                                            variant="ghost" 
+                                            size="sm" 
+                                            className="w-full justify-start text-yellow-600 hover:bg-yellow-600/40"
+                                            onClick={(e) => { e.stopPropagation(); handleWarningClick(); }} // Marca como visto e navega
+                                        >
+                                            <ListChecks className="w-4 h-4 mr-2" /> Ver Todos Avisos
+                                        </Button>
+                                    </div>
+                                ) : newWarnings.length > 0 && (
+                                    <Button 
+                                        variant="ghost" 
+                                        size="sm" 
+                                        className="mt-2 -mx-3 justify-start text-yellow-600 hover:bg-yellow-600/40"
+                                        onClick={handleAvisosCardClick} // Redireciona
+                                    >
+                                        Ver Avisos <ArrowRight className="w-4 h-4 ml-1" />
+                                    </Button>
+                                )}
+                            </CardContent>
+                        </Card>
+                        
+                        {/* 2. Cartão de Solicitações de Aprovação Pendentes (Destructive/Success) */}
+                        {hasApprovalPermission ? (
+                            <Card 
+                                // Determina a cor com base na contagem total de pendências
+                                className={`
+                                    ${totalPendingCount > 0 ? getThemeCardClasses('destructive', true) : getThemeCardClasses('success', true)}
+                                `}
+                                // O clique geral no card é para Apuração de Horas
+                                onClick={handleApprovalClick} 
+                                tabIndex={0}
+                            >
+                                <CardContent className="p-5 flex flex-col h-full justify-between">
+                                    <div className="flex items-center justify-between mb-3">
+                                        <p className="text-sm font-medium text-muted-foreground">Total de Pendências</p>
+                                        <AlertTriangle className={`h-6 w-6 ${totalPendingCount > 0 ? 'text-destructive' : 'text-green-600'}`} />
+                                    </div>
+                                    
+                                    {/* Exibe a contagem TOTAL, estilizado como 4xl */}
+                                    <p className={`text-4xl font-extrabold ${totalPendingCount > 0 ? 'text-destructive' : 'text-green-600'}`}>
+                                        {totalPendingCount}
+                                    </p>
+                                    
+                                    <Separator className="my-3 bg-border/80" />
+                                    
+                                    {/* 3. LINKS CONSOLIDADOS COM CONTADOR AO LADO DO TEXTO (CORREÇÃO APLICADA AQUI) */}
+                                    <div className="space-y-2">
+                                        
+                                        {/* Botão 1: Apuração de Horas */}
+                                        <Button 
+                                            variant="ghost" 
+                                            size="sm" 
+                                            className={`
+                                                w-full justify-between pr-0 
+                                                text-foreground hover:bg-primary/20
+                                            `}
+                                            onClick={(e) => { e.stopPropagation(); handleApprovalClick(); }}
+                                        >
+                                            {/* Rótulo e Ícone */}
+                                            <div className="flex items-center text-sm font-medium text-foreground">
+                                                <ListChecks className="w-4 h-4 mr-2 text-primary" /> Solicitação de alteração no Ponto
+                                            </div>
+                                            {/* Contador */}
+                                            <span 
+                                                className={`text-sm font-extrabold px-3 py-1 rounded-full ${pendingApprovalsCount > 0 ? 'bg-destructive text-white' : 'bg-primary/20 text-foreground'}`}
+                                            >
+                                                {pendingApprovalsCount}
+                                            </span>
+                                        </Button>
+                                        
+                                        {/* Botão 2: Gestão de Férias */}
+                                        <Button 
+                                            variant="ghost" 
+                                            size="sm" 
+                                            className={`
+                                                w-full justify-between pr-0
+                                                text-foreground hover:bg-primary/20
+                                            `}
+                                            onClick={(e) => { e.stopPropagation(); handleVacationApprovalClick(); }}
+                                        >
+                                            {/* Rótulo e Ícone */}
+                                            <div className="flex items-center text-sm font-medium text-foreground">
+                                                <Plane className="w-4 h-4 mr-2 text-primary" /> Solicitação de Férias
+                                            </div>
+                                            {/* Contador */}
+                                            <span 
+                                                className={`text-sm font-extrabold px-3 py-1 rounded-full ${pendingVacationCount > 0 ? 'bg-destructive text-white' : 'bg-primary/20 text-foreground'}`}
+                                            >
+                                                {pendingVacationCount}
+                                            </span>
+                                        </Button>
+                                    </div>
+                                </CardContent>
+                            </Card>
+                        ) : (
+                            /* Card de Acesso Rápido */
+                             <Card className={getThemeCardClasses('primary', true)} onClick={() => navigate("/meus-documentos")} tabIndex={0}>
+                                <CardContent className="p-5 space-y-3 flex flex-col items-start h-full justify-center">
+                                    <div className="flex items-center text-primary mb-3">
+                                        <Zap className="h-6 w-6 mr-2" />
+                                        <p className="text-base font-bold text-foreground">Acesso Rápido</p>
+                                    </div>
+                                    <Button 
+                                        variant="outline" 
+                                        size="sm" 
+                                        className="w-full justify-start text-primary hover:bg-primary/40"
+                                        onClick={(e) => { e.stopPropagation(); navigate("/enviar-documento-colaborador"); }}
+                                    >
+                                        <FileCheck className="w-4 h-4 mr-2 text-foreground " /> Enviar Documentos
+                                    </Button>
+                                    <Button 
+                                        variant="outline" 
+                                        size="sm" 
+                                        className="w-full justify-start text-primary hover:bg-primary/40"
+                                        onClick={(e) => { e.stopPropagation(); navigate("/solicitar-ferias"); }}
+                                    >
+                                        <TreePalm className="w-4 h-4 mr-2 text-foreground" /> Solicitar Férias
+                                    </Button>
+                                </CardContent>
+                            </Card>
+                        )}
+                    </div>
+                </div>
+            )}
           </div>
-        </div>
-      </main>
+        </main>
+      </div>
     </div>
   );
 };

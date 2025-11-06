@@ -1,4 +1,4 @@
-import { useState, useEffect, useMemo } from "react";
+import { useState, useEffect, useMemo, useCallback } from "react";
 import Header from "@/components/Header";
 import Sidebar from "@/components/Sidebar";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
@@ -83,6 +83,7 @@ const isValidEmail = (email: string) => {
 const ListaColaboradores = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [colaboradores, setColaboradores] = useState<CombinedColaborator[]>([]);
+  const handleToggleSidebar = useCallback(() => setSidebarOpen((prev) => !prev), []);
   const [isLoading, setIsLoading] = useState(true);
   const [filters, setFilters] = useState({
     nome: "",
@@ -533,8 +534,10 @@ const ListaColaboradores = () => {
         </div>
       </div>
 
-      <Header onMenuClick={() => setSidebarOpen(!sidebarOpen)} />
-      <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+  
+      <Sidebar isOpen={sidebarOpen} toggleSidebar={handleToggleSidebar} />
+      <div className="flex-1 flex flex-col overflow-hidden">
+        <Header toggleSidebar={handleToggleSidebar} />
 
       {/* Content */}
       <div className="relative z-10 min-h-screen pt-20 p-6">
@@ -995,6 +998,7 @@ const ListaColaboradores = () => {
               </p>
             </div>
           )}
+        </div>
         </div>
       </div>
     </div>

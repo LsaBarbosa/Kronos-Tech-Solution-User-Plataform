@@ -1,16 +1,19 @@
-import { X, Home, BarChart3, FileText, ChevronDown, ChevronRight, User, Shield, Users, Clock, FilePlus, Upload, Download, LogOut, UserCheck, UserPlus, Folder, FolderOpen, FileCheck, Calculator, ClipboardCheck, Building2, Bell, MessageSquarePlus } from "lucide-react";
+// src/components/Sidebar.tsx
+
+import { X, Home, BarChart3, ChevronDown, ChevronRight, User, Shield, Users, Clock, FilePlus, Upload, LogOut, UserCheck, UserPlus, Folder, FolderOpen, Calculator, ClipboardCheck, Building2, Bell, MessageSquarePlus, TreePalm } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { cn } from "@/lib/utils";
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 
+// 💡 Alteração: A interface foi atualizada para usar 'toggleSidebar' para refletir a nova funcionalidade.
 interface SidebarProps {
   isOpen: boolean;
-  onClose: () => void;
+  toggleSidebar: () => void; 
 }
 
-// Função para decodificar o token JWT
+// Função para decodificar o token JWT (mantida)
 const decodeToken = (token: string) => {
   try {
     const base64Url = token.split('.')[1];
@@ -25,7 +28,9 @@ const decodeToken = (token: string) => {
   }
 };
 
-const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
+// 💡 Alteração: Recebendo a nova prop toggleSidebar
+const Sidebar = ({ isOpen, toggleSidebar }: SidebarProps) => {
+  // Estados de Collapsible mantidos da versão de produção
   const [relatoriosOpen, setRelatoriosOpen] = useState(false);
   const [documentosOpen, setDocumentosOpen] = useState(false);
   const [administradorOpen, setAdministradorOpen] = useState(false);
@@ -39,14 +44,14 @@ const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
     const token = localStorage.getItem("token");
     if (token) {
       const decoded = decodeToken(token);
-      setUserRole(decoded?.role);
+      setUserRole(decoded?.role || "");
     }
   }, []);
 
   const handleLogout = () => {
     localStorage.removeItem("token");
     navigate("/");
-    onClose();
+    toggleSidebar(); // 💡 Alteração: Usando toggleSidebar
   };
 
   const isManager = userRole === "MANAGER";
@@ -54,81 +59,77 @@ const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
 
   return (
     <>
-      {/* Overlay */}
+      {/* 1. Overlay (Fundo escuro quando aberto) */}
       <div
         className={cn(
-          "fixed inset-0 z-40 bg-black/50 transition-opacity duration-300",
-          isOpen ? "opacity-100" : "opacity-0 pointer-events-none"
+          "fixed inset-0 bg-black/50 z-40 transition-opacity duration-300",
+          // Garante a visibilidade quando aberto e esconde quando fechado
+          isOpen ? "opacity-100 visible" : "opacity-0 invisible pointer-events-none"
         )}
-        onClick={onClose}
+        onClick={toggleSidebar} // 💡 Alteração: Fecha o menu ao clicar no overlay
       />
 
-      {/* Sidebar */}
+      {/* 2. Sidebar Principal (Deslizante) */}
       <div
         className={cn(
-          "fixed top-0 left-0 z-50 h-full w-80 bg-background border-r border-border shadow-xl transform transition-transform duration-300 ease-in-out",
+          "fixed top-0 left-0 z-50 h-full w-80 bg-background border-r border-border shadow-xl transform transition-transform duration-200 ease-in-out",
+          // Aplica o deslize (slide-in/slide-out)
           isOpen ? "translate-x-0" : "-translate-x-full"
         )}
       >
-        {/* Header */}
+        {/* Header da Sidebar */}
         <div className="flex items-center justify-between p-4 border-b border-border">
           <h2 className="text-xl font-bold text-foreground">Menu</h2>
           <Button
             variant="ghost"
             size="icon"
-            onClick={onClose}
-            // CORREÇÃO APLICADA: Usando cor primária para hover e garantindo contraste
+            onClick={toggleSidebar} // 💡 Alteração: Fecha o menu no botão 'X'
             className="hover:bg-primary/10 hover:text-primary transition-colors"
           >
             <X className="h-5 w-5" />
           </Button>
         </div>
 
-        {/* Menu Items */}
+        {/* Menu Items (Conteúdo com scroll) */}
         <div className="p-4 flex-1 space-y-2 flex flex-col h-full overflow-y-auto">
           <div className="space-y-2">
-            {/* Início */}
+            
+            {/* 1. Início */}
             <Button
               variant="ghost"
-              // CORREÇÃO APLICADA: Hover sutil e texto foreground
               className="w-full justify-start sidebar-fixed-height px-4 text-left hover:bg-primary/10 hover:text-foreground transition-colors group"
               onClick={() => {
                 navigate("/dashboard");
-                onClose();
+                toggleSidebar();
               }}
             >
               <Home className="mr-3 sidebar-icon-sm text-primary group-hover:text-primary transition-colors" />
               <span className="font-medium sidebar-text-sm">Início</span>
             </Button>
 
-            {/* Relatórios */}
+            {/* 2. Relatórios (Collapsible) */}
             <Collapsible open={relatoriosOpen} onOpenChange={setRelatoriosOpen}>
               <CollapsibleTrigger asChild>
                 <Button
                   variant="ghost"
-                  // CORREÇÃO APLICADA: Hover sutil e texto foreground
                   className="w-full justify-start sidebar-fixed-height px-4 text-left hover:bg-primary/10 hover:text-foreground transition-colors group"
                 >
                   <BarChart3 className="mr-3 sidebar-icon-sm text-primary group-hover:text-primary transition-colors" />
                   <span className="font-medium flex-1 sidebar-text-sm">Relatórios</span>
                   {relatoriosOpen ? (
-                    // CORREÇÃO APLICADA: Seta usando text-foreground no hover
                     <ChevronDown className="sidebar-icon-xs text-muted-foreground group-hover:text-foreground transition-colors" />
                   ) : (
-                    // CORREÇÃO APLICADA: Seta usando text-foreground no hover
                     <ChevronRight className="sidebar-icon-xs text-muted-foreground group-hover:text-foreground transition-colors" />
                   )}
                 </Button>
               </CollapsibleTrigger>
               <CollapsibleContent className="space-y-1">
-                
                 <Button
                   variant="ghost"
-                  // CORREÇÃO APLICADA: Hover sutil e texto foreground
                   className="w-full justify-start sidebar-fixed-height-sm px-4 pl-12 text-left sidebar-text-sm hover:bg-primary/10 hover:text-foreground transition-colors"
                   onClick={() => {
                     navigate("/relatorio-detalhado");
-                    onClose();
+                    toggleSidebar();
                   }}
                 >
                   <BarChart3 className="mr-2 sidebar-icon-xs" />
@@ -137,21 +138,18 @@ const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
               </CollapsibleContent>
             </Collapsible>
 
-            {/* Documentos */}
+            {/* 3. Documentos (Collapsible) */}
             <Collapsible open={documentosOpen} onOpenChange={setDocumentosOpen}>
               <CollapsibleTrigger asChild>
                 <Button
                   variant="ghost"
-                  // CORREÇÃO APLICADA: Hover sutil e texto foreground
                   className="w-full justify-start sidebar-fixed-height px-4 text-left hover:bg-primary/10 hover:text-foreground transition-colors group"
                 >
                   <Folder className="mr-3 sidebar-icon-sm text-primary group-hover:text-primary transition-colors" />
                   <span className="font-medium flex-1 sidebar-text-sm">Documentos</span>
                   {documentosOpen ? (
-                    // CORREÇÃO APLICADA: Seta usando text-foreground no hover
                     <ChevronDown className="sidebar-icon-xs text-muted-foreground group-hover:text-foreground transition-colors" />
                   ) : (
-                    // CORREÇÃO APLICADA: Seta usando text-foreground no hover
                     <ChevronRight className="sidebar-icon-xs text-muted-foreground group-hover:text-foreground transition-colors" />
                   )}
                 </Button>
@@ -159,11 +157,10 @@ const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
               <CollapsibleContent className="space-y-1">
                 <Button
                   variant="ghost"
-                  // CORREÇÃO APLICADA: Hover sutil e texto foreground
                   className="w-full justify-start sidebar-fixed-height-sm px-4 pl-12 text-left sidebar-text-sm hover:bg-primary/10 hover:text-foreground transition-colors"
                   onClick={() => {
                     navigate("/documentos");
-                    onClose();
+                    toggleSidebar();
                   }}
                 >
                   <FolderOpen className="mr-2 sidebar-icon-xs" />
@@ -171,11 +168,10 @@ const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
                 </Button>
                 <Button
                   variant="ghost"
-                  // CORREÇÃO APLICADA: Hover sutil e texto foreground
                   className="w-full justify-start sidebar-fixed-height-sm px-4 pl-12 text-left sidebar-text-sm hover:bg-primary/10 hover:text-foreground transition-colors"
                   onClick={() => {
                     navigate("/enviar-documento-colaborador");
-                    onClose();
+                    toggleSidebar();
                   }}
                 >
                   <FilePlus className="mr-2 sidebar-icon-xs" />
@@ -184,29 +180,27 @@ const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
               </CollapsibleContent>
             </Collapsible>
 
-            {/* Usuário */}
+            {/* 4. Usuário */}
             <Button
               variant="ghost"
-              // CORREÇÃO APLICADA: Hover sutil e texto foreground
               className="w-full justify-start sidebar-fixed-height px-4 text-left hover:bg-primary/10 hover:text-foreground transition-colors group"
               onClick={() => {
                 navigate("/usuario");
-                onClose();
+                toggleSidebar();
               }}
             >
               <User className="mr-3 sidebar-icon-sm text-primary group-hover:text-primary transition-colors" />
               <span className="font-medium sidebar-text-sm">Usuário</span>
             </Button>
 
-            {/* Empresa (Visível apenas para CTO) */}
+            {/* 5. Empresa (Visível apenas para CTO) */}
             {isCto && (
               <Button
                 variant="ghost"
-                // CORREÇÃO APLICADA: Hover sutil e texto foreground
                 className="w-full justify-start sidebar-fixed-height px-4 text-left hover:bg-primary/10 hover:text-foreground transition-colors group"
                 onClick={() => {
                   navigate("/empresa");
-                  onClose();
+                  toggleSidebar();
                 }}
               >
                 <Building2 className="mr-3 sidebar-icon-sm text-primary group-hover:text-primary transition-colors" />
@@ -214,57 +208,50 @@ const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
               </Button>
             )}
 
-            {/* Avisos */}
+            {/* 6. Avisos */}
             <Button
               variant="ghost"
-              // CORREÇÃO APLICADA: Hover sutil e texto foreground
               className="w-full justify-start sidebar-fixed-height px-4 text-left hover:bg-primary/10 hover:text-foreground transition-colors group"
               onClick={() => {
                 navigate("/avisos");
-                onClose();
+                toggleSidebar();
               }}
             >
               <Bell className="mr-3 sidebar-icon-sm text-primary group-hover:text-primary transition-colors" />
               <span className="font-medium sidebar-text-sm">Avisos</span>
             </Button>
             
-            {/* Administrador (Somente visível para MANAGER) */}
+            {/* 7. Administrador (Somente visível para MANAGER) */}
             {isManager && (
               <Collapsible open={administradorOpen} onOpenChange={setAdministradorOpen}>
                 <CollapsibleTrigger asChild>
                   <Button
                     variant="ghost"
-                    // CORREÇÃO APLICADA: Hover sutil e texto foreground
                     className="w-full justify-start sidebar-fixed-height px-4 text-left hover:bg-primary/10 hover:text-foreground transition-colors group"
                   >
                     <Shield className="mr-3 sidebar-icon-sm text-primary group-hover:text-primary transition-colors" />
                     <span className="font-medium flex-1 sidebar-text-sm">Administrador</span>
                     {administradorOpen ? (
-                      // CORREÇÃO APLICADA: Seta usando text-foreground no hover
                       <ChevronDown className="sidebar-icon-xs text-muted-foreground group-hover:text-foreground transition-colors" />
                     ) : (
-                      // CORREÇÃO APLICADA: Seta usando text-foreground no hover
                       <ChevronRight className="sidebar-icon-xs text-muted-foreground group-hover:text-foreground transition-colors" />
                     )}
                   </Button>
                 </CollapsibleTrigger>
                 <CollapsibleContent className="space-y-1">
-                  {/* Colaboradores */}
+                  
+                  {/* 7.1 Colaboradores (Nested Collapsible) */}
                   <Collapsible open={colaboradoresOpen} onOpenChange={setColaboradoresOpen}>
                     <CollapsibleTrigger asChild>
                       <Button
                         variant="ghost"
-                        // CORREÇÃO APLICADA: Hover sutil e texto foreground
                         className="w-full justify-start sidebar-fixed-height-sm px-4 pl-12 text-left sidebar-text-sm hover:bg-primary/10 hover:text-foreground transition-colors group"
                       >
-                        {/* CORREÇÃO APLICADA: Ícone usando text-foreground no hover */}
                         <Users className="mr-2 sidebar-icon-xs text-muted-foreground group-hover:text-foreground transition-colors" />
                         <span className="flex-1">Colaboradores</span>
                         {colaboradoresOpen ? (
-                          // CORREÇÃO APLICADA: Seta usando text-foreground no hover
                           <ChevronDown className="sidebar-icon-xxs text-muted-foreground group-hover:text-foreground transition-colors" />
                         ) : (
-                          // CORREÇÃO APLICADA: Seta usando text-foreground no hover
                           <ChevronRight className="sidebar-icon-xxs text-muted-foreground group-hover:text-foreground transition-colors" />
                         )}
                       </Button>
@@ -272,11 +259,10 @@ const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
                     <CollapsibleContent className="space-y-1">
                       <Button
                         variant="ghost"
-                        // CORREÇÃO APLICADA: Hover sutil e texto foreground
                         className="w-full justify-start sidebar-fixed-height-xs px-4 pl-20 text-left sidebar-text-xs hover:bg-primary/10 hover:text-foreground transition-colors"
                         onClick={() => {
                           navigate("/lista-colaboradores");
-                          onClose();
+                          toggleSidebar();
                         }}
                       >
                         <UserCheck className="mr-2 sidebar-icon-xxs" />
@@ -284,11 +270,10 @@ const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
                       </Button>
                       <Button
                         variant="ghost"
-                        // CORREÇÃO APLICADA: Hover sutil e texto foreground
                         className="w-full justify-start sidebar-fixed-height-xs px-4 pl-20 text-left sidebar-text-xs hover:bg-primary/10 hover:text-foreground transition-colors"
                         onClick={() => {
                           navigate("/criar-colaborador");
-                          onClose();
+                          toggleSidebar();
                         }}
                       >
                         <UserPlus className="mr-2 sidebar-icon-xxs" />
@@ -297,22 +282,18 @@ const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
                     </CollapsibleContent>
                   </Collapsible>
 
-                  {/* Folha de Ponto */}
+                  {/* 7.2 Folha de Ponto (Nested Collapsible) */}
                   <Collapsible open={folhaDePontoOpen} onOpenChange={setFolhaDePontoOpen}>
                     <CollapsibleTrigger asChild>
                       <Button
                         variant="ghost"
-                        // CORREÇÃO APLICADA: Hover sutil e texto foreground
                         className="w-full justify-start sidebar-fixed-height-sm px-4 pl-12 text-left sidebar-text-sm hover:bg-primary/10 hover:text-foreground transition-colors group"
                       >
-                        {/* CORREÇÃO APLICADA: Ícone usando text-foreground no hover */}
                         <Clock className="mr-2 sidebar-icon-xs text-muted-foreground group-hover:text-foreground transition-colors" />
                         <span className="flex-1">Folha de Ponto</span>
                         {folhaDePontoOpen ? (
-                          // CORREÇÃO APLICADA: Seta usando text-foreground no hover
                           <ChevronDown className="sidebar-icon-xxs text-muted-foreground group-hover:text-foreground transition-colors" />
                         ) : (
-                          // CORREÇÃO APLICADA: Seta usando text-foreground no hover
                           <ChevronRight className="sidebar-icon-xxs text-muted-foreground group-hover:text-foreground transition-colors" />
                         )}
                       </Button>
@@ -320,11 +301,10 @@ const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
                     <CollapsibleContent className="space-y-1">
                       <Button
                         variant="ghost"
-                        // CORREÇÃO APLICADA: Hover sutil e texto foreground
                         className="w-full justify-start sidebar-fixed-height-xs px-4 pl-20 text-left sidebar-text-xs hover:bg-primary/10 hover:text-foreground transition-colors"
                         onClick={() => {
                           navigate("/apuracao-horas");
-                          onClose();
+                          toggleSidebar();
                         }}
                       >
                         <Calculator className="mr-2 sidebar-icon-xxs" />
@@ -332,11 +312,10 @@ const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
                       </Button>
                       <Button
                         variant="ghost"
-                        // CORREÇÃO APLICADA: Hover sutil e texto foreground
                         className="w-full justify-start sidebar-fixed-height-xs px-4 pl-20 text-left sidebar-text-xs hover:bg-primary/10 hover:text-foreground transition-colors"
                         onClick={() => {
                           navigate("/status-do-registro");
-                          onClose();
+                          toggleSidebar();
                         }}
                       >
                         <ClipboardCheck className="mr-2 sidebar-icon-xxs" />
@@ -345,22 +324,18 @@ const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
                     </CollapsibleContent>
                   </Collapsible>
 
-                  {/* Documentos */}
+                  {/* 7.3 Documentos (Nested Collapsible - Administrador) */}
                   <Collapsible open={adminDocumentosOpen} onOpenChange={setAdminDocumentosOpen}>
                     <CollapsibleTrigger asChild>
                       <Button
                         variant="ghost"
-                        // CORREÇÃO APLICADA: Hover sutil e texto foreground
                         className="w-full justify-start sidebar-fixed-height-sm px-4 pl-12 text-left sidebar-text-sm hover:bg-primary/10 hover:text-foreground transition-colors group"
                       >
-                        {/* CORREÇÃO APLICADA: Ícone usando text-foreground no hover */}
-                        <Folder className="mr-2 sidebar-icon-xs text-muted-foreground group-hover:text-foreground transition-colors" />
-                        <span className="flex-1">Documentos</span>
+                        <TreePalm className="mr-2 sidebar-icon-xs text-muted-foreground group-hover:text-foreground transition-colors" />
+                        <span className="flex-1">Férias</span>
                         {adminDocumentosOpen ? (
-                          // CORREÇÃO APLICADA: Seta usando text-foreground no hover
                           <ChevronDown className="sidebar-icon-xxs text-muted-foreground group-hover:text-foreground transition-colors" />
                         ) : (
-                          // CORREÇÃO APLICADA: Seta usando text-foreground no hover
                           <ChevronRight className="sidebar-icon-xxs text-muted-foreground group-hover:text-foreground transition-colors" />
                         )}
                       </Button>
@@ -368,52 +343,37 @@ const Sidebar = ({ isOpen, onClose }: SidebarProps) => {
                     <CollapsibleContent className="space-y-1">
                       <Button
                         variant="ghost"
-                        // CORREÇÃO APLICADA: Hover sutil e texto foreground
                         className="w-full justify-start sidebar-fixed-height-xs px-4 pl-20 text-left sidebar-text-xs hover:bg-primary/10 hover:text-foreground transition-colors"
                         onClick={() => {
-                          navigate("/documentos");
-                          onClose();
+                          navigate("/ferias");
+                          toggleSidebar();
                         }}
                       >
-                        <FolderOpen className="mr-2 sidebar-icon-xxs" />
-                        <span>Buscar Documentos</span>
-                      </Button>
-                      <Button
-                        variant="ghost"
-                        // CORREÇÃO APLICADA: Hover sutil e texto foreground
-                        className="w-full justify-start sidebar-fixed-height-xs px-4 pl-20 text-left sidebar-text-xs hover:bg-primary/10 hover:text-foreground transition-colors"
-                        onClick={() => {
-                          navigate("/enviar-documentos");
-                          onClose();
-                        }}
-                      >
-                        <Upload className="mr-2 sidebar-icon-xxs" />
-                        <span>Enviar Documentos</span>
+                        <TreePalm className="mr-2 sidebar-icon-xxs" />
+                        <span>Gestão de Férias</span>
                       </Button>
                     </CollapsibleContent>
                   </Collapsible>
 
-                  {/* Criar Aviso */}
-                  <Button
-                    variant="ghost"
-                    // CORREÇÃO APLICADA: Hover sutil e texto foreground
-                    className="w-full justify-start sidebar-fixed-height-sm px-4 pl-12 text-left sidebar-text-sm hover:bg-primary/10 hover:text-foreground transition-colors"
-                    onClick={() => {
-                      navigate("/criar-aviso");
-                      onClose();
-                    }}
-                  >
-                    <MessageSquarePlus className="mr-2 sidebar-icon-xs" />
-                    <span>Criar Aviso</span>
-                  </Button>
+        
                 </CollapsibleContent>
               </Collapsible>
             )}
+              <Button
+              variant="ghost"
+              className="w-full justify-start sidebar-fixed-height px-4 text-left hover:bg-primary/10 hover:text-foreground transition-colors group"
+              onClick={() => {
+                          navigate("/solicitar-ferias");
+                          toggleSidebar();
+                        }}
+            >
+              <TreePalm className="mr-3 sidebar-icon-sm text-primary group-hover:text-primary transition-colors" />
+              <span className="font-medium sidebar-text-sm">Solicitar Férias</span>
+            </Button>
             
-            {/* Sair */}
+            {/* 8. Sair */}
             <Button
               variant="ghost"
-              // CORREÇÃO APLICADA: Hover sutil e texto foreground
               className="w-full justify-start sidebar-fixed-height px-4 text-left hover:bg-primary/10 hover:text-foreground transition-colors group"
               onClick={handleLogout}
             >

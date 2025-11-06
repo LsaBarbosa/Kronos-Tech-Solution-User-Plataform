@@ -4,7 +4,7 @@ import React from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { CalendarIcon, Download, Edit, Coffee } from "lucide-react"; // Usando Coffee para Pausa
-import { DetailedReportItem, statusOptions, getStatusColor, getTranslatedStatus } from "@/utils/report-utils";
+import { DetailedReportItem, statusOptions, getStatusColor, getTranslatedStatus, formatDateWithDayOfWeek } from "@/utils/report-utils"; // <--- ALTERADO
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
 import autoTable from "jspdf-autotable";
@@ -29,21 +29,10 @@ export const ResultadosRelatorioDetalhado: React.FC<ResultadosDetalhadoProps> = 
 }) => {
     const { toast } = useToast();
 
-    // Lógica do PDF Detalhado (Atualizada para Pausa como registro principal)
+    // Lógica do PDF Detalhado (Atualizada para Pausa como registro principal e Estilizada)
     const handleDownload = () => {
-        const parseDate = (dateString: string) => {
-            if (!dateString) return null;
-            const parts = dateString.split('-'); // DD-MM-YYYY
-            if (parts.length === 3) {
-                const [day, month, year] = parts;
-                const date = new Date(`${year}/${month}/${day}`);
-                if (!isNaN(date.getTime())) {
-                    return date;
-                }
-            }
-            return null;
-        };
-
+        // A função local 'parseDate' FOI REMOVIDA
+        
         if (reportData.length === 0) {
             toast({
                 title: "Erro",
@@ -60,13 +49,16 @@ export const ResultadosRelatorioDetalhado: React.FC<ResultadosDetalhadoProps> = 
                 format: 'a4'
             });
 
+            // 💡 ESTILO: TÍTULO PRINCIPAL COLORIDO E MAIOR
+            doc.setTextColor(0, 150, 136); // Azul-Petróleo Elegante
             doc.setFont("helvetica", "bold");
-            doc.setFontSize(18);
+            doc.setFontSize(22);
             doc.text('RELATÓRIO DETALHADO DE PONTO', 20, 25);
 
+            // Volta para estilo de texto normal
             doc.setFontSize(12);
             doc.setFont("helvetica", "normal");
-
+            doc.setTextColor(0, 0, 0); // Preto
             let yPosition = 40;
 
             if (reportData.length > 0 && reportData[0].employeeData) {
@@ -96,10 +88,10 @@ export const ResultadosRelatorioDetalhado: React.FC<ResultadosDetalhadoProps> = 
             doc.setFont("helvetica", "bold");
             yPosition += 5;
 
-            // Definição das cores (RGB)
-            const COLOR_MAIN_RECORD = [245, 245, 245]; // Cinza Claro (Trabalho)
-            const COLOR_BREAK_RECORD = [230, 230, 250]; // Lavanda/Muito Claro (Pausa)
-            const COLOR_SEPARATOR = [220, 220, 220];       // Cinza (Separador)
+            // 💡 ESTILO: NOVO ESQUEMA DE CORES PARA LINHAS
+            const COLOR_MAIN_RECORD = [240, 255, 240]; // Honeydew (Trabalho - Linha Mais Clara)
+            const COLOR_BREAK_RECORD = [230, 230, 250]; // Lavanda/Muito Claro (Pausa - Linha Suave)
+            const COLOR_SEPARATOR = [200, 200, 200];       // Cinza (Separador)
 
             // Prepara os dados da tabela
             const tableBody: any[] = [];
@@ -107,11 +99,13 @@ export const ResultadosRelatorioDetalhado: React.FC<ResultadosDetalhadoProps> = 
             reportData.forEach(item => {
                 const isBreak = item.statusRecord === 'IMPLICIT_BREAK';
                 
-                const startDate = parseDate(item.startWork);
-                const endDate = parseDate(item.endWork);
+                // NOVO: Usando a função utilitária para obter a data formatada
+                const formattedDateStart = formatDateWithDayOfWeek(item.startWork); // <--- NOVO
+                const formattedDateEnd = formatDateWithDayOfWeek(item.endWork);   // <--- NOVO
 
-                const formattedStart = `${startDate ? format(startDate, "dd/MM/yyyy") : 'N/A'}\n${item.startHour}`;
-                const formattedEnd = `${endDate ? format(endDate, "dd/MM/yyyy") : 'N/A'}\n${item.endHour}`;
+                // Constrói a célula do PDF: "Dia da Semana, DD/MM/YYYY\nHH:MM"
+                const formattedStart = `${formattedDateStart}\n${item.startHour}`; // <--- ALTERADO
+                const formattedEnd = `${formattedDateEnd}\n${item.endHour}`;       // <--- ALTERADO
 
                 const statusLabel = getTranslatedStatus(item.statusRecord);
                 const fillColor = isBreak ? COLOR_BREAK_RECORD : COLOR_MAIN_RECORD;
@@ -132,7 +126,7 @@ export const ResultadosRelatorioDetalhado: React.FC<ResultadosDetalhadoProps> = 
                     styles: {
                         ...cell.styles,
                         halign: 'center',
-                        cellPadding: isBreak ? 1 : 3,
+                        cellPadding: isBreak ? 2 : 4, // Ajustado padding para elegância
                         fontSize: isBreak ? 8 : 9,
                         fontStyle: fontStyle
                     }
@@ -140,7 +134,7 @@ export const ResultadosRelatorioDetalhado: React.FC<ResultadosDetalhadoProps> = 
 
                 // Linha separadora
                 tableBody.push([
-                   { content: '', colSpan: 1, styles: { fillColor: COLOR_SEPARATOR, cellPadding: 0.2 } }
+                   { content: '', colSpan: 5, styles: { fillColor: COLOR_SEPARATOR, cellPadding: 0.2 } }
                 ]);
             });
 
@@ -153,19 +147,21 @@ export const ResultadosRelatorioDetalhado: React.FC<ResultadosDetalhadoProps> = 
             }
 
             autoTable(doc, {
-                head: [['Início (Data/Hora)', 'Fim (Data/Hora)', 'Duração', 'Saldo', 'Status']], 
+                head: [['Início (Data/Dia da Semana/Hora)', 'Fim (Data/Dia da Semana/Hora)', 'Duração', 'Saldo', 'Status']], 
                 body: tableBody,
                 startY: yPosition,
                 margin: { left: 20, right: 20 },
                 styles: {
                     fontSize: 9,
                     cellPadding: 3,
-                    halign: 'center'
+                    halign: 'center',
+                    lineColor: [220, 220, 220], // Linhas mais claras
+                    lineWidth: 0.1, // Linhas mais finas
                 },
                 headStyles: {
-                    fillColor: [41, 128, 185],
+                    fillColor: [0, 150, 136], // NOVO: Azul-petróleo (Tema Principal)
                     textColor: [255, 255, 255],
-                    fontSize: 10,
+                    fontSize: 11, // Aumentado
                     fontStyle: 'bold'
                 },
                 columnStyles: {
@@ -185,10 +181,10 @@ export const ResultadosRelatorioDetalhado: React.FC<ResultadosDetalhadoProps> = 
                             data.cell.styles.fontStyle = 'italic';
                         } else if (balance) {
                             if (balance.toString().startsWith('-')) {
-                                data.cell.styles.textColor = [220, 53, 69];
+                                data.cell.styles.textColor = [220, 53, 69]; // Vermelho
                                 data.cell.styles.fontStyle = 'bold';
                             } else if (!balance.toString().startsWith('-') && balance !== '00:00') {
-                                data.cell.styles.textColor = [40, 167, 69];
+                                data.cell.styles.textColor = [40, 167, 69]; // Verde
                                 data.cell.styles.fontStyle = 'bold';
                             }
                         }
@@ -200,10 +196,13 @@ export const ResultadosRelatorioDetalhado: React.FC<ResultadosDetalhadoProps> = 
             for (let i = 1; i <= pageCount; i++) {
                 doc.setPage(i);
                 doc.setFontSize(8);
-                doc.setTextColor(128, 128, 128);
+                // 💡 ESTILO: Rodapé em Azul Suave
+                doc.setTextColor(100, 149, 237); // Cornflower Blue
                 doc.text(`Página ${i} de ${pageCount}`, doc.internal.pageSize.width - 30, doc.internal.pageSize.height - 10);
                 doc.text(`Gerado em: ${format(new Date(), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}`, 20, doc.internal.pageSize.height - 10);
             }
+            doc.setTextColor(0, 0, 0); // Volta ao preto para evitar vazamento
+
 
             const fileName = `relatorio_detalhado_${format(new Date(), "yyyyMMdd_HHmmss")}.pdf`;
             doc.save(fileName);

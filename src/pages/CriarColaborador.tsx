@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useCallback, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -60,7 +60,7 @@ const CriarColaborador = () => {
     const navigate = useNavigate();
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [sidebarOpen, setSidebarOpen] = useState(false);
-    
+    const handleToggleSidebar = useCallback(() => setSidebarOpen((prev) => !prev), []);
     // Estados para controle de fluxo
     const [savedEmployeeId, setSavedEmployeeId] = useState<string | null>(null);
     const [stepCompleted, setStepCompleted] = useState(false); 
@@ -389,9 +389,10 @@ const CriarColaborador = () => {
                     />
                 </div>
             </div>
-
-            <Header onMenuClick={() => setSidebarOpen(!sidebarOpen)} />
-            <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+ <Sidebar isOpen={sidebarOpen} toggleSidebar={handleToggleSidebar} />
+      
+      <div className="flex-1 flex flex-col overflow-hidden">
+        <Header toggleSidebar={handleToggleSidebar} />
 
             {/* Content */}
             <div className="relative z-10 min-h-screen flex items-center justify-center p-6 pt-20">
@@ -619,7 +620,7 @@ const CriarColaborador = () => {
                         </form>
                     </Form>
 
-
+</div>
                 </div>
             </div>
         </div>

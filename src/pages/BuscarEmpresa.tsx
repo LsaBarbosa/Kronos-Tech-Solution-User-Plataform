@@ -1,4 +1,7 @@
-import { useState, useEffect } from "react";
+// src/pages/BuscarEmpresa.tsx
+
+import { useState, useCallback } from "react";
+// 💡 REMOVIDOS: useEffect, zodResolver, z, useForm, API_BASE_URL, useToast
 import Header from "../components/Header";
 import Sidebar from "../components/Sidebar";
 import { Button } from "../components/ui/button";
@@ -11,224 +14,55 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../components/ui/select";
 import { ArrowLeft, Search, Building2, Mail, MapPin, Hash, Eye, Edit, Power, Loader2, Info, Users, UserX } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import * as z from "zod";
-import { API_BASE_URL } from "../config/api";
-import { useToast } from "../hooks/use-toast";
 import { Separator } from "../components/ui/separator";
 
-// Schema para edição da empresa
-const editEmpresaSchema = z.object({
-  name: z.string().min(1, "Nome é obrigatório"),
-  email: z.string().email("Email inválido"),
-  active: z.boolean(),
-  address: z.object({
-    postalCode: z.string().min(8, "CEP deve ter 8 dígitos").max(8, "CEP deve ter 8 dígitos"),
-    number: z.string().min(1, "Número é obrigatório"),
-  }),
-});
+// 💡 NOVO: Importa o hook customizado com toda a lógica e estado
+import { useCompanySearch } from "@/hooks/useCompanySearch"; 
+// 💡 NOVO: Importa a função de limpeza do CEP
+import { cleanCEP } from "@/types/company"; 
+
 
 const BuscarEmpresa = () => {
+  // 💡 ESTADO DE UI (Sidebar) é o único estado mantido localmente
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [searchTerm, setSearchTerm] = useState("");
-  const [editingEmpresa, setEditingEmpresa] = useState<any>(null);
-  const [viewingEmpresa, setViewingEmpresa] = useState<any>(null);
-  const [isEditDialogOpen, setIsEditDialogOpen] = useState(false);
-  const [isViewDialogOpen, setIsViewDialogOpen] = useState(false);
-  const [empresas, setEmpresas] = useState([]); // Estado para as empresas da API
-  const [loading, setLoading] = useState(true); // Estado de carregamento
-  const [error, setError] = useState<string | null>(null); // Estado para erros
-  const [isSubmitting, setIsSubmitting] = useState(false); // Novo estado para o envio do formulário
+  const handleToggleSidebar = useCallback(() => setSidebarOpen((prev) => !prev), []);
   const navigate = useNavigate();
-  const { toast } = useToast();
+  
+  // 💡 HOOK: Desestrutura toda a lógica e estado
+  const {
+    filteredEmpresas,
+    searchTerm,
+    editingEmpresa,
+    viewingEmpresa,
+    isEditDialogOpen,
+    isViewDialogOpen,
+    loading,
+    error,
+    isSubmitting,
+    editForm,
+    setSearchTerm,
+    handleEditEmpresa,
+    handleViewEmpresa,
+    setIsEditDialogOpen,
+    setIsViewDialogOpen,
+    handleToggleStatus,
+    onSubmitEdit,
+    formatCNPJ,
+    formatCEP,
+  } = useCompanySearch();
 
-  const editForm = useForm({
-    resolver: zodResolver(editEmpresaSchema),
-    defaultValues: {
-      name: "",
-      email: "",
-      active: true,
-      address: {
-        postalCode: "",
-        number: "",
-      },
-    },
-  });
-
-  // Função para buscar as empresas na API
-  const fetchCompanies = async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      const token = localStorage.getItem("token"); // 🔑 Busca o token no localStorage
-      if (!token) {
-        setError("Token de autenticação não encontrado.");
-        setLoading(false);
-        return;
-      }
-
-      const response = await fetch(`${API_BASE_URL}companies`, {
-        method: "GET",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${token}`, // ⚙️ Adiciona o token no header Authorization
-        },
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.detail ||`Erro: ${response.status} ${response.statusText}`);
-      }
-
-      const data = await response.json();
-      setEmpresas(data.companies); // ✅ Atualiza o estado com os dados da API
-    } catch (err: any) {
-      console.error("Falha ao buscar empresas:", err);
-      setError("Falha ao carregar as empresas. Tente novamente.");
-    } finally {
-      setLoading(false);
-    }
-  };
-
-  // Chama a função de busca quando o componente é montado
-  useEffect(() => {
-    fetchCompanies();
-  }, []);
-
-  const filteredEmpresas = empresas.filter(empresa =>
-    empresa.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
-    empresa.cnpj.includes(searchTerm) ||
-    empresa.email.toLowerCase().includes(searchTerm.toLowerCase())
-  );
-
-  const formatCNPJ = (cnpj: string) => {
-    return cnpj.replace(/^(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})$/, "$1.$2.$3/$4-$5");
-  };
-
-  const formatCEP = (cep: string) => {
-    return cep.replace(/^(\d{5})(\d{3})$/, "$1-$2");
-  };
-
-  const handleEditEmpresa = (empresa: any) => {
-    setEditingEmpresa(empresa);
-    editForm.reset({
-      name: empresa.name,
-      email: empresa.email,
-      active: empresa.active,
-      address: {
-        postalCode: empresa.address.postalCode,
-        number: empresa.address.number,
-      },
-    });
-    setIsEditDialogOpen(true);
-  };
-
-  const handleViewEmpresa = (empresa: any) => {
-    setViewingEmpresa(empresa);
-    setIsViewDialogOpen(true);
-  };
-
-  const handleToggleStatus = async (empresa: any) => {
-    setIsSubmitting(true);
-    try {
-        const token = localStorage.getItem("token");
-        if (!token) {
-            throw new Error("Token de autenticação não encontrado.");
-        }
-
-        const response = await fetch(`${API_BASE_URL}companies/${empresa.cnpj}/toggle-activate`, {
-            method: 'PATCH',
-            headers: {
-                "Content-Type": "application/json",
-                "Authorization": `Bearer ${token}`,
-            },
-            body: JSON.stringify({ active: !empresa.active })
-        });
-
-        if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.detail || "Falha ao alterar o status da empresa.");
-        }
-
-        toast({
-            title: "Sucesso!",
-            description: `Status da empresa ${empresa.name} alterado.`,
-        });
-
-        fetchCompanies();
-    } catch (error: any) {
-        toast({
-            title: 'Erro',
-            description: error.message,
-            variant: 'destructive',
-        });
-    } finally {
-        setIsSubmitting(false);
-    }
-};
-
-const onSubmitEdit = async (data: any) => {
-    if (!editingEmpresa) return;
-
-    setIsSubmitting(true);
-    try {
-        const token = localStorage.getItem("token");
-        if (!token) {
-            throw new Error("Token de autenticação não encontrado.");
-        }
-
-        const { cnpj } = editingEmpresa;
-        const body = {
-            name: data.name,
-            email: data.email,
-            active: data.active,
-            address: {
-                postalCode: data.address.postalCode.replace(/\D/g, ""),
-                number: data.address.number
-            },
-            location: editingEmpresa.location
-        };
-
-        const response = await fetch(`${API_BASE_URL}companies/${cnpj}`, {
-            method: "PATCH",
-            headers: {
-                "Content-Type": "application/json",
-                "Authorization": `Bearer ${token}`,
-            },
-            body: JSON.stringify(body),
-        });
-
-        if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.detail || "Falha ao atualizar a empresa.");
-        }
-
-        toast({
-            title: "Sucesso!",
-            description: `A empresa ${data.name} foi atualizada.`,
-        });
-
-        setIsEditDialogOpen(false);
-        setEditingEmpresa(null);
-        fetchCompanies();
-
-    } catch (error: any) {
-        console.error("Erro ao atualizar a empresa:", error);
-        toast({
-            title: "Erro ao atualizar",
-            description: error.message,
-            variant: "destructive",
-        });
-    } finally {
-        setIsSubmitting(false);
-    }
-};
-
+  // 💡 Funções utilitárias puras (formatCNPJ, formatCEP, cleanCEP) são importadas diretamente do hook/types.
+  
+  // A função handleEditEmpresa agora requer um casting para CompanyData, 
+  // mas como o hook já retorna a CompanyData, podemos simplificar a tipagem na chamada:
+  // onClick={() => handleEditEmpresa(empresa as CompanyData)}
+  
   return (
-    <div className="min-h-screen bg-background">
-      <Header onMenuClick={() => setSidebarOpen(!sidebarOpen)} />
-      <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+    <div className="flex h-screen bg-background">
+      <Sidebar isOpen={sidebarOpen} toggleSidebar={handleToggleSidebar} /> 
+      
+      <div className="flex-1 flex flex-col overflow-hidden">
+        <Header toggleSidebar={handleToggleSidebar} />
 
       <main className="pt-16 px-4 md:px-6">
         <div className="max-w-6xl mx-auto py-8">
@@ -308,13 +142,18 @@ const onSubmitEdit = async (data: any) => {
                       </TableRow>
                     </TableHeader>
                     <TableBody>
+                      {/* Note: O filtro retorna CompanyListItem. A API deve garantir que os campos necessários
+                         para renderização e modais estejam presentes, ou o hook precisa buscar o detalhe.
+                         Assumindo que CompanyListItem é suficiente para TUDO, exceto o modal de edição/visualização
+                         que é resolvido com o casting para o hook. */}
                       {filteredEmpresas.map((empresa) => (
                         <TableRow key={empresa.id}>
                           <TableCell className="font-medium">
                             <div className="flex items-center gap-2">
                               <Building2 className="h-4 w-4 text-primary" />
+                              {/* 💡 Ação chama o handler do hook, passando a empresa */}
                               <button
-                                onClick={() => handleEditEmpresa(empresa)}
+                                onClick={() => handleEditEmpresa(empresa as any)}
                                 className="hover:text-primary transition-colors"
                               >
                                 {empresa.name}
@@ -334,9 +173,11 @@ const onSubmitEdit = async (data: any) => {
                             </div>
                           </TableCell>
                           <TableCell>
+                             {/* 💡 Ação chama o handler do hook */}
                             <button
                               onClick={() => handleToggleStatus(empresa)}
                               className="flex items-center gap-2 hover:opacity-80 transition-opacity"
+                              disabled={isSubmitting}
                             >
                               <Badge variant={empresa.active ? "default" : "secondary"}>
                                 {empresa.active ? "Ativa" : "Inativa"}
@@ -356,7 +197,7 @@ const onSubmitEdit = async (data: any) => {
                             </div>
                           </TableCell>
                           <TableCell className="text-right">
-                          <Button variant="outline" size="sm" onClick={() => handleViewEmpresa(empresa)}>
+                          <Button variant="outline" size="sm" onClick={() => handleViewEmpresa(empresa as any)}>
                               <Eye className="h-3 w-3 mr-1" />
                               Ver
                             </Button>
@@ -383,6 +224,7 @@ const onSubmitEdit = async (data: any) => {
           </DialogHeader>
           
           <Form {...editForm}>
+            {/* 💡 AÇÃO de submit aponta para a função do HOOK */}
             <form onSubmit={editForm.handleSubmit(onSubmitEdit)} className="space-y-6">
               <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
                 <FormField
@@ -424,6 +266,9 @@ const onSubmitEdit = async (data: any) => {
                           placeholder="12345678" 
                           maxLength={8}
                           {...field} 
+                          // 💡 Uso de cleanCEP do types para limpar o input
+                          onChange={(e) => field.onChange(cleanCEP(e.target.value))}
+                          value={field.value.replace(/[^0-9]/g, '')}
                         />
                       </FormControl>
                       <FormMessage />
@@ -494,6 +339,7 @@ const onSubmitEdit = async (data: any) => {
           </Form>
         </DialogContent>
       </Dialog>
+      
       {/* Modal de Visualização */}
       <Dialog open={isViewDialogOpen} onOpenChange={setIsViewDialogOpen}>
         <DialogContent className="max-w-2xl">
@@ -562,8 +408,8 @@ const onSubmitEdit = async (data: any) => {
       </Dialog>
 
     </div>
+    </div>
   );
 };
 
 export default BuscarEmpresa;
-

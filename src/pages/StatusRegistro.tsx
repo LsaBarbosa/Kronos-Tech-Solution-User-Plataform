@@ -1,134 +1,53 @@
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import { Button } from "@/components/ui/button";
-import { Calendar } from "@/components/ui/calendar";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
-import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
-// Removidos os imports de formulário (Form, FormField, useForm, zodResolver, z)
 import { useToast } from "@/hooks/use-toast";
 import Header from "@/components/Header";
 import Sidebar from "@/components/Sidebar";
-import { format } from "date-fns";
-import { ptBR } from "date-fns/locale";
-import { CalendarIcon, Search, Download, Edit, Save } from "lucide-react";
-import jsPDF from 'jspdf';
-import 'jspdf-autotable';
-import autoTable from "jspdf-autotable";
+import { Info, Save, ZapOff } from "lucide-react"; // 💡 ALTERADO: Adicionado ZapOff
 import { API_BASE_URL } from "@/config/api";
 
-const decodeToken = (token: string) => {
-    try {
-        const base64Url = token.split('.')[1];
-        const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-        const payload = decodeURIComponent(atob(base64).split('').map(function (c) {
-            return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
-        }).join(''));
-        return JSON.parse(payload);
-    } catch (error) {
-        console.error("Failed to decode token", error);
-        return null;
-    }
-};
+// 💡 NOVO: Componente de Filtros Modular
+import { RelatorioFiltros } from "@/pages/RelatorioFiltros"; 
+// 💡 NOVO: Componente de Resultados Modular (Reutilizando a lógica do Relatório Detalhado)
+import { ResultadosRelatorioDetalhado } from "@/components/ResultadosRelatorioDetalhado"; 
 
-const getBrazilianHolidays = (year: number) => {
-    const holidays: Date[] = [];
+// 💡 NOVO: Importando utilitários centralizados para evitar duplicação e melhorar o uso do date-fns
+import { 
+    decodeToken, 
+    statusOptions, 
+    getStatusColor, 
+    getTranslatedStatus,
+    DetailedReportItem,
+    Employee
+} from "@/utils/report-utils"; 
 
-    holidays.push(new Date(year, 0, 1));
-    holidays.push(new Date(year, 3, 21));
-    holidays.push(new Date(year, 4, 1));
-    holidays.push(new Date(year, 8, 7));
-    holidays.push(new Date(year, 9, 12));
-    holidays.push(new Date(year, 10, 2));
-    holidays.push(new Date(year, 10, 15));
-    holidays.push(new Date(year, 11, 25));
-
-    const easter = getEasterDate(year);
-    const carnival = new Date(easter);
-    carnival.setDate(easter.getDate() - 47);
-    holidays.push(carnival);
-
-    const goodFriday = new Date(easter);
-    goodFriday.setDate(easter.getDate() - 2);
-    holidays.push(goodFriday);
-
-    const corpusChristi = new Date(easter);
-    corpusChristi.setDate(easter.getDate() + 60);
-    holidays.push(corpusChristi);
-
-    return holidays;
-};
-
-const getEasterDate = (year: number) => {
-    const f = Math.floor;
-    const G = year % 19;
-    const C = f(year / 100);
-    const H = (C - f(C / 4) - f((8 * C + 13) / 25) + 19 * G + 15) % 30;
-    const I = H - f(H / 28) * (1 - f(29 / (H + 1)) * f((21 - G) / 11));
-    const J = (year + f(year / 4) + I + 2 - C + f(C / 4)) % 7;
-    const L = I - J;
-    const month = 3 + f((L + 40) / 44);
-    const day = L + 28 - 31 * f(month / 4);
-    return new Date(year, month - 1, day);
-};
-
-const statusOptions = [
-    { value: "CREATED", label: "Criado" },
-    { value: "PENDING", label: "Saída Pendente" },
-    { value: "UPDATED", label: "Atualizado por ADM" },
-    { value: "UPDATE_REJECTED", label: "Atualização Rejeitada por ADM" },
-    { value: "DAY_OFF", label: "Folga" },
-    { value: "ABSENCE", label: "Falta" },
-    { value: "PENDING_APPROVAL", label: "Aguardando Aprovação" },
-    { value: "DOCTOR_APPOINTMENT", label: "Consulta Médica" },
-];
-
-// Interface para os dados detalhados
-interface DetailedReportItem {
-    id?: string;
-    timeRecordId: string;
-    startWork: string;
-    startHour: string;
-    endWork: string;
-    endHour: string;
-    hoursWork: string;
-    balance: string;
-    statusRecord: string;
-    active: boolean;
-    employeeData: {
-        employeeName: string;
-        companyName: string;
-    };
-}
-
-interface Employee {
-    employeeId: string;
-    fullName: string;
-}
-
-const RelatorioDetalhado = () => {
+// O nome do componente foi mantido como RelatorioDetalhado para não quebrar a exportação do arquivo original
+// Contudo, ele foi adaptado para a função StatusRegistro.
+const StatusRegistro = () => {
     const [sidebarOpen, setSidebarOpen] = useState(false);
-    // Alterado para aceitar um array de Date, conforme o modo "multiple" do Calendar
+    // 💡 ESTADOS DO FILTRO - Compartilhados com RelatorioFiltros
     const [selectedDates, setSelectedDates] = useState<Date[]>([]);
     const [referenceTime, setReferenceTime] = useState("08:00");
     const [selectedEmployee, setSelectedEmployee] = useState("");
     const [employeeActive, setEmployeeActive] = useState("active");
     const [isActive, setIsActive] = useState(true);
-    const [status, setStatus] = useState("");
+    const [status, setStatus] = useState("CREATED"); // Status inicial fixo ou relevante para edição
+    const [reportType, setReportType] = useState<"detailed" | "simple">("detailed"); // Fixo para Detailed
+    
+    // ESTADOS DE DADOS
     const [reportData, setReportData] = useState<DetailedReportItem[]>([]);
-    const [editModalOpen, setEditModalOpen] = useState(false);
-    const [selectedRecord, setSelectedRecord] = useState<any>(null);
     const [employees, setEmployees] = useState<Employee[]>([]);
-    const { toast } = useToast();
-    // O estado 'managers' e o hook 'useForm' foram removidos
-    const reportTableRef = useRef(null);
     const [isPartner, setIsPartner] = useState(false);
+    const { toast } = useToast();
 
-    // Estado para a edição de status
+    // ESTADOS DO MODAL DE EDIÇÃO DE STATUS (Ação Principal da Página)
+    const [editModalOpen, setEditModalOpen] = useState(false);
+    const [selectedRecord, setSelectedRecord] = useState<any>(null); // Armazena o registro completo
     const [statusUpdate, setStatusUpdate] = useState<{
         timeRecordId: string;
         employeeId: string;
@@ -139,15 +58,40 @@ const RelatorioDetalhado = () => {
         statusRecord: "",
     });
 
+       const statusRegistroTips = (
+    <>
+   <h1 className="text-lg font-bold text-primary mb-2 flex items-center gap-2">
+                    <Info className="w-5 h-5 text-primary"/> Instruções
+                  </h1>
+        <br />
+        <h4 className="text-sm font-bold text-primary mb-2 flex items-center gap-2">
+            <div className="w-2 h-2 rounded-full bg-primary  "></div>
+              <span  className=" animate-pulse"> Alteração de Status</span>
+        </h4>
+        <ul className="list-disc list-inside text-xs space-y-2 text-muted-foreground ml-2">
+            <li>
+                Para corrigir o status de um dia, selecione as datas, o funcionário e o status atual no filtro.
+            </li>
+        <li>
+                Após buscar os registros, clique na linha para abrir o modal de edição.
+            </li>
+            <li>
+                O botão **Salvar Status** no modal será habilitado apenas quando um novo valor for selecionado.
+            </li>
+            <li>
+                Esta tela permite alterar o registro para: FALTA, FOLGA, ABONO.
+            </li>
+        </ul>
+    </>
+);
+
+   
+    // 1. Busca de Funcionários (Mantida e reutilizada)
     const fetchEmployees = useCallback(async () => {
+        // ... (Lógica fetchEmployees igual à original) ...
         try {
             const token = localStorage.getItem("token");
             if (!token) return;
-
-            const headers = {
-                "Content-Type": "application/json",
-                Authorization: `Bearer ${token}`,
-            };
 
             const decoded = decodeToken(token);
             const userRole = decoded?.role;
@@ -176,10 +120,7 @@ const RelatorioDetalhado = () => {
 
             if (response.ok) {
                 const data = await response.json();
-                console.log("Dados do relatório da API:", data);
-
                 setEmployees(data.employees || []);
-                // Mantém o funcionário selecionado se existir, caso contrário limpa
                 if (!employees.some(emp => emp.employeeId === selectedEmployee)) {
                     setSelectedEmployee("");
                 }
@@ -189,22 +130,8 @@ const RelatorioDetalhado = () => {
         }
     }, [employeeActive, selectedEmployee]);
 
-    // A função fetchManagers foi removida pois não é mais utilizada.
-
-    useEffect(() => {
-        fetchEmployees();
-    }, [fetchEmployees]);
-
-    const currentYear = new Date().getFullYear();
-    const holidays = [
-        ...getBrazilianHolidays(currentYear),
-        ...getBrazilianHolidays(currentYear + 1)
-    ];
-
-    // Removida a função handleDateSelect manual, pois usaremos o setter de estado diretamente.
-
+    // 2. Busca de Registros (Lógica de Search Original)
     const handleSearch = async () => {
-
         if (!status) {
             toast({
                 title: "Erro",
@@ -220,7 +147,14 @@ const RelatorioDetalhado = () => {
                 throw new Error("Token de autenticação não encontrado.");
             }
 
-            const formattedDates = selectedDates.map(date => format(date, "dd-MM-yyyy"));
+            // A conversão de data é feita aqui. O RelatorioFiltros lida com a seleção.
+            const formattedDates = selectedDates.map(date => {
+                const day = String(date.getDate()).padStart(2, '0');
+                const month = String(date.getMonth() + 1).padStart(2, '0');
+                const year = date.getFullYear();
+                return `${day}-${month}-${year}`; // Formato DD-MM-YYYY
+            });
+
             const requestBody = {
                 reference: referenceTime,
                 active: isActive,
@@ -244,7 +178,7 @@ const RelatorioDetalhado = () => {
 
             if (!response.ok) {
                 const errorData = await response.json();
-                throw new Error(errorData.message || "Erro ao buscar o relatório. Tente novamente mais tarde.");
+                throw new Error(errorData.detail || "Erro ao buscar o relatório. Tente novamente mais tarde.");
             }
 
             const data = await response.json();
@@ -260,15 +194,6 @@ const RelatorioDetalhado = () => {
             }
 
             setReportData(data);
-
-            const datesList = selectedDates
-                .map(date => format(date, "dd/MM/yyyy", { locale: ptBR }))
-                .join(", ");
-
-            toast({
-                title: "Busca realizada",
-                description: `Relatório detalhado gerado para as datas: ${datesList}`,
-            });
         } catch (error: any) {
             console.error("Erro na busca:", error);
             toast({
@@ -279,23 +204,13 @@ const RelatorioDetalhado = () => {
         }
     };
 
-
-    const getStatusColor = (status: string) => {
-        const baseClass = "text-white";
-        switch (status) {
-            case "CREATED": return `${baseClass} bg-green-600`;
-            case "PENDING": return `${baseClass} bg-yellow-600`;
-            case "ABSENCE": return `${baseClass} bg-red-600`;
-            default: return `${baseClass} bg-primary`;
-        }
-    };
-
+    // 3. Handlers do Modal
     const handleEditRecord = (record: DetailedReportItem) => {
         // Captura os IDs e o status atual para o modal de edição de status
-        const recordId = record.timeRecordId;
-        const empId = selectedEmployee;
+        const recordId = String(record.timeRecordId); // Garante que é string
+        const empId = selectedEmployee; // Usa o funcionário do filtro
 
-        setSelectedRecord({ ...record, timeRecordId: recordId, employeeId: empId });
+        setSelectedRecord(record); // Guarda o registro completo
 
         setStatusUpdate({
             timeRecordId: recordId,
@@ -306,7 +221,7 @@ const RelatorioDetalhado = () => {
         setEditModalOpen(true);
     };
 
-    // Função para atualizar apenas o status do registro
+    // 4. Função para atualizar apenas o status do registro (Mantida)
     const handleUpdateStatus = async () => {
         const { timeRecordId, employeeId, statusRecord } = statusUpdate;
 
@@ -339,7 +254,6 @@ const RelatorioDetalhado = () => {
 
             if (!response.ok) {
                 const errorData = await response.json();
-                // ALTERAÇÃO AQUI: Usa 'errorData.detail' para pegar a mensagem do backend.
                 throw new Error(errorData.detail || "Erro ao atualizar o status do registro.");
             }
 
@@ -358,19 +272,93 @@ const RelatorioDetalhado = () => {
             console.error("Erro ao atualizar status:", error);
             toast({
                 title: "Erro",
-                // A mensagem de erro agora é o 'detail' do backend
                 description: error.message || "Ocorreu um erro ao salvar o status.",
                 variant: "destructive",
             });
         }
     }
 
-    // A função handleSaveRecord (edição de tempo) foi removida.
+
+    // 5. Função para alternar o status de ativação do registro (Inativar/Ativar)
+    const handleToggleActivateRecord = async () => {
+        const { timeRecordId, employeeId } = statusUpdate; // Reutiliza os IDs do estado do modal
+        const currentAction = selectedRecord?.active ? "Inativar" : "Ativar";
+
+        if (!timeRecordId || !employeeId) {
+            toast({ 
+                title: "Erro", 
+                description: "Dados de registro incompletos para inativação/ativação. Verifique se um funcionário foi selecionado.", 
+                variant: "destructive" 
+            });
+            return;
+        }
+
+        try {
+            const token = localStorage.getItem("token");
+            if (!token) {
+                throw new Error("Token de autenticação não encontrado.");
+            }
+
+            // Endpoint conforme informação do backend: PATCH records/toggle-activate/{employeeId}/{timeRecordId}
+            const endpoint = `${API_BASE_URL}records/toggle-activate/${employeeId}/${timeRecordId}`;
+
+            const response = await fetch(endpoint, {
+                method: "PUT", 
+                headers: {
+                    "Content-Type": "application/json",
+                    Authorization: `Bearer ${token}`,
+                },
+            });
+
+            if (!response.ok) {
+                const errorData = await response.json();
+                throw new Error(errorData.detail || `Erro ao ${currentAction.toLowerCase()} o registro de ponto.`);
+            }
+
+            toast({
+                title: "Sucesso",
+                description: `Registro de ponto ${currentAction.toLowerCase()} com sucesso.`,
+            });
+
+            setEditModalOpen(false);
+            
+            // Recarrega os dados para mostrar o status atualizado
+            handleSearch();
+
+        } catch (error: any) {
+            console.error(`Erro ao ${currentAction.toLowerCase()} registro:`, error);
+            toast({
+                title: "Erro",
+                description: error.message || `Ocorreu um erro ao ${currentAction.toLowerCase()} o registro.`,
+                variant: "destructive",
+            });
+        }
+    }
+
+
+    useEffect(() => {
+        fetchEmployees();
+    }, [fetchEmployees]);
+
+    const handleToggleSidebar = () => setSidebarOpen((prev) => !prev);
+    
+    // Funções de Download Mockadas (CSV/PDF) - Não são a função principal desta tela
+    const handleDownloadPDF = () => toast({ title: "Funcionalidade de Download", description: "Download de PDF em Status de Registro não é suportado.", variant: "default" });
+    const handleDownloadCSV = () => toast({ title: "Funcionalidade de Download", description: "Download de CSV em Status de Registro não é suportado.", variant: "default" });
+    
+    // A função de mudar o tipo de relatório deve ser nula ou desabilitada
+    const setFixedReportType = (type: "detailed" | "simple") => {
+        if (type !== "detailed") {
+             toast({ title: "Aviso", description: "Esta página só suporta o modo 'Detalhado'.", variant: "default" });
+        }
+        setReportType("detailed");
+    };
+
 
     return (
-
         <div className="min-h-screen bg-background relative overflow-hidden">
             <div className="fixed inset-0 z-0">
+                {/* ... (Código do Background Animado) ... */}
                 <div
                     className="absolute inset-0 opacity-5"
                     style={{
@@ -380,6 +368,7 @@ const RelatorioDetalhado = () => {
                     }}
                 />
                 <div className="absolute inset-0">
+                     {/* ... (Floating Geometric Shapes) ... */}
                     <div
                         className="absolute top-1/4 left-1/4 w-32 h-32 opacity-3"
                         style={{
@@ -407,416 +396,142 @@ const RelatorioDetalhado = () => {
                 </div>
             </div>
 
-            <Header onMenuClick={() => setSidebarOpen(true)} />
-            <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+            <Sidebar isOpen={sidebarOpen} toggleSidebar={handleToggleSidebar} />
+            
+            <div className="flex-1 flex flex-col overflow-hidden">
+                <Header toggleSidebar={handleToggleSidebar} />
 
-            <main className="container mx-auto px-4 py-20 relative z-10">
-                <div className="mb-8">
-                    <h1 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-foreground to-primary bg-clip-text text-transparent page-title">
+                <main className="container mx-auto px-4 py-20 relative z-10">
+                    <div className="mb-8">
+                        <h1 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-foreground to-primary bg-clip-text text-transparent page-title">
+                            Alterar Status do Registro
+                        </h1>
+                        <p className="text-muted-foreground">
+                            Pesquise os registros e atualize o status de um dia específico.
+                        </p>
+                    </div>
+                    
 
-                        Alterar Status do Registro
-                    </h1>
-                   
-                </div>
+                    {/* 💡 INTEGRAÇÃO: Utiliza o componente de filtros modular */}
+                    <RelatorioFiltros
+                        selectedDates={selectedDates}
+                        setSelectedDates={setSelectedDates}
+                        
+                        selectedEmployee={selectedEmployee}
+                        setSelectedEmployee={setSelectedEmployee}
+                        employeeActive={employeeActive}
+                        setEmployeeActive={setEmployeeActive}
+                        isActive={isActive}
+                        setIsActive={setIsActive}
+                        status={status}
+                        setStatus={setStatus}
+                        reportType={reportType}
+                        setReportType={setFixedReportType} // Força a ser detailed, mas permite o prop
+                        employees={employees}
+                        isPartner={isPartner}
+                        onSearch={handleSearch}
+                        customTips={statusRegistroTips}
+                        
+                    />
 
-                <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-                    {/* CARD DE SELEÇÃO DE DATAS */}
-                    <Card className="border-2 border-primary/20 shadow-card bg-gradient-to-br from-card via-card to-primary/5">
-                        <CardHeader className="border-b border-primary/20 bg-gradient-to-r from-primary/10 via-primary/5 to-transparent">
-                            <CardTitle className="flex items-center gap-2 text-foreground">
-                                <div className="p-2 rounded-lg bg-primary/10">
-                                    <CalendarIcon className="h-5 w-5 text-primary" />
-                                </div>
-                                Selecionar Datas
-                            </CardTitle>
-                            <CardDescription className="text-muted-foreground">
-                                Escolha múltiplas datas para o relatório detalhado
-                            </CardDescription>
-                        </CardHeader>
-                        <CardContent className="pt-6">
-                            <Card className="border-l-4 border-l-primary shadow-card w-fit mx-auto">
-                                <Calendar
-                                    mode="multiple"
-                                    selected={selectedDates}
-                                    onSelect={setSelectedDates}
-                                    className="w-full pointer-events-auto"
-                                    classNames={{
-                                        day: "h-9 w-9 p-0 font-normal aria-selected:opacity-100 hover:bg-calendar-selected-hover/20 hover:text-calendar-selected transition-colors duration-200 relative",
-                                        day_selected: "bg-calendar-selected text-calendar-selected-foreground hover:bg-calendar-selected-hover hover:text-calendar-selected-foreground focus:bg-calendar-selected focus:text-calendar-selected-foreground font-semibold shadow-sm z-10",
-                                        day_today: "bg-calendar-today text-calendar-today-foreground font-medium border border-border",
-                                        day_outside: "text-muted-foreground opacity-50 aria-selected:bg-calendar-selected/50 aria-selected:text-calendar-selected-foreground aria-selected:opacity-80",
-                                        day_disabled: "text-muted-foreground opacity-50",
-                                        day_range_middle: "aria-selected:bg-calendar-selected/20 aria-selected:text-calendar-selected",
-                                        day_hidden: "invisible",
-                                    }}
-                                    modifiers={{
-                                        selected: selectedDates,
-                                        holiday: holidays,
-                                    }}
-                                    modifiersClassNames={{
-                                        selected: "bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground z-10",
-                                        holiday: "bg-destructive/10 text-destructive font-semibold border border-destructive/20 hover:bg-destructive/20 hover:text-destructive",
-                                    }}
-                                />
-                            </Card>
-                            <div className="mt-4 p-4 bg-gradient-to-br from-primary/5 to-secondary/5 rounded-lg border border-primary/20 backdrop-blur-sm">
-                                <h4 className="text-sm font-semibold text-foreground mb-2 flex items-center gap-2">
-                                    <div className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse"></div>
-                                    💡 Dica de uso:
-                                </h4>
-                                <p className="text-xs text-muted-foreground mb-4">
-                                    1. Clique em qualquer data no calendário para selecioná-la.<br/>
-                                <p/>
-                                 <p className="text-xs text-muted-foreground mb-4"></p>
-                                    2. Os feriados nacionais brasileiros estão destacados automaticamente.
-                                </p>
-                                <p className="text-xs text-muted-foreground mb-4">
-                                    3. Para registrar a falta de um colaborador siga os seguintes passos.<br/>
-                                         - Selecione o dia, o colaborador e o Status FOLGA.<br/>
-                                         - Selecione o registro e mude o status para FALTA.
-                                </p>
-                                <p className="text-xs text-muted-foreground mb-4">
-                                    4. Status Atualizado por ADM e Rejeitado por ADM não podem ser alterados. 
-                                </p>
-                                <div className="grid grid-cols-1 gap-3 text-xs">
-                                    <div className="flex items-center gap-3">
-                                        <div className="w-4 h-4 rounded bg-gradient-to-br from-primary to-primary/80 shadow-sm"></div>
-                                        <span className="text-muted-foreground">Data selecionada</span>
-                                    </div>
-                                    <div className="flex items-center gap-3">
-                                        <div className="w-4 h-4 rounded bg-destructive/10 border-2 border-destructive/30"></div>
-                                        <span className="text-muted-foreground">Feriado nacional</span>
+                    {/* 💡 INTEGRAÇÃO: Utiliza o componente de resultados modular */}
+                    {reportData.length > 0 && (
+                        <ResultadosRelatorioDetalhado
+                            reportData={reportData}
+                            statusFilter={status}
+                            referenceTime={referenceTime}
+                            selectedDates={selectedDates}
+                            onEditRecord={handleEditRecord} // Passa a função de abrir o modal
+                        />
+                    )}
+                    
+                    {/* MODAL DE EDIÇÃO DE STATUS (Originalmente mantido) */}
+                    <Dialog open={editModalOpen} onOpenChange={setEditModalOpen}>
+                        <DialogContent className="sm:max-w-md">
+                            <DialogHeader>
+                                <DialogTitle>Alterar Status do Registro</DialogTitle>
+                                <DialogDescription>
+                                    Atualize o status do registro de ponto selecionado.
+                                </DialogDescription>
+                            </DialogHeader>
 
-                                    </div>
-
-                                    <div className="flex items-center gap-3">
-                                        <div className="w-4 h-4 rounded border-2 border-primary/50 bg-transparent"></div>
-                                        <span className="text-muted-foreground">Hoje</span>
-                                    </div>
-                                </div>
-                            </div>
-
-                            {selectedDates.length > 0 && (
-                                <div className="mt-4 p-4 bg-gradient-to-br from-primary/10 to-secondary/10 rounded-lg border-2 border-primary/30 backdrop-blur-sm">
-                                    <h4 className="text-sm font-semibold text-foreground mb-3 flex items-center gap-2">
-                                        <div className="w-2 h-2 rounded-full bg-primary animate-pulse"></div>
-                                        Datas Selecionadas ({selectedDates.length})
-                                    </h4>
-                                    <div className="flex flex-wrap gap-2">
-                                        {selectedDates.map((date, index) => (
-                                            <span
-                                                key={index}
-                                                className="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-semibold bg-gradient-to-r from-primary to-primary/90 text-primary-foreground shadow-sm border border-primary/20"
-                                            >
-                                                {format(date, "dd/MM/yyyy", { locale: ptBR })}
-                                            </span>
-                                        ))}
-                                    </div>
-                                </div>
-                            )}
-                        </CardContent>
-                    </Card>
-                    {/* FIM CARD DE SELEÇÃO DE DATAS */}
-
-                    {/* CARD DE PARÂMETROS DE RELATÓRIO */}
-                    <Card className="border-2 border-primary/30 shadow-xl bg-gradient-to-br from-card via-card/95 to-primary/10 backdrop-blur-sm">
-                        <CardHeader className="border-b border-primary/30 bg-gradient-to-r from-primary/15 via-primary/8 to-secondary/10 relative overflow-hidden">
-                            <div className="absolute inset-0 bg-gradient-to-r from-primary/5 to-transparent opacity-50"></div>
-                            <CardTitle className="text-foreground flex items-center gap-3 relative z-10">
-                                <div className="p-2 rounded-lg bg-gradient-to-br from-primary/20 to-primary/10 shadow-sm">
-                                    <div className="w-3 h-3 rounded-full bg-gradient-to-br from-primary to-primary/80 animate-pulse shadow-sm"></div>
-                                </div>
-                                <span className="bg-gradient-to-r from-foreground to-primary bg-clip-text text-transparent font-semibold">
-                                    Parâmetros do Relatório
-                                </span>
-                            </CardTitle>
-                            <CardDescription className="text-muted-foreground relative z-10 flex items-center gap-2">
-                                <div className="w-1 h-1 rounded-full bg-primary/50"></div>
-                                Configure os filtros para o relatório detalhado
-                            </CardDescription>
-                        </CardHeader>
-                        <CardContent className="pt-6 space-y-6 relative">
-                            <div className="absolute inset-0 opacity-5">
-                                <div className="absolute top-4 right-4 w-8 h-8 bg-gradient-to-br from-primary to-primary/60 rounded-full blur-sm"></div>
-                                <div className="absolute bottom-4 left-4 w-6 h-6 bg-gradient-to-br from-secondary to-secondary/60 rounded-full blur-sm"></div>
-                            </div>
-
-                            <div className="space-y-3 relative">
-                                <Label htmlFor="reference-time" className="text-sm font-semibold text-foreground flex items-center gap-2">
-                                    <div className="w-1.5 h-1.5 rounded-full bg-primary"></div>
-                                    Carga Horária diária
+                            <div className="space-y-4 pt-4">
+                                <Label className="text-base font-semibold text-foreground flex flex-col gap-2">
+                                    Status Atual:
+                                    <Badge
+                                        className={`${getStatusColor(statusUpdate.statusRecord)} text-base`}
+                                    >
+                                        {statusOptions.find(s => s.value === statusUpdate.statusRecord)?.label || statusUpdate.statusRecord}
+                                    </Badge>
                                 </Label>
-                                <div className="relative">
-                                    <Input
-                                        id="reference-time"
-                                        type="time"
-                                        value={referenceTime}
-                                        onChange={(e) => setReferenceTime(e.target.value)}
-                                        className="focus:border-primary focus:ring-2 focus:ring-primary/20 border-primary/20 bg-gradient-to-r from-background to-primary/5 transition-all duration-200"
-                                    />
-                                    <div className="absolute inset-0 rounded-md bg-gradient-to-r from-primary/5 to-transparent opacity-0 hover:opacity-100 transition-opacity duration-200 pointer-events-none"></div>
-                                </div>
-                                <p className="text-xs text-muted-foreground flex items-center gap-1">
-                                    <div className="w-1 h-1 rounded-full bg-muted-foreground/50"></div>
-                                    Horário de referência para cálculo do relatório
-                                </p>
-                            </div>
 
-                            <div className="space-y-3 relative">
-                                <Label className="text-sm font-semibold text-foreground flex items-center gap-2">
-                                    <div className="w-1.5 h-1.5 rounded-full bg-primary"></div>
-                                    Funcionário
-                                </Label>
-                                <Select value={selectedEmployee} onValueChange={setSelectedEmployee} disabled={isPartner}>
-                                    <SelectTrigger className="focus:border-primary focus:ring-2 focus:ring-primary/20 border-primary/20 bg-gradient-to-r from-background to-primary/5 hover:bg-primary/10 transition-all duration-200">
-                                        <SelectValue placeholder="Selecione um funcionário" />
-                                    </SelectTrigger>
-                                    <SelectContent className="border-primary/20">
-                                        {employees.map((employee) => (
-                                            <SelectItem
-                                                key={employee.employeeId}
-                                                value={employee.employeeId}
-                                                className="hover:bg-primary/10 focus:bg-primary/10"
-                                            >
-                                                {employee.fullName}
-                                            </SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
-                            </div>
-
-                            <div className="space-y-3 relative">
-                                <Label className="text-sm font-semibold text-foreground flex items-center gap-2">
-                                    <div className="w-1.5 h-1.5 rounded-full bg-primary"></div>
-                                    Status do Funcionário
-                                </Label>
-                                <div className="p-3 rounded-lg bg-gradient-to-r from-primary/5 to-secondary/5 border border-primary/20">
-                                    <RadioGroup value={employeeActive} onValueChange={setEmployeeActive}>
-                                        <div className="flex items-center space-x-3 p-2 rounded-md hover:bg-primary/10 transition-colors">
-                                            <RadioGroupItem value="active" id="emp-active" className="border-primary data-[state=checked]:bg-primary data-[state=checked]:border-primary" />
-                                            <Label htmlFor="emp-active" className="text-sm cursor-pointer font-medium">
-                                                Ativo
-                                            </Label>
-                                        </div>
-                                        <div className="flex items-center space-x-3 p-2 rounded-md hover:bg-primary/10 transition-colors">
-                                            <RadioGroupItem value="inactive" id="emp-inactive" className="border-primary data-[state=checked]:bg-primary data-[state=checked]:border-primary" />
-                                            <Label htmlFor="emp-inactive" className="text-sm cursor-pointer font-medium">
-                                                Inativo
-                                            </Label>
-                                        </div>
-                                    </RadioGroup>
+                                <div className="space-y-2">
+                                    <Label htmlFor="new-status">Novo Status</Label>
+                                    <Select
+                                        value={statusUpdate.statusRecord}
+                                        onValueChange={(value) => setStatusUpdate(prev => ({ ...prev, statusRecord: value }))}
+                                    >
+                                        <SelectTrigger id="new-status" className="h-10 focus:border-primary">
+                                            <SelectValue placeholder="Selecione um novo status" />
+                                        </SelectTrigger>
+                                        <SelectContent>
+                                        {statusOptions
+                                                // 💡 NOVO FILTRO: Inclui APENAS Folga, Falta e Abono (DOCTOR_APPOINTMENT)
+                                                .filter(opt => ["DAY_OFF", "ABSENCE", "DOCTOR_APPOINTMENT"].includes(opt.value))
+                                                .map((option) => (
+                                                <SelectItem
+                                                    key={option.value}
+                                                    value={option.value}
+                                                >
+                                                    {option.label}
+                                                </SelectItem>
+                                            ))}
+                                        </SelectContent>
+                                    </Select>
+                                    <p className="text-xs text-muted-foreground">O registro será atualizado com o status selecionado.</p>
                                 </div>
                             </div>
 
-                            <div className="space-y-3 relative">
-                                <Label className="text-sm font-semibold text-foreground flex items-center gap-2">
-                                    <div className="w-1.5 h-1.5 rounded-full bg-primary"></div>
-                                    Ativo
-                                </Label>
-                                <div className="p-3 rounded-lg bg-gradient-to-r from-primary/5 to-secondary/5 border border-primary/20">
-                                    <div className="flex items-center space-x-3 p-2 rounded-md hover:bg-primary/10 transition-colors">
-                                        <Checkbox
-                                            id="active"
-                                            checked={isActive}
-                                            onCheckedChange={(checked) => setIsActive(checked as boolean)}
-                                            className="data-[state=checked]:bg-primary data-[state=checked]:border-primary border-primary/50"
-                                        />
-                                        <Label
-                                            htmlFor="active"
-                                            className="text-sm text-muted-foreground cursor-pointer font-medium"
-                                        >
-                                            {isActive ? "Incluir registros ativos" : "Incluir registros inativos"}
-                                        </Label>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div className="space-y-3 relative">
-                                <Label className="text-sm font-semibold text-foreground flex items-center gap-2">
-                                    <div className="w-1.5 h-1.5 rounded-full bg-primary"></div>
-                                    Status
-                                </Label>
-                                <Select value={status} onValueChange={setStatus}>
-                                    <SelectTrigger className="focus:border-primary focus:ring-2 focus:ring-primary/20 border-primary/20 bg-gradient-to-r from-background to-primary/5 hover:bg-primary/10 transition-all duration-200">
-                                        <SelectValue placeholder="Selecione um status" />
-                                    </SelectTrigger>
-                                    <SelectContent className="border-primary/20">
-                                        {statusOptions.map((option) => (
-                                            <SelectItem
-                                                key={option.value}
-                                                value={option.value}
-                                                className="hover:bg-primary/10 focus:bg-primary/10 hover:text-foreground focus:text-foreground"
-                                            >
-                                                {option.label}
-                                            </SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
-                                <p className="text-xs text-muted-foreground flex items-center gap-1">
-                                    <div className="w-1 h-1 rounded-full bg-muted-foreground/50"></div>
-                                    Status dos registros a serem filtrados
-                                </p>
-                            </div>
-
-                            <div className="space-y-3 pt-6 border-t border-primary/20 relative">
-                                <div className="absolute -top-px left-1/2 transform -translate-x-1/2 w-12 h-px bg-gradient-to-r from-transparent via-primary to-transparent"></div>
-
+                            <div className="flex justify-between items-center pt-4">
+                                {/* NOVO: Botão para Inativar/Ativar Registro */}
                                 <Button
-                                    onClick={handleSearch}
-                                    size="lg"
-                                    className="w-full font-semibold bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary shadow-lg hover:shadow-primary/25 transition-all duration-200 relative overflow-hidden"
+                                    type="button"
+                                    variant="destructive"
+                                    onClick={handleToggleActivateRecord}
+                                    disabled={!statusUpdate.timeRecordId || !statusUpdate.employeeId}
                                 >
-                                    <div className="absolute inset-0 bg-gradient-to-r from-white/10 to-transparent opacity-0 hover:opacity-100 transition-opacity duration-200"></div>
-                                    <Search className="mr-2 h-4 w-4" />
-                                    <span className="relative z-10">Buscar</span>
+                                    <ZapOff className="h-4 w-4 mr-2" />
+                                    {/* O texto é dinâmico, pois o endpoint faz um TOGGLE */}
+                                    {selectedRecord?.active ? "Inativar Registro" : "Ativar Registro"}
                                 </Button>
-
-
-                            </div>
-                        </CardContent>
-                    </Card>
-                    {/* FIM CARD DE PARÂMETROS DE RELATÓRIO */}
-                </div>
-
-                {/* CARD DE RESULTADOS DO RELATÓRIO */}
-                {reportData.length > 0 && (
-                    <Card className="mt-8 border-2 border-primary/20 shadow-lg bg-gradient-to-br from-card via-card to-primary/5">
-                        <CardHeader className="border-b border-primary/20 bg-gradient-to-r from-primary/10 via-primary/5 to-transparent">
-                            <CardTitle className="text-foreground flex items-center gap-2">
-                                <div className="p-1.5 rounded-lg bg-primary/10">
-                                    <div className="w-3 h-3 rounded bg-primary"></div>
+                                
+                                <div className="flex space-x-2">
+                                    <Button
+                                        type="button"
+                                        variant="outline"
+                                        onClick={() => setEditModalOpen(false)}
+                                    >
+                                        Cancelar
+                                    </Button>
+                                    <Button
+                                        type="button"
+                                        onClick={handleUpdateStatus}
+                                        className="bg-primary hover:bg-primary/90"
+                                        disabled={!statusUpdate.timeRecordId || !statusUpdate.employeeId || !statusUpdate.statusRecord}
+                                    >
+                                        <Save className="h-4 w-4 mr-2" />
+                                        Salvar Status
+                                    </Button>
                                 </div>
-                                Resultados do Relatório Detalhado
-                            </CardTitle>
-                            <CardDescription className="text-muted-foreground flex items-center gap-2">
-                                <span className="inline-flex items-center px-2 py-1 rounded-full text-xs font-medium bg-primary/10 text-primary">
-                                    {reportData.length} registro(s)
-                                </span>
-                                encontrado(s)
-                            </CardDescription>
-                        </CardHeader>
-                        <CardContent className="p-0">
-                            <div className="overflow-x-auto">
-
-                                <table className="w-full">
-                                    <thead>
-                                        <tr className="border-b border-primary/20 bg-gradient-to-r from-primary/10 via-primary/5 to-secondary/5">
-                                            <th className="text-left p-4 text-sm font-semibold text-foreground">Data Entrada</th>
-                                            <th className="text-left p-4 text-sm font-semibold text-foreground">Hora Entrada</th>
-                                            <th className="text-left p-4 text-sm font-semibold text-foreground">Data Saída</th>
-                                            <th className="text-left p-4 text-sm font-semibold text-foreground">Hora Saída</th>
-                                            <th className="text-left p-4 text-sm font-semibold text-foreground">Horas Trabalhadas</th>
-                                            <th className="text-left p-4 text-sm font-semibold text-foreground">Saldo</th>
-                                            <th className="text-left p-4 text-sm font-semibold text-foreground">Status</th>
-                                        </tr>
-                                    </thead>
-                                    <tbody>
-                                        {reportData.map((item, index) => (
-                                            <tr
-                                                key={item.timeRecordId || index}
-                                                className={`border-b border-border/50 cursor-pointer hover:bg-gradient-to-r hover:from-primary/10 hover:to-secondary/5 transition-all duration-200 ${index % 2 === 0
-                                                    ? 'bg-gradient-to-r from-background to-background'
-                                                    : 'bg-gradient-to-r from-muted/10 to-primary/5'
-                                                    }`}
-                                                onClick={() => handleEditRecord(item)}
-                                            >
-                                                <td className="p-4 text-sm text-foreground">{item.startWork}</td>
-                                                <td className="p-4 text-sm text-foreground">{item.startHour}</td>
-                                                <td className="p-4 text-sm text-foreground">{item.endWork}</td>
-                                                <td className="p-4 text-sm text-foreground">{item.endHour}</td>
-                                                <td className="p-4 text-sm text-foreground font-medium">{item.hoursWork}</td>
-                                                <td className={`p-4 text-sm font-medium ${item.balance.startsWith('-') ? 'text-destructive' : 'text-success'
-                                                    }`}>
-                                                    {item.balance}
-                                                </td>
-                                                <td className="p-4">
-                                                    <div className="flex items-center justify-between">
-                                                        <Badge
-                                                            className={`${getStatusColor(item.statusRecord)} text-xs border-0`}
-                                                        >
-                                                            {statusOptions.find(s => s.value === item.statusRecord)?.label || item.statusRecord}
-                                                        </Badge>
-                                                        <Edit className="h-4 w-4 text-muted-foreground" />
-                                                    </div>
-                                                </td>
-                                            </tr>
-                                        ))}
-                                    </tbody>
-                                </table>
                             </div>
-                        </CardContent>
-                    </Card>
-                )}
-                {/* FIM CARD DE RESULTADOS DO RELATÓRIO */}
-
-                {/* MODAL DE EDIÇÃO DE STATUS */}
-                <Dialog open={editModalOpen} onOpenChange={setEditModalOpen}>
-                    <DialogContent className="sm:max-w-md">
-                        <DialogHeader>
-                            <DialogTitle>Alterar Status do Registro</DialogTitle>
-                            <DialogDescription>
-                                Atualize o status do registro de ponto selecionado.
-                            </DialogDescription>
-                        </DialogHeader>
-
-                        <div className="space-y-4 pt-4">
-                            <Label className="text-base font-semibold text-foreground flex flex-col gap-2">
-                                Status Atual:
-                                <Badge
-                                    className={`${getStatusColor(statusUpdate.statusRecord)} text-base`}
-                                >
-                                    {statusOptions.find(s => s.value === statusUpdate.statusRecord)?.label || statusUpdate.statusRecord}
-                                </Badge>
-                            </Label>
-
-                            <div className="space-y-2">
-                                <Label htmlFor="new-status">Novo Status</Label>
-                                <Select
-                                    value={statusUpdate.statusRecord}
-                                    onValueChange={(value) => setStatusUpdate(prev => ({ ...prev, statusRecord: value }))}
-                                >
-                                    <SelectTrigger id="new-status" className="h-10 focus:border-primary">
-                                        <SelectValue placeholder="Selecione um novo status" />
-                                    </SelectTrigger>
-                                    <SelectContent>
-                                        {statusOptions.map((option) => (
-                                            <SelectItem
-                                                key={option.value}
-                                                value={option.value}
-                                            >
-                                                {option.label}
-                                            </SelectItem>
-                                        ))}
-                                    </SelectContent>
-                                </Select>
-                                <p className="text-xs text-muted-foreground">O registro será atualizado com o status selecionado.</p>
-                            </div>
-                        </div>
-
-                        <div className="flex justify-end space-x-2 pt-4">
-                            <Button
-                                type="button"
-                                variant="outline"
-                                onClick={() => setEditModalOpen(false)}
-                            >
-                                Cancelar
-                            </Button>
-                            <Button
-                                type="button"
-                                onClick={handleUpdateStatus}
-                                className="bg-primary hover:bg-primary/90"
-                                disabled={!statusUpdate.timeRecordId || !statusUpdate.employeeId || !statusUpdate.statusRecord}
-                            >
-                                <Save className="h-4 w-4 mr-2" />
-                                Salvar Status
-                            </Button>
-                        </div>
-                    </DialogContent>
-                </Dialog>
-                {/* FIM MODAL DE EDIÇÃO DE STATUS */}
-            </main>
+                        </DialogContent>
+                    </Dialog>
+                    {/* FIM MODAL DE EDIÇÃO DE STATUS */}
+                </main>
+            </div>
         </div>
     );
 };
 
-export default RelatorioDetalhado;
+// 💡 CORREÇÃO FINAL: Exporta com o nome do arquivo, como padrão em TSX
+export default StatusRegistro;

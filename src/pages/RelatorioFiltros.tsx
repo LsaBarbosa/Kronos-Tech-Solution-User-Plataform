@@ -1,5 +1,3 @@
-// src/components/RelatorioFiltros.tsx
-
 import React from "react";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
@@ -9,16 +7,21 @@ import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { CalendarIcon, Search, Download, FileText } from "lucide-react";
-import { format } from "date-fns";
+
+// 🚀 NOVAS IMPORTAÇÕES PARA O COMBOBOX DE BUSCA
+import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
+import { Command, CommandInput, CommandItem, CommandList, CommandEmpty } from "@/components/ui/command";
+import { Check, CalendarIcon, Search, Download, FileText, CalendarCheck, CalendarX } from "lucide-react"; 
+import { format, startOfMonth, endOfMonth, eachDayOfInterval, startOfDay, isSameDay } from "date-fns"; 
 import { ptBR } from "date-fns/locale";
 import { Employee, statusOptions, allHolidays } from "@/utils/report-utils";
+import { cn } from "@/lib/utils"; // Assumindo que a função de utilidade cn está disponível
 
 interface RelatorioFiltrosProps {
     selectedDates: Date[];
     setSelectedDates: React.Dispatch<React.SetStateAction<Date[]>>;
-    referenceTime: string;
-    setReferenceTime: React.Dispatch<React.SetStateAction<string>>;
+    referenceTime?: string;
+    setReferenceTime?: React.Dispatch<React.SetStateAction<string>>;
     selectedEmployee: string;
     setSelectedEmployee: React.Dispatch<React.SetStateAction<string>>;
     employeeActive: string;
@@ -32,8 +35,10 @@ interface RelatorioFiltrosProps {
     employees: Employee[];
     isPartner: boolean;
     onSearch: () => void;
-    onDownloadPDF: () => void;
-    onDownloadCSV: () => void;
+    onDownloadPDF?: () => void;
+    onDownloadCSV?: () => void;
+    hideTips?: boolean;
+    customTips?: React.ReactNode
 }
 
 const isHoliday = (date: Date) => {
@@ -62,27 +67,81 @@ export const RelatorioFiltros: React.FC<RelatorioFiltrosProps> = ({
     onSearch,
     onDownloadPDF,
     onDownloadCSV,
+    hideTips,
+    customTips
 }) => {
+    const [displayMonth, setDisplayMonth] = React.useState<Date | undefined>(startOfDay(new Date()));
+    
+    // 🚀 NOVO ESTADO: Controla a abertura/fechamento do Combobox (Popover)
+    const [open, setOpen] = React.useState(false); 
 
     const handleDateSelect = (days: Date[] | undefined) => {
         setSelectedDates(days || []);
     };
+    
+    const isMonthFullySelected = React.useMemo(() => {
+        if (!displayMonth || selectedDates.length === 0) return false;
 
-    const handleReportTypeChange = (typeValue: "detailed" | "simple") => {
-        if (reportType !== typeValue) {
-            setReportType(typeValue);
-            if (typeValue === "simple") {
+        const daysInMonth = eachDayOfInterval({ 
+            start: startOfMonth(displayMonth), 
+            end: endOfMonth(displayMonth) 
+        });
+
+        if (daysInMonth.length === 0) return false;
+
+        return daysInMonth.every(dayOfMonth => 
+            selectedDates.some(selectedDate => isSameDay(selectedDate, dayOfMonth))
+        );
+    }, [displayMonth, selectedDates]);
+
+    const handleSelectMonth = () => {
+        if (!displayMonth) return;
+
+        const daysInMonth = eachDayOfInterval({ 
+            start: startOfMonth(displayMonth), 
+            end: endOfMonth(displayMonth) 
+        });
+
+        if (isMonthFullySelected) {
+            const newSelectedDates = selectedDates.filter(selectedDate => {
+                return !daysInMonth.some(dayOfMonth => isSameDay(selectedDate, dayOfMonth));
+            });
+            setSelectedDates(newSelectedDates);
+        } else {
+            let newSelectedDates = selectedDates.filter(selectedDate => {
+                return !daysInMonth.some(dayOfMonth => isSameDay(selectedDate, dayOfMonth));
+            });
+            
+            newSelectedDates = [...newSelectedDates, ...daysInMonth];
+
+            const uniqueDates = Array.from(new Set(newSelectedDates.map(d => d.getTime())))
+                                    .map(time => new Date(time))
+                                    .sort((a, b) => a.getTime() - b.getTime());
+                                    
+            setSelectedDates(uniqueDates);
+        }
+    };
+
+    const handleReportTypeChange = (typeValue: string) => {
+        const type: "detailed" | "simple" = typeValue as "detailed" | "simple";
+        if (reportType !== type) {
+            setReportType(type);
+            // Ao mudar para Simples, o status deve ser resetado/ignorado
+            if (type === "simple") {
                 setStatus("");
             }
         }
     };
 
+
     return (
         <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
-            <Card className="border-2 border-primary/20 shadow-card bg-gradient-to-br from-card via-card to-primary/5">
+
+            {/* CARD 1: SELEÇÃO DE DATAS */}
+            <Card className="border-2 border-primary/20 shadow-xl hover:shadow-2xl transition-all duration-300 bg-gradient-to-br from-card via-card to-primary/5">
                 <CardHeader className="border-b border-primary/20 bg-gradient-to-r from-primary/10 via-primary/5 to-transparent">
                     <CardTitle className="flex items-center gap-2 text-foreground">
-                        <div className="p-2 rounded-lg bg-primary/10">
+                        <div className="p-2 rounded-lg bg-primary/10 shadow-inner">
                             <CalendarIcon className="h-5 w-5 text-primary" />
                         </div>
                         Selecionar Datas
@@ -92,18 +151,50 @@ export const RelatorioFiltros: React.FC<RelatorioFiltrosProps> = ({
                     </CardDescription>
                 </CardHeader>
                 <CardContent className="pt-6">
-                    <Card className="border-l-4 border-l-primary shadow-card w-fit max-w-lg mx-auto">
-                        <Calendar 
+                    <Card className="border-l-4 border-l-primary shadow-2xl shadow-primary/10 w-lg  p-4 transition-all duration-300 hover:shadow-primary/20">
+
+                         {/* BOTÃO ALTERNÁVEL: Selecionar ou Remover Mês Inteiro */}
+                        <Button
+                            onClick={handleSelectMonth}
+                            variant="outline"
+                            className={`w-full mb-4 font-semibold border-2 transition-all duration-200 relative overflow-hidden shadow-md hover:shadow-lg transform hover:scale-[1.005] ${
+                                isMonthFullySelected
+                                    ? "border-destructive/40 bg-destructive/10 text-destructive hover:bg-destructive/50 hover:shadow-destructive/20"
+                                    : "border-primary/40 bg-primary/5 text-primary hover:bg-primary/70 hover:shadow-primary/20"
+                            }`}
+                            disabled={!displayMonth}
+                        >
+                            {isMonthFullySelected ? (
+                                <CalendarX className="mr-2 h-4 w-4 relative z-10" />
+                            ) : (
+                                <CalendarCheck className="mr-2 h-4 w-4 relative z-10" />
+                            )}
+                            <span className="relative z-10">
+                                {isMonthFullySelected ? "Remover" : "Selecionar"} {displayMonth ? format(displayMonth, "MMMM 'de' yyyy", { locale: ptBR }) : "Mês Inteiro"}
+                            </span>
+                        </Button>
+                        
+                        {/* CALENDÁRIO COM ESTILIZAÇÃO APERFEIÇOADA */}
+                    <Calendar
                             mode="multiple"
                             selected={selectedDates}
                             onSelect={handleDateSelect}
+                            month={displayMonth} 
+                            onMonthChange={setDisplayMonth} 
                             className="w-full pointer-events-auto"
+                            locale={ptBR}
+                            // Estilos base (classNames) ajustados
                             classNames={{
-                                day: "h-9 w-9 p-0 font-normal aria-selected:opacity-100 hover:bg-calendar-selected-hover/20 hover:text-calendar-selected transition-colors duration-200 relative", day_selected: "bg-calendar-selected text-calendar-selected-foreground hover:bg-calendar-selected-hover hover:text-calendar-selected-foreground focus:bg-calendar-selected focus:text-calendar-selected-foreground font-semibold shadow-sm z-10",
-                                day_today: "bg-transparent text-foreground font-bold border-2 border-primary hover:bg-primary/10",
-                                day_outside: "text-muted-foreground opacity-50 aria-selected:bg-calendar-selected/50 aria-selected:text-calendar-selected-foreground aria-selected:opacity-80",
+                                day: "font-normal aria-selected:opacity-100  w-9 h-9 relative rounded-full transition-all duration-200",
+                                // A cor do texto principal é text-foreground, mas será sobreposta pelo modifiersClassNames.
+                                day_selected: "bg-transparent text-foreground rounded-full",
+                                
+                                // 🚀 CORREÇÃO DO DIA ATUAL: Garante que o texto seja foreground (preto/branco) e não seja removido.
+                                day_today: "bg-primary/50  w-9 h-9 text-foreground font-bold  border-primary/50 hover:bg-primary/10 transition-colors duration-150 rounded-full",
+                                
+                                day_outside: "text-muted-foreground opacity-50",
                                 day_disabled: "text-muted-foreground opacity-50",
-                                day_range_middle: "aria-selected:bg-calendar-selected/20 aria-selected:text-calendar-selected",
+                                day_range_middle: "aria-selected:bg-primary/20 aria-selected:text-primary",
                                 day_hidden: "invisible",
                             }}
                             modifiers={{
@@ -111,67 +202,57 @@ export const RelatorioFiltros: React.FC<RelatorioFiltrosProps> = ({
                                 holiday: allHolidays,
                             }}
                             modifiersClassNames={{
-                                selected: "bg-primary text-primary-foreground hover:bg-primary hover:text-primary-foreground z-10",
-                                holiday: "bg-destructive/10 text-destructive font-semibold border border-destructive/20 hover:bg-destructive/20 hover:text-destructive !text-destructive",
+                                // 🚀 SELEÇÃO: Cor de fundo forte (primary/red) com texto BRANCO (primary-foreground)
+                                selected: "bg-primary text-primary-foreground w-9 h-9 font-extrabold rounded-full shadow-xl shadow-primary/30 hover:bg-primary/90 transition-all duration-300",
+                                
+                                // 🚀 FERIADO: Fundo leve com texto contrastante (destructive)
+                                holiday:
+                                    " bg-destructive/40 text-destructive font-bold  w-9 h-9 border border-destructive/50 rounded-full shadow-inner shadow-destructive/5 hover:bg-destructive/20 transition-all duration-200",
                             }}
                         />
-                        <div className="grid grid-cols-1 gap-3 ml-4 mb-4 text-xs">
+                        {/* LEGENDA DE DATAS */}
+                    <div className="grid grid-cols-1 gap-3 ml-4 mb-4 text-xs pt-4 border-t border-border/50">
+                            {/* Data selecionada (Agora Circular e Primary) */}
                             <div className="flex items-center gap-3">
-                                <div className="w-4 h-4 rounded bg-gradient-to-br from-primary to-primary/80 shadow-sm"></div>
+                                <div className="w-4 h-4 rounded-full bg-primary shadow-sm shadow-primary/30"></div>
                                 <span className="text-muted-foreground">Data selecionada</span>
                             </div>
+                            {/* Feriado nacional (Circular, Border Destructive/Light background) */}
                             <div className="flex items-center gap-3">
-                                <div className="w-4 h-4 rounded bg-destructive/10 border-2 border-destructive/30"></div>
+                                <div className="w-4 h-4 rounded-full bg-destructive/10 border border-destructive/50 shadow-sm shadow-destructive/10"></div>
                                 <span className="text-destructive font-semibold">Feriado nacional</span>
                             </div>
+                            {/* Hoje (Retangular, Border Primary/Very Light background) */}
                             <div className="flex items-center gap-3">
-                                <div className="w-4 h-4 rounded border-2 border-primary/50 bg-transparent"></div>
+                                <div className="w-4 h-4 rounded-full border-2 border-primary/50 bg-primary/5"></div>
                                 <span className="text-muted-foreground">Hoje</span>
                             </div>
                         </div>
                     </Card>
-                    <div className="mt-4 p-4 bg-gradient-to-br from-primary/5 to-secondary/5 rounded-lg border border-primary/20 backdrop-blur-sm">
-                        <h4 className="text-sm font-semibold text-foreground mb-2 flex items-center gap-2">
-                            <div className="w-1.5 h-1.5 rounded-full bg-primary animate-pulse"></div>
-                            💡 Dica de uso:
-                        </h4>
-                        <p className="text-xs text-muted-foreground mb-4">
-                            1. Clique em qualquer data no calendário para selecioná-la.
-                        </p>
-                        <p className="text-xs text-muted-foreground mb-4">
-                            2. O status FOLGA é atribuido automaticamente no dia que não houver registro.<br />
-                            * Em caso de FALTA, navegue até a pagina  <a
-                                href="status-do-registro"
-                                className="text-primary hover:text-primary/80 underline font-semibold transition-colors duration-150 ml-1"
-                            >
-                                Status do registro
-                            </a>  para realizar a mudança
-                        </p>
-                        <p className="text-xs text-muted-foreground mb-4">
-                            3. Relatorio Simples: <br/>
-                            * Retorna a data, as horas trabalhadas e o saldo do dia selecionado.
-                        </p>
-                        <p className="text-xs text-muted-foreground mb-4">
-                            4. Relatorio Detalhado:<br />
-                            * Retorna todos os registros realizados na data selecionada.<br />
-                            * Retorna o status do registros.<br />
-                        </p>
-                        <p className="text-xs text-muted-foreground mb-4">
-                            5. Ao cliclar no registro é possivel solicitar a alteração (data e hora).
-                        </p>
-                    </div>
+
+                    {/* DICAS DE USO */}
+                  {customTips && ( // 👈 CONDIÇÃO: Renderiza APENAS se customTips for fornecido
+    <div className="mt-4 p-4 bg-gradient-to-br from-primary/5 to-secondary/5 rounded-xl border border-primary/20 backdrop-blur-sm shadow-inner shadow-primary/5">
+        {/*
+            Renderiza o conteúdo passado pela prop. 
+            O componente pai (StatusRegistro) será responsável por formatar este conteúdo
+            (ex: título, lista <ul>, etc.).
+        */}
+        {customTips}
+    </div>
+)}
 
                     {selectedDates.length > 0 && (
-                        <div className="mt-4 p-4 bg-gradient-to-br from-primary/10 to-secondary/10 rounded-lg border-2 border-primary/30 backdrop-blur-sm">
-                            <h4 className="text-sm font-semibold text-foreground mb-3 flex items-center gap-2">
-                                <div className="w-2 h-2 rounded-full bg-primary animate-pulse"></div>
+                        <div className="mt-4 p-4 bg-gradient-to-br from-primary/10 to-secondary/10 rounded-xl border-2 border-primary/30 backdrop-blur-sm shadow-md shadow-primary/10">
+                            <h4 className="text-sm font-extrabold text-foreground mb-3 flex items-center gap-2">
+                                <div className="w-2.5 h-2.5 rounded-full bg-primary animate-ping"></div>
                                 Datas Selecionadas ({selectedDates.length})
                             </h4>
                             <div className="flex flex-wrap gap-2">
                                 {selectedDates.map((date, index) => (
                                     <span
                                         key={index}
-                                        className="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-semibold bg-gradient-to-r from-primary to-primary/90 text-primary-foreground shadow-sm border border-primary/20"
+                                        className="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-semibold bg-gradient-to-r from-primary to-primary/80 text-primary-foreground shadow-lg shadow-primary/20 border border-primary/30"
                                     >
                                         {format(date, "dd/MM/yyyy", { locale: ptBR })}
                                     </span>
@@ -182,14 +263,15 @@ export const RelatorioFiltros: React.FC<RelatorioFiltrosProps> = ({
                 </CardContent>
             </Card>
 
-            <Card className="border-2 border-primary/30 shadow-xl bg-gradient-to-br from-card via-card/95 to-primary/10 backdrop-blur-sm">
+            {/* CARD 2: PARÂMETROS DO RELATÓRIO */}
+            <Card className="border-2 border-primary/30 shadow-2xl hover:shadow-primary/40 transition-all duration-300 bg-gradient-to-br from-card via-card/95 to-primary/10 backdrop-blur-sm">
                 <CardHeader className="border-b border-primary/30 bg-gradient-to-r from-primary/15 via-primary/8 to-secondary/10 relative overflow-hidden">
                     <div className="absolute inset-0 bg-gradient-to-r from-primary/5 to-transparent opacity-50"></div>
                     <CardTitle className="text-foreground flex items-center gap-3 relative z-10">
-                        <div className="p-2 rounded-lg bg-gradient-to-br from-primary/20 to-primary/10 shadow-sm">
+                        <div className="p-2 rounded-lg bg-gradient-to-br from-primary/20 to-primary/10 shadow-md">
                             <div className="w-3 h-3 rounded-full bg-gradient-to-br from-primary to-primary/80 animate-pulse shadow-sm"></div>
-                        </div>
-                        <span className="bg-gradient-to-r from-foreground to-primary bg-clip-text text-transparent font-semibold">
+                        </div >
+                        <span className="bg-gradient-to-r from-foreground to-primary bg-clip-text text-transparent font-extrabold">
                             Parâmetros do Relatório
                         </span>
                     </CardTitle>
@@ -200,94 +282,68 @@ export const RelatorioFiltros: React.FC<RelatorioFiltrosProps> = ({
                 </CardHeader>
                 <CardContent className="pt-6 space-y-6 relative">
                     <div className="absolute inset-0 opacity-5">
-                        <div className="absolute top-4 right-4 w-8 h-8 bg-gradient-to-br from-primary to-primary/60 rounded-full blur-sm"></div>
-                        <div className="absolute bottom-4 left-4 w-6 h-6 bg-gradient-to-br from-secondary to-secondary/60 rounded-full blur-sm"></div>
+                        <div className="absolute top-4 right-4 w-10 h-10 bg-gradient-to-br from-primary to-primary/60 rounded-full blur-xl"></div>
+                        <div className="absolute bottom-4 left-4 w-8 h-8 bg-gradient-to-br from-secondary to-secondary/60 rounded-full blur-lg"></div>
                     </div>
 
-                    {/* SEÇÃO DE TIPO DE RELATÓRIO */}
+                    {/* SEÇÃO TIPO DE RELATÓRIO (RADIO BUTTONS) */}
                     <div className="space-y-3 relative border-b border-primary/20 pb-4">
                         <Label className="text-sm font-semibold text-foreground flex items-center gap-2">
                             <div className="w-1.5 h-1.5 rounded-full bg-primary"></div>
                             Tipo de Relatório
                         </Label>
-                        <div className="p-3 rounded-lg bg-gradient-to-r from-primary/5 to-secondary/5 border border-primary/20 flex flex-wrap gap-3 sm:gap-6">
-                            {/* Checkbox Detalhado */}
-                            <div className="flex items-center space-x-3 p-2 rounded-md hover:bg-primary/10 transition-colors">
-                                <Checkbox
-                                    id="report-detailed"
-                                    checked={reportType === "detailed"}
-                                    onCheckedChange={() => handleReportTypeChange("detailed")}
-                                    className="data-[state=checked]:bg-primary data-[state=checked]:border-primary border-primary/50"
+                        <RadioGroup
+                            value={reportType}
+                            onValueChange={handleReportTypeChange}
+                            className="p-3 rounded-xl bg-gradient-to-r from-primary/5 to-secondary/5 border border-primary/20 flex flex-wrap gap-4 shadow-inner"
+                        >
+                            <div className="flex items-center space-x-3 p-2 rounded-lg hover:bg-primary/10 transition-colors cursor-pointer">
+                                <RadioGroupItem 
+                                    value="detailed" 
+                                    id="report-detailed" 
+                                    className="data-[state=checked]:border-primary data-[state=checked]:text-primary border-primary/50"
                                 />
-                                <Label htmlFor="report-detailed" className="text-sm cursor-pointer font-medium">
-                                    Detalhado
-                                </Label>
+                                <Label htmlFor="report-detailed" className="text-sm cursor-pointer font-medium">Detalhado</Label>
                             </div>
-
-                            {/* Checkbox Simples */}
-                            <div className="flex items-center space-x-3 p-2 rounded-md hover:bg-primary/10 transition-colors">
-                                <Checkbox
-                                    id="report-simple"
-                                    checked={reportType === "simple"}
-                                    onCheckedChange={() => handleReportTypeChange("simple")}
-                                    className="data-[state=checked]:bg-primary data-[state=checked]:border-primary border-primary/50"
+                            <div className="flex items-center space-x-3 p-2 rounded-lg hover:bg-primary/10 transition-colors cursor-pointer">
+                                <RadioGroupItem 
+                                    value="simple" 
+                                    id="report-simple" 
+                                    className="data-[state=checked]:border-primary data-[state=checked]:text-primary border-primary/50"
                                 />
-                                <Label htmlFor="report-simple" className="text-sm cursor-pointer font-medium">
-                                    Simples
-                                </Label>
+                                <Label htmlFor="report-simple" className="text-sm cursor-pointer font-medium">Simples</Label>
                             </div>
-                        </div>
+                        </RadioGroup>
                     </div>
-                    {/* FIM: SEÇÃO DE TIPO DE RELATÓRIO */}
-
+                    
+                    {/* REGISTRO APROVADO/REPROVADO */}
                     <div className="space-y-3 relative">
-                        <Label htmlFor="reference-time" className="text-sm font-semibold text-foreground flex items-center gap-2">
+                        <Label className="text-sm font-semibold text-foreground flex items-center gap-2">
                             <div className="w-1.5 h-1.5 rounded-full bg-primary"></div>
-                            Carga Horária diária
+                            Registro Aprovado/Reprovado
                         </Label>
-                        <div className="relative">
-                            <Input
-                                id="reference-time"
-                                type="time"
-                                value={referenceTime}
-                                onChange={(e) => setReferenceTime(e.target.value)}
-                                className="focus:border-primary focus:ring-2 focus:ring-primary/20 border-primary/20 bg-gradient-to-r from-background to-primary/5 transition-all duration-200"
-                            />
-                            <div className="absolute inset-0 rounded-md bg-gradient-to-r from-primary/5 to-transparent opacity-0 hover:opacity-100 transition-opacity duration-200 pointer-events-none"></div>
-                        </div>
+                        <RadioGroup
+                            value={isActive ? "ativo" : "inativo"}
+                            onValueChange={(value) => setIsActive(value === "ativo")}
+                            className="p-3 rounded-xl bg-gradient-to-r from-primary/5 to-secondary/5 border border-primary/20 flex flex-wrap gap-3 sm:gap-6 shadow-inner"
+                        >
+                            <div className="flex items-center space-x-3 p-2 rounded-md hover:bg-primary/10 transition-colors cursor-pointer">
+                                <RadioGroupItem value="ativo" id="reg-ativo" className="data-[state=checked]:border-primary data-[state=checked]:text-primary border-primary/50" />
+                                <Label htmlFor="reg-ativo" className="text-sm cursor-pointer font-medium">Aprovado</Label>
+                            </div>
+                            <div className="flex items-center space-x-3 p-2 rounded-md hover:bg-primary/10 transition-colors cursor-pointer">
+                                <RadioGroupItem value="inativo" id="reg-inativo" className="data-[state=checked]:border-primary data-[state=checked]:text-primary border-primary/50" />
+                                <Label htmlFor="reg-inativo" className="text-sm cursor-pointer font-medium">Reprovado</Label>
+                            </div>
+                        </RadioGroup>
                         <p className="text-xs text-muted-foreground flex items-center gap-1">
                             <div className="w-1 h-1 rounded-full bg-muted-foreground/50"></div>
-                            Horário de referência para cálculo do relatório
+                            Incluir registros ativos ou inativos no relatório
                         </p>
                     </div>
 
-                    {/* Alteração 1: Esconder Funcionário se for PARTNER */}
-                    {!isPartner && (
-                        <div className="space-y-3 relative">
-                            <Label className="text-sm font-semibold text-foreground flex items-center gap-2">
-                                <div className="w-1.5 h-1.5 rounded-full bg-primary"></div>
-                                Funcionário
-                            </Label>
-                            <Select value={selectedEmployee} onValueChange={setSelectedEmployee} disabled={isPartner}>
-                                <SelectTrigger className="focus:border-primary focus:ring-2 focus:ring-primary/20 border-primary/20 bg-gradient-to-r from-background to-primary/5 hover:bg-primary/10 transition-all duration-200">
-                                    <SelectValue placeholder="Selecione um funcionário" />
-                                </SelectTrigger>
-                                <SelectContent className="border-primary/20">
-                                    {employees.map((employee) => (
-                                        <SelectItem
-                                            key={employee.employeeId}
-                                            value={employee.employeeId}
-                                            className="hover:bg-primary/10 focus:bg-primary/10"
-                                        >
-                                            {employee.fullName}
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                        </div>
-                    )}
-
-                    {/* NOVO: SEÇÃO DE STATUS DO FUNCIONÁRIO COM RADIO GROUP */}
+          
+                    {/* STATUS DO FUNCIONÁRIO (RADIO GROUP) */}
                     {!isPartner && (
                         <div className="space-y-3 relative">
                             <Label className="text-sm font-semibold text-foreground flex items-center gap-2">
@@ -297,156 +353,204 @@ export const RelatorioFiltros: React.FC<RelatorioFiltrosProps> = ({
                             <RadioGroup
                                 value={employeeActive}
                                 onValueChange={setEmployeeActive}
-                                // AJUSTE RESPONSIVO
-                                className="p-3 rounded-lg bg-gradient-to-r from-primary/5 to-secondary/5 border border-primary/20 flex flex-wrap gap-3 sm:gap-6"
+                                className="p-3 rounded-xl bg-gradient-to-r from-primary/5 to-secondary/5 border border-primary/20 flex flex-wrap gap-3 sm:gap-6 shadow-inner"
                             >
-                                {/* Radio Button TODOS */}
-                                <div className="flex items-center space-x-3 p-2 rounded-md hover:bg-primary/10 transition-colors">
-                                    <RadioGroupItem
-                                        value=""
-                                        id="emp-todos"
-                                        className="data-[state=checked]:border-primary data-[state=checked]:text-primary border-primary/50"
-                                    />
-                                    <Label htmlFor="emp-todos" className="text-sm cursor-pointer font-medium">
-                                        Todos
-                                    </Label>
+                                <div className="flex items-center space-x-3 p-2 rounded-md hover:bg-primary/10 transition-colors cursor-pointer">
+                                    <RadioGroupItem value="" id="emp-todos" className="data-[state=checked]:border-primary data-[state=checked]:text-primary border-primary/50" />
+                                    <Label htmlFor="emp-todos" className="text-sm cursor-pointer font-medium">Todos</Label>
                                 </div>
-
-                                {/* Radio Button ATIVO */}
-                                <div className="flex items-center space-x-3 p-2 rounded-md hover:bg-primary/10 transition-colors">
-                                    <RadioGroupItem
-                                        value="active"
-                                        id="emp-active"
-                                        className="data-[state=checked]:border-primary data-[state=checked]:text-primary border-primary/50"
-                                    />
-                                    <Label htmlFor="emp-active" className="text-sm cursor-pointer font-medium">
-                                        Ativo
-                                    </Label>
+                                <div className="flex items-center space-x-3 p-2 rounded-md hover:bg-primary/10 transition-colors cursor-pointer">
+                                    <RadioGroupItem value="active" id="emp-active" className="data-[state=checked]:border-primary data-[state=checked]:text-primary border-primary/50" />
+                                    <Label htmlFor="emp-active" className="text-sm cursor-pointer font-medium">Ativo</Label>
                                 </div>
-
-                                {/* Radio Button INATIVO */}
-                                <div className="flex items-center space-x-3 p-2 rounded-md hover:bg-primary/10 transition-colors">
-                                    <RadioGroupItem
-                                        value="inactive"
-                                        id="emp-inactive"
-                                        className="data-[state=checked]:border-primary data-[state=checked]:text-primary border-primary/50"
-                                    />
-                                    <Label htmlFor="emp-inactive" className="text-sm cursor-pointer font-medium">
-                                        Inativo
-                                    </Label>
+                                <div className="flex items-center space-x-3 p-2 rounded-md hover:bg-primary/10 transition-colors cursor-pointer">
+                                    <RadioGroupItem value="inactive" id="emp-inactive" className="data-[state=checked]:border-primary data-[state=checked]:text-primary border-primary/50" />
+                                    <Label htmlFor="emp-inactive" className="text-sm cursor-pointer font-medium">Inativo</Label>
                                 </div>
                             </RadioGroup>
                         </div>
                     )}
-                    {/* FIM: SEÇÃO DE STATUS DO FUNCIONÁRIO COM RADIO GROUP */}
 
-                    {/* SEÇÃO DE REGISTRO ATIVO/INATIVO COMO RADIO GROUP */}
-                    <div className="space-y-3 relative">
-                        <Label className="text-sm font-semibold text-foreground flex items-center gap-2">
-                            <div className="w-1.5 h-1.5 rounded-full bg-primary"></div>
-                            Registro Aprovado/Reprovado
-                        </Label>
-                        <RadioGroup
-                            value={isActive ? "ativo" : "inativo"}
-                            onValueChange={(value) => setIsActive(value === "ativo")}
-                            // AJUSTE RESPONSIVO
-                            className="p-3 rounded-lg bg-gradient-to-r from-primary/5 to-secondary/5 border border-primary/20 flex flex-wrap gap-3 sm:gap-6"
-                        >
-                            {/* Radio Button ATIVO */}
-                            <div className="flex items-center space-x-3 p-2 rounded-md hover:bg-primary/10 transition-colors">
-                                <RadioGroupItem
-                                    value="ativo"
-                                    id="reg-ativo"
-                                    className="data-[state=checked]:border-primary data-[state=checked]:text-primary border-primary/50"
-                                />
-                                <Label htmlFor="reg-ativo" className="text-sm cursor-pointer font-medium">
-                                    Ativo
-                                </Label>
-                            </div>
-
-                            {/* Radio Button INATIVO */}
-                            <div className="flex items-center space-x-3 p-2 rounded-md hover:bg-primary/10 transition-colors">
-                                <RadioGroupItem
-                                    value="inativo"
-                                    id="reg-inativo"
-                                    className="data-[state=checked]:border-primary data-[state=checked]:text-primary border-primary/50"
-                                />
-                                <Label htmlFor="reg-inativo" className="text-sm cursor-pointer font-medium">
-                                    Inativo
-                                </Label>
-                            </div>
-                        </RadioGroup>
-                        <p className="text-xs text-muted-foreground flex items-center gap-1">
-                            <div className="w-1 h-1 rounded-full bg-muted-foreground/50"></div>
-                            Incluir registros ativos ou inativos no relatório
-                        </p>
-                    </div>
-                    {/* FIM: SEÇÃO DE REGISTRO ATIVO/INATIVO COMO RADIO GROUP */}
-
-                    <div className="space-y-3 relative">
-                        <Label className={`text-sm font-semibold text-foreground flex items-center gap-2 ${reportType === "simple" ? 'opacity-50' : ''}`}>
-                            <div className="w-1.5 h-1.5 rounded-full bg-primary"></div>
-                            Status
-                        </Label>
-                        <Select value={status} onValueChange={setStatus} disabled={reportType === "simple"}>
-                            <SelectTrigger className={`focus:border-primary focus:ring-2 focus:ring-primary/20 border-primary/20 bg-gradient-to-r from-background to-primary/5 hover:bg-primary/10 transition-all duration-200 ${reportType === "simple" ? 'opacity-50' : ''}`}>
-                                <SelectValue placeholder="Todos os status" />
-                            </SelectTrigger>
-                            <SelectContent className="border-primary/20">
-                                {statusOptions.map((option) => (
-                                    <SelectItem
-                                        key={option.value}
-                                        value={option.value}
-                                        className="hover:bg-primary/10 focus:bg-primary/10 hover:text-foreground focus:text-foreground"
+                    {/* 🚀 FUNCIONÁRIO (COMBOBOX COM BUSCA) */}
+                    {!isPartner && (
+                        <div className="space-y-3 relative">
+                            <Label className="text-sm font-semibold text-foreground flex items-center gap-2">
+                                <div className="w-1.5 h-1.5 rounded-full bg-primary"></div>
+                                Funcionário
+                            </Label>
+                            
+                            <Popover open={open} onOpenChange={setOpen}>
+                                <PopoverTrigger asChild>
+                                    <Button
+                                        variant="outline"
+                                        role="combobox"
+                                        aria-expanded={open}
+                                        className="w-full justify-between focus:ring-2 focus:ring-primary/40 border-primary/30 bg-background hover:border-primary/50 transition-all duration-200 shadow-sm"
+                                        disabled={isPartner}
                                     >
-                                        {option.label}
-                                    </SelectItem>
-                                ))}
-                            </SelectContent>
-                        </Select>
-                        <p className="text-xs text-muted-foreground flex items-center gap-1">
-                            <div className="w-1 h-1 rounded-full bg-muted-foreground/50"></div>
-                            Status dos registros a serem filtrados
-                        </p>
-                    </div>
+                                        {/* Exibe o nome do funcionário selecionado ou o placeholder */}
+                                        {selectedEmployee
+                                            ? employees.find((employee) => employee.employeeId === selectedEmployee)?.fullName
+                                            : "Selecione um funcionário..."}
+                                        <Search className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                                    </Button>
+                                </PopoverTrigger>
+                                
+                                <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
+                                    <Command>
+                                        {/* Input de busca */}
+                                        <CommandInput placeholder="Buscar funcionário..." />
+                                        
+                                        <CommandList>
+                                            {/* Mensagem de lista vazia */}
+                                            <CommandEmpty>Nenhum funcionário encontrado.</CommandEmpty>
+                                            
+                                            {/* Opção padrão: Todos os Funcionários */}
+                                            <CommandItem
+                                                key="all-employees"
+                                                value="all-employees" // Valor para busca interna
+                                                onSelect={() => {
+                                                    setSelectedEmployee("");
+                                                    setOpen(false);
+                                                }}
+                                            >
+                                                <Check
+                                                    className={cn(
+                                                        "mr-2 h-4 w-4",
+                                                        selectedEmployee === "" ? "opacity-100 text-primary" : "opacity-0"
+                                                    )}
+                                                />
+                                                Todos os Funcionários
+                                            </CommandItem>
+                                            
+                                            {/* Mapeia a lista de funcionários */}
+                                            {employees.map((employee) => (
+                                                <CommandItem
+                                                    key={employee.employeeId}
+                                                    // Usar o nome completo para a busca do Command
+                                                    value={employee.fullName} 
+                                                    onSelect={() => {
+                                                        setSelectedEmployee(employee.employeeId);
+                                                        setOpen(false);
+                                                    }}
+                                                >
+                                                    <Check
+                                                        className={cn(
+                                                            "mr-2 h-4 w-4",
+                                                            selectedEmployee === employee.employeeId ? "opacity-100 text-primary" : "opacity-0"
+                                                        )}
+                                                    />
+                                                    {employee.fullName}
+                                                </CommandItem>
+                                            ))}
+                                        </CommandList>
+                                    </Command>
+                                </PopoverContent>
+                            </Popover>
+                        </div>
+                    )}
 
+
+          {/* CARGA HORÁRIA DIÁRIA */}
+                   {setReferenceTime && ( // 👈 NOVA CONDIÇÃO: Renderiza APENAS se setReferenceTime for fornecido
+    <div className="space-y-3 relative">
+        <Label htmlFor="reference-time" className="text-sm font-semibold text-foreground flex items-center gap-2">
+            <div className="w-1.5 h-1.5 rounded-full bg-primary"></div>
+            Carga Horária diária
+        </Label>
+        <div className="relative group">
+            <Input
+                id="reference-time"
+                type="time"
+                value={referenceTime}
+                onChange={(e) => setReferenceTime(e.target.value)}
+                className="focus:border-primary focus:ring-2 focus:ring-primary/40 border-primary/30 bg-background hover:border-primary/50 transition-all duration-200 shadow-sm"
+            />
+            <div className="absolute inset-0 rounded-md bg-gradient-to-r from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none border border-transparent group-hover:border-primary/30"></div>
+        </div>
+        <p className="text-xs text-muted-foreground flex items-center gap-1">
+            <div className="w-1 h-1 rounded-full bg-muted-foreground/50"></div>
+            Horário de referência para cálculo do relatório
+        </p>
+    </div>
+)}
+
+                    {/* SEÇÃO STATUS DE REGISTRO (VISÍVEL SOMENTE SE reportType === "detailed") */}
+                    {reportType === "detailed" && (
+                        <div className="space-y-3 relative">
+                            <Label className="text-sm font-semibold text-foreground flex items-center gap-2">
+                                <div className="w-1.5 h-1.5 rounded-full bg-primary"></div>
+                                Status
+                            </Label>
+                            <Select value={status} onValueChange={setStatus}>
+                                <SelectTrigger className="focus:border-primary focus:ring-2 focus:ring-primary/40 border-primary/30 bg-background hover:border-primary/50 transition-all duration-200 shadow-sm">
+                                    <SelectValue placeholder="Todos os status" />
+                                </SelectTrigger>
+                                <SelectContent className="border-primary/20">
+                                    {statusOptions.map((option) => (
+                                        <SelectItem
+                                            key={option.value}
+                                            value={option.value}
+                                            className="hover:bg-primary/10 focus:bg-primary/10 hover:text-foreground focus:text-foreground transition-colors duration-150"
+                                        >
+                                            {option.label}
+                                        </SelectItem>
+                                    ))}
+                                </SelectContent>
+                            </Select>
+                            <p className="text-xs text-muted-foreground flex items-center gap-1">
+                                <div className="w-1 h-1 rounded-full bg-muted-foreground/50"></div>
+                                Status dos registros a serem filtrados
+                            </p>
+                        </div>
+                    )}
+                    {/* FIM DA SEÇÃO STATUS DE REGISTRO */}
+
+                    {/* BOTÕES DE AÇÃO */}
                     <div className="space-y-3 pt-6 border-t border-primary/20 relative">
-                        <div className="absolute -top-px left-1/2 transform -translate-x-1/2 w-12 h-px bg-gradient-to-r from-transparent via-primary to-transparent"></div>
+                        <div className="absolute -top-px left-1/2 transform -translate-x-1/2 w-24 h-px bg-gradient-to-r from-transparent via-primary/50 to-transparent"></div>
 
+                        {/* BOTÃO BUSCAR (PRIMARY) */}
                         <Button
                             onClick={onSearch}
                             size="lg"
-                            className="group w-full font-semibold bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary shadow-lg hover:shadow-primary/25 transition-all duration-200 relative overflow-hidden"
+                            className="group w-full font-bold text-lg bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary shadow-xl hover:shadow-primary/40 transition-all duration-300 relative overflow-hidden transform hover:scale-[1.005] hover:translate-y-[-1px]"
+                            disabled={selectedDates.length === 0}
                         >
-                            <div className="absolute inset-0 bg-gradient-to-r from-white/10 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-200"></div>
-                            <Search className="mr-2 h-4 w-4" />
+                            <div className="absolute inset-0 bg-gradient-to-r from-white/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
+                            <Search className="mr-2 h-5 w-5 relative z-10" />
                             <span className="relative z-10">Buscar</span>
                         </Button>
 
-                        {/* BOTÃO DE DOWNLOAD PDF */}
-                        <Button
-                            onClick={onDownloadPDF}
-                            size="lg"
-                            variant="outline"
-                            disabled={selectedDates.length === 0}
-                            className="w-full font-semibold border-2 border-red-600/30 bg-gradient-to-r from-red-600/10 to-red-600/5 text-red-600 hover:bg-red-600/10 transition-all duration-200 relative overflow-hidden"
-                        >
-                            <Download className="mr-2 h-4 w-4 relative z-10" />
-                            <span className="relative z-10">Download PDF</span>
-                        </Button>
+                        {/* BOTÃO DOWNLOAD PDF (DESTRUCTIVE/ALERTA) */}
+                       {/* BOTÃO DOWNLOAD PDF (DESTRUCTIVE/ALERTA) */}
+    {onDownloadPDF && ( // 👈 NOVA CONDIÇÃO: Renderiza APENAS se onDownloadPDF for fornecido
+        <Button
+            onClick={onDownloadPDF}
+            size="lg"
+            variant="outline"
+            disabled={selectedDates.length === 0}
+            className="group w-full font-semibold border-2 border-red-600/40 bg-gradient-to-r from-red-600/10 to-red-600/5 text-red-600 hover:bg-red-600/15 transition-all duration-200 relative overflow-hidden shadow-md hover:shadow-lg hover:shadow-red-600/20 transform hover:scale-[1.005]"
+        >
+            <Download className="mr-2 h-4 w-4 relative z-10" />
+            <span className="relative z-10">Download PDF</span>
+        </Button>
+    )}
 
-                        {/* BOTÃO DE DOWNLOAD CSV */}
-                        <Button
-                            onClick={onDownloadCSV}
-                            size="lg"
-                            variant="outline"
-                            disabled={selectedDates.length === 0}
-                            className="w-full font-semibold border-2 border-green-600/30 bg-gradient-to-r from-green-600/10 to-green-600/5 text-green-600 hover:bg-green-600/10 transition-all duration-200 relative overflow-hidden"
-                        >
-                            <FileText className="mr-2 h-4 w-4 relative z-10" />
-                            <span className="relative z-10">Download CSV</span>
-                        </Button>
-                    </div>
+    {/* BOTÃO DOWNLOAD CSV (SUCCESS/CONFIRMAÇÃO) */}
+    {onDownloadCSV && ( // 👈 NOVA CONDIÇÃO: Renderiza APENAS se onDownloadCSV for fornecido
+        <Button
+            onClick={onDownloadCSV}
+            size="lg"
+            variant="outline"
+            disabled={selectedDates.length === 0}
+            className="group w-full font-semibold border-2 border-green-600/40 bg-gradient-to-r from-green-600/10 to-green-600/5 text-green-600 hover:bg-green-600/15 transition-all duration-200 relative overflow-hidden shadow-md hover:shadow-lg hover:shadow-green-600/20 transform hover:scale-[1.005]"
+        >
+            <FileText className="mr-2 h-4 w-4 relative z-10" />
+            <span className="relative z-10">Download CSV</span>
+        </Button>
+    )}
+</div>
                 </CardContent>
             </Card>
         </div>

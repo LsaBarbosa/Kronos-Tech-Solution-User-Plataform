@@ -159,10 +159,16 @@ const RelatorioHoras = () => {
     return balance.startsWith("-");
   };
 
+  const handleToggleSidebar = () => setSidebarOpen((prev) => !prev); 
   return (
-    <div className="min-h-screen bg-background">
-      <Header onMenuClick={() => setSidebarOpen(true)} />
-      <Sidebar isOpen={sidebarOpen} onClose={() => setSidebarOpen(false)} />
+    <div className="flex h-screen bg-background">
+      {/* 💡 CORREÇÃO: Sidebar usa 'toggleSidebar' */}
+      <Sidebar isOpen={sidebarOpen} toggleSidebar={handleToggleSidebar} /> 
+      
+      <div className="flex-1 flex flex-col overflow-hidden">
+        {/* 💡 CORREÇÃO: Header usa 'toggleSidebar' */}
+        <Header toggleSidebar={handleToggleSidebar} />
+
       
       <main className="container mx-auto px-4 py-6 max-w-7xl">
         {/* Page Header */}
@@ -432,6 +438,7 @@ const RelatorioHoras = () => {
           </Card>
         )}
       </main>
+    </div>
     </div>
   );
 };
