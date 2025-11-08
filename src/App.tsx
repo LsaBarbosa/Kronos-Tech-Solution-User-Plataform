@@ -35,7 +35,9 @@ import TokenRedirect from "./pages/TokenRedirect";
 import PendingApprovals from "./pages/PendingApprovals";
 import VacationApprovals from "./pages/VacationApprovals";
 import RequestVacation from "./pages/RequestVacation";
-
+import TimeOffApprovals from "./pages/TimeOffApprovals";
+import RequestTimeOff from "./pages/RequestTimeOff";
+ 
 const queryClient = new QueryClient();
 
 const App = () => (
@@ -81,6 +83,8 @@ const App = () => (
               <Route path="/criar-aviso" element={<CriarAviso />} />
               <Route path="/ferias" element={<VacationApprovals />} />
               <Route path="/solicitar-ferias" element={<RequestVacation />} />
+              <Route path="/aprovacoes-abono" element={<TimeOffApprovals />} />  
+               <Route path="/solicitar-abono" element={<RequestTimeOff />} />  
             </Route>
             {/* Rota de Not Found (pública) */}
             <Route path="*" element={<NotFound />} />

@@ -1,6 +1,6 @@
 // src/components/Sidebar.tsx
 
-import { X, Home, BarChart3, ChevronDown, ChevronRight, User, Shield, Users, Clock, FilePlus, Upload, LogOut, UserCheck, UserPlus, Folder, FolderOpen, Calculator, ClipboardCheck, Building2, Bell, MessageSquarePlus, TreePalm } from "lucide-react";
+import { X, Home, BarChart3, ChevronDown, ChevronRight, User, Shield, Users, Clock, FilePlus, Upload, LogOut, UserCheck, UserPlus, Folder, FolderOpen, Calculator, ClipboardCheck, Building2, Bell, MessageSquarePlus, TreePalm, AlarmClockPlus, TimerReset } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { cn } from "@/lib/utils";
@@ -36,7 +36,8 @@ const Sidebar = ({ isOpen, toggleSidebar }: SidebarProps) => {
   const [administradorOpen, setAdministradorOpen] = useState(false);
   const [colaboradoresOpen, setColaboradoresOpen] = useState(false);
   const [folhaDePontoOpen, setFolhaDePontoOpen] = useState(false);
-  const [adminDocumentosOpen, setAdminDocumentosOpen] = useState(false);
+  const [adminVacationOpen, setAdminVacationOpen] = useState(false);
+   const [adminTimeOffOpen, setAdminTimeOffOpen] = useState(false);
   const [userRole, setUserRole] = useState("");
   const navigate = useNavigate();
 
@@ -209,16 +210,29 @@ const Sidebar = ({ isOpen, toggleSidebar }: SidebarProps) => {
             )}
 
             {/* 6. Avisos */}
-            <Button
+           
+  <Button
               variant="ghost"
               className="w-full justify-start sidebar-fixed-height px-4 text-left hover:bg-primary/10 hover:text-foreground transition-colors group"
               onClick={() => {
-                navigate("/avisos");
-                toggleSidebar();
-              }}
+                          navigate("/solicitar-ferias");
+                          toggleSidebar();
+                        }}
             >
-              <Bell className="mr-3 sidebar-icon-sm text-primary group-hover:text-primary transition-colors" />
-              <span className="font-medium sidebar-text-sm">Avisos</span>
+              <TreePalm className="mr-3 sidebar-icon-sm text-primary group-hover:text-primary transition-colors" />
+              <span className="font-medium sidebar-text-sm">Férias</span>
+            </Button>
+             
+               <Button
+              variant="ghost"
+              className="w-full justify-start sidebar-fixed-height px-4 text-left hover:bg-primary/10 hover:text-foreground transition-colors group"
+              onClick={() => {
+                          navigate("/solicitar-Abono");
+                          toggleSidebar();
+                        }}
+            >
+              <TimerReset className="mr-3 sidebar-icon-sm text-primary group-hover:text-primary transition-colors" />
+              <span className="font-medium sidebar-text-sm">Abono de Horas</span>
             </Button>
             
             {/* 7. Administrador (Somente visível para MANAGER) */}
@@ -325,7 +339,7 @@ const Sidebar = ({ isOpen, toggleSidebar }: SidebarProps) => {
                   </Collapsible>
 
                   {/* 7.3 Documentos (Nested Collapsible - Administrador) */}
-                  <Collapsible open={adminDocumentosOpen} onOpenChange={setAdminDocumentosOpen}>
+                  <Collapsible open={adminVacationOpen} onOpenChange={setAdminVacationOpen}>
                     <CollapsibleTrigger asChild>
                       <Button
                         variant="ghost"
@@ -333,7 +347,7 @@ const Sidebar = ({ isOpen, toggleSidebar }: SidebarProps) => {
                       >
                         <TreePalm className="mr-2 sidebar-icon-xs text-muted-foreground group-hover:text-foreground transition-colors" />
                         <span className="flex-1">Férias</span>
-                        {adminDocumentosOpen ? (
+                        {adminVacationOpen ? (
                           <ChevronDown className="sidebar-icon-xxs text-muted-foreground group-hover:text-foreground transition-colors" />
                         ) : (
                           <ChevronRight className="sidebar-icon-xxs text-muted-foreground group-hover:text-foreground transition-colors" />
@@ -355,21 +369,41 @@ const Sidebar = ({ isOpen, toggleSidebar }: SidebarProps) => {
                     </CollapsibleContent>
                   </Collapsible>
 
+ {/* 7.3 Documentos (Nested Collapsible - Administrador) */}
+                  <Collapsible open={adminTimeOffOpen} onOpenChange={setAdminTimeOffOpen}>
+                    <CollapsibleTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        className="w-full justify-start sidebar-fixed-height-sm px-4 pl-12 text-left sidebar-text-sm hover:bg-primary/10 hover:text-foreground transition-colors group"
+                      >
+                        <TreePalm className="mr-2 sidebar-icon-xs text-muted-foreground group-hover:text-foreground transition-colors" />
+                        <span className="flex-1">Abono de Horas</span>
+                        {adminTimeOffOpen ? (
+                          <ChevronDown className="sidebar-icon-xxs text-muted-foreground group-hover:text-foreground transition-colors" />
+                        ) : (
+                          <ChevronRight className="sidebar-icon-xxs text-muted-foreground group-hover:text-foreground transition-colors" />
+                        )}
+                      </Button>
+                    </CollapsibleTrigger>
+                    <CollapsibleContent className="space-y-1">
+                      <Button
+                        variant="ghost"
+                        className="w-full justify-start sidebar-fixed-height-xs px-4 pl-20 text-left sidebar-text-xs hover:bg-primary/10 hover:text-foreground transition-colors"
+                        onClick={() => {
+                          navigate("/aprovacoes-abono");
+                          toggleSidebar();
+                        }}
+                      >
+                        <TreePalm className="mr-2 sidebar-icon-xxs" />
+                        <span>Gestão de abono de horas</span>
+                      </Button>
+                    </CollapsibleContent>
+                  </Collapsible>
         
                 </CollapsibleContent>
               </Collapsible>
             )}
-              <Button
-              variant="ghost"
-              className="w-full justify-start sidebar-fixed-height px-4 text-left hover:bg-primary/10 hover:text-foreground transition-colors group"
-              onClick={() => {
-                          navigate("/solicitar-ferias");
-                          toggleSidebar();
-                        }}
-            >
-              <TreePalm className="mr-3 sidebar-icon-sm text-primary group-hover:text-primary transition-colors" />
-              <span className="font-medium sidebar-text-sm">Solicitar Férias</span>
-            </Button>
+            
             
             {/* 8. Sair */}
             <Button

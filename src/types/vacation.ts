@@ -36,3 +36,20 @@ export interface IManagerOption {
     userId: string;
     username: string; // Usado para exibição na interface
 }
+
+export interface RequestTimeOffRequestPayload {
+  startDate: string; // "dd-MM-yyyy"
+  endDate: string; // "dd-MM-yyyy"
+  startHour: string; // "HH:mm"
+  endHour: string; // "HH:mm"
+  managerId: string; // UUID string
+}
+
+export interface TimeOffFormState {
+  startDate?: Date;
+  endDate?: Date;
+  startHour: string;
+  endHour: string;
+  managerId: string;
+  document: File | null;
+}
