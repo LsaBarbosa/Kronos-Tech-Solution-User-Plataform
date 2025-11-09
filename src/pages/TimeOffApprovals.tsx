@@ -1,4 +1,4 @@
-import React from 'react';
+import React, { useCallback } from 'react';
 import Sidebar from '@/components/Sidebar';
 import Header from '@/components/Header';
 import { useTimeOffApprovals } from '../hooks/useTimeOffApprovals';
@@ -19,22 +19,24 @@ import {
 import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '../components/ui/select';
-import { Loader2, Search, Check, X, Download, Clock } from "lucide-react";
+import { Loader2, Search, Check, X, Download, Clock, User, CalendarCheck } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "../components/ui/alert";
 import { PaginationComponent } from "../components/ui/PaginationComponent";
 import { StatusRecord } from '../types/recordApproval';
 import { cn } from '../lib/utils';
 import { API_BASE_URL } from '../config/api';
 
+// ---------------------------------------------------------------------
+// --- 1. FUNÇÕES DE UTILIDADE E TIPOS (Mantidas e Aprimoradas)
+// ---------------------------------------------------------------------
+
 const formatBackendDate = (dateString: string): string => {
-     
+    // Formata a data de 'DD-MM-YYYY' para 'DD/MM/YYYY'
     const parts = dateString.split('-'); 
     if (parts.length === 3) {
-        const [day, month, year] = parts;
-        
+        const [year, month, day] = parts; // Correção na ordem se o backend envia YYYY-MM-DD
         return `${day}/${month}/${year}`;
     }
-    // Retorna a string original ou um fallback se o formato for inesperado
     return dateString;
 };
 
@@ -57,25 +59,17 @@ const statusOptions: { value: StatusFilterType, label: string }[] = [
 ];
 
 type StatusFilterType = 'PENDING' | 'APPROVED' | 'REJECTED' | 'ALL';
+// Supondo que ITimeOffRecord é o tipo dos itens no array approvalsData?.records
+type ITimeOffRecord = typeof useTimeOffApprovals extends () => { approvalsData: { records: infer R } | undefined } ? R extends (infer T)[] ? T : never : never;
 
-const getBorderColorClass = (status: StatusRecord): string => {
-    switch (status) {
-        case 'TIME_OFF_REQUEST':
-            return 'border-l-yellow-500'; // Amarelo para pendente
-        case 'TIME_OFF':
-            return 'border-l-green-500';  // Verde para aprovado
-        case 'TIME_OFF_REJECTED':
-            return 'border-l-red-500';    // Vermelho para rejeitado
-        default:
-            return 'border-l-gray-500';
-    }
-};
+
+ 
 
 const renderStatusBadge = (status: StatusRecord) => {
     const baseClasses = 'px-2.5 py-0.5 rounded-full text-xs font-medium';
     switch (status) {
         case 'TIME_OFF_REQUEST':
-            return <span className={cn(baseClasses, 'bg-yellow-100 text-yellow-800 dark:bg-yellow-900 dark:text-yellow-300')}>{statusMap[status]}</span>;
+            return <span className={cn(baseClasses, 'bg-amber-100 text-amber-800 dark:bg-amber-900 dark:text-amber-300')}>{statusMap[status]}</span>;
         case 'TIME_OFF':
             return <span className={cn(baseClasses, 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300')}>{statusMap[status]}</span>;
         case 'TIME_OFF_REJECTED':
@@ -85,7 +79,210 @@ const renderStatusBadge = (status: StatusRecord) => {
     }
 };
 
-// --- Componente Principal ---
+// ---------------------------------------------------------------------
+// --- 2. HOOK DE RESPONSIVIDADE (Copiado de PendingApprovals)
+// ---------------------------------------------------------------------
+
+const useIsDesktop = () => {
+  const [isDesktop, setIsDesktop] = React.useState(window.innerWidth > 768); 
+  React.useEffect(() => {
+    const handleResize = () => setIsDesktop(window.innerWidth > 768);
+    window.addEventListener('resize', handleResize);
+    return () => window.removeEventListener('resize', handleResize);
+  }, []);
+  return isDesktop;
+};
+
+
+// ---------------------------------------------------------------------
+// --- 3. COMPONENTE DE ITEM RESPONSIVO (Item do Abono)
+// ---------------------------------------------------------------------
+
+const TimeOffApprovalItem: React.FC<ITimeOffRecord & {
+  handleAction: (id: number, action: 'approve' | 'reject') => void;
+  handleDownload: (documentId?: string, employeeId?: string) => Promise<void>;
+  isMutating: boolean;
+}> = (props) => {
+    const { 
+        timeRecordId, employeeData, startWork, endWork, startHour, endHour, 
+        hoursWork, statusRecord, documentDownloadPath, employeeId, 
+        handleAction, handleDownload, isMutating 
+    } = props;
+    
+    const isDesktop = useIsDesktop();
+    const isPending = statusRecord === 'TIME_OFF_REQUEST';
+    
+    // Memoização dos valores
+    const formattedStartWork = React.useMemo(() => formatBackendDate(startWork), [startWork]);
+    const formattedEndWork = React.useMemo(() => formatBackendDate(endWork), [endWork]);
+    const employeeName = employeeData.employeeName;
+
+    // --- Layout para Desktop (Tabela) ---
+    if (isDesktop) {
+        return (
+            <TableRow 
+                key={timeRecordId} 
+                className={cn(
+                    'border-l-4', 
+                    
+                    isMutating && 'opacity-50 pointer-events-none'
+                )}
+            >
+                <TableCell className="font-medium">{employeeName}</TableCell>
+                <TableCell>
+                    <div className="flex flex-col">
+                        <p className="font-medium text-foreground">
+                            {formattedStartWork} | {startHour}
+                        </p>
+                        <p className="font-medium text-foreground">
+                            {formattedEndWork} | {endHour}
+                        </p>
+                    </div>
+                </TableCell>
+                <TableCell>{hoursWork}</TableCell>
+                <TableCell>{renderStatusBadge(statusRecord)}</TableCell>
+                <TableCell className="text-right flex justify-end gap-2">
+                    
+                    {/* Botão de Download */}
+                    {documentDownloadPath && (
+                        <Button
+                            variant="outline"
+                            size="icon"
+                            title="Baixar Comprovante"
+                            onClick={() => handleDownload(documentDownloadPath, employeeId)}
+                            disabled={isMutating}
+                        >
+                            <Download className="h-4 w-4" />
+                        </Button>
+                    )}
+
+                    {/* Botões de Ação (Apenas se Pendente) */}
+                    {isPending && (
+                        <>
+                            <Button
+                                variant="outline"
+                                size="icon"
+                                title="Aprovar Abono"
+                                onClick={() => handleAction(timeRecordId, 'approve')}
+                                disabled={isMutating}
+                            >
+                                <Check className="h-4 w-4 text-green-500" />
+                            </Button>
+                            <Button
+                                variant="outline"
+                                size="icon"
+                                title="Rejeitar Abono"
+                                onClick={() => handleAction(timeRecordId, 'reject')}
+                                disabled={isMutating}
+                            >
+                                <X className="h-4 w-4 text-red-500" />
+                            </Button>
+                        </>
+                    )}
+                </TableCell>
+            </TableRow>
+        );
+    }
+
+    // --- Layout para Mobile (Card) ---
+    return (
+        <Card 
+            className={cn(
+                "mb-4 overflow-hidden shadow-card border-l-4 transition-colors",
+                
+                isMutating && 'opacity-50 pointer-events-none'
+            )}
+        >
+            {/* Cabeçalho */}
+            <CardHeader className="flex flex-row items-center justify-between space-y-0 p-3 bg-muted/20">
+                <CardTitle className="text-sm font-semibold flex items-center">
+                    <User className="h-4 w-4 mr-2 text-primary" />
+                    {employeeName}
+                </CardTitle>
+                <div className="flex items-center space-x-2">
+                    {renderStatusBadge(statusRecord)}
+                </div>
+            </CardHeader>
+            
+            {/* Corpo: Detalhes do Abono */}
+            <CardContent className="p-4 text-sm space-y-2">
+                
+                {/* Período De */}
+                <div className="flex items-center justify-between border-b pb-1">
+                    <div className="font-medium flex items-center text-gray-500 dark:text-gray-400">
+                        <CalendarCheck className="h-4 w-4 mr-1" /> De
+                    </div>
+                    <span className="font-bold text-sm">
+                         {formattedStartWork} | {startHour}
+                    </span>
+                </div>
+
+                {/* Período Até */}
+                 <div className="flex items-center justify-between border-b pb-1">
+                    <div className="font-medium flex items-center text-gray-500 dark:text-gray-400">
+                        <CalendarCheck className="h-4 w-4 mr-1" /> Até
+                    </div>
+                    <span className="font-bold text-sm">
+                         {formattedEndWork} | {endHour}
+                    </span>
+                </div>
+
+
+                {/* Duração Total */}
+                <div className="flex items-center justify-between pt-1">
+                    <div className="font-medium flex items-center text-gray-500 dark:text-gray-400">
+                        <Clock className="h-4 w-4 mr-1" /> Duração Total
+                    </div>
+                    <span className="font-extrabold text-primary">{hoursWork}</span>
+                </div>
+            </CardContent>
+            
+            {/* Rodapé: Ações (Botões) */}
+            <div className="flex justify-end space-x-3 p-4 pt-0 border-t bg-muted/50 dark:bg-muted/30">
+                
+                {documentDownloadPath && (
+                    <Button
+                        variant="ghost"
+                        size="sm"
+                        title="Baixar Comprovante"
+                        onClick={() => handleDownload(documentDownloadPath, employeeId)}
+                        disabled={isMutating}
+                    >
+                        <Download className="h-4 w-4 mr-1 text-primary" />
+                        <span className='hidden sm:inline'>Download</span>
+                    </Button>
+                )}
+
+                {isPending && (
+                    <>
+                        <Button
+                            variant="destructive"
+                            size="sm"
+                            onClick={() => handleAction(timeRecordId, 'reject')}
+                            disabled={isMutating}
+                        >
+                            <X className="h-4 w-4 mr-1 sm:mr-2" />
+                            <span className="hidden sm:inline">Rejeitar</span>
+                        </Button>
+                        <Button
+                            size="sm"
+                            onClick={() => handleAction(timeRecordId, 'approve')}
+                            disabled={isMutating}
+                        >
+                            {isMutating ? <Loader2 className="h-4 w-4 animate-spin mr-1" /> : <Check className="h-4 w-4 mr-1" />}
+                            <span className="hidden sm:inline">Aprovar</span>
+                        </Button>
+                    </>
+                )}
+            </div>
+        </Card>
+    );
+};
+
+
+// ---------------------------------------------------------------------
+// --- 4. COMPONENTE PRINCIPAL (TimeOffApprovals)
+// ---------------------------------------------------------------------
 const TimeOffApprovals = () => {
     const { 
         approvalsData, 
@@ -102,6 +299,9 @@ const TimeOffApprovals = () => {
         sidebarOpen,
         handleToggleSidebar,
     } = useTimeOffApprovals();
+    
+    // Usando o hook de responsividade
+    const isDesktop = useIsDesktop(); //
 
     const currentRecords = approvalsData?.records || [];
     const totalPages = approvalsData?.totalPages ?? 0;
@@ -153,7 +353,7 @@ const handleDownload = async (documentId?: string, employeeId?: string) => {
             }
         }
 
-        // 4. Cria o Blob e força o download (Lógica de Documentos.tsx)
+        // 4. Cria o Blob e força o download
         const blob = await response.blob();
         const href = window.URL.createObjectURL(blob);
         const link = window.document.createElement('a');
@@ -181,33 +381,39 @@ const handleDownload = async (documentId?: string, employeeId?: string) => {
             </h1>
         </div>
 
-            {/* CARD DE FILTROS */}
+            {/* CARD DE FILTROS (Estilização Aprimorada) */}
             <Card  className="mb-6 border-l-4 border-l-primary shadow-card">
                  
-                <CardContent className="flex flex-col md:flex-row gap-4">
+                <CardContent className="flex flex-col md:flex-row gap-4 pt-6">
                     <div className="flex-1">
-                        <label className="text-sm font-medium mt-3 mb-3 block">Buscar Colaborador</label>
+                        <label className="text-sm font-medium mb-1 block">Buscar Colaborador</label>
                         <div className="flex space-x-2">
                             <Input
                                 placeholder="Nome do colaborador..."
                                 value={employeeNameFilter}
                                 onChange={(e) => setEmployeeNameFilter(e.target.value)}
                                 disabled={isLoading || isMutating}
-                                className='bg-primary/10 hover:bg-primary/15  shadow-button transition-smooth'
+                                className='bg-primary/10 hover:bg-primary/15 shadow-button transition-smooth'
+                                onKeyDown={(e) => e.key === "Enter" && handleSearch()}
                             />
-                            <Button className= "bg-primary hover:bg-primary/70 text-primary-foreground font-semibold shadow-button transition-smooth" onClick={handleSearch} disabled={isLoading || isMutating} variant="secondary">
-                                <Search className="h-4 w-4 " />
+                            <Button 
+                                className= "bg-primary hover:bg-primary/70 text-primary-foreground font-semibold shadow-button transition-smooth" 
+                                onClick={handleSearch} 
+                                disabled={isLoading || isMutating} 
+                                variant="secondary"
+                            >
+                                <Search className="h-4 w-4" />
                             </Button>
                         </div>
                     </div>
                     <div className="w-full md:w-1/4">
-                        <label className="text-sm font-medium mt-3 mb-3 block">Status</label>
+                        <label className="text-sm font-medium mb-1 block">Status</label>
                         <Select 
                             value={statusFilter} 
                             onValueChange={(value: StatusFilterType) => setStatusFilter(value)}
                             disabled={isLoading || isMutating}
                             >
-                            <SelectTrigger className='bg-primary/10 hover:bg-primary/15  shadow-button transition-smooth'>
+                            <SelectTrigger className='bg-primary/10 hover:bg-primary/15 shadow-button transition-smooth'>
                                 <SelectValue className='text-foreground' placeholder="Selecione o Status" />
                             </SelectTrigger>
                             <SelectContent>
@@ -222,22 +428,22 @@ const handleDownload = async (documentId?: string, employeeId?: string) => {
                 </CardContent>
             </Card>
 
-            {/* CARD DE LISTAGEM */}
-             <Card  className="mb-6 border-l-4 border-l-primary shadow-card">
-                <CardHeader>
-                    <CardTitle className="flex justify-between items-center text-xl">
-                        Solicitações ({statusMap[statusFilter]})
-                        {(isMutating) && <Loader2 className="h-5 w-5 animate-spin text-primary" />}
-                    </CardTitle>
-                </CardHeader>
-                <CardContent>
-                    {(isLoading && currentRecords.length === 0) ? (
-                        <div className="flex justify-center items-center h-40">
-                            <Loader2 className="h-8 w-8 animate-spin text-primary" />
-                            <p className="ml-2 text-muted-foreground">Carregando dados...</p>
-                        </div>
-                    ) : currentRecords.length > 0 ? (
-                        <>
+            {/* Lógica de Exibição da Lista/Tabela (com isDesktop) */}
+            {isLoading && currentRecords.length === 0 ? (
+                <div className="flex justify-center items-center h-40">
+                    <Loader2 className="h-8 w-8 animate-spin text-primary" />
+                    <p className="ml-2 text-muted-foreground">Carregando dados...</p>
+                </div>
+            ) : currentRecords.length > 0 ? (
+                <>
+                    {isDesktop ? (
+                        // --- Exibição Desktop (Tabela) ---
+                        <Card  className="mb-6 border-l-4 border-l-primary shadow-card relative">
+                             {isLoading && (
+                                <div className="absolute inset-0 bg-white/70 dark:bg-gray-900/70 flex items-center justify-center z-10 rounded-lg">
+                                    <Loader2 className="h-10 w-10 animate-spin text-primary" />
+                                </div>
+                            )}
                             <Table>
                                 <TableHeader>
                                     <TableRow>
@@ -249,103 +455,66 @@ const handleDownload = async (documentId?: string, employeeId?: string) => {
                                     </TableRow>
                                 </TableHeader>
                                 <TableBody>
-                                    {currentRecords.map((record) => {
-                                        const isPending = record.statusRecord === 'TIME_OFF_REQUEST';
-                                        const startWorkDate = new Date(record.startWork).toLocaleDateString('pt-BR');
-                                        const endWorkDate = record.endWork ? new Date(record.endWork).toLocaleDateString('pt-BR') : '-';
-                                        
-                                        return (
-                                            <TableRow 
-                                                key={record.timeRecordId} 
-                                                className={cn(
-                                                    'border-l-4', // Classe de borda padrão
-                                                    getBorderColorClass(record.statusRecord), // Cor da borda
-                                                    isMutating && 'opacity-50 pointer-events-none'
-                                                )}
-                                            >
-                                                <TableCell className="font-medium">{record.employeeData.employeeName}</TableCell>
-                                                <TableCell>
-                                                    <div className="flex flex-col">
-                                                       <p className="font-medium text-foreground">
-                                                        {formatBackendDate(record.startWork)} | {record.startHour}
-                                                    </p>
-                                                    <p className="font-medium text-foreground">
-                                                        {formatBackendDate(record.endWork)} | {record.endHour}
-                                                    </p>
-                                                                                    </div>
-                                                </TableCell>
-                                                <TableCell>{record.hoursWork}</TableCell>
-                                                <TableCell>{renderStatusBadge(record.statusRecord)}</TableCell>
-                                                <TableCell className="text-right flex justify-end gap-2">
-                                                    
-                                                    {/* Botão de Download */}
-                                                     {record.documentDownloadPath && (
-                                                        <Button
-                                                            variant="outline"
-                                                            size="icon"
-                                                            title="Baixar Comprovante"
-                                                            // NOVO: Chama a função assíncrona passando documentId e employeeId
-                                                            onClick={() => handleDownload(record.documentDownloadPath, record.employeeId)}
-                                                            disabled={isMutating}
-                                                        >
-                                                            <Download className="h-4 w-4" />
-                                                        </Button>
-                                                    )}
-
-                                                    {/* Botões de Ação (Apenas se Pendente) */}
-                                                    {isPending && (
-                                                        <>
-                                                            <Button
-                                                                variant="outline"
-                                                                size="icon"
-                                                                title="Aprovar Abono"
-                                                                onClick={() => handleAction(record.timeRecordId, 'approve')}
-                                                                disabled={isMutating}
-                                                            >
-                                                                <Check className="h-4 w-4 text-green-500" />
-                                                            </Button>
-                                                            <Button
-                                                                variant="outline"
-                                                                size="icon"
-                                                                title="Rejeitar Abono"
-                                                                onClick={() => handleAction(record.timeRecordId, 'reject')}
-                                                                disabled={isMutating}
-                                                            >
-                                                                <X className="h-4 w-4 text-red-500" />
-                                                            </Button>
-                                                        </>
-                                                    )}
-                                                </TableCell>
-                                            </TableRow>
-                                        );
-                                    })}
+                                    {currentRecords.map((record) => (
+                                        <TimeOffApprovalItem
+                                            key={record.timeRecordId}
+                                            {...record}
+                                            handleAction={handleAction}
+                                            handleDownload={handleDownload}
+                                            isMutating={isMutating}
+                                        />
+                                    ))}
                                 </TableBody>
                             </Table>
-
-                            {/* Paginação */}
-                            <div className="mt-6 flex justify-center">
-                                {totalPages > 1 && (
-                                    <PaginationComponent
-                                        totalPages={totalPages}
-                                        currentPage={currentPage}
-                                        onPageChange={setCurrentPage}
-                                        totalElements={totalElements}
-                                    />
-                                )}
-                            </div>
-                        </>
+                        </Card>
                     ) : (
-                        <Alert className='bg-primary/10 hover:bg-primary/15 text-foreground  shadow-button transition-smooth'>
-                            <AlertTitle className='text-foreground'>Nenhuma solicitação encontrada</AlertTitle>
-                            <AlertDescription className='text-foreground'>Não há solicitações de abono manual no status {statusMap[statusFilter]}.</AlertDescription>
-                        </Alert>
+                        // --- Exibição Mobile (Cards) ---
+                        <div className="space-y-4 relative">
+                             {isLoading && (
+                                <div className="absolute inset-0 bg-white/70 dark:bg-gray-900/70 flex items-center justify-center z-10 rounded-lg">
+                                    <Loader2 className="h-10 w-10 animate-spin text-primary" />
+                                </div>
+                            )}
+                            {currentRecords.map((record) => (
+                                <TimeOffApprovalItem
+                                    key={record.timeRecordId}
+                                    {...record}
+                                    handleAction={handleAction}
+                                    handleDownload={handleDownload}
+                                    isMutating={isMutating}
+                                />
+                            ))}
+                        </div>
                     )}
-                </CardContent>
-            </Card>
+
+
+                    {/* Paginação */}
+                    <div className="mt-6 flex justify-center">
+                        {totalPages > 1 && (
+                            <PaginationComponent
+                                totalPages={totalPages}
+                                currentPage={currentPage}
+                                onPageChange={setCurrentPage}
+                                totalElements={totalElements}
+                            />
+                        )}
+                    </div>
+                </>
+            ) : (
+                <Alert className='bg-primary/10 hover:bg-primary/15 text-foreground shadow-button transition-smooth'>
+                    <AlertTitle className='text-foreground'>Nenhuma solicitação encontrada</AlertTitle>
+                    <AlertDescription className='text-foreground'>
+                        {employeeNameFilter 
+                            ? `Nenhuma solicitação encontrada para o colaborador "${employeeNameFilter}" no status ${statusMap[statusFilter]}.`
+                            : `Não há solicitações de abono manual no status ${statusMap[statusFilter]}.`
+                        }
+                    </AlertDescription>
+                </Alert>
+            )}
         </div>
     );
 
-    // Renderização da estrutura principal (mantendo o padrão de PendingApprovals.tsx)
+    // Renderização da estrutura principal (Mantida)
     return (
         <div className="min-h-screen bg-background relative overflow-hidden">
 
