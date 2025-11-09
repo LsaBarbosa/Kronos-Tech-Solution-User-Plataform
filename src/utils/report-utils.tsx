@@ -8,6 +8,7 @@ import { ptBR } from 'date-fns/locale'; //
 
 // Interface DetailedReportItem simplificada (sem a lista 'breaks')
 export interface DetailedReportItem {
+    documentDownloadPath: string;
     id?: string;
     timeRecordId?: number;
     startWork: string; // DD-MM-YYYY
@@ -86,6 +87,7 @@ export type EditRecordFormData = z.infer<typeof editRecordSchema>;
 // --- Constantes ---
 
 export const statusOptions = [
+     { value: null, label: "Todos os Status" },
     { value: "CREATED", label: "Criado" },
     { value: "PENDING", label: "Saída Pendente" },
     { value: "UPDATED", label: "Atualizado por ADM" },
@@ -93,7 +95,7 @@ export const statusOptions = [
     { value: "DAY_OFF", label: "Folga" },
     { value: "ABSENCE", label: "Falta" },
     { value: "PENDING_APPROVAL", label: "Aguardando Aprovação" },
-    { value: "DOCTOR_APPOINTMENT", label: "Abono" },
+    { value: "TIME_OFF", label: "Horas Abonadas" },
     { value: "IMPLICIT_BREAK", label: "Pausa (Automática)" }, // NOVO STATUS
 ];
 

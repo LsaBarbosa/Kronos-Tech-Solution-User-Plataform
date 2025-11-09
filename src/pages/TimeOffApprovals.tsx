@@ -96,19 +96,70 @@ const TimeOffApprovals = () => {
     const totalPages = approvalsData?.totalPages ?? 0;
     const totalElements = approvalsData?.totalElements ?? 0;
 
-    const handleDownload = (documentPath?: string) => {
-        if (documentPath) {
-            // Assume que documentPath é '/documents/{documentId}'
-            const token = localStorage.getItem('token');
-            if (!token) {
-                alert('Token de autenticação ausente.');
-                return;
-            }
-            // Adiciona o token na URL e abre uma nova janela para forçar o download
-            const fullUrl = `${API_BASE_URL}${documentPath}?token=${token}`;
-            window.open(fullUrl, '_blank');
+const handleDownload = async (documentId?: string, employeeId?: string) => {
+    if (!documentId || !employeeId) {
+        alert('Dados insuficientes para realizar o download.');
+        return;
+    }
+     
+    try {
+        const token = localStorage.getItem('token');
+        if (!token) {
+            alert('Token de autenticação ausente.');
+            return;
         }
-    };
+
+        // 1. Monta a URL: /documents/{documentId}?employeeId={employeeId}
+        const url = `${API_BASE_URL}documents/${documentId}?employeeId=${employeeId}`;
+
+        // 2. Realiza o fetch (passando o token no header)
+        const response = await fetch(url, {
+            headers: {
+                'Authorization': `Bearer ${token}`,
+            },
+        });
+
+        if (!response.ok) {
+            let errorMessage = "Não foi possível realizar o download.";
+            try {
+                const errorData = await response.json();
+                errorMessage = errorData.detail || errorMessage;
+            } catch {
+                // Resposta não é JSON
+            }
+            throw new Error(errorMessage);
+        }
+
+        // 3. Extrai o nome do arquivo do header Content-Disposition
+        const contentDisposition = response.headers.get('Content-Disposition');
+        let filename = `justificativa_abono_${employeeId}.`; // Nome padrão
+
+        if (contentDisposition) {
+            const filenameMatch = contentDisposition.match(/filename="(.+?)"/);
+            if (filenameMatch && filenameMatch[1]) {
+                // Remove aspas duplas, se houver, e garante UTF-8
+                filename = decodeURIComponent(filenameMatch[1].replace(/\"/g, ''));
+            }
+        }
+
+        // 4. Cria o Blob e força o download (Lógica de Documentos.tsx)
+        const blob = await response.blob();
+        const href = window.URL.createObjectURL(blob);
+        const link = window.document.createElement('a');
+        link.href = href;
+        link.download = filename;
+        window.document.body.appendChild(link);
+        link.click();
+        window.document.body.removeChild(link);
+        window.URL.revokeObjectURL(href);
+
+        console.log(`Download de ${filename} iniciado`);
+
+    } catch (error) {
+        console.error("Erro ao iniciar o download:", error);
+        alert(`Falha ao baixar o documento: ${(error as Error).message}.`);
+    }
+};
     
     // Conteúdo principal da página
      const mainContent = (
@@ -213,12 +264,13 @@ const TimeOffApprovals = () => {
                                                 <TableCell className="text-right flex justify-end gap-2">
                                                     
                                                     {/* Botão de Download */}
-                                                    {record.documentDownloadPath && (
+                                                     {record.documentDownloadPath && (
                                                         <Button
                                                             variant="outline"
                                                             size="icon"
                                                             title="Baixar Comprovante"
-                                                            onClick={() => handleDownload(record.documentDownloadPath)}
+                                                            // NOVO: Chama a função assíncrona passando documentId e employeeId
+                                                            onClick={() => handleDownload(record.documentDownloadPath, record.employeeId)}
                                                             disabled={isMutating}
                                                         >
                                                             <Download className="h-4 w-4" />

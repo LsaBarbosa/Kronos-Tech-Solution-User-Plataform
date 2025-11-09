@@ -7,7 +7,7 @@ export type StatusRecord =
   | 'DAY_OFF'
   | 'ABSENCE'
   | 'PENDING_APPROVAL'
-  | 'DOCTOR_APPOINTMENT'
+  | 'TIME_OFF'
   | 'IMPLICIT_BREAK'
   | 'REQUEST_VACATION'
   | 'VACATION'

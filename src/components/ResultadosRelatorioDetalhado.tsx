@@ -3,7 +3,7 @@
 import React from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { CalendarIcon, Download, Edit, Coffee } from "lucide-react"; // Usando Coffee para Pausa
+import { CalendarIcon, Download, Edit, Coffee, FileText } from "lucide-react"; // Usando Coffee para Pausa
 import { DetailedReportItem, statusOptions, getStatusColor, getTranslatedStatus, formatDateWithDayOfWeek } from "@/utils/report-utils"; // <--- ALTERADO
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
@@ -11,6 +11,8 @@ import autoTable from "jspdf-autotable";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { useToast } from "@/hooks/use-toast";
+import { API_BASE_URL } from "@/config/api";
+import { Button } from "./ui/button";
 
 interface ResultadosDetalhadoProps {
     reportData: DetailedReportItem[];
@@ -28,7 +30,86 @@ export const ResultadosRelatorioDetalhado: React.FC<ResultadosDetalhadoProps> = 
     onEditRecord
 }) => {
     const { toast } = useToast();
+// --- FUNÇÃO DE DOWNLOAD ROBUSTA ---
+    const handleDocumentDownload = async (documentId: string, employeeId: string, employeeName: string) => {
+        if (!documentId || !employeeId) {
+            toast({
+                title: "Erro de Download",
+                description: "Dados insuficientes para realizar o download (ID do documento/colaborador).",
+                variant: "destructive"
+            });
+            return;
+        }
 
+        try {
+            const token = localStorage.getItem('token');
+            if (!token) {
+                toast({
+                    title: "Não Autorizado",
+                    description: "Token de autenticação ausente. Faça login novamente.",
+                    variant: "destructive"
+                });
+                return;
+            }
+
+            // 1. Monta a URL: /documents/{documentId}?employeeId={employeeId}
+            const url = `${API_BASE_URL}documents/${documentId}?employeeId=${employeeId}`;
+
+            // 2. Realiza o fetch com o token no header
+            const response = await fetch(url, {
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                },
+            });
+
+            if (!response.ok) {
+                let errorMessage = "Não foi possível realizar o download.";
+                try {
+                    const errorData = await response.json();
+                    errorMessage = errorData.detail || errorMessage;
+                } catch {
+                    // Ignora se não for JSON, usa a mensagem padrão.
+                }
+                throw new Error(errorMessage);
+            }
+
+            // 3. Extrai o nome do arquivo do header Content-Disposition
+            const contentDisposition = response.headers.get('Content-Disposition');
+            let filename = `${employeeName}_justificativa_de_abono`; 
+
+            if (contentDisposition) {
+                const filenameMatch = contentDisposition.match(/filename="(.+?)"/);
+                if (filenameMatch && filenameMatch[1]) {
+                    filename = decodeURIComponent(filenameMatch[1].replace(/\"/g, ''));
+                }
+            }
+
+            // 4. Cria o Blob e força o download
+            const blob = await response.blob();
+            const href = window.URL.createObjectURL(blob);
+            const link = window.document.createElement('a');
+            link.href = href;
+            link.download = filename;
+            window.document.body.appendChild(link);
+            link.click();
+            window.document.body.removeChild(link);
+            window.URL.revokeObjectURL(href);
+
+            toast({
+                title: "Download Iniciado",
+                description: `Download de ${filename} concluído.`,
+            });
+
+        } catch (error) {
+            console.error("Erro ao iniciar o download:", error);
+            toast({
+                title: "Falha no Download",
+                description: `Erro: ${(error as Error).message}`,
+                variant: "destructive"
+            });
+        }
+    };
+    // --- FIM DA FUNÇÃO DE DOWNLOAD ROBUSTA ---
     // Lógica do PDF Detalhado (Atualizada para Pausa como registro principal e Estilizada)
     const handleDownload = () => {
         // A função local 'parseDate' FOI REMOVIDA
@@ -284,6 +365,31 @@ export const ResultadosRelatorioDetalhado: React.FC<ResultadosDetalhadoProps> = 
                                         )}
                                     </div>
 
+{/* --- NOVO: Botão/Status de Documento Anexo --- */}
+                                    {Document && (
+                                        <div className="flex justify-between items-center pt-3 border-t mt-4">
+                                            <div className="flex items-center gap-2 text-primary text-sm font-medium">
+                                                 <FileText className="h-4 w-4" />
+                                                Documento Anexado
+                                            </div>
+                                            <Button
+                                                variant="ghost"
+                                                size="icon"
+                                                onClick={(e) => {
+                                                    e.stopPropagation(); // Evita que o clique no botão ative o handleCardClick
+                                                    handleDocumentDownload(
+                                                        item.documentDownloadPath!, // ID do Documento
+                                                        item.employeeId, // ID do Colaborador
+                                                        item.employeeData.employeeName // Nome do Colaborador para o nome do arquivo
+                                                    );
+                                                }}
+                                                title="Baixar Comprovante"
+                                            >
+                                                <Download className="h-4 w-4 text-primary" />
+                                            </Button>
+                                        </div>
+                                    )}
+                                    {/* --- FIM NOVO TRECHO --- */}
                                     {/* Ícone de Edição só aparece se não for pausa */}
                                     {!isBreak && (
                                         <div className="flex justify-end pt-2 text-primary opacity-0 group-hover:opacity-100 transition-opacity">

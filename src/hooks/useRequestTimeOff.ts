@@ -118,7 +118,7 @@ export const useRequestTimeOff = () => {
 
       toast({
         title: "Sucesso!",
-        description: `Solicitação de abono criada com sucesso. ID: ${createdId}.`,
+        description: `Solicitação de abono criada!`,
       });
 
       setFormState(defaultFormState);
