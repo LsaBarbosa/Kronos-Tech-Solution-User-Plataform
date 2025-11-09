@@ -1,6 +1,6 @@
 // src/components/Sidebar.tsx
 
-import { X, Home, BarChart3, ChevronDown, ChevronRight, User, Shield, Users, Clock, FilePlus, Upload, LogOut, UserCheck, UserPlus, Folder, FolderOpen, Calculator, ClipboardCheck, Building2, Bell, MessageSquarePlus, TreePalm, AlarmClockPlus, TimerReset } from "lucide-react";
+import { X, Home, BarChart3, ChevronDown, ChevronRight, User, Shield, Users, Clock, FilePlus, Upload, LogOut, UserCheck, UserPlus, Folder, FolderOpen, Calculator, ClipboardCheck, Building2, Bell, MessageSquarePlus, TreePalm, AlarmClockPlus, TimerReset, Activity } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { cn } from "@/lib/utils";
@@ -376,7 +376,7 @@ const Sidebar = ({ isOpen, toggleSidebar }: SidebarProps) => {
                         variant="ghost"
                         className="w-full justify-start sidebar-fixed-height-sm px-4 pl-12 text-left sidebar-text-sm hover:bg-primary/10 hover:text-foreground transition-colors group"
                       >
-                        <TreePalm className="mr-2 sidebar-icon-xs text-muted-foreground group-hover:text-foreground transition-colors" />
+                        <TimerReset className="mr-2 sidebar-icon-xs text-muted-foreground group-hover:text-foreground transition-colors" />
                         <span className="flex-1">Abono de Horas</span>
                         {adminTimeOffOpen ? (
                           <ChevronDown className="sidebar-icon-xxs text-muted-foreground group-hover:text-foreground transition-colors" />
@@ -394,7 +394,7 @@ const Sidebar = ({ isOpen, toggleSidebar }: SidebarProps) => {
                           toggleSidebar();
                         }}
                       >
-                        <TreePalm className="mr-2 sidebar-icon-xxs" />
+                        <Activity className="mr-2 sidebar-icon-xxs" />
                         <span>Gestão de abono de horas</span>
                       </Button>
                     </CollapsibleContent>

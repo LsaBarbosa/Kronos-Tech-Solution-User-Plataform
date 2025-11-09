@@ -26,6 +26,17 @@ import { StatusRecord } from '../types/recordApproval';
 import { cn } from '../lib/utils';
 import { API_BASE_URL } from '../config/api';
 
+const formatBackendDate = (dateString: string): string => {
+     
+    const parts = dateString.split('-'); 
+    if (parts.length === 3) {
+        const [day, month, year] = parts;
+        
+        return `${day}/${month}/${year}`;
+    }
+    // Retorna a string original ou um fallback se o formato for inesperado
+    return dateString;
+};
 
 // --- Mapeamento de Status e Cores ---
 const statusMap: Record<StatusRecord | string, string> = {
@@ -255,9 +266,13 @@ const handleDownload = async (documentId?: string, employeeId?: string) => {
                                                 <TableCell className="font-medium">{record.employeeData.employeeName}</TableCell>
                                                 <TableCell>
                                                     <div className="flex flex-col">
-                                                        <span>{startWorkDate} {record.startHour}</span>
-                                                        <span>{endWorkDate} {record.endHour}</span>
-                                                    </div>
+                                                       <p className="font-medium text-foreground">
+                                                        {formatBackendDate(record.startWork)} | {record.startHour}
+                                                    </p>
+                                                    <p className="font-medium text-foreground">
+                                                        {formatBackendDate(record.endWork)} | {record.endHour}
+                                                    </p>
+                                                                                    </div>
                                                 </TableCell>
                                                 <TableCell>{record.hoursWork}</TableCell>
                                                 <TableCell>{renderStatusBadge(record.statusRecord)}</TableCell>

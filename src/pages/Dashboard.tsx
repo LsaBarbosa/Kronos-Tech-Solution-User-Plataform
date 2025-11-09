@@ -8,8 +8,7 @@ import {
     ArrowRight, Loader2, Clock as ClockIcon, FileCheck, DollarSign, Mail, 
     Briefcase, Phone, MessageSquareWarning, Zap, User2, Building, Eye, EyeOff, 
     PlusCircle, ListChecks, ActivitySquare, AlertTriangle, Plane, // ÍCONE: Plane
-    TreePalm,
-    MailWarning
+    TreePalm,Activity
 } from "lucide-react"; 
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card"; 
@@ -17,7 +16,8 @@ import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
 
 import { useDashboardData } from "@/hooks/useDashboardData";
-import { useVacationCount } from "@/hooks/useVacationCount"; // Importação do NOVO HOOK
+import { useVacationCount } from "@/hooks/useVacationCount"; 
+import { useTimeOffCount } from "@/hooks/useTimeOffCount"; 
 import { getRoleDisplayName } from "@/types/dashboard";
 
 // Função utilitária para formatar o salário
@@ -55,7 +55,7 @@ const getFirstName = (fullName: string | undefined): string => {
 
 const Dashboard = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [showSalary, setShowSalary] = useState(false); // Estado para mostrar/esconder salário
+  const [showSalary, setShowSalary] = useState(false); 
   
   const handleToggleSidebar = useCallback(() => setSidebarOpen((prev) => !prev), []);
   const toggleSalary = useCallback(() => setShowSalary(prev => !prev), []); // Toggle do salário
@@ -65,7 +65,7 @@ const Dashboard = () => {
   const {
     userData,
     isLoading,
-    pendingApprovalsCount, // Contagem de TimeRecords (Horas)
+    pendingApprovalsCount, 
     newWarnings,
     hasApprovalPermission,
     fetchProfile, 
@@ -74,7 +74,7 @@ const Dashboard = () => {
   
   // 1. OBTENÇÃO DA CONTAGEM DE FÉRIAS
   const { pendingVacationCount } = useVacationCount(); 
-
+  const { pendingTimeOffCount } = useTimeOffCount();
   // Handlers de Navegação
   const handleApprovalClick = useCallback(() => {
     navigate("/apuracao-horas"); // Pendências de TimeRecord
@@ -85,6 +85,9 @@ const Dashboard = () => {
     navigate("/ferias"); // Rota para a nova tela de aprovação de férias
   }, [navigate]);
 
+  const handleTimeOffApprovalClick = useCallback(() => {
+    navigate("/aprovacoes-abono"); // Rota para a tela de aprovação de abonos (TimeOffApprovals.tsx)
+  }, [navigate]);
 
   const handleClockCardClick = useCallback(() => { // Card Controle de Ponto
     navigate("/relatorio-detalhado"); 
@@ -121,9 +124,11 @@ const Dashboard = () => {
     }
   }, [isManager, newWarnings.length, handleWarningClick]);
   
-  // 2. SOMA TOTAL DE PENDÊNCIAS
-  const totalPendingCount = useMemo(() => pendingApprovalsCount + pendingVacationCount, [pendingApprovalsCount, pendingVacationCount]);
-  
+  // 2. SOMA TOTAL DE PENDÊNCIAS 
+  const totalPendingCount = useMemo(() => 
+    pendingApprovalsCount + pendingVacationCount + pendingTimeOffCount, // ADICIONA ABONO
+    [pendingApprovalsCount, pendingVacationCount, pendingTimeOffCount] // Adiciona a dependência
+  );
   /**
    * Função auxiliar para aplicar estilização temática de Card.
    * **ATUALIZADO:** Adiciona classes de borda lateral e sombra para consistência.
@@ -368,7 +373,7 @@ const Dashboard = () => {
                             </CardContent>
                         </Card>
                         
-                        {/* 2. Cartão de Solicitações de Aprovação Pendentes (Destructive/Success) */}
+                      {/* 2. Cartão de Solicitações de Aprovação Pendentes (Destructive/Success) */}
                         {hasApprovalPermission ? (
                             <Card 
                                 // Determina a cor com base na contagem total de pendências
@@ -436,6 +441,28 @@ const Dashboard = () => {
                                                 className={`text-sm font-extrabold px-3 py-1 rounded-full ${pendingVacationCount > 0 ? 'bg-destructive text-white' : 'bg-primary/20 text-foreground'}`}
                                             >
                                                 {pendingVacationCount}
+                                            </span>
+                                        </Button>
+                                        
+                                        {/* NOVO: Botão 3: Solicitação de Abono */}
+                                        <Button 
+                                            variant="ghost" 
+                                            size="sm" 
+                                            className={`
+                                                w-full justify-between pr-0
+                                                text-foreground hover:bg-primary/20
+                                            `}
+                                            onClick={(e) => { e.stopPropagation(); handleTimeOffApprovalClick(); }}
+                                        >
+                                            {/* Rótulo e Ícone */}
+                                            <div className="flex items-center text-sm font-medium text-foreground">
+                                                <Activity className="w-4 h-4 mr-2 text-primary" /> Solicitação de Abono
+                                            </div>
+                                            {/* Contador */}
+                                            <span 
+                                                className={`text-sm font-extrabold px-3 py-1 rounded-full ${pendingTimeOffCount > 0 ? 'bg-destructive text-white' : 'bg-primary/20 text-foreground'}`}
+                                            >
+                                                {pendingTimeOffCount}
                                             </span>
                                         </Button>
                                     </div>
