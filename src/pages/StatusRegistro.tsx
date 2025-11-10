@@ -356,52 +356,54 @@ const StatusRegistro = () => {
 
 
     return (
-        <div className="min-h-screen bg-background relative overflow-hidden">
-            <div className="fixed inset-0 z-0">
-                {/* ... (Código do Background Animado) ... */}
-                <div
-                    className="absolute inset-0 opacity-5"
-                    style={{
-                        background: 'linear-gradient(-45deg, hsl(var(--background)), hsl(var(--primary)), hsl(var(--background)), hsl(var(--primary)))',
-                        backgroundSize: '400% 400%',
-                        animation: 'gradient-flow 15s ease-in-out infinite'
-                    }}
-                />
-                <div className="absolute inset-0">
-                     {/* ... (Floating Geometric Shapes) ... */}
-                    <div
-                        className="absolute top-1/4 left-1/4 w-32 h-32 opacity-3"
-                        style={{
-                            background: 'linear-gradient(135deg, hsl(var(--primary) / 0.1), transparent)',
-                            borderRadius: '30% 70% 70% 30% / 30% 30% 70% 70%',
-                            animation: 'float-shapes 20s ease-in-out infinite'
-                        }}
-                    />
-                    <div
-                        className="absolute top-3/4 right-1/4 w-48 h-48 opacity-2"
-                        style={{
-                            background: 'linear-gradient(45deg, hsl(var(--primary) / 0.05), transparent)',
-                            borderRadius: '70% 30% 30% 70% / 70% 70% 30% 30%',
-                            animation: 'float-shapes 25s ease-in-out infinite reverse'
-                        }}
-                    />
-                    <div
-                        className="absolute top-1/2 right-1/3 w-24 h-24 opacity-4"
-                        style={{
-                            background: 'radial-gradient(circle, hsl(var(--primary) / 0.08), transparent)',
-                            borderRadius: '50%',
-                            animation: 'float-shapes 18s ease-in-out infinite 5s'
-                        }}
-                    />
-                </div>
-            </div>
+       
 
-            <Sidebar isOpen={sidebarOpen} toggleSidebar={handleToggleSidebar} />
-            
-            <div className="flex-1 flex flex-col overflow-hidden">
-                <Header toggleSidebar={handleToggleSidebar} />
+ <div className="min-h-screen bg-background relative  overflow-hidden">
+      {/* Animated Background and Header/Sidebar components */}
+      <div className="fixed inset-0 z-0">
+        <div
+          className="absolute inset-0 opacity-5"
+          style={{
+            background: 'linear-gradient(-45deg, hsl(var(--black-primary)), hsl(var(--primary)), hsl(var(--black-primary)), hsl(var(--primary)))',
+            backgroundSize: '400% 400%',
+            animation: 'gradient-flow 15s ease-in-out infinite'
+          }}
+        />
+        <div className="absolute inset-0">
+          <div
+            className="absolute top-1/4 left-1/4 w-32 h-32 opacity-3"
+            style={{
+              background: 'linear-gradient(135deg, hsl(var(--primary) / 0.50), transparent)',
+              borderRadius: '30% 70% 70% 30% / 30% 30% 70% 70%',
+              animation: 'float-shapes 20s ease-in-out infinite'
+            }}
+          />
+          <div
+            className="absolute top-3/4 right-1/4 w-48 h-48 opacity-2"
+            style={{
+              background: 'linear-gradient(45deg, hsl(var(--black-primary) / 0.50), transparent)',
+              borderRadius: '70% 30% 30% 70% / 70% 70% 30% 30%',
+              animation: 'float-shapes 25s ease-in-out infinite reverse'
+            }}
+          />
+          <div
+            className="absolute top-1/2 right-1/3 w-24 h-24 opacity-4"
+            style={{
+              background: 'radial-gradient(circle, hsl(var(--primary) / 0.50), transparent)',
+              borderRadius: '50%',
+              animation: 'float-shapes 18s ease-in-out infinite 5s'
+            }}
+          />
+        </div>
+      </div>
 
-                <main className="container mx-auto px-4 py-20 relative z-10">
+    <Sidebar isOpen={sidebarOpen} toggleSidebar={handleToggleSidebar} />
+
+      <div className="flex-1 flex flex-col overflow-hidden">
+        {/* 💡 CORREÇÃO: Header usa 'toggleSidebar' */}
+        <Header toggleSidebar={handleToggleSidebar} />
+
+      <main className="pt-16 mobile-container py-4 sm:py-20 space-y-6 sm:space-y-8 relative z-10">
                     <div className="mb-8">
                         <h1 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-foreground to-primary bg-clip-text text-transparent page-title">
                             Alterar Status do Registro
@@ -447,85 +449,92 @@ const StatusRegistro = () => {
                     
                     {/* MODAL DE EDIÇÃO DE STATUS (Originalmente mantido) */}
                     <Dialog open={editModalOpen} onOpenChange={setEditModalOpen}>
-                        <DialogContent className="sm:max-w-md">
-                            <DialogHeader>
-                                <DialogTitle>Alterar Status do Registro</DialogTitle>
-                                <DialogDescription>
-                                    Atualize o status do registro de ponto selecionado.
-                                </DialogDescription>
-                            </DialogHeader>
+                       <DialogContent className="w-full max-w-fit max-h-[90vh] overflow-y-auto">
+        <DialogHeader>
+            <DialogTitle>Alterar Status do Registro</DialogTitle>
+            <DialogDescription>
+                Atualize o status do registro de ponto selecionado.
+            </DialogDescription>
+        </DialogHeader>
 
-                            <div className="space-y-4 pt-4">
-                                <Label className="text-base font-semibold text-foreground flex flex-col gap-2">
-                                    Status Atual:
-                                    <Badge
-                                        className={`${getStatusColor(statusUpdate.statusRecord)} text-base`}
-                                    >
-                                        {statusOptions.find(s => s.value === statusUpdate.statusRecord)?.label || statusUpdate.statusRecord}
-                                    </Badge>
-                                </Label>
+        <div className="space-y-4 pt-4">
+            <Label className="text-base font-semibold text-foreground flex flex-col gap-2">
+                Status Atual:
+                <Badge
+                    // Usa a função de cor do seu utilitário
+                    className={`${getStatusColor(statusUpdate.statusRecord)} text-base`}
+                >
+                    {statusOptions.find(s => s.value === statusUpdate.statusRecord)?.label || statusUpdate.statusRecord}
+                </Badge>
+            </Label>
 
-                                <div className="space-y-2">
-                                    <Label htmlFor="new-status">Novo Status</Label>
-                                    <Select
-                                        value={statusUpdate.statusRecord}
-                                        onValueChange={(value) => setStatusUpdate(prev => ({ ...prev, statusRecord: value }))}
-                                    >
-                                        <SelectTrigger id="new-status" className="h-10 focus:border-primary">
-                                            <SelectValue placeholder="Selecione um novo status" />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                        {statusOptions
-                                                // 💡 NOVO FILTRO: Inclui APENAS Folga, Falta e Abono (DOCTOR_APPOINTMENT)
-                                                .filter(opt => ["DAY_OFF", "ABSENCE", "TIME_OFF"].includes(opt.value))
-                                                .map((option) => (
-                                                <SelectItem
-                                                    key={option.value}
-                                                    value={option.value}
-                                                >
-                                                    {option.label}
-                                                </SelectItem>
-                                            ))}
-                                        </SelectContent>
-                                    </Select>
-                                    <p className="text-xs text-muted-foreground">O registro será atualizado com o status selecionado.</p>
-                                </div>
-                            </div>
+            <div className="space-y-2">
+                <Label htmlFor="new-status">Novo Status</Label>
+                <Select
+                    value={statusUpdate.statusRecord}
+                    onValueChange={(value) => setStatusUpdate(prev => ({ ...prev, statusRecord: value }))}
+                >
+                    <SelectTrigger id="new-status" className="h-10 focus:border-primary">
+                        <SelectValue placeholder="Selecione um novo status" />
+                    </SelectTrigger>
+                    <SelectContent>
+                    {statusOptions
+                            // Filtra apenas para Folga, Falta e Abono, conforme sua regra
+                            .filter(opt => ["DAY_OFF", "ABSENCE", "TIME_OFF"].includes(opt.value))
+                            .map((option) => (
+                            <SelectItem
+                                key={option.value}
+                                value={option.value}
+                            >
+                                {option.label}
+                            </SelectItem>
+                        ))}
+                    </SelectContent>
+                </Select>
+                <p className="text-xs text-muted-foreground">O registro será atualizado com o status selecionado.</p>
+            </div>
+        </div>
 
-                            <div className="flex justify-between items-center pt-4">
-                                {/* NOVO: Botão para Inativar/Ativar Registro */}
-                                <Button
-                                    type="button"
-                                    variant="destructive"
-                                    onClick={handleToggleActivateRecord}
-                                    disabled={!statusUpdate.timeRecordId || !statusUpdate.employeeId}
-                                >
-                                    <ZapOff className="h-4 w-4 mr-2" />
-                                    {/* O texto é dinâmico, pois o endpoint faz um TOGGLE */}
-                                    {selectedRecord?.active ? "Inativar Registro" : "Ativar Registro"}
-                                </Button>
-                                
-                                <div className="flex space-x-2">
-                                    <Button
-                                        type="button"
-                                        variant="outline"
-                                        onClick={() => setEditModalOpen(false)}
-                                    >
-                                        Cancelar
-                                    </Button>
-                                    <Button
-                                        type="button"
-                                        onClick={handleUpdateStatus}
-                                        className="bg-primary hover:bg-primary/90"
-                                        disabled={!statusUpdate.timeRecordId || !statusUpdate.employeeId || !statusUpdate.statusRecord}
-                                    >
-                                        <Save className="h-4 w-4 mr-2" />
-                                        Salvar Status
-                                    </Button>
-                                </div>
-                            </div>
-                        </DialogContent>
-                    </Dialog>
+        {/* 💡 AJUSTE DO RODAPÉ APLICADO:
+            - flex-col sm:flex-row: Empilha no celular e fica lado a lado em telas maiores.
+            - justify-between: Separa os dois grupos de botões.
+        */}
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 pt-4">
+            {/* Botão de Inativar/Ativar Registro (lado esquerdo) */}
+            <Button
+                type="button"
+                variant="destructive"
+                onClick={handleToggleActivateRecord}
+                disabled={!statusUpdate.timeRecordId || !statusUpdate.employeeId}
+                // Garante que o botão ocupe 100% da largura no celular
+                className="w-full sm:w-auto" 
+            >
+                <ZapOff className="h-4 w-4 mr-2" />
+                {selectedRecord?.active ? "Inativar Registro" : "Ativar Registro"}
+            </Button>
+            
+            {/* Botões de Cancelar/Salvar Status (lado direito) */}
+            <div className="flex space-x-2 w-full sm:w-auto justify-end">
+                <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => setEditModalOpen(false)}
+                >
+                    Cancelar
+                </Button>
+                <Button
+                    type="button"
+                    onClick={handleUpdateStatus}
+                    className="bg-primary hover:bg-primary/90"
+                    disabled={!statusUpdate.timeRecordId || !statusUpdate.employeeId || !statusUpdate.statusRecord}
+                >
+                    <Save className="h-4 w-4 mr-2" />
+                    Salvar Status
+                </Button>
+            </div>
+        </div>
+    </DialogContent>
+</Dialog>
                     {/* FIM MODAL DE EDIÇÃO DE STATUS */}
                 </main>
             </div>
