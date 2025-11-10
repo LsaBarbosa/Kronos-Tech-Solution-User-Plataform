@@ -1,3 +1,5 @@
+// src/pages/TimeOffApprovals.tsx
+
 import React, { useCallback } from 'react';
 import Sidebar from '@/components/Sidebar';
 import Header from '@/components/Header';
@@ -31,11 +33,17 @@ import { API_BASE_URL } from '../config/api';
 // ---------------------------------------------------------------------
 
 const formatBackendDate = (dateString: string): string => {
-    // Formata a data de 'DD-MM-YYYY' para 'DD/MM/YYYY'
+    // Formata a data de 'YYYY-MM-DD' (assumindo o formato padrão de backend) para 'DD/MM/YY'
     const parts = dateString.split('-'); 
     if (parts.length === 3) {
-        const [year, month, day] = parts; // Correção na ordem se o backend envia YYYY-MM-DD
-        return `${day}/${month}/${year}`;
+        // [Ano, Mês, Dia]
+        const [year, month, day] = parts; 
+        
+        // Obtém os últimos dois dígitos do ano (YY)
+        const shortYear = year.slice(2); 
+
+        // Retorna no formato DD/MM/YY
+        return `${day}/${month}/${shortYear}`; 
     }
     return dateString;
 };
@@ -113,6 +121,7 @@ const TimeOffApprovalItem: React.FC<ITimeOffRecord & {
     const isPending = statusRecord === 'TIME_OFF_REQUEST';
     
     // Memoização dos valores
+    // *** AQUI A FUNÇÃO formatBackendDate AGORA RETORNA DD/MM/YY ***
     const formattedStartWork = React.useMemo(() => formatBackendDate(startWork), [startWork]);
     const formattedEndWork = React.useMemo(() => formatBackendDate(endWork), [endWork]);
     const employeeName = employeeData.employeeName;
@@ -132,9 +141,11 @@ const TimeOffApprovalItem: React.FC<ITimeOffRecord & {
                 <TableCell>
                     <div className="flex flex-col">
                         <p className="font-medium text-foreground">
+                            {/* Exibição: DD/MM/YY | HH:mm */}
                             {formattedStartWork} | {startHour}
                         </p>
                         <p className="font-medium text-foreground">
+                            {/* Exibição: DD/MM/YY | HH:mm */}
                             {formattedEndWork} | {endHour}
                         </p>
                     </div>
