@@ -425,7 +425,7 @@ export const ResultadosRelatorioDetalhado: React.FC<ResultadosDetalhadoProps> = 
                                                 }}
                                                 title="Baixar Comprovante"
                                             >
-                                                <Download className="h-4 w-4 text-primary-foreground" />
+                                                <Download className="h-4 w-4 text-foreground   " />
                                             </Button>
                                         </div>
                                     )}
