@@ -48,7 +48,7 @@ const statusOptions = [
   { value: "DAY_OFF", label: "Folga" },
   { value: "ABSENCE", label: "Ausência" },
   { value: "PENDING_APPROVAL", label: "Aguardando Aprovação" },
-  { value: "DOCTOR_APPOINTMENT", label: "Consulta Médica" },
+  { value: "TIME_OFF", label: "Horas Abonadas" },
 ];
 
 const mockUsers = [

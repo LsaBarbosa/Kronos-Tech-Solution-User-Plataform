@@ -116,3 +116,26 @@ export const changePassword = async (data: ChangePasswordData): Promise<void> =>
 
   await handleResponse(response);
 };
+
+/**
+ * Busca todos os usuários (ou usuários ativos/inativos) da empresa.
+ * @param active - Opcional. true para ativos, false para inativos, null para todos.
+ * @returns Lista de dados detalhados do usuário (UserAccountData).
+ */
+export const listUsers = async (active: boolean | null): Promise<UserAccountData[]> => {
+  const headers = getAuthHeaders();
+  let url = `${API_BASE_URL}users/search`;
+
+  if (active !== null) {
+    const activeQuery = active ? 'true' : 'false';
+    url = `${url}?active=${activeQuery}`;
+  }
+
+  const response = await fetch(url, { headers });
+  
+  // O backend retorna um objeto com a chave 'users' que contém a lista (UserListResponse).
+  const data = await handleResponse(response);
+  
+  // Retorna a lista de usuários
+  return data.users as UserAccountData[]; 
+};

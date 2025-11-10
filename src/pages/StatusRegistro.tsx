@@ -477,7 +477,7 @@ const StatusRegistro = () => {
                                         <SelectContent>
                                         {statusOptions
                                                 // 💡 NOVO FILTRO: Inclui APENAS Folga, Falta e Abono (DOCTOR_APPOINTMENT)
-                                                .filter(opt => ["DAY_OFF", "ABSENCE", "DOCTOR_APPOINTMENT"].includes(opt.value))
+                                                .filter(opt => ["DAY_OFF", "ABSENCE", "TIME_OFF"].includes(opt.value))
                                                 .map((option) => (
                                                 <SelectItem
                                                     key={option.value}

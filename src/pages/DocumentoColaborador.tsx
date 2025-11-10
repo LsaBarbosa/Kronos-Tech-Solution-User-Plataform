@@ -161,7 +161,7 @@ export default function EnviarDocumentos() {
     if (isManager) {
         setSelectedDocumentType("PAYSLIP"); 
     } else {
-        setSelectedDocumentType("DOCTOR_APPOINTMENT"); 
+        setSelectedDocumentType("TIME_OFF"); 
     }
     
     // Lógica de busca de funcionários (Somente para MANAGER)
@@ -494,7 +494,7 @@ export default function EnviarDocumentos() {
                             <SelectItem value="PAYSLIP">Contracheque</SelectItem>
                         )}
                       
-                        <SelectItem value="DOCTOR_APPOINTMENT">Atestado</SelectItem>
+                        <SelectItem value="TIME_OFF">Abono de Horas</SelectItem>
                         <SelectItem value="EMPLOYEE_DOCUMENTS">Documentos Pessoais</SelectItem>
                       </SelectContent>
                     </Select>

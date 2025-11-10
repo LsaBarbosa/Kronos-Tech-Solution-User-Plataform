@@ -1,16 +1,22 @@
 // src/components/ResultadosRelatorioDetalhado.tsx
 
-import React from "react";
+import React, { useEffect, useMemo, useRef, useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { CalendarIcon, Download, Edit, Coffee } from "lucide-react"; // Usando Coffee para Pausa
-import { DetailedReportItem, statusOptions, getStatusColor, getTranslatedStatus, formatDateWithDayOfWeek } from "@/utils/report-utils"; // <--- ALTERADO
+import { CalendarIcon, Download, Edit, Coffee, FileText } from "lucide-react"; // Usando Coffee para Pausa
+import { DetailedReportItem, statusOptions, getStatusColor, getTranslatedStatus, formatDateWithDayOfWeek } from "@/utils/report-utils"; 
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
 import autoTable from "jspdf-autotable";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { useToast } from "@/hooks/use-toast";
+import { API_BASE_URL } from "@/config/api";
+import { Button } from "./ui/button";
+import { PaginationComponent } from "./ui/PaginationComponent";
+
+// Define 5 itens por página para a paginação local (Client-Side)
+const ROWS_PER_PAGE = 5; 
 
 interface ResultadosDetalhadoProps {
     reportData: DetailedReportItem[];
@@ -29,10 +35,113 @@ export const ResultadosRelatorioDetalhado: React.FC<ResultadosDetalhadoProps> = 
 }) => {
     const { toast } = useToast();
 
-    // Lógica do PDF Detalhado (Atualizada para Pausa como registro principal e Estilizada)
+    // --- PAGINAÇÃO E SCROLL CONTROL ---
+    const [currentPage, setCurrentPage] = useState(0);
+    // Referência para o Card principal (usada para o scroll)
+    const resultsRef = useRef<HTMLDivElement>(null); 
+    // --- FIM PAGINAÇÃO E SCROLL CONTROL ---
+
+    // --- CÁLCULOS DE PAGINAÇÃO (Memorizados) ---
+    const totalElements = reportData.length;
+    const totalPages = Math.ceil(totalElements / ROWS_PER_PAGE);
+
+    // Usa useMemo para calcular a fatia de dados a ser exibida na página atual
+    const currentRecords = useMemo(() => {
+        const startIndex = currentPage * ROWS_PER_PAGE;
+        const endIndex = startIndex + ROWS_PER_PAGE;
+        return reportData.slice(startIndex, endIndex);
+    }, [reportData, currentPage]);
+    
+    // Se a página atual não tiver dados (pode acontecer se o filtro esvaziar a última página),
+    // volta para a página 0.
+    if (currentPage > 0 && currentRecords.length === 0 && totalElements > 0) {
+        setCurrentPage(0);
+    }
+    
+// --- FUNÇÃO DE DOWNLOAD ROBUSTA (MANTIDA) ---
+    const handleDocumentDownload = async (documentId: string, employeeId: string, employeeName: string) => {
+        if (!documentId || !employeeId) {
+            toast({
+                title: "Erro de Download",
+                description: "Não há documentos anexados para esse registro.",
+                variant: "destructive"
+            });
+            return;
+        }
+
+        try {
+            const token = localStorage.getItem('token');
+            if (!token) {
+                toast({
+                    title: "Não Autorizado",
+                    description: "Token de autenticação ausente. Faça login novamente.",
+                    variant: "destructive"
+                });
+                return;
+            }
+
+            // 1. Monta a URL: /documents/{documentId}?employeeId={employeeId}
+            const url = `${API_BASE_URL}documents/${documentId}?employeeId=${employeeId}`;
+
+            // 2. Realiza o fetch com o token no header
+            const response = await fetch(url, {
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                },
+            });
+
+            if (!response.ok) {
+                let errorMessage = "Não foi possível realizar o download.";
+                try {
+                    const errorData = await response.json();
+                    errorMessage = errorData.detail || errorMessage;
+                } catch {
+                    // Ignora se não for JSON, usa a mensagem padrão.
+                }
+                throw new Error(errorMessage);
+            }
+
+            // 3. Extrai o nome do arquivo do header Content-Disposition
+            const contentDisposition = response.headers.get('Content-Disposition');
+            let filename = `${employeeName}_justificativa_de_abono`; 
+
+            if (contentDisposition) {
+                const filenameMatch = contentDisposition.match(/filename="(.+?)"/);
+                if (filenameMatch && filenameMatch[1]) {
+                    filename = decodeURIComponent(filenameMatch[1].replace(/\"/g, ''));
+                }
+            }
+
+            // 4. Cria o Blob e força o download
+            const blob = await response.blob();
+            const href = window.URL.createObjectURL(blob);
+            const link = window.document.createElement('a');
+            link.href = href;
+            link.download = filename;
+            window.document.body.appendChild(link);
+            link.click();
+            window.document.body.removeChild(link);
+            window.URL.revokeObjectURL(href);
+
+            toast({
+                title: "Download Iniciado",
+                description: `Download de ${filename} concluído.`,
+            });
+
+        } catch (error) {
+            console.error("Erro ao iniciar o download:", error);
+            toast({
+                title: "Falha no Download",
+                description: `Erro: ${(error as Error).message}`,
+                variant: "destructive",
+            });
+        }
+    };
+    // --- FIM DA FUNÇÃO DE DOWNLOAD ROBUSTA ---
+    
+    // Lógica do PDF Detalhado (MANTIDA)
     const handleDownload = () => {
-        // A função local 'parseDate' FOI REMOVIDA
-        
+        // Usa reportData (todos os registros) para o download do PDF, pois é o relatório completo.
         if (reportData.length === 0) {
             toast({
                 title: "Erro",
@@ -49,8 +158,8 @@ export const ResultadosRelatorioDetalhado: React.FC<ResultadosDetalhadoProps> = 
                 format: 'a4'
             });
 
-            // 💡 ESTILO: TÍTULO PRINCIPAL COLORIDO E MAIOR
-            doc.setTextColor(0, 150, 136); // Azul-Petróleo Elegante
+            // ESTILO: TÍTULO PRINCIPAL
+            doc.setTextColor(0, 150, 136); 
             doc.setFont("helvetica", "bold");
             doc.setFontSize(22);
             doc.text('RELATÓRIO DETALHADO DE PONTO', 20, 25);
@@ -58,7 +167,7 @@ export const ResultadosRelatorioDetalhado: React.FC<ResultadosDetalhadoProps> = 
             // Volta para estilo de texto normal
             doc.setFontSize(12);
             doc.setFont("helvetica", "normal");
-            doc.setTextColor(0, 0, 0); // Preto
+            doc.setTextColor(0, 0, 0); 
             let yPosition = 40;
 
             if (reportData.length > 0 && reportData[0].employeeData) {
@@ -88,30 +197,27 @@ export const ResultadosRelatorioDetalhado: React.FC<ResultadosDetalhadoProps> = 
             doc.setFont("helvetica", "bold");
             yPosition += 5;
 
-            // 💡 ESTILO: NOVO ESQUEMA DE CORES PARA LINHAS
-            const COLOR_MAIN_RECORD = [240, 255, 240]; // Honeydew (Trabalho - Linha Mais Clara)
-            const COLOR_BREAK_RECORD = [230, 230, 250]; // Lavanda/Muito Claro (Pausa - Linha Suave)
-            const COLOR_SEPARATOR = [200, 200, 200];       // Cinza (Separador)
+            // ESTILOS DE CORES PARA LINHAS
+            const COLOR_MAIN_RECORD = [240, 255, 240]; 
+            const COLOR_BREAK_RECORD = [230, 230, 250]; 
+            const COLOR_SEPARATOR = [200, 200, 200];       
 
             // Prepara os dados da tabela
             const tableBody: any[] = [];
 
-            reportData.forEach(item => {
+            reportData.forEach(item => { 
                 const isBreak = item.statusRecord === 'IMPLICIT_BREAK';
                 
-                // NOVO: Usando a função utilitária para obter a data formatada
-                const formattedDateStart = formatDateWithDayOfWeek(item.startWork); // <--- NOVO
-                const formattedDateEnd = formatDateWithDayOfWeek(item.endWork);   // <--- NOVO
+                const formattedDateStart = formatDateWithDayOfWeek(item.startWork); 
+                const formattedDateEnd = formatDateWithDayOfWeek(item.endWork);   
 
-                // Constrói a célula do PDF: "Dia da Semana, DD/MM/YYYY\nHH:MM"
-                const formattedStart = `${formattedDateStart}\n${item.startHour}`; // <--- ALTERADO
-                const formattedEnd = `${formattedDateEnd}\n${item.endHour}`;       // <--- ALTERADO
+                const formattedStart = `${formattedDateStart}\n${item.startHour}`; 
+                const formattedEnd = `${formattedDateEnd}\n${item.endHour}`;       
 
                 const statusLabel = getTranslatedStatus(item.statusRecord);
                 const fillColor = isBreak ? COLOR_BREAK_RECORD : COLOR_MAIN_RECORD;
                 const fontStyle = isBreak ? 'italic' : 'normal';
 
-                // Linha Única para Segmento de Trabalho OU Pausa
                 const rowCells = [
                     { content: formattedStart, styles: { fillColor: fillColor } },
                     { content: formattedEnd, styles: { fillColor: fillColor } },
@@ -120,13 +226,12 @@ export const ResultadosRelatorioDetalhado: React.FC<ResultadosDetalhadoProps> = 
                     { content: statusLabel, styles: { fillColor: fillColor } }
                 ];
                 
-                // Aplica estilos de alinhamento e fonte padrão para a linha
                 tableBody.push(rowCells.map(cell => ({
                     ...cell,
                     styles: {
                         ...cell.styles,
                         halign: 'center',
-                        cellPadding: isBreak ? 2 : 4, // Ajustado padding para elegância
+                        cellPadding: isBreak ? 2 : 4, 
                         fontSize: isBreak ? 8 : 9,
                         fontStyle: fontStyle
                     }
@@ -155,13 +260,13 @@ export const ResultadosRelatorioDetalhado: React.FC<ResultadosDetalhadoProps> = 
                     fontSize: 9,
                     cellPadding: 3,
                     halign: 'center',
-                    lineColor: [220, 220, 220], // Linhas mais claras
-                    lineWidth: 0.1, // Linhas mais finas
+                    lineColor: [220, 220, 220], 
+                    lineWidth: 0.1, 
                 },
                 headStyles: {
-                    fillColor: [0, 150, 136], // NOVO: Azul-petróleo (Tema Principal)
+                    fillColor: [0, 150, 136], 
                     textColor: [255, 255, 255],
-                    fontSize: 11, // Aumentado
+                    fontSize: 11, 
                     fontStyle: 'bold'
                 },
                 columnStyles: {
@@ -175,16 +280,15 @@ export const ResultadosRelatorioDetalhado: React.FC<ResultadosDetalhadoProps> = 
                         const balance = data.cell.text[0];
                         const status = data.row.raw[4].content;
                         
-                        // Não aplica cor ao Saldo se for Pausa
                         if (status === getTranslatedStatus('IMPLICIT_BREAK') || balance === 'N/A') {
-                            data.cell.styles.textColor = [0, 0, 0]; // Preto
+                            data.cell.styles.textColor = [0, 0, 0]; 
                             data.cell.styles.fontStyle = 'italic';
                         } else if (balance) {
                             if (balance.toString().startsWith('-')) {
-                                data.cell.styles.textColor = [220, 53, 69]; // Vermelho
+                                data.cell.styles.textColor = [220, 53, 69]; 
                                 data.cell.styles.fontStyle = 'bold';
                             } else if (!balance.toString().startsWith('-') && balance !== '00:00') {
-                                data.cell.styles.textColor = [40, 167, 69]; // Verde
+                                data.cell.styles.textColor = [40, 167, 69]; 
                                 data.cell.styles.fontStyle = 'bold';
                             }
                         }
@@ -196,12 +300,11 @@ export const ResultadosRelatorioDetalhado: React.FC<ResultadosDetalhadoProps> = 
             for (let i = 1; i <= pageCount; i++) {
                 doc.setPage(i);
                 doc.setFontSize(8);
-                // 💡 ESTILO: Rodapé em Azul Suave
-                doc.setTextColor(100, 149, 237); // Cornflower Blue
+                doc.setTextColor(100, 149, 237); 
                 doc.text(`Página ${i} de ${pageCount}`, doc.internal.pageSize.width - 30, doc.internal.pageSize.height - 10);
                 doc.text(`Gerado em: ${format(new Date(), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}`, 20, doc.internal.pageSize.height - 10);
             }
-            doc.setTextColor(0, 0, 0); // Volta ao preto para evitar vazamento
+            doc.setTextColor(0, 0, 0); 
 
 
             const fileName = `relatorio_detalhado_${format(new Date(), "yyyyMMdd_HHmmss")}.pdf`;
@@ -222,17 +325,35 @@ export const ResultadosRelatorioDetalhado: React.FC<ResultadosDetalhadoProps> = 
         }
     };
 
+    // --- EFEITO DE CORREÇÃO DE SCROLL (Adicionado para impedir o salto) ---
+    useEffect(() => {
+        // Verifica se a referência está anexada a um elemento
+        if (resultsRef.current) {
+            // Garante que o scroll só ocorra após a primeira página para evitar o salto inicial
+            if (currentPage !== 0) { 
+                resultsRef.current.scrollIntoView({ 
+                    behavior: 'smooth', 
+                    block: 'start'      
+                });
+            }
+        }
+    }, [currentPage]);
+    // --- FIM EFEITO DE CORREÇÃO DE SCROLL ---
+
     return (
-        <Card className="mt-8 border-2 border-primary/20 shadow-lg bg-card/80 backdrop-blur-sm">
+       // O componente Card agora usa a referência (ref={resultsRef}) para o controle de scroll
+       <Card className="shadow-card border-t-4 border-t-primary mb-8" ref={resultsRef}>
             <CardHeader className="flex flex-row justify-between items-center">
                 <div>
                     <CardTitle>Resultados do Relatório Detalhado</CardTitle>
-                    <CardDescription>{reportData.length} registro(s) detalhado(s) encontrado(s).</CardDescription>
+                    {/* A descrição agora reflete a página e o total de registros */}
+                    <CardDescription>{totalElements} registro(s) detalhado(s) encontrado(s). (Página {currentPage + 1} de {totalPages})</CardDescription> 
                 </div>
             </CardHeader>
             <CardContent className="p-4">
+                {/* O loop agora utiliza currentRecords, que contém apenas os 5 itens da página atual */}
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {reportData.map((item, index) => {
+                    {currentRecords.map((item, index) => {
                         const isBreak = item.statusRecord === 'IMPLICIT_BREAK';
                         
                         const handleCardClick = () => {
@@ -284,6 +405,32 @@ export const ResultadosRelatorioDetalhado: React.FC<ResultadosDetalhadoProps> = 
                                         )}
                                     </div>
 
+                                    {/* --- Botão/Status de Documento Anexo --- */}
+                                    {item.documentDownloadPath && ( 
+                                        <div className="flex justify-between items-center pt-3 border-t mt-4">
+                                            <div className="flex items-center gap-2 text-primary text-sm font-medium">
+                                                 <FileText className="h-4 w-4" />
+                                                Documento Anexado
+                                            </div>
+                                            <Button
+                                                variant="ghost"
+                                                size="icon"
+                                                onClick={(e) => {
+                                                    e.stopPropagation(); // Evita que o clique no botão ative o handleCardClick
+                                                    handleDocumentDownload(
+                                                        item.documentDownloadPath!, // ID do Documento
+                                                        item.employeeId, // ID do Colaborador
+                                                        item.employeeData.employeeName // Nome do Colaborador para o nome do arquivo
+                                                    );
+                                                }}
+                                                title="Baixar Comprovante"
+                                            >
+                                                <Download className="h-4 w-4 text-foreground   " />
+                                            </Button>
+                                        </div>
+                                    )}
+                                    {/* --- FIM Botão/Status de Documento Anexo --- */}
+                                    
                                     {/* Ícone de Edição só aparece se não for pausa */}
                                     {!isBreak && (
                                         <div className="flex justify-end pt-2 text-primary opacity-0 group-hover:opacity-100 transition-opacity">
@@ -295,6 +442,18 @@ export const ResultadosRelatorioDetalhado: React.FC<ResultadosDetalhadoProps> = 
                         );
                     })}
                 </div>
+                {/* --- COMPONENTE DE PAGINAÇÃO (Renderizado se houver mais de 1 página) --- */}
+                {totalPages > 1 && (
+                    <div className="mt-6 flex justify-center">
+                        <PaginationComponent
+                            totalPages={totalPages}
+                            currentPage={currentPage}
+                            onPageChange={setCurrentPage} // Função para mudar a página
+                            totalElements={totalElements}
+                        />
+                    </div>
+                )}
+                {/* --- FIM COMPONENTE DE PAGINAÇÃO --- */}
             </CardContent>
         </Card>
     );

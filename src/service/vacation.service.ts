@@ -1,8 +1,9 @@
  
 
 import { API_BASE_URL } from "@/config/api";
-import { IVacationRequestResponse, IVacationQueryParams, IVacationApprovalRequest, IRequestVacationRequest, IManagerOption } from "@/types/vacation";
- 
+import { IVacationRequestResponse, IVacationQueryParams, RequestTimeOffRequestPayload, IVacationApprovalRequest, IRequestVacationRequest, IManagerOption } from "@/types/vacation";
+ import { format } from "date-fns"; 
+
 const getAuthHeaders = () => {
     const token = localStorage.getItem('token');
     if (!token) {
@@ -147,4 +148,66 @@ export const fetchPendingVacationCount = async (): Promise<number> => {
         return requests.length;
     }
     return 0;
+};
+/**
+ * Envia uma solicitação de abono (time-off) com suporte a anexo de documento.
+ * Utiliza o modelo fetch.
+ * * @param payload Dados da solicitação (datas, horas, managerId).
+ * @param document Arquivo de comprovante (opcional).
+ * @returns O ID (Long) do TimeRecord criado.
+ */
+export const requestTimeOff = async (
+  payload: RequestTimeOffRequestPayload,
+  document: File | null
+): Promise<number> => {
+  const formData = new FormData();
+
+  // 1. Anexa o JSON do payload como uma parte 'request'
+  const requestBlob = new Blob([JSON.stringify(payload)], {
+    type: "application/json",
+  });
+  // O nome da parte deve ser 'request' para coincidir com @RequestPart("request") no backend
+  formData.append("request", requestBlob, "request.json");
+
+  // 2. Anexa o arquivo de documento como uma parte 'document' (se existir)
+  if (document) {
+     // O nome da parte deve ser 'document' para coincidir com @RequestPart(value = "document") no backend
+    formData.append("document", document);
+  }
+
+  // 3. Configura o fetch
+  const token = localStorage.getItem('token');
+  const url = `${API_BASE_URL}records/time-off/request`; 
+  
+  const response = await fetch(url, {
+    method: 'POST',
+    // IMPORTANTE: NÃO defina 'Content-Type' como 'multipart/form-data'. 
+    // O navegador faz isso automaticamente ao usar FormData, incluindo a boundary correta.
+    headers: {
+        'Authorization': `Bearer ${token}`, 
+    },
+    body: formData,
+  });
+
+  // 4. Lida com a Resposta (Modelo Fetch)
+  if (!response.ok) {
+    let errorDetail = `Erro HTTP ${response.status}: ${response.statusText}.`;
+    
+    // Tenta ler o corpo como JSON para mensagens de erro detalhadas (ProblemDetail do Spring)
+    try {
+      const errorJson = await response.json();
+      // Assume a estrutura ProblemDetail (ex: detail) ou message
+      errorDetail = errorJson.detail || errorJson.message || errorDetail; 
+    } catch (e) {
+      // Se falhar ao ler JSON, o erro HTTP padrão é mantido
+    }
+    
+    // Lança um erro que será capturado pelo hook
+    throw new Error(errorDetail); 
+  }
+
+  // O backend retorna o Long (ID do TimeRecord) no corpo como JSON.
+  const responseData = await response.json(); 
+  
+  return responseData as number; 
 };
