@@ -457,7 +457,7 @@ const Documentos = () => {
                     </SelectTrigger>
                     <SelectContent>
                       <SelectItem value="PAYSLIP">Contracheque</SelectItem>
-                      <SelectItem value="DOCTOR_APPOINTMENT">Atestado</SelectItem>
+                      <SelectItem value="TIME_OFF">Abono de Horas</SelectItem>
                       <SelectItem value="EMPLOYEE_DOCUMENTS">Documentos Pessoais</SelectItem>
                     </SelectContent>
                   </Select>

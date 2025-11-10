@@ -1,4 +1,74 @@
-// src/types/recordApproval.ts
+// Tipos de Status que são usados para relatórios e exibição
+export type StatusRecord =
+  | 'CREATED'
+  | 'PENDING'
+  | 'UPDATED'
+  | 'UPDATE_REJECTED'
+  | 'DAY_OFF'
+  | 'ABSENCE'
+  | 'PENDING_APPROVAL'
+  | 'TIME_OFF'
+  | 'IMPLICIT_BREAK'
+  | 'REQUEST_VACATION'
+  | 'VACATION'
+  | 'VACATION_REJECTED'
+  | 'TIME_OFF_REQUEST' // NOVO: Abono Solicitado
+  | 'TIME_OFF'         // NOVO: Abono Aprovado
+  | 'TIME_OFF_REJECTED'; // NOVO: Abono Rejeitado
+
+
+export interface EmployeeData {
+  employeeName: string;
+  companyName: string;
+}
+
+// Interface para a resposta de um TimeRecord
+export interface TimeRecordResponse {
+  timeRecordId: number;
+  startWork: string;
+  startHour: string;
+  endWork: string | null;
+  endHour: string;
+  hoursWork: string;
+  balance: string;
+  statusRecord: StatusRecord;
+  edited: boolean;
+  active: boolean;
+  employeeId: string;
+  employeeData: EmployeeData;
+  documentDownloadPath?: string; // Adicionado para compatibilidade futura com aprovações
+}
+
+// NOVO: Interface para a resposta paginada de TimeRecords (usado no listTimeOffRequests)
+export interface TimeRecordPageResponse {
+  records: TimeRecordResponse[];
+  totalPages: number;
+  totalElements: number;
+  currentPage: number;
+  isFirst: boolean;
+  isLast: boolean;
+}
+
+// Interface para a requisição de alteração de ponto (usado no usePendingApproval)
+export interface TimeRecordApprovalResponse {
+  timeRecordId: number;
+  partnerName: string;
+  managerUsername: string;
+  newStartWork: string;
+  newEndWork: string;
+  currentStartWork: string;
+  currentEndWork: string | null;
+  documentDownloadPath?: string;
+}
+
+export interface TimeRecordApprovalPageResponse {
+  approvals: TimeRecordApprovalResponse[];
+  totalPages: number;
+  totalElements: number;
+  currentPage: number;
+  isFirst: boolean;
+  isLast: boolean;
+}
 
 export interface ITimeRecordApprovalResponse {
   timeRecordId: number;
@@ -30,3 +100,39 @@ export interface IPendingApprovalQueryParams {
 export interface IUpdateStatusRequest {
   statusRecord: string;
 }
+
+export interface IRequestTimeOffData {
+    startDate: string;
+    endDate: string;
+    startHour: string;
+    endHour: string;
+    managerId: string;
+}
+
+/**
+ * [NOVO] Interface para os parâmetros de query da listagem GET /records/time-off-requests
+ */
+export interface ITimeOffQueryParams {
+    page: number;
+    size: number;
+    employeeName?: string;
+    // O tipo 'PENDING' | 'APPROVED' | 'REJECTED' | 'ALL' é usado para filtros no frontend/backend
+    status: 'PENDING' | 'APPROVED' | 'REJECTED' | 'ALL'; 
+}
+
+/**
+ * [EXPORT CORRIGIDO] Interface de resposta paginada.
+ * Corresponde ao TimeRecordPageResponse no Java.
+ */
+export interface TimeRecordPageResponse {
+    records: TimeRecordResponse[]; // Reutiliza a interface TimeRecordResponse
+    totalPages: number;
+    totalElements: number;
+    currentPage: number;
+    isFirst: boolean;
+    isLast: boolean;
+}
+
+// Para manter a consistência e resolver o erro "Cannot find name 'ITimeRecordPageResponse'", 
+// iremos re-exportar ou renomear. Por convenção, usaremos TimeRecordPageResponse.
+export type ITimeRecordPageResponse = TimeRecordPageResponse;
