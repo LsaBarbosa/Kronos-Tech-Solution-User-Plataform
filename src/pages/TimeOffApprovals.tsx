@@ -29,22 +29,32 @@ import { cn } from '../lib/utils';
 import { API_BASE_URL } from '../config/api';
 
 // ---------------------------------------------------------------------
-// --- 1. FUNÇÕES DE UTILIDADE E TIPOS (Mantidas e Aprimoradas)
+// --- 1. FUNÇÕES DE UTILIDADE E TIPOS (Refatorada para DD/MM/YY)
 // ---------------------------------------------------------------------
 
 const formatBackendDate = (dateString: string): string => {
-    // Formata a data de 'YYYY-MM-DD' (assumindo o formato padrão de backend) para 'DD/MM/YY'
-    const parts = dateString.split('-'); 
+    // 1. Pega apenas a parte da data, ignorando o tempo se houver.
+    const dateOnly = dateString.split(' ')[0];
+    
+    // 2. Tenta dividir a string usando qualquer separador comum (/, -, ou .)
+    const parts = dateOnly.split(/[-\/\.]/); 
+
     if (parts.length === 3) {
-        // [Ano, Mês, Dia]
-        const [year, month, day] = parts; 
+        // Verifica a ordem esperada no backend: Ano (index 0), Mês (index 1), Dia (index 2).
+        // Se a ordem for diferente na sua API, ajuste os índices abaixo.
+        
+        const year = parts[2]; 
+        const month = parts[1]; 
+        const day = parts[0]; 
         
         // Obtém os últimos dois dígitos do ano (YY)
-        const shortYear = year.slice(2); 
+        const shortYear = year.slice(-2); 
 
-        // Retorna no formato DD/MM/YY
+        // 3. Retorna no formato CORRETO: DD/MM/YY
         return `${day}/${month}/${shortYear}`; 
     }
+    
+    // Se não conseguir dividir, retorna a string original
     return dateString;
 };
 
@@ -67,7 +77,6 @@ const statusOptions: { value: StatusFilterType, label: string }[] = [
 ];
 
 type StatusFilterType = 'PENDING' | 'APPROVED' | 'REJECTED' | 'ALL';
-// Supondo que ITimeOffRecord é o tipo dos itens no array approvalsData?.records
 type ITimeOffRecord = typeof useTimeOffApprovals extends () => { approvalsData: { records: infer R } | undefined } ? R extends (infer T)[] ? T : never : never;
 
 
@@ -88,7 +97,7 @@ const renderStatusBadge = (status: StatusRecord) => {
 };
 
 // ---------------------------------------------------------------------
-// --- 2. HOOK DE RESPONSIVIDADE (Copiado de PendingApprovals)
+// --- 2. HOOK DE RESPONSIVIDADE (Mantido)
 // ---------------------------------------------------------------------
 
 const useIsDesktop = () => {
@@ -103,7 +112,7 @@ const useIsDesktop = () => {
 
 
 // ---------------------------------------------------------------------
-// --- 3. COMPONENTE DE ITEM RESPONSIVO (Item do Abono)
+// --- 3. COMPONENTE DE ITEM RESPONSIVO (Item do Abono - Mantido)
 // ---------------------------------------------------------------------
 
 const TimeOffApprovalItem: React.FC<ITimeOffRecord & {
@@ -121,7 +130,6 @@ const TimeOffApprovalItem: React.FC<ITimeOffRecord & {
     const isPending = statusRecord === 'TIME_OFF_REQUEST';
     
     // Memoização dos valores
-    // *** AQUI A FUNÇÃO formatBackendDate AGORA RETORNA DD/MM/YY ***
     const formattedStartWork = React.useMemo(() => formatBackendDate(startWork), [startWork]);
     const formattedEndWork = React.useMemo(() => formatBackendDate(endWork), [endWork]);
     const employeeName = employeeData.employeeName;
@@ -141,12 +149,12 @@ const TimeOffApprovalItem: React.FC<ITimeOffRecord & {
                 <TableCell>
                     <div className="flex flex-col">
                         <p className="font-medium text-foreground">
-                            {/* Exibição: DD/MM/YY | HH:mm */}
-                            {formattedStartWork} | {startHour}
+                            {/* Exibição: DD/MM/YY - HH:mm */}
+                            {formattedStartWork} - {startHour}
                         </p>
                         <p className="font-medium text-foreground">
-                            {/* Exibição: DD/MM/YY | HH:mm */}
-                            {formattedEndWork} | {endHour}
+                            {/* Exibição: DD/MM/YY - HH:mm */}
+                            {formattedEndWork} - {endHour}
                         </p>
                     </div>
                 </TableCell>
@@ -224,7 +232,8 @@ const TimeOffApprovalItem: React.FC<ITimeOffRecord & {
                         <CalendarCheck className="h-4 w-4 mr-1" /> De
                     </div>
                     <span className="font-bold text-sm">
-                         {formattedStartWork} | {startHour}
+                         {/* Exibição: DD/MM/YY - HH:mm */}
+                         {formattedStartWork} - {startHour}
                     </span>
                 </div>
 
@@ -234,7 +243,8 @@ const TimeOffApprovalItem: React.FC<ITimeOffRecord & {
                         <CalendarCheck className="h-4 w-4 mr-1" /> Até
                     </div>
                     <span className="font-bold text-sm">
-                         {formattedEndWork} | {endHour}
+                         {/* Exibição: DD/MM/YY - HH:mm */}
+                         {formattedEndWork} - {endHour}
                     </span>
                 </div>
 
@@ -292,7 +302,7 @@ const TimeOffApprovalItem: React.FC<ITimeOffRecord & {
 
 
 // ---------------------------------------------------------------------
-// --- 4. COMPONENTE PRINCIPAL (TimeOffApprovals)
+// --- 4. COMPONENTE PRINCIPAL (TimeOffApprovals - Mantido)
 // ---------------------------------------------------------------------
 const TimeOffApprovals = () => {
     const { 
@@ -525,7 +535,7 @@ const handleDownload = async (documentId?: string, employeeId?: string) => {
         </div>
     );
 
-    // Renderização da estrutura principal (Mantida)
+    // Renderização da estrutura principal (Mantido)
     return (
         <div className="min-h-screen bg-background relative overflow-hidden">
 
