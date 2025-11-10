@@ -135,7 +135,7 @@ export const RelatorioFiltros: React.FC<RelatorioFiltrosProps> = ({
 
 
     return (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <div className="grid mb-6 grid-cols-1 lg:grid-cols-2 gap-8">
 
             {/* CARD 1: SELEÇÃO DE DATAS */}
             <Card className="border-2 border-primary/20 shadow-xl hover:shadow-2xl transition-all duration-300 bg-gradient-to-br from-card via-card to-primary/5">
@@ -242,24 +242,9 @@ export const RelatorioFiltros: React.FC<RelatorioFiltrosProps> = ({
     </div>
 )}
 
-                    {selectedDates.length > 0 && (
-                        <div className="mt-4 p-4 bg-gradient-to-br from-primary/10 to-secondary/10 rounded-xl border-2 border-primary/30 backdrop-blur-sm shadow-md shadow-primary/10">
-                            <h4 className="text-sm font-extrabold text-foreground mb-3 flex items-center gap-2">
-                                <div className="w-2.5 h-2.5 rounded-full bg-primary animate-ping"></div>
-                                Datas Selecionadas ({selectedDates.length})
-                            </h4>
-                            <div className="flex flex-wrap gap-2">
-                                {selectedDates.map((date, index) => (
-                                    <span
-                                        key={index}
-                                        className="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-semibold bg-gradient-to-r from-primary to-primary/80 text-primary-foreground shadow-lg shadow-primary/20 border border-primary/30"
-                                    >
-                                        {format(date, "dd/MM/yyyy", { locale: ptBR })}
-                                    </span>
-                                ))}
-                            </div>
-                        </div>
-                    )}
+                   
+                        
+                  
                 </CardContent>
             </Card>
 
@@ -275,10 +260,7 @@ export const RelatorioFiltros: React.FC<RelatorioFiltrosProps> = ({
                             Parâmetros do Relatório
                         </span>
                     </CardTitle>
-                    <CardDescription className="text-muted-foreground relative z-10 flex items-center gap-2">
-                        <div className="w-1 h-1 rounded-full bg-primary/50"></div>
-                        Configure os filtros para o relatório
-                    </CardDescription>
+                   
                 </CardHeader>
                 <CardContent className="pt-6 space-y-6 relative">
                     <div className="absolute inset-0 opacity-5">
@@ -336,10 +318,10 @@ export const RelatorioFiltros: React.FC<RelatorioFiltrosProps> = ({
                                 <Label htmlFor="reg-inativo" className="text-sm cursor-pointer font-medium">Reprovado</Label>
                             </div>
                         </RadioGroup>
-                        <p className="text-xs text-muted-foreground flex items-center gap-1">
+                        <div className="text-xs text-muted-foreground flex items-center gap-1">
                             <div className="w-1 h-1 rounded-full bg-muted-foreground/50"></div>
                             Incluir registros ativos ou inativos no relatório
-                        </p>
+                        </div>
                     </div>
 
           
@@ -468,10 +450,10 @@ export const RelatorioFiltros: React.FC<RelatorioFiltrosProps> = ({
             />
             <div className="absolute inset-0 rounded-md bg-gradient-to-r from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none border border-transparent group-hover:border-primary/30"></div>
         </div>
-        <p className="text-xs text-muted-foreground flex items-center gap-1">
+        <div className="text-xs text-muted-foreground flex items-center gap-1">
             <div className="w-1 h-1 rounded-full bg-muted-foreground/50"></div>
             Horário de referência para cálculo do relatório
-        </p>
+        </div>
     </div>
 )}
 
@@ -498,10 +480,10 @@ export const RelatorioFiltros: React.FC<RelatorioFiltrosProps> = ({
                                     ))}
                                 </SelectContent>
                             </Select>
-                            <p className="text-xs text-muted-foreground flex items-center gap-1">
+                            <div className="text-xs text-muted-foreground flex items-center gap-1">
                                 <div className="w-1 h-1 rounded-full bg-muted-foreground/50"></div>
                                 Status dos registros a serem filtrados
-                            </p>
+                            </div>
                         </div>
                     )}
                     {/* FIM DA SEÇÃO STATUS DE REGISTRO */}
