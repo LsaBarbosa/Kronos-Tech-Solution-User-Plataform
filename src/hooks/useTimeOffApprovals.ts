@@ -22,7 +22,7 @@ export interface UseTimeOffApprovalsReturn {
     handleToggleSidebar: () => void;
 }
 
-const ROWS_PER_PAGE = 10;
+const ROWS_PER_PAGE = 5;
 const INITIAL_STATUS_FILTER: ITimeOffQueryParams['status'] = 'PENDING';
 
 export const useTimeOffApprovals = (): UseTimeOffApprovalsReturn => {

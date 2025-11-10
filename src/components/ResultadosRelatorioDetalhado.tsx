@@ -35,7 +35,7 @@ export const ResultadosRelatorioDetalhado: React.FC<ResultadosDetalhadoProps> = 
         if (!documentId || !employeeId) {
             toast({
                 title: "Erro de Download",
-                description: "Dados insuficientes para realizar o download (ID do documento/colaborador).",
+                description: "Não há documentos anexados para esse registro.",
                 variant: "destructive"
             });
             return;
