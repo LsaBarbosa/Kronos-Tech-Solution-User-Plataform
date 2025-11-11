@@ -1,4 +1,4 @@
-// src/pages/RelatorioDetalhado.tsx (Atualizado com novo estilo PDF)
+// src/pages/RelatorioDetalhado.tsx (Atualizado com lógica de scroll)
 
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import { useToast } from "@/hooks/use-toast";
@@ -94,6 +94,7 @@ const RelatorioDetalhado = () => {
     const { toast } = useToast();
     const [managers, setManagers] = useState<Manager[]>([]);
     const [isPartner, setIsPartner] = useState(false);
+    const [isLoading, setIsLoading] = useState(false);
 
 
     const statusRegistroTips = (
@@ -259,6 +260,7 @@ const RelatorioDetalhado = () => {
     const handleSearch = async () => {
         setReportDataSimple(null);
         setReportData([]);
+        setIsLoading(true);
 
         try {
             const token = localStorage.getItem("token");
@@ -316,13 +318,19 @@ const RelatorioDetalhado = () => {
                 title: "Busca realizada",
                 description: `Relatório detalhado gerado para as datas: ${datesList}`,
             });
+
+            // NOVO: Redireciona para o topo da tela
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+
         } catch (error) {
             console.error("Erro na busca:", error);
             toast({
                 title: "Erro",
                 description: (error as Error).message || "Ocorreu um erro ao buscar o relatório.",
                 variant: "destructive",
-            });
+          });
+        } finally {
+            setIsLoading(false); // FIM: Desativa o loading
         }
     };
 
@@ -330,6 +338,7 @@ const RelatorioDetalhado = () => {
     const handleSimpleSearch = async () => {
         setReportData([]);
         setReportDataSimple(null);
+        setIsLoading(true);
 
         try {
             const token = localStorage.getItem("token");
@@ -386,15 +395,22 @@ const RelatorioDetalhado = () => {
                 title: "Busca realizada",
                 description: `Relatório simples gerado para as datas: ${datesList}`,
             });
+
+            // NOVO: Redireciona para o topo da tela
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+
         } catch (error) {
             console.error("Erro na busca simples:", error);
             toast({
                 title: "Erro",
                 description: (error as Error).message || "Ocorreu um erro ao buscar o relatório simples.",
                 variant: "destructive",
-            });
+     });
+        } finally {
+            setIsLoading(false); // FIM: Desativa o loading
         }
     };
+
 
     const handleSearchClick = () => {
         if (reportType === "detailed") {
@@ -486,7 +502,7 @@ const handleDownloadPDFDetailed = () => {
             { content: formattedStart, styles: { fontStyle: fontStyle } },
             { content: formattedEnd, styles: { fontStyle: fontStyle } },
             { content: item.hoursWork, styles: { fontStyle: fontStyle } },
-            { content: isBreak ? 'N/A' : item.balance, styles: { fontStyle: fontStyle } },
+            { content: isBreak ? '00:00' : item.balance, styles: { fontStyle: fontStyle } },
             // 🚀 NOVO: Adiciona (FERIADO) ao status
             { content: isItemHoliday ? `${statusLabel} (FERIADO)` : statusLabel, styles: { fontStyle: fontStyle } }    
         ];
@@ -624,7 +640,7 @@ const handleDownloadCSVDetailed = () => {
             item.endWork, // DD-MM-YYYY
             item.endHour,
             item.hoursWork,
-            item.statusRecord === 'IMPLICIT_BREAK' ? 'N/A' : item.balance,
+            item.statusRecord === 'IMPLICIT_BREAK' ? '00:00' : item.balance,
             getTranslatedStatus(item.statusRecord), 
             item.employeeData.employeeName,
             item.employeeData.companyName,
@@ -855,7 +871,7 @@ const handleDownloadCSVSimple = () => {
                         </p>
                     </div>
 
-                    {/* EXIBIÇÃO CONDICIONAL DOS RESULTADOS (MOVIDO PARA O TOPO) */}
+                    {/* EXIBIÇÃO CONDICIONAL DOS RESULTADOS (TOPO) */}
 
                     {/* 1. RELATÓRIO DETALHADO */}
                     {(reportType === "detailed" && reportData.length > 0) && (
@@ -877,7 +893,7 @@ const handleDownloadCSVSimple = () => {
                         />
                     )}
 
-                    {/* FILTROS (MOVIDO PARA BAIXO) */}
+                    {/* FILTROS (BAIXO) */}
                     <RelatorioFiltros
                         selectedDates={selectedDates}
                         setSelectedDates={setSelectedDates}
@@ -904,6 +920,7 @@ const handleDownloadCSVSimple = () => {
                         onDownloadPDF={handleDownloadPDF} // Passa o novo router de PDF
                         onDownloadCSV={handleDownloadCSV} // Passa o novo router de CSV
                         customTips={statusRegistroTips}
+                        isLoading={isLoading}
                     />
 
                     <Card className="border-l-4 border-l-primary shadow-card">

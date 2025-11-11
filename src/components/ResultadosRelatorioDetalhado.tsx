@@ -20,7 +20,7 @@ const ROWS_PER_PAGE = 5;
 
 interface ResultadosDetalhadoProps {
     reportData: DetailedReportItem[];
-    statusFilter: string;
+    statusFilter: string[];
     referenceTime: string;
     selectedDates: Date[];
     onEditRecord: (record: DetailedReportItem) => void;
@@ -178,8 +178,9 @@ export const ResultadosRelatorioDetalhado: React.FC<ResultadosDetalhadoProps> = 
                 yPosition += 7;
             }
 
-            if (statusFilter) {
-                const statusLabel = getTranslatedStatus(statusFilter);
+         if (statusFilter && statusFilter.length > 0) {
+                
+                const statusLabel = statusFilter.map(getTranslatedStatus).join(', '); 
                 doc.text(`Status: ${statusLabel}`, 20, yPosition);
                 yPosition += 7;
             }
@@ -223,7 +224,7 @@ export const ResultadosRelatorioDetalhado: React.FC<ResultadosDetalhadoProps> = 
                     { content: formattedStart, styles: { fillColor: fillColor } },
                     { content: formattedEnd, styles: { fillColor: fillColor } },
                     { content: item.hoursWork, styles: { fillColor: fillColor } },
-                    { content: isBreak ? 'N/A' : item.balance, styles: { fillColor: fillColor } },
+                    { content: isBreak ? '00:00' : item.balance, styles: { fillColor: fillColor } },
                     { content: statusLabel, styles: { fillColor: fillColor } }
                 ];
                 
@@ -281,7 +282,7 @@ export const ResultadosRelatorioDetalhado: React.FC<ResultadosDetalhadoProps> = 
                         const balance = data.cell.text[0];
                         const status = data.row.raw[4].content;
                         
-                        if (status === getTranslatedStatus('IMPLICIT_BREAK') || balance === 'N/A') {
+                        if (status === getTranslatedStatus('IMPLICIT_BREAK') || balance === '00:00') {
                             data.cell.styles.textColor = [0, 0, 0]; 
                             data.cell.styles.fontStyle = 'italic';
                         } else if (balance) {

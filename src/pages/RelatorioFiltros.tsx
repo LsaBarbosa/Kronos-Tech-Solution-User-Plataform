@@ -10,7 +10,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 // 🚀 NOVAS IMPORTAÇÕES PARA O COMBOBOX DE BUSCA
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Command, CommandInput, CommandItem, CommandList, CommandEmpty } from "@/components/ui/command";
-import { Check, CalendarIcon, Search, Download, FileText, CalendarCheck, CalendarX , ChevronDown} from "lucide-react"; 
+import { Check, CalendarIcon, Search, Download, FileText, CalendarCheck, CalendarX , ChevronDown, Loader2} from "lucide-react"; 
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, startOfDay, isSameDay } from "date-fns"; 
 import { ptBR } from "date-fns/locale";
 import { Employee, statusOptions, allHolidays } from "@/utils/report-utils";
@@ -27,8 +27,8 @@ interface RelatorioFiltrosProps {
     setEmployeeActive: React.Dispatch<React.SetStateAction<string>>;
     isActive: boolean;
     setIsActive: React.Dispatch<React.SetStateAction<boolean>>;
-    status: string;
-    setStatus: React.Dispatch<React.SetStateAction<string>>;
+    status: string[];
+    setStatus: React.Dispatch<React.SetStateAction<string[]>>;
     reportType: "detailed" | "simple";
     setReportType: React.Dispatch<React.SetStateAction<"detailed" | "simple">>;
     employees: Employee[];
@@ -38,6 +38,7 @@ interface RelatorioFiltrosProps {
     onDownloadCSV?: () => void;
     hideTips?: boolean;
     customTips?: React.ReactNode
+    isLoading: boolean;
 }
 
 const isHoliday = (date: Date) => {
@@ -67,7 +68,8 @@ export const RelatorioFiltros: React.FC<RelatorioFiltrosProps> = ({
     onDownloadPDF,
     onDownloadCSV,
     hideTips,
-    customTips
+    customTips,
+    isLoading
 }) => {
     const [displayMonth, setDisplayMonth] = React.useState<Date | undefined>(startOfDay(new Date()));
     
@@ -554,11 +556,19 @@ const handleReportTypeChange = (typeValue: string) => {
                             onClick={onSearch}
                             size="lg"
                             className="group w-full font-bold text-lg bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary shadow-xl hover:shadow-primary/40 transition-all duration-300 relative overflow-hidden transform hover:scale-[1.005] hover:translate-y-[-1px]"
-                            disabled={selectedDates.length === 0}
+                            disabled={selectedDates.length === 0 || isLoading}
                         >
                             <div className="absolute inset-0 bg-gradient-to-r from-white/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                            <Search className="mr-2 h-5 w-5 relative z-10" />
-                            <span className="relative z-10">Buscar</span>
+                            {/* Lógica de Carregamento */}
+                            {isLoading ? (
+                                <Loader2 className="mr-2 h-5 w-5 animate-spin relative z-10" /> // NOVO: Spinner
+                            ) : (
+                                <Search className="mr-2 h-5 w-5 relative z-10" />
+                            )}
+                            
+                            <span className="relative z-10">
+                                {isLoading ? "Buscando..." : "Buscar"}
+                            </span>
                         </Button>
 
                         {/* BOTÃO DOWNLOAD PDF (DESTRUCTIVE/ALERTA) */}

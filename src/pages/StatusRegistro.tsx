@@ -26,8 +26,7 @@ import {
     Employee
 } from "@/utils/report-utils"; 
 
-// O nome do componente foi mantido como RelatorioDetalhado para não quebrar a exportação do arquivo original
-// Contudo, ele foi adaptado para a função StatusRegistro.
+// O nome do componente foi mantido como StatusRegistro.
 const StatusRegistro = () => {
     const [sidebarOpen, setSidebarOpen] = useState(false);
     // 💡 ESTADOS DO FILTRO - Compartilhados com RelatorioFiltros
@@ -36,7 +35,8 @@ const StatusRegistro = () => {
     const [selectedEmployee, setSelectedEmployee] = useState("");
     const [employeeActive, setEmployeeActive] = useState("active");
     const [isActive, setIsActive] = useState(true);
-    const [status, setStatus] = useState("CREATED"); // Status inicial fixo ou relevante para edição
+    // 🚀 CORREÇÃO: Status agora é um ARRAY DE STRINGS (string[])
+    const [status, setStatus] = useState<string[]>(["CREATED"]); 
     const [reportType, setReportType] = useState<"detailed" | "simple">("detailed"); // Fixo para Detailed
     
     // ESTADOS DE DADOS
@@ -121,21 +121,27 @@ const StatusRegistro = () => {
             if (response.ok) {
                 const data = await response.json();
                 setEmployees(data.employees || []);
-                if (!employees.some(emp => emp.employeeId === selectedEmployee)) {
+                // 💡 CORREÇÃO: Lógica de verificação de funcionário selecionado
+                if (!employees.some(emp => emp.employeeId === selectedEmployee) && data.employees.length > 0) {
+                    setSelectedEmployee(data.employees[0].employeeId); // Seleciona o primeiro se o atual não for válido
+                } else if (!selectedEmployee && data.employees.length > 0) {
+                    setSelectedEmployee(data.employees[0].employeeId);
+                } else if (!selectedEmployee) {
                     setSelectedEmployee("");
                 }
             }
         } catch (error) {
             console.error("Erro ao buscar funcionários:", error);
         }
-    }, [employeeActive, selectedEmployee]);
+    }, [employeeActive, selectedEmployee, employees]);
 
     // 2. Busca de Registros (Lógica de Search Original)
     const handleSearch = async () => {
-        if (!status) {
+        // 🚀 CORREÇÃO: Verifica se o array de status está vazio
+        if (status.length === 0) {
             toast({
                 title: "Erro",
-                description: "Selecione um status para gerar o relatório.",
+                description: "Selecione pelo menos um status para gerar o relatório.",
                 variant: "destructive"
             });
             return;
@@ -158,7 +164,8 @@ const StatusRegistro = () => {
             const requestBody = {
                 reference: referenceTime,
                 active: isActive,
-                status: status,
+                // 🚀 CORREÇÃO: Envia a lista de status usando a chave 'statuses' (plural)
+                statuses: status, 
                 dates: formattedDates,
             };
 
@@ -418,13 +425,14 @@ const StatusRegistro = () => {
                     <RelatorioFiltros
                         selectedDates={selectedDates}
                         setSelectedDates={setSelectedDates}
-                        
+
                         selectedEmployee={selectedEmployee}
                         setSelectedEmployee={setSelectedEmployee}
                         employeeActive={employeeActive}
                         setEmployeeActive={setEmployeeActive}
                         isActive={isActive}
                         setIsActive={setIsActive}
+                        // 🚀 CORRETO: Passando o array de status
                         status={status}
                         setStatus={setStatus}
                         reportType={reportType}
@@ -432,14 +440,15 @@ const StatusRegistro = () => {
                         employees={employees}
                         isPartner={isPartner}
                         onSearch={handleSearch}
-                        customTips={statusRegistroTips}
-                        
+                        customTips={statusRegistroTips} isLoading={false}                        // Nota: A prop isLoading deve ser adicionada se o RelatorioFiltros a usar.
+                        // Aqui está omitida, assumindo que a tela StatusRegistro não mostra loading no botão.
                     />
 
                     {/* 💡 INTEGRAÇÃO: Utiliza o componente de resultados modular */}
                     {reportData.length > 0 && (
                         <ResultadosRelatorioDetalhado
                             reportData={reportData}
+                            // 🚀 CORRETO: Passando o array de status
                             statusFilter={status}
                             referenceTime={referenceTime}
                             selectedDates={selectedDates}
@@ -541,6 +550,4 @@ const StatusRegistro = () => {
         </div>
     );
 };
-
-// 💡 CORREÇÃO FINAL: Exporta com o nome do arquivo, como padrão em TSX
 export default StatusRegistro;
