@@ -5,13 +5,12 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 
 // 🚀 NOVAS IMPORTAÇÕES PARA O COMBOBOX DE BUSCA
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Command, CommandInput, CommandItem, CommandList, CommandEmpty } from "@/components/ui/command";
-import { Check, CalendarIcon, Search, Download, FileText, CalendarCheck, CalendarX } from "lucide-react"; 
+import { Check, CalendarIcon, Search, Download, FileText, CalendarCheck, CalendarX , ChevronDown} from "lucide-react"; 
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, startOfDay, isSameDay } from "date-fns"; 
 import { ptBR } from "date-fns/locale";
 import { Employee, statusOptions, allHolidays } from "@/utils/report-utils";
@@ -72,8 +71,8 @@ export const RelatorioFiltros: React.FC<RelatorioFiltrosProps> = ({
 }) => {
     const [displayMonth, setDisplayMonth] = React.useState<Date | undefined>(startOfDay(new Date()));
     
-    // 🚀 NOVO ESTADO: Controla a abertura/fechamento do Combobox (Popover)
-    const [open, setOpen] = React.useState(false); 
+   const [open, setOpen] = React.useState(false); 
+   const [openStatus, setOpenStatus] = React.useState(false);
 
     const handleDateSelect = (days: Date[] | undefined) => {
         setSelectedDates(days || []);
@@ -121,17 +120,40 @@ export const RelatorioFiltros: React.FC<RelatorioFiltrosProps> = ({
             setSelectedDates(uniqueDates);
         }
     };
-
-    const handleReportTypeChange = (typeValue: string) => {
+const handleReportTypeChange = (typeValue: string) => {
         const type: "detailed" | "simple" = typeValue as "detailed" | "simple";
         if (reportType !== type) {
             setReportType(type);
             // Ao mudar para Simples, o status deve ser resetado/ignorado
             if (type === "simple") {
-                setStatus("");
+                setStatus([]); // ALTERADO: de setStatus("") para setStatus([])
             }
         }
     };
+    
+    // NOVA FUNÇÃO: Lida com a mudança de estado dos checkboxes de status
+    const handleStatusChange = (value: string, checked: boolean) => {
+        setStatus((prevStatus) => {
+            if (checked) {
+                // Adiciona o valor se ele ainda não estiver presente
+                return Array.from(new Set([...prevStatus, value]));
+            } else {
+                // Remove o valor
+                return prevStatus.filter((s) => s !== value);
+            }
+        });
+    };
+
+    // FUNÇÃO AUXILIAR: Retorna o label amigável para exibição
+    const getStatusLabel = (value: string) => {
+        const option = statusOptions.find(opt => opt.value === value);
+        return option ? option.label : value;
+    };
+    
+    // Texto de exibição do Popover Trigger
+    const displayStatusText = status.length > 0
+        ? status.map(getStatusLabel).join(', ')
+        : 'Todos os status';
 
 
     return (
@@ -458,28 +480,63 @@ export const RelatorioFiltros: React.FC<RelatorioFiltrosProps> = ({
 )}
 
                     {/* SEÇÃO STATUS DE REGISTRO (VISÍVEL SOMENTE SE reportType === "detailed") */}
-                    {reportType === "detailed" && (
+                   {reportType === "detailed" && (
                         <div className="space-y-3 relative">
                             <Label className="text-sm font-semibold text-foreground flex items-center gap-2">
                                 <div className="w-1.5 h-1.5 rounded-full bg-primary"></div>
                                 Status
                             </Label>
-                            <Select value={status} onValueChange={setStatus}>
-                                <SelectTrigger className="focus:border-primary focus:ring-2 focus:ring-primary/40 border-primary/30 bg-background hover:border-primary/50 transition-all duration-200 shadow-sm">
-                                    <SelectValue placeholder="Todos os status" />
-                                </SelectTrigger>
-                                <SelectContent className="border-primary/20">
-                                    {statusOptions.map((option) => (
-                                        <SelectItem
-                                            key={option.value}
-                                            value={option.value}
-                                            className="hover:bg-primary/10 focus:bg-primary/10 hover:text-foreground focus:text-foreground transition-colors duration-150"
+                            
+                            {/* SUBSTITUIÇÃO: <Select> por Popover com Checkboxes */}
+                            <Popover open={openStatus} onOpenChange={setOpenStatus}>
+                                <PopoverTrigger asChild>
+                                    <Button
+                                        variant="outline"
+                                        role="combobox"
+                                        aria-expanded={openStatus}
+                                        className="w-full justify-between focus:ring-2 focus:ring-primary/40 border-primary/30 bg-background hover:border-primary/50 transition-all duration-200 shadow-sm min-h-10 text-left items-center"
+                                    >
+                                        <span className="truncate pr-2">
+                                            {displayStatusText}
+                                        </span>
+                                        <ChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                                    </Button>
+                                </PopoverTrigger>
+                                
+                                <PopoverContent className="w-[--radix-popover-trigger-width] p-0" align="start">
+                                    <div className="max-h-60 overflow-y-auto p-2 space-y-1">
+                                        {/* Opção padrão: Limpar todos */}
+                                        <div 
+                                            className="flex items-center space-x-2 p-2 rounded-md hover:bg-primary/10 cursor-pointer transition-colors"
+                                            onClick={() => {
+                                                setStatus([]);
+                                                setOpenStatus(false);
+                                            }}
                                         >
-                                            {option.label}
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
+                                            <FileText className="h-4 w-4 opacity-50 text-destructive" />
+                                            <Label className="text-sm font-medium text-destructive cursor-pointer">Limpar seleção (Todos)</Label>
+                                        </div>
+                                        
+                                        {/* Mapeia as opções de status */}
+                                        {statusOptions.map((option) => (
+                                            <div key={option.value} className="flex items-center space-x-2 p-2 rounded-md hover:bg-primary/10 transition-colors">
+                                                <Checkbox
+                                                    id={`status-${option.value}`}
+                                                    checked={status.includes(option.value)}
+                                                    onCheckedChange={(checked: boolean | "indeterminate") => 
+                                                        handleStatusChange(option.value, checked === true)
+                                                    }
+                                                />
+                                                <Label htmlFor={`status-${option.value}`} className="cursor-pointer text-sm font-medium">
+                                                    {option.label}
+                                                </Label>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </PopoverContent>
+                            </Popover>
+                            {/* FIM DA SUBSTITUIÇÃO */}
+
                             <div className="text-xs text-muted-foreground flex items-center gap-1">
                                 <div className="w-1 h-1 rounded-full bg-muted-foreground/50"></div>
                                 Status dos registros a serem filtrados

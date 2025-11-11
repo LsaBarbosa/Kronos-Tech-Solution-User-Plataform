@@ -84,7 +84,7 @@ const RelatorioDetalhado = () => {
     const [selectedEmployee, setSelectedEmployee] = useState("");
     const [employeeActive, setEmployeeActive] = useState("active");
     const [isActive, setIsActive] = useState(true);
-    const [status, setStatus] = useState("");
+    const [status, setStatus] = useState<string[]>([]); // CORRIGIDO: Tipo alterado para string[]
     const [reportType, setReportType] = useState<"detailed" | "simple">("detailed");
     const [reportData, setReportData] = useState<DetailedReportItem[]>([]);
     const [reportDataSimple, setReportDataSimple] = useState<ReportDataSimple | null>(null);
@@ -272,7 +272,7 @@ const RelatorioDetalhado = () => {
                 reference: referenceTime,
                 active: isActive,
                 dates: formattedDates,
-                ...(status && { status: status }),
+                ...(status.length > 0 && { statuses: status }),
             };
 
             const apiUrl = new URL(`${API_BASE_URL}records/report`, window.location.origin);
@@ -873,7 +873,7 @@ const handleDownloadCSVSimple = () => {
                             setReportType(type);
                             setReportData([]);
                             setReportDataSimple(null);
-                            if (type === "simple") setStatus("");
+                            if (type === "simple") setStatus([]);
                         }}
                         employees={employees}
                         isPartner={isPartner}
