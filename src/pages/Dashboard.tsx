@@ -52,7 +52,10 @@ const getFirstName = (fullName: string | undefined): string => {
     if (!fullName) return "Usuário";
     return fullName.trim().split(/\s+/)[0];
 };
-
+const getSecondName = (fullName: string | undefined): string => {
+    if (!fullName) return "Usuário";
+    return fullName.trim().split(/\s+/)[1];
+};
 
 const Dashboard = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -230,7 +233,7 @@ const Dashboard = () => {
           <div className="max-w-6xl mx-auto">
             
             {/* SAUDAÇÃO PERSONALIZADA */}
-            <h1 className="text-3xl font-bold text-foreground mb-1">
+            <h1 className="text-3xl font-bold text-foreground mt-4 mb-1">
                 Olá, {isLoading ? "..." : getFirstName(userData?.fullName) || "Usuário"}!
             </h1>
             <p className="text-lg text-muted-foreground mb-6">
@@ -263,6 +266,7 @@ const Dashboard = () => {
                                     <div className="flex-1 min-w-0">
                                         {/* APLICAÇÃO DO FILTRO DE NOME */}
                                         <h2 className="text-xl font-bold text-foreground line-clamp-1">{getFirstName(userData?.fullName)}</h2>
+                                         <h2 className="text-xl font-bold text-foreground line-clamp-1">{getSecondName(userData?.fullName)}</h2>
                                         
                                         <p className="text-sm font-semibold text-foreground/80">
                                             {userData?.jobPosition || "N/A"} 

@@ -204,7 +204,7 @@ export function RequestTimeOff() {
                                       )}
                                     >
                                       {formState.startDate ? (
-                                        format(formState.startDate, "PPP", {
+                                        format(formState.startDate, "dd MMM yyyy", { // Alterado o formato para "dd MMM yyyy"
                                           locale: ptBR,
                                         })
                                       ) : (
@@ -257,7 +257,7 @@ export function RequestTimeOff() {
                                       )}
                                     >
                                       {formState.endDate ? (
-                                        format(formState.endDate, "PPP", {
+                                        format(formState.startDate, "dd MMM yyyy", {  
                                           locale: ptBR,
                                         })
                                       ) : (
