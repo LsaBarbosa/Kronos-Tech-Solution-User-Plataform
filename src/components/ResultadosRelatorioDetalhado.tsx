@@ -37,8 +37,9 @@ export const ResultadosRelatorioDetalhado: React.FC<ResultadosDetalhadoProps> = 
 
     // --- PAGINAÇÃO E SCROLL CONTROL ---
     const [currentPage, setCurrentPage] = useState(0);
-    // Referência para o Card principal (usada para o scroll)
     const resultsRef = useRef<HTMLDivElement>(null); 
+    const cardHeaderRef = useRef<HTMLDivElement>(null); // NOVO: Referência para o CardHeader
+    const isInitialMount = useRef(true); 
     // --- FIM PAGINAÇÃO E SCROLL CONTROL ---
 
     // --- CÁLCULOS DE PAGINAÇÃO (Memorizados) ---
@@ -325,25 +326,32 @@ export const ResultadosRelatorioDetalhado: React.FC<ResultadosDetalhadoProps> = 
         }
     };
 
-    // --- EFEITO DE CORREÇÃO DE SCROLL (Adicionado para impedir o salto) ---
+    // --- EFEITO DE CORREÇÃO DE SCROLL (Aprimorado para a Paginação) ---
     useEffect(() => {
-        // Verifica se a referência está anexada a um elemento
-        if (resultsRef.current) {
-            // Garante que o scroll só ocorra após a primeira página para evitar o salto inicial
-            if (currentPage !== 0) { 
-                resultsRef.current.scrollIntoView({ 
-                    behavior: 'smooth', 
-                    block: 'start'      
-                });
-            }
+        // 1. Na montagem inicial, apenas marca a flag e retorna.
+        if (isInitialMount.current) {
+            isInitialMount.current = false;
+            return;
+        }
+
+        // 2. Em qualquer mudança de página subsequente:
+        if (cardHeaderRef.current) { // ALTERADO: Usa cardHeaderRef
+            // Rola até o topo do Card Header. O block: 'start' garante que o título fique visível.
+            cardHeaderRef.current.scrollIntoView({ 
+                behavior: 'smooth', 
+                block: 'start'      
+            });
         }
     }, [currentPage]);
     // --- FIM EFEITO DE CORREÇÃO DE SCROLL ---
 
     return (
-       // O componente Card agora usa a referência (ref={resultsRef}) para o controle de scroll
+       // O componente Card continua com a ref principal, mas o scroll mira no CardHeader
        <Card className="shadow-card border-t-4 border-t-primary mb-8" ref={resultsRef}>
-            <CardHeader className="flex flex-row justify-between items-center">
+            <CardHeader 
+                className="flex flex-row justify-between items-center" 
+                ref={cardHeaderRef} // ADICIONADO: Ref no CardHeader para mira do scroll
+            >
                 <div>
                     <CardTitle>Resultados do Relatório Detalhado</CardTitle>
                     {/* A descrição agora reflete a página e o total de registros */}

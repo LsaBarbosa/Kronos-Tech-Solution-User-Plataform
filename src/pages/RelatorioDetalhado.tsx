@@ -84,7 +84,7 @@ const RelatorioDetalhado = () => {
     const [selectedEmployee, setSelectedEmployee] = useState("");
     const [employeeActive, setEmployeeActive] = useState("active");
     const [isActive, setIsActive] = useState(true);
-    const [status, setStatus] = useState<string[]>([]); // CORRIGIDO: Tipo alterado para string[]
+    const [status, setStatus] = useState<string[]>([]);
     const [reportType, setReportType] = useState<"detailed" | "simple">("detailed");
     const [reportData, setReportData] = useState<DetailedReportItem[]>([]);
     const [reportDataSimple, setReportDataSimple] = useState<ReportDataSimple | null>(null);
@@ -855,6 +855,29 @@ const handleDownloadCSVSimple = () => {
                         </p>
                     </div>
 
+                    {/* EXIBIÇÃO CONDICIONAL DOS RESULTADOS (MOVIDO PARA O TOPO) */}
+
+                    {/* 1. RELATÓRIO DETALHADO */}
+                    {(reportType === "detailed" && reportData.length > 0) && (
+                        <ResultadosRelatorioDetalhado
+                            reportData={reportData}
+                            statusFilter={status}
+                            referenceTime={referenceTime}
+                            selectedDates={selectedDates}
+                            onEditRecord={handleEditRecord}
+                        />
+                    )}
+
+                    {/* 2. RELATÓRIO SIMPLES */}
+                    {(reportType === "simple" && reportDataSimple && reportDataSimple.days.length > 0) && (
+                        <ResultadosRelatorioSimples
+                            reportDataSimple={reportDataSimple}
+                            referenceTime={referenceTime}
+                            selectedDates={selectedDates}
+                        />
+                    )}
+
+                    {/* FILTROS (MOVIDO PARA BAIXO) */}
                     <RelatorioFiltros
                         selectedDates={selectedDates}
                         setSelectedDates={setSelectedDates}
@@ -882,28 +905,6 @@ const handleDownloadCSVSimple = () => {
                         onDownloadCSV={handleDownloadCSV} // Passa o novo router de CSV
                         customTips={statusRegistroTips}
                     />
-
-                    {/* EXIBIÇÃO CONDICIONAL DOS RESULTADOS */}
-
-                    {/* 1. RELATÓRIO DETALHADO */}
-                    {(reportType === "detailed" && reportData.length > 0) && (
-                        <ResultadosRelatorioDetalhado
-                            reportData={reportData}
-                            statusFilter={status}
-                            referenceTime={referenceTime}
-                            selectedDates={selectedDates}
-                            onEditRecord={handleEditRecord}
-                        />
-                    )}
-
-                    {/* 2. RELATÓRIO SIMPLES */}
-                    {(reportType === "simple" && reportDataSimple && reportDataSimple.days.length > 0) && (
-                        <ResultadosRelatorioSimples
-                            reportDataSimple={reportDataSimple}
-                            referenceTime={referenceTime}
-                            selectedDates={selectedDates}
-                        />
-                    )}
 
                     <Card className="border-l-4 border-l-primary shadow-card">
                         <RegistroEdicaoModal
