@@ -8,7 +8,8 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { useToast } from "@/hooks/use-toast";
 import Header from "@/components/Header";
 import Sidebar from "@/components/Sidebar";
-import { Info, Save, ZapOff } from "lucide-react"; 
+// 🚀 ADICIONADO Loader2 para o spinner
+import { Info, Save, ZapOff, Loader2 } from "lucide-react"; 
 import { API_BASE_URL } from "@/config/api";
 
 // 💡 NOVO: Componente de Filtros Modular
@@ -42,7 +43,12 @@ const StatusRegistro = () => {
     const [reportData, setReportData] = useState<DetailedReportItem[]>([]);
     const [employees, setEmployees] = useState<Employee[]>([]);
     const [isPartner, setIsPartner] = useState(false);
-    const [isLoading, setIsLoading] = useState(false); // 🚀 ESTADO DE LOADING
+    
+    // 🚀 NOVOS ESTADOS DE LOADING
+    const [isLoading, setIsLoading] = useState(false); // Para o botão Buscar
+    const [isSavingStatus, setIsSavingStatus] = useState(false); // Para o botão Salvar Status
+    const [isTogglingActivate, setIsTogglingActivate] = useState(false); // Para o botão Inativar/Ativar
+
     const { toast } = useToast();
 
     // ESTADOS DO MODAL DE EDIÇÃO DE STATUS (Ação Principal da Página)
@@ -245,7 +251,7 @@ const StatusRegistro = () => {
             return;
         }
         
-        // 🚀 NÃO USA LOADING AQUI, POIS handleSearch VAI GERENCIAR O LOADING DA TELA.
+        setIsSavingStatus(true); // 🚀 ATIVA O LOADING DO BOTÃO SALVAR
         
         try {
             const token = localStorage.getItem("token");
@@ -288,6 +294,8 @@ const StatusRegistro = () => {
                 description: error.message || "Ocorreu um erro ao salvar o status.",
                 variant: "destructive",
             });
+        } finally {
+            setIsSavingStatus(false); // 🚀 DESATIVA O LOADING DO BOTÃO SALVAR
         }
     }
 
@@ -305,6 +313,8 @@ const StatusRegistro = () => {
             });
             return;
         }
+        
+        setIsTogglingActivate(true); // 🚀 ATIVA O LOADING DO BOTÃO TOGGLE
 
         try {
             const token = localStorage.getItem("token");
@@ -345,6 +355,8 @@ const StatusRegistro = () => {
                 description: error.message || `Ocorreu um erro ao ${currentAction.toLowerCase()} o registro.`,
                 variant: "destructive",
             });
+        } finally {
+            setIsTogglingActivate(false); // 🚀 DESATIVA O LOADING DO BOTÃO TOGGLE
         }
     }
 
@@ -518,12 +530,16 @@ const StatusRegistro = () => {
                 type="button"
                 variant="destructive"
                 onClick={handleToggleActivateRecord}
-                disabled={!statusUpdate.timeRecordId || !statusUpdate.employeeId}
-                // Garante que o botão ocupe 100% da largura no celular
+                disabled={!statusUpdate.timeRecordId || !statusUpdate.employeeId || isTogglingActivate} // 🚀 Desabilita se estiver carregando
                 className="w-full sm:w-auto" 
             >
-                <ZapOff className="h-4 w-4 mr-2" />
-                {selectedRecord?.active ? "Inativar Registro" : "Ativar Registro"}
+                {isTogglingActivate ? ( // 🚀 MOSTRA SPINNER
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                ) : (
+                    <ZapOff className="h-4 w-4 mr-2" />
+                )}
+                
+                {isTogglingActivate ? "Aguarde..." : selectedRecord?.active ? "Inativar Registro" : "Ativar Registro"}
             </Button>
             
             {/* Botões de Cancelar/Salvar Status (lado direito) */}
@@ -539,10 +555,15 @@ const StatusRegistro = () => {
                     type="button"
                     onClick={handleUpdateStatus}
                     className="bg-primary hover:bg-primary/90"
-                    disabled={!statusUpdate.timeRecordId || !statusUpdate.employeeId || !statusUpdate.statusRecord}
+                    disabled={!statusUpdate.timeRecordId || !statusUpdate.employeeId || !statusUpdate.statusRecord || isSavingStatus} // 🚀 Desabilita se estiver carregando
                 >
-                    <Save className="h-4 w-4 mr-2" />
-                    Salvar Status
+                    {isSavingStatus ? ( // 🚀 MOSTRA SPINNER
+                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    ) : (
+                        <Save className="h-4 w-4 mr-2" />
+                    )}
+                    
+                    {isSavingStatus ? "Salvando..." : "Salvar Status"}
                 </Button>
             </div>
         </div>
