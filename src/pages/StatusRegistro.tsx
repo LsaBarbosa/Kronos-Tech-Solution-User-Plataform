@@ -8,7 +8,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { useToast } from "@/hooks/use-toast";
 import Header from "@/components/Header";
 import Sidebar from "@/components/Sidebar";
-import { Info, Save, ZapOff } from "lucide-react"; // 💡 ALTERADO: Adicionado ZapOff
+import { Info, Save, ZapOff } from "lucide-react"; 
 import { API_BASE_URL } from "@/config/api";
 
 // 💡 NOVO: Componente de Filtros Modular
@@ -16,7 +16,7 @@ import { RelatorioFiltros } from "@/pages/RelatorioFiltros";
 // 💡 NOVO: Componente de Resultados Modular (Reutilizando a lógica do Relatório Detalhado)
 import { ResultadosRelatorioDetalhado } from "@/components/ResultadosRelatorioDetalhado"; 
 
-// 💡 NOVO: Importando utilitários centralizados para evitar duplicação e melhorar o uso do date-fns
+// 💡 NOVO: Importando utilitários centralizados
 import { 
     decodeToken, 
     statusOptions, 
@@ -35,14 +35,14 @@ const StatusRegistro = () => {
     const [selectedEmployee, setSelectedEmployee] = useState("");
     const [employeeActive, setEmployeeActive] = useState("active");
     const [isActive, setIsActive] = useState(true);
-    // 🚀 CORREÇÃO: Status agora é um ARRAY DE STRINGS (string[])
     const [status, setStatus] = useState<string[]>(["CREATED"]); 
-    const [reportType, setReportType] = useState<"detailed" | "simple">("detailed"); // Fixo para Detailed
+    const [reportType, setReportType] = useState<"detailed" | "simple">("detailed"); 
     
     // ESTADOS DE DADOS
     const [reportData, setReportData] = useState<DetailedReportItem[]>([]);
     const [employees, setEmployees] = useState<Employee[]>([]);
     const [isPartner, setIsPartner] = useState(false);
+    const [isLoading, setIsLoading] = useState(false); // 🚀 ESTADO DE LOADING
     const { toast } = useToast();
 
     // ESTADOS DO MODAL DE EDIÇÃO DE STATUS (Ação Principal da Página)
@@ -88,7 +88,6 @@ const StatusRegistro = () => {
    
     // 1. Busca de Funcionários (Mantida e reutilizada)
     const fetchEmployees = useCallback(async () => {
-        // ... (Lógica fetchEmployees igual à original) ...
         try {
             const token = localStorage.getItem("token");
             if (!token) return;
@@ -123,7 +122,7 @@ const StatusRegistro = () => {
                 setEmployees(data.employees || []);
                 // 💡 CORREÇÃO: Lógica de verificação de funcionário selecionado
                 if (!employees.some(emp => emp.employeeId === selectedEmployee) && data.employees.length > 0) {
-                    setSelectedEmployee(data.employees[0].employeeId); // Seleciona o primeiro se o atual não for válido
+                    setSelectedEmployee(data.employees[0].employeeId); 
                 } else if (!selectedEmployee && data.employees.length > 0) {
                     setSelectedEmployee(data.employees[0].employeeId);
                 } else if (!selectedEmployee) {
@@ -137,7 +136,6 @@ const StatusRegistro = () => {
 
     // 2. Busca de Registros (Lógica de Search Original)
     const handleSearch = async () => {
-        // 🚀 CORREÇÃO: Verifica se o array de status está vazio
         if (status.length === 0) {
             toast({
                 title: "Erro",
@@ -146,6 +144,8 @@ const StatusRegistro = () => {
             });
             return;
         }
+
+        setIsLoading(true); // 🚀 ATIVA O LOADING NO INÍCIO DA BUSCA
 
         try {
             const token = localStorage.getItem("token");
@@ -201,6 +201,8 @@ const StatusRegistro = () => {
             }
 
             setReportData(data);
+            window.scrollTo({ top: 0, behavior: 'smooth' }); // 🚀 SCROLL PARA O TOPO APÓS SUCESSO
+
         } catch (error: any) {
             console.error("Erro na busca:", error);
             toast({
@@ -208,6 +210,8 @@ const StatusRegistro = () => {
                 description: error.message || "Ocorreu um erro ao buscar o relatório.",
                 variant: "destructive",
             });
+        } finally {
+            setIsLoading(false); // 🚀 DESATIVA O LOADING NO FINAL
         }
     };
 
@@ -240,7 +244,9 @@ const StatusRegistro = () => {
             toast({ title: "Erro", description: "Dados de registro incompletos. Verifique se um funcionário foi selecionado no filtro.", variant: "destructive" });
             return;
         }
-
+        
+        // 🚀 NÃO USA LOADING AQUI, POIS handleSearch VAI GERENCIAR O LOADING DA TELA.
+        
         try {
             const token = localStorage.getItem("token");
             if (!token) {
@@ -272,8 +278,8 @@ const StatusRegistro = () => {
             setEditModalOpen(false);
             setStatusUpdate({ timeRecordId: "", employeeId: "", statusRecord: "" });
 
-            // Recarrega os dados para mostrar o status atualizado
-            handleSearch();
+            // Recarrega os dados para mostrar o status atualizado e ROLA PARA O TOPO
+            await handleSearch();
 
         } catch (error: any) {
             console.error("Erro ao atualizar status:", error);
@@ -329,8 +335,8 @@ const StatusRegistro = () => {
 
             setEditModalOpen(false);
             
-            // Recarrega os dados para mostrar o status atualizado
-            handleSearch();
+            // Recarrega os dados para mostrar o status atualizado e ROLA PARA O TOPO
+            await handleSearch();
 
         } catch (error: any) {
             console.error(`Erro ao ${currentAction.toLowerCase()} registro:`, error);
@@ -420,19 +426,28 @@ const StatusRegistro = () => {
                         </p>
                     </div>
                     
-
-                    {/* 💡 INTEGRAÇÃO: Utiliza o componente de filtros modular */}
+                    {/* 💡 INTEGRAÇÃO: Utiliza o componente de resultados modular (TOPO) */}
+                    {reportData.length > 0 && (
+                        <ResultadosRelatorioDetalhado
+                            reportData={reportData}
+                            statusFilter={status}
+                            referenceTime={referenceTime}
+                            selectedDates={selectedDates}
+                            onEditRecord={handleEditRecord} // Passa a função de abrir o modal
+                        />
+                    )}
+                    
+                    {/* 💡 INTEGRAÇÃO: Utiliza o componente de filtros modular (BAIXO) */}
                     <RelatorioFiltros
                         selectedDates={selectedDates}
                         setSelectedDates={setSelectedDates}
-
+                        
                         selectedEmployee={selectedEmployee}
                         setSelectedEmployee={setSelectedEmployee}
                         employeeActive={employeeActive}
                         setEmployeeActive={setEmployeeActive}
                         isActive={isActive}
                         setIsActive={setIsActive}
-                        // 🚀 CORRETO: Passando o array de status
                         status={status}
                         setStatus={setStatus}
                         reportType={reportType}
@@ -440,21 +455,10 @@ const StatusRegistro = () => {
                         employees={employees}
                         isPartner={isPartner}
                         onSearch={handleSearch}
-                        customTips={statusRegistroTips} isLoading={false}                        // Nota: A prop isLoading deve ser adicionada se o RelatorioFiltros a usar.
-                        // Aqui está omitida, assumindo que a tela StatusRegistro não mostra loading no botão.
+                        customTips={statusRegistroTips}
+                        isLoading={isLoading} // 🚀 PASSANDO O ESTADO DE LOADING
                     />
 
-                    {/* 💡 INTEGRAÇÃO: Utiliza o componente de resultados modular */}
-                    {reportData.length > 0 && (
-                        <ResultadosRelatorioDetalhado
-                            reportData={reportData}
-                            // 🚀 CORRETO: Passando o array de status
-                            statusFilter={status}
-                            referenceTime={referenceTime}
-                            selectedDates={selectedDates}
-                            onEditRecord={handleEditRecord} // Passa a função de abrir o modal
-                        />
-                    )}
                     
                     {/* MODAL DE EDIÇÃO DE STATUS (Originalmente mantido) */}
                     <Dialog open={editModalOpen} onOpenChange={setEditModalOpen}>
