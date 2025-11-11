@@ -126,9 +126,8 @@ const handleReportTypeChange = (typeValue: string) => {
         const type: "detailed" | "simple" = typeValue as "detailed" | "simple";
         if (reportType !== type) {
             setReportType(type);
-            // Ao mudar para Simples, o status deve ser resetado/ignorado
-            if (type === "simple") {
-                setStatus([]); // ALTERADO: de setStatus("") para setStatus([])
+             if (type === "simple") {
+                setStatus([]);  
             }
         }
     };
