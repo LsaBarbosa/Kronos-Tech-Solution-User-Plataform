@@ -178,7 +178,7 @@ const LoginForm = () => {
               onClick={() => navigate("/esqueci-a-senha")} // Chama a nova rota
               className="text-sm text-gray-text hover:text-primary transition-smooth"
             >
-              Esqueci a senha
+              Primeiro Acesso / Recuperar senha
             </Button>
           </div>
         </CardContent>

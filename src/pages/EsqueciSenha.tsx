@@ -26,7 +26,7 @@ const EsqueciSenha = () => {
       <Card className="w-full max-w-md shadow-2xl">
         <CardHeader className="text-center">
           <CardTitle className="text-2xl font-bold flex items-center justify-center gap-2 text-primary">
-            <Lock className="h-6 w-6" /> Recuperar Senha
+            <Lock className="h-6 w-6" /> Solicitar Senha
           </CardTitle>
           <CardContent className="pt-2 text-muted-foreground">
             {isSuccess ? 
@@ -112,7 +112,7 @@ const EsqueciSenha = () => {
                       Enviando solicitação...
                     </>
                   ) : (
-                    "Solicitar Recuperação"
+                    "Solicitar Senha"
                   )}
                 </Button>
               </form>
