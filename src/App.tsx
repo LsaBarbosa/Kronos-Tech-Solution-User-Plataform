@@ -37,7 +37,7 @@ import VacationApprovals from "./pages/VacationApprovals";
 import RequestVacation from "./pages/RequestVacation";
 import TimeOffApprovals from "./pages/TimeOffApprovals";
 import RequestTimeOff from "./pages/RequestTimeOff";
- 
+  
 const queryClient = new QueryClient();
 
 const App = () => (
@@ -76,7 +76,7 @@ const App = () => (
               <Route path="/criar-administrador" element={<CriarManager />} />
               <Route path="/lista-colaboradores" element={<ListaColaboradores />} />
               <Route path="/lista-usuarios" element={<ListaUsuarios />} />
-              <Route path="/relatorio-horas" element={<RelatorioHoras />} />
+               <Route path="/relatorio-horas" element={<RelatorioHoras />} />
               <Route path="/apuracao-horas" element={<PendingApprovals />} />
               <Route path="/status-do-registro" element={<StatusRegistro />} />
               <Route path="/avisos" element={<Avisos />} />
