@@ -499,11 +499,8 @@ const CriarColaborador = () => {
                 <div className="w-full max-w-2xl">
                     <div className="mb-8 text-center">
                         <h1 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-foreground to-primary bg-clip-text text-transparent page-title">
-                            Criar Colaborador
+                            Criar Novo Administrador
                         </h1>
-                        <p className="text-muted-foreground">
-                            Passo **{stepCompleted ? 2 : 1}** de 2: **{stepCompleted ? "Credenciais de Acesso" : "Dados Pessoais e Profissionais"}**
-                        </p>
                     </div>
 
                     <Form {...form}>
