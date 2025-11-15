@@ -175,7 +175,7 @@ const LoginForm = () => {
           <div className="text-center">
             <Button
               variant="link" // Usa o estilo de link, mas com a semântica de botão
-              onClick={() => navigate("/esqueci-a-senha")} // Chama a nova rota
+              onClick={() => navigate("/senha-primeiro-acesso")} // Chama a nova rota
               className="text-sm text-gray-text hover:text-primary transition-smooth"
             >
               Primeiro acesso/ Recuperar senha
