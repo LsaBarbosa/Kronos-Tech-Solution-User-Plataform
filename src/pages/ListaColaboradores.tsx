@@ -85,6 +85,7 @@ const ListaColaboradores = () => {
   const [colaboradores, setColaboradores] = useState<CombinedColaborator[]>([]);
   const handleToggleSidebar = useCallback(() => setSidebarOpen((prev) => !prev), []);
   const [isLoading, setIsLoading] = useState(true);
+  const [faceImageFile, setFaceImageFile] = useState<File | null>(null);
   const [filters, setFilters] = useState({
     nome: "",
     cpf: "",
@@ -165,6 +166,39 @@ const ListaColaboradores = () => {
     }
   };
 
+  // NOVO: Função para lidar com a alteração do input de arquivo
+const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+  const file = event.target.files?.[0];
+  if (file) {
+    if (!file.type.startsWith('image/')) {
+        toast({
+            title: "Erro de arquivo",
+            description: "Por favor, selecione um arquivo de imagem válido (JPEG, PNG, etc).",
+            variant: "destructive",
+        });
+        setFaceImageFile(null);
+        event.target.value = '';
+        return;
+    }
+    setFaceImageFile(file);
+  } else {
+      setFaceImageFile(null);
+  }
+};
+  // NOVO: Função para converter File para Base64 (adicione antes do componente ou dentro dele)
+  const fileToBase64 = (file: File): Promise<string> => {
+    return new Promise((resolve, reject) => {
+      const reader = new FileReader();
+      reader.readAsDataURL(file);
+      reader.onload = () => {
+        // Remove o prefixo 'data:image/jpeg;base64,' e envia apenas o Base64 puro
+        const base64String = (reader.result as string).split(',')[1];
+        resolve(base64String);
+      };
+      reader.onerror = (error) => reject(error);
+    });
+  };
+
   useEffect(() => {
     fetchColaboradores();
   }, []);
@@ -235,8 +269,10 @@ const ListaColaboradores = () => {
       username: colaborador.username,
       role: colaborador.role,
       enabled: colaborador.enabled,
-      homeOffice: colaborador.homeOffice, // NOVO: Inicializa o status de Home Office
+      homeOffice: colaborador.homeOffice,
+       // NOVO: Inicializa o status de Home Office
     });
+    setFaceImageFile(null);
   };
 
   const handleSaveColaborador = async (colaboradorId: string) => {
@@ -334,7 +370,18 @@ const ListaColaboradores = () => {
         bodyDataEmployee.homeOffice = editedData.homeOffice;
       }
 
-
+      if (faceImageFile) { //
+      try { //
+        const base64Image = await fileToBase64(faceImageFile); //
+        bodyDataEmployee.faceImageBase64 = base64Image; //
+        toast({
+            title: "Imagem detectada",
+            description: "Nova imagem de face será enviada para atualização do reconhecimento.",
+        });
+      } catch (e) {
+        throw new Error("Falha ao processar a imagem de face.");
+      }
+    }
       const hasAddressChange =
         (editedCep &&
           editedCep !== originalColaborador.address.postalCode) ||
@@ -359,27 +406,30 @@ const ListaColaboradores = () => {
       }
 
       if (Object.keys(bodyDataEmployee).length === 0 && Object.keys(bodyDataUser).length === 0) {
-        toast({
-          title: "Nenhuma alteração",
-          description: "Nenhum dado foi alterado para ser salvo.",
-        });
-        setEditingId(null);
-        setEditedData({});
-        setIsLoading(false);
-        return;
-      }
+        if (!faceImageFile) {
+             toast({
+                title: "Nenhuma alteração",
+                description: "Nenhum dado foi alterado para ser salvo.",
+            });
+            setEditingId(null);
+            setEditedData({});
+            setIsLoading(false);
+            return;
+        }
+    }
 
-      const promises = [];
 
-      if (Object.keys(bodyDataEmployee).length > 0) {
-        promises.push(
-          fetch(`${API_BASE_URL}employee/manager/update-employee/${colaboradorId}`, {
-            method: "PATCH",
-            headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-            body: JSON.stringify(bodyDataEmployee),
-          })
-        );
-      }
+    const promises = [];
+
+    if (Object.keys(bodyDataEmployee).length > 0 || faceImageFile) { // Garante que a requisição vá se a imagem for o único campo alterado
+      promises.push(
+        fetch(`${API_BASE_URL}employee/manager/update-employee/${colaboradorId}`, {
+          method: "PATCH",
+          headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+          body: JSON.stringify(bodyDataEmployee),
+        })
+      );
+    }
 
       if (Object.keys(bodyDataUser).length > 0) {
         promises.push(
@@ -406,12 +456,14 @@ const ListaColaboradores = () => {
       setIsLoading(false);
       setEditingId(null);
       setEditedData({});
+      setFaceImageFile(null);
     }
   };
 
   const handleCancelEdit = () => {
     setEditingId(null);
     setEditedData({});
+    setFaceImageFile(null);
   };
 
   const handleDeleteColaborador = (colaboradorId: string) => {
@@ -862,6 +914,25 @@ const ListaColaboradores = () => {
                           />
                         </div>
 
+                           {/* NOVO CAMPO DE EDIÇÃO: IMAGEM DE FACE */}
+                      <div className="space-y-2 pt-4 border-t border-dashed">
+                        <Label htmlFor="face-image-upload" className="text-muted-foreground flex items-center gap-2">
+                           <UserCircle className="w-4 h-4" />
+                           Nova Imagem de Face (Opcional):
+                        </Label>
+                        <Input
+                          id="face-image-upload"
+                          type="file"
+                          accept="image/*"
+                          onChange={handleFileChange}
+                          className="flex-1 h-10 focus:border-primary file:text-sm file:font-semibold"
+                        />
+                        <p className="text-xs text-muted-foreground">
+                          {faceImageFile ? `Arquivo selecionado: ${faceImageFile.name}` : 'Selecione uma nova imagem para atualizar o reconhecimento facial.'}
+                        </p>
+                      </div>
+                      {/* FIM NOVO CAMPO DE EDIÇÃO: IMAGEM DE FACE */}
+
                         {/* Address - CEP and Number */}
                         <div className="flex items-start gap-3 text-sm">
                           <MapPin className="w-4 h-4 text-muted-foreground flex-shrink-0 mt-0.5" />
@@ -921,6 +992,25 @@ const ListaColaboradores = () => {
                           </Badge>
                         </div>
                         {/* FIM NOVO CAMPO DE VISUALIZAÇÃO */}
+
+                        {/* NOVO CAMPO DE EDIÇÃO: IMAGEM DE FACE */}
+                      <div className="space-y-2 pt-4 border-t border-dashed">
+                        <Label htmlFor="face-image-upload" className="text-muted-foreground flex items-center gap-2">
+                           <UserCircle className="w-4 h-4" />
+                           Nova Imagem de Face (Opcional):
+                        </Label>
+                        <Input
+                          id="face-image-upload"
+                          type="file"
+                          accept="image/*"
+                          onChange={handleFileChange}
+                          className="flex-1 h-10 focus:border-primary file:text-sm file:font-semibold"
+                        />
+                        <p className="text-xs text-muted-foreground">
+                          {faceImageFile ? `Arquivo selecionado: ${faceImageFile.name}` : 'Selecione uma nova imagem para atualizar o reconhecimento facial.'}
+                        </p>
+                      </div>
+                      {/* FIM NOVO CAMPO DE EDIÇÃO: IMAGEM DE FACE */}
 
                         {/* CPF */}
                         <div className="flex items-center gap-3 text-sm">
