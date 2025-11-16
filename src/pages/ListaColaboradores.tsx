@@ -21,6 +21,7 @@ import {
   Trash2,
   UserCircle,
   Sparkles,
+  Camera, // Importamos o ícone da Câmera
 } from "lucide-react";
 import {
   AlertDialog,
@@ -858,6 +859,25 @@ const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
                           </div>
                         </div>
                         {/* FIM NOVO CAMPO DE EDIÇÃO */}
+                        
+                        {/* INDICADOR/INPUT DE IMAGEM (MODO EDIÇÃO) */}
+                        <div className="space-y-2 pt-4 border-t border-dashed">
+                          <Label htmlFor="face-image-upload" className="text-muted-foreground flex items-center gap-2">
+                             <Camera className="w-4 h-4" />
+                             Nova Imagem de Face (Opcional):
+                          </Label>
+                          <Input
+                            id="face-image-upload"
+                            type="file"
+                            accept="image/*"
+                            onChange={handleFileChange}
+                            className="flex-1 h-10 focus:border-primary file:text-sm file:font-semibold"
+                          />
+                          <p className="text-xs text-muted-foreground">
+                            {faceImageFile ? `Arquivo selecionado: ${faceImageFile.name}` : 'Selecione uma nova imagem para atualizar o reconhecimento facial.'}
+                          </p>
+                        </div>
+                        {/* FIM INDICADOR/INPUT DE IMAGEM (MODO EDIÇÃO) */}
 
                         {/* CPF */}
                         <div className="flex items-center gap-3 text-sm">
@@ -914,25 +934,6 @@ const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
                           />
                         </div>
 
-                           {/* NOVO CAMPO DE EDIÇÃO: IMAGEM DE FACE */}
-                      <div className="space-y-2 pt-4 border-t border-dashed">
-                        <Label htmlFor="face-image-upload" className="text-muted-foreground flex items-center gap-2">
-                           <UserCircle className="w-4 h-4" />
-                           Nova Imagem de Face (Opcional):
-                        </Label>
-                        <Input
-                          id="face-image-upload"
-                          type="file"
-                          accept="image/*"
-                          onChange={handleFileChange}
-                          className="flex-1 h-10 focus:border-primary file:text-sm file:font-semibold"
-                        />
-                        <p className="text-xs text-muted-foreground">
-                          {faceImageFile ? `Arquivo selecionado: ${faceImageFile.name}` : 'Selecione uma nova imagem para atualizar o reconhecimento facial.'}
-                        </p>
-                      </div>
-                      {/* FIM NOVO CAMPO DE EDIÇÃO: IMAGEM DE FACE */}
-
                         {/* Address - CEP and Number */}
                         <div className="flex items-start gap-3 text-sm">
                           <MapPin className="w-4 h-4 text-muted-foreground flex-shrink-0 mt-0.5" />
@@ -978,6 +979,19 @@ const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
                           </span>
                         </div>
 
+                        {/* INDICADOR: IMAGEM DE FACE EDITÁVEL */}
+                         <div className="flex items-center gap-3 text-sm">
+                          <Camera className="w-4 h-4 text-muted-foreground flex-shrink-0" />
+                          <span className="text-muted-foreground">Foto de Face:</span>
+                          <Badge 
+                            variant="secondary"
+                            className="bg-primary/10 text-primary border-primary/20"
+                          >
+                           Editável
+                          </Badge>
+                        </div>
+                        {/* FIM INDICADOR: IMAGEM DE FACE EDITÁVEL */}
+
                         {/* NOVO CAMPO DE VISUALIZAÇÃO: HOME OFFICE */}
                         <div className="flex items-center gap-3 text-sm">
                           <MapPin className="w-4 h-4 text-muted-foreground flex-shrink-0" />
@@ -992,25 +1006,6 @@ const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
                           </Badge>
                         </div>
                         {/* FIM NOVO CAMPO DE VISUALIZAÇÃO */}
-
-                        {/* NOVO CAMPO DE EDIÇÃO: IMAGEM DE FACE */}
-                      <div className="space-y-2 pt-4 border-t border-dashed">
-                        <Label htmlFor="face-image-upload" className="text-muted-foreground flex items-center gap-2">
-                           <UserCircle className="w-4 h-4" />
-                           Nova Imagem de Face (Opcional):
-                        </Label>
-                        <Input
-                          id="face-image-upload"
-                          type="file"
-                          accept="image/*"
-                          onChange={handleFileChange}
-                          className="flex-1 h-10 focus:border-primary file:text-sm file:font-semibold"
-                        />
-                        <p className="text-xs text-muted-foreground">
-                          {faceImageFile ? `Arquivo selecionado: ${faceImageFile.name}` : 'Selecione uma nova imagem para atualizar o reconhecimento facial.'}
-                        </p>
-                      </div>
-                      {/* FIM NOVO CAMPO DE EDIÇÃO: IMAGEM DE FACE */}
 
                         {/* CPF */}
                         <div className="flex items-center gap-3 text-sm">
