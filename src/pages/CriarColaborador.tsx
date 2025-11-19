@@ -1,4 +1,4 @@
-import { useCallback, useState } from "react";
+import { ChangeEvent, useCallback, useState } from "react";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -19,6 +19,7 @@ import {
     SelectValue,
 } from "@/components/ui/select";
 import { API_BASE_URL } from "@/config/api";
+import { Label } from "@/components/ui/label";
 
 // --- ESQUEMAS DE VALIDAÇÃO REVISADOS ---
 
@@ -33,6 +34,7 @@ const employeeSchema = z.object({
     telefone: z.string().length(15, "Telefone deve ter 11 dígitos"), 
     cep: z.string().length(9, "CEP deve ter 8 dígitos"), 
     numero: z.string().min(1, "Número é obrigatório"),
+    faceImageBase64: z.string().optional(),
     homeOffice: z.enum(["true", "false"], { // NOVO CAMPO
         required_error: "O status Home Office é obrigatório.",
     }),
@@ -68,7 +70,30 @@ const CriarColaborador = () => {
     // Estados para verificação de username
     const [usernameAvailability, setUsernameAvailability] = useState<'available' | 'unavailable' | 'checking' | null>(null);
     const [isCheckingUsername, setIsCheckingUsername] = useState(false);
+const [faceImageBase64, setFaceImageBase64] = useState<string | undefined>(undefined);
+    
+    // NOVO ESTADO: Armazenar o nome do arquivo selecionado para exibir no input
+    const [fileName, setFileName] = useState<string | undefined>(undefined);
 
+    // NOVA FUNÇÃO: Manipular o upload do arquivo de imagem e converter para Base64
+    const handleImageUpload = useCallback((event: ChangeEvent<HTMLInputElement>) => {
+        const file = event.target.files?.[0];
+        if (file) {
+            setFileName(file.name);
+            const reader = new FileReader();
+            reader.onloadend = () => {
+                // A string Base64 completa, incluindo o prefixo (e.g., "data:image/jpeg;base64,")
+                const base64String = reader.result as string; 
+                // Remove o prefixo para enviar apenas a string Base64 pura para o backend
+                const base64Data = base64String.split(',')[1];
+                setFaceImageBase64(base64Data);
+            };
+            reader.readAsDataURL(file);
+        } else {
+            setFileName(undefined);
+            setFaceImageBase64(undefined);
+        }
+    }, []);
     const form = useForm<FormData>({
         // O resolver usa o formSchema com os campos de usuário opcionais
         resolver: zodResolver(formSchema), 
@@ -210,6 +235,7 @@ const CriarColaborador = () => {
                 salary: parseFloat(data.salario.replace(/[R$\s.]/g, "").replace(",", ".")), 
                 phone: data.telefone.replace(/\D/g, ""),
                 homeOffice: data.homeOffice === "true", // NOVO CAMPO: Converte string para boolean
+                faceImageBase64: faceImageBase64,
                 address: {
                     postalCode: data.cep.replace(/\D/g, ""),
                     number: data.numero,
@@ -510,6 +536,27 @@ const CriarColaborador = () => {
                                         )}/>
                                         {/* FIM NOVO CAMPO */}
                                     </div>
+                                    <div className="space-y-2">
+                                        <Label htmlFor="faceImage">Imagem Facial (Opcional)</Label>
+                                        <div className="flex items-center space-x-2">
+                                            <Input 
+                                                id="faceImage"
+                                                type="file" 
+                                                accept="image/jpeg, image/png"
+                                                onChange={handleImageUpload} 
+                                                className="flex-1 hidden" // Esconde o input file padrão
+                                            />
+                                            <label htmlFor="faceImage" className="cursor-pointer flex-1 flex items-center justify-between p-2 h-10 border border-input rounded-md bg-background hover:bg-accent hover:text-accent-foreground">
+                                                <span className="truncate text-sm text-gray-500">
+                                                    {fileName || "Clique para selecionar a imagem (.jpg, .png)"}
+                                                </span>
+                                                <span className="text-gray-400">📁</span>
+                                            </label>
+                                            {faceImageBase64 && <CheckCircle className="h-5 w-5 text-green-500" />}
+                                        </div>
+                                        <p className="text-xs text-muted-foreground">Recomendado para uso do ponto facial.</p>
+                                    </div>
+
                                     
                                     {/* Botão de Submissão do Passo 1 */}
                                     {!stepCompleted && (
