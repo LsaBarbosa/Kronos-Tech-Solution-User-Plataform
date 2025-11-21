@@ -87,16 +87,20 @@ export type EditRecordFormData = z.infer<typeof editRecordSchema>;
 // --- Constantes ---
 
 export const statusOptions = [
-     { value: null, label: "Todos os Status" },
     { value: "CREATED", label: "Criado" },
-    { value: "PENDING", label: "Saída Pendente" },
     { value: "UPDATED", label: "Atualizado por ADM" },
-    { value: "UPDATE_REJECTED", label: "Atualização Rejeitada Por ADM" },
     { value: "DAY_OFF", label: "Folga" },
     { value: "ABSENCE", label: "Falta" },
-    { value: "PENDING_APPROVAL", label: "Aguardando Aprovação" },
+    { value: "PENDING", label: "Saída Pendente" },
     { value: "TIME_OFF", label: "Horas Abonadas" },
-    { value: "IMPLICIT_BREAK", label: "Pausa (Automática)" }, // NOVO STATUS
+    { value: "VACATION", label: "Férias" },
+    { value: "PENDING_APPROVAL", label: "Aguardando Aprovação" },
+    { value: "REQUEST_VACATION", label: "Férias Solicitadas" },
+    { value: "TIME_OFF_REQUEST", label: "Horas Abonadas Solicitadas" },
+    { value: "UPDATE_REJECTED", label: "Atualização Rejeitada Por ADM" },
+    { value: "TIME_OFF_REJECTED", label: "Horas Abonadas Rejeitadas" },
+    { value: "VACATION_REJECTED", label: "Férias Rejeitadas" },
+    { value: "IMPLICIT_BREAK", label: "Pausa (Automática)" }, 
 ];
 
 // --- Funções Auxiliares ---

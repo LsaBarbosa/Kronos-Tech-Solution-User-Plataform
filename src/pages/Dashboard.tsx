@@ -8,7 +8,8 @@ import {
     ArrowRight, Loader2, Clock as ClockIcon, FileCheck, DollarSign, Mail, 
     Briefcase, Phone, MessageSquareWarning, Zap, User2, Building, Eye, EyeOff, 
     PlusCircle, ListChecks, ActivitySquare, AlertTriangle, Plane, // ÍCONE: Plane
-    TreePalm,Activity
+    TreePalm,Activity,
+    TimerReset
 } from "lucide-react"; 
 import { useNavigate } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card"; 
@@ -51,7 +52,10 @@ const getFirstName = (fullName: string | undefined): string => {
     if (!fullName) return "Usuário";
     return fullName.trim().split(/\s+/)[0];
 };
-
+const getSecondName = (fullName: string | undefined): string => {
+    if (!fullName) return "Usuário";
+    return fullName.trim().split(/\s+/)[1];
+};
 
 const Dashboard = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -180,17 +184,56 @@ const Dashboard = () => {
   };
 
   return (
-    <div className="flex h-screen bg-background">
-      <Sidebar isOpen={sidebarOpen} toggleSidebar={handleToggleSidebar} />
+    <div className="min-h-screen bg-background relative  overflow-hidden">
+      {/* Animated Background and Header/Sidebar components */}
+      <div className="fixed inset-0 z-0">
+        <div
+          className="absolute inset-0 opacity-5"
+          style={{
+            background: 'linear-gradient(-45deg, hsl(var(--black-primary)), hsl(var(--primary)), hsl(var(--black-primary)), hsl(var(--primary)))',
+            backgroundSize: '400% 400%',
+            animation: 'gradient-flow 15s ease-in-out infinite'
+          }}
+        />
+        <div className="absolute inset-0">
+          <div
+            className="absolute top-1/4 left-1/4 w-32 h-32 opacity-3"
+            style={{
+              background: 'linear-gradient(135deg, hsl(var(--primary) / 0.50), transparent)',
+              borderRadius: '30% 70% 70% 30% / 30% 30% 70% 70%',
+              animation: 'float-shapes 20s ease-in-out infinite'
+            }}
+          />
+          <div
+            className="absolute top-3/4 right-1/4 w-48 h-48 opacity-2"
+            style={{
+              background: 'linear-gradient(45deg, hsl(var(--black-primary) / 0.50), transparent)',
+              borderRadius: '70% 30% 30% 70% / 70% 70% 30% 30%',
+              animation: 'float-shapes 25s ease-in-out infinite reverse'
+            }}
+          />
+          <div
+            className="absolute top-1/2 right-1/3 w-24 h-24 opacity-4"
+            style={{
+              background: 'radial-gradient(circle, hsl(var(--primary) / 0.50), transparent)',
+              borderRadius: '50%',
+              animation: 'float-shapes 18s ease-in-out infinite 5s'
+            }}
+          />
+        </div>
+      </div>
+
+    <Sidebar isOpen={sidebarOpen} toggleSidebar={handleToggleSidebar} />
 
       <div className="flex-1 flex flex-col overflow-hidden">
+        {/* 💡 CORREÇÃO: Header usa 'toggleSidebar' */}
         <Header toggleSidebar={handleToggleSidebar} />
 
-        <main className="flex-1 overflow-x-hidden overflow-y-auto bg-gray-50 dark:bg-gray-900 p-6 pt-20">
+      <main className="pt-16 mobile-container py-4 sm:py-20 space-y-6 sm:space-y-8 relative z-10">
           <div className="max-w-6xl mx-auto">
             
             {/* SAUDAÇÃO PERSONALIZADA */}
-            <h1 className="text-3xl font-bold text-foreground mb-1">
+            <h1 className="text-3xl font-bold text-foreground mt-4 mb-1">
                 Olá, {isLoading ? "..." : getFirstName(userData?.fullName) || "Usuário"}!
             </h1>
             <p className="text-lg text-muted-foreground mb-6">
@@ -223,6 +266,7 @@ const Dashboard = () => {
                                     <div className="flex-1 min-w-0">
                                         {/* APLICAÇÃO DO FILTRO DE NOME */}
                                         <h2 className="text-xl font-bold text-foreground line-clamp-1">{getFirstName(userData?.fullName)}</h2>
+                                         <h2 className="text-xl font-bold text-foreground line-clamp-1">{getSecondName(userData?.fullName)}</h2>
                                         
                                         <p className="text-sm font-semibold text-foreground/80">
                                             {userData?.jobPosition || "N/A"} 
@@ -491,6 +535,14 @@ const Dashboard = () => {
                                         onClick={(e) => { e.stopPropagation(); navigate("/solicitar-ferias"); }}
                                     >
                                         <TreePalm className="w-4 h-4 mr-2 text-foreground" /> Solicitar Férias
+                                    </Button>
+                                    <Button 
+                                        variant="outline" 
+                                        size="sm" 
+                                        className="w-full justify-start text-primary hover:bg-primary/40"
+                                        onClick={(e) => { e.stopPropagation(); navigate("/solicitar-Abono"); }}
+                                    >
+                                        <TimerReset className="w-4 h-4 mr-2 text-foreground" /> Solicitar Abono de Horas
                                     </Button>
                                 </CardContent>
                             </Card>

@@ -8,7 +8,8 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { useToast } from "@/hooks/use-toast";
 import Header from "@/components/Header";
 import Sidebar from "@/components/Sidebar";
-import { Info, Save, ZapOff } from "lucide-react"; // 💡 ALTERADO: Adicionado ZapOff
+// 🚀 ADICIONADO Loader2 para o spinner
+import { Info, Save, ZapOff, Loader2 } from "lucide-react"; 
 import { API_BASE_URL } from "@/config/api";
 
 // 💡 NOVO: Componente de Filtros Modular
@@ -16,7 +17,7 @@ import { RelatorioFiltros } from "@/pages/RelatorioFiltros";
 // 💡 NOVO: Componente de Resultados Modular (Reutilizando a lógica do Relatório Detalhado)
 import { ResultadosRelatorioDetalhado } from "@/components/ResultadosRelatorioDetalhado"; 
 
-// 💡 NOVO: Importando utilitários centralizados para evitar duplicação e melhorar o uso do date-fns
+// 💡 NOVO: Importando utilitários centralizados
 import { 
     decodeToken, 
     statusOptions, 
@@ -26,8 +27,7 @@ import {
     Employee
 } from "@/utils/report-utils"; 
 
-// O nome do componente foi mantido como RelatorioDetalhado para não quebrar a exportação do arquivo original
-// Contudo, ele foi adaptado para a função StatusRegistro.
+// O nome do componente foi mantido como StatusRegistro.
 const StatusRegistro = () => {
     const [sidebarOpen, setSidebarOpen] = useState(false);
     // 💡 ESTADOS DO FILTRO - Compartilhados com RelatorioFiltros
@@ -36,13 +36,19 @@ const StatusRegistro = () => {
     const [selectedEmployee, setSelectedEmployee] = useState("");
     const [employeeActive, setEmployeeActive] = useState("active");
     const [isActive, setIsActive] = useState(true);
-    const [status, setStatus] = useState("CREATED"); // Status inicial fixo ou relevante para edição
-    const [reportType, setReportType] = useState<"detailed" | "simple">("detailed"); // Fixo para Detailed
+    const [status, setStatus] = useState<string[]>(["CREATED"]); 
+    const [reportType, setReportType] = useState<"detailed" | "simple">("detailed"); 
     
     // ESTADOS DE DADOS
     const [reportData, setReportData] = useState<DetailedReportItem[]>([]);
     const [employees, setEmployees] = useState<Employee[]>([]);
     const [isPartner, setIsPartner] = useState(false);
+    
+    // 🚀 NOVOS ESTADOS DE LOADING
+    const [isLoading, setIsLoading] = useState(false); // Para o botão Buscar
+    const [isSavingStatus, setIsSavingStatus] = useState(false); // Para o botão Salvar Status
+    const [isTogglingActivate, setIsTogglingActivate] = useState(false); // Para o botão Inativar/Ativar
+
     const { toast } = useToast();
 
     // ESTADOS DO MODAL DE EDIÇÃO DE STATUS (Ação Principal da Página)
@@ -88,7 +94,6 @@ const StatusRegistro = () => {
    
     // 1. Busca de Funcionários (Mantida e reutilizada)
     const fetchEmployees = useCallback(async () => {
-        // ... (Lógica fetchEmployees igual à original) ...
         try {
             const token = localStorage.getItem("token");
             if (!token) return;
@@ -121,25 +126,32 @@ const StatusRegistro = () => {
             if (response.ok) {
                 const data = await response.json();
                 setEmployees(data.employees || []);
-                if (!employees.some(emp => emp.employeeId === selectedEmployee)) {
+                // 💡 CORREÇÃO: Lógica de verificação de funcionário selecionado
+                if (!employees.some(emp => emp.employeeId === selectedEmployee) && data.employees.length > 0) {
+                    setSelectedEmployee(data.employees[0].employeeId); 
+                } else if (!selectedEmployee && data.employees.length > 0) {
+                    setSelectedEmployee(data.employees[0].employeeId);
+                } else if (!selectedEmployee) {
                     setSelectedEmployee("");
                 }
             }
         } catch (error) {
             console.error("Erro ao buscar funcionários:", error);
         }
-    }, [employeeActive, selectedEmployee]);
+    }, [employeeActive, selectedEmployee, employees]);
 
     // 2. Busca de Registros (Lógica de Search Original)
     const handleSearch = async () => {
-        if (!status) {
+        if (status.length === 0) {
             toast({
                 title: "Erro",
-                description: "Selecione um status para gerar o relatório.",
+                description: "Selecione pelo menos um status para gerar o relatório.",
                 variant: "destructive"
             });
             return;
         }
+
+        setIsLoading(true); // 🚀 ATIVA O LOADING NO INÍCIO DA BUSCA
 
         try {
             const token = localStorage.getItem("token");
@@ -158,7 +170,8 @@ const StatusRegistro = () => {
             const requestBody = {
                 reference: referenceTime,
                 active: isActive,
-                status: status,
+                // 🚀 CORREÇÃO: Envia a lista de status usando a chave 'statuses' (plural)
+                statuses: status, 
                 dates: formattedDates,
             };
 
@@ -194,6 +207,8 @@ const StatusRegistro = () => {
             }
 
             setReportData(data);
+            window.scrollTo({ top: 0, behavior: 'smooth' }); // 🚀 SCROLL PARA O TOPO APÓS SUCESSO
+
         } catch (error: any) {
             console.error("Erro na busca:", error);
             toast({
@@ -201,6 +216,8 @@ const StatusRegistro = () => {
                 description: error.message || "Ocorreu um erro ao buscar o relatório.",
                 variant: "destructive",
             });
+        } finally {
+            setIsLoading(false); // 🚀 DESATIVA O LOADING NO FINAL
         }
     };
 
@@ -233,7 +250,9 @@ const StatusRegistro = () => {
             toast({ title: "Erro", description: "Dados de registro incompletos. Verifique se um funcionário foi selecionado no filtro.", variant: "destructive" });
             return;
         }
-
+        
+        setIsSavingStatus(true); // 🚀 ATIVA O LOADING DO BOTÃO SALVAR
+        
         try {
             const token = localStorage.getItem("token");
             if (!token) {
@@ -265,8 +284,8 @@ const StatusRegistro = () => {
             setEditModalOpen(false);
             setStatusUpdate({ timeRecordId: "", employeeId: "", statusRecord: "" });
 
-            // Recarrega os dados para mostrar o status atualizado
-            handleSearch();
+            // Recarrega os dados para mostrar o status atualizado e ROLA PARA O TOPO
+            await handleSearch();
 
         } catch (error: any) {
             console.error("Erro ao atualizar status:", error);
@@ -275,6 +294,8 @@ const StatusRegistro = () => {
                 description: error.message || "Ocorreu um erro ao salvar o status.",
                 variant: "destructive",
             });
+        } finally {
+            setIsSavingStatus(false); // 🚀 DESATIVA O LOADING DO BOTÃO SALVAR
         }
     }
 
@@ -292,6 +313,8 @@ const StatusRegistro = () => {
             });
             return;
         }
+        
+        setIsTogglingActivate(true); // 🚀 ATIVA O LOADING DO BOTÃO TOGGLE
 
         try {
             const token = localStorage.getItem("token");
@@ -322,8 +345,8 @@ const StatusRegistro = () => {
 
             setEditModalOpen(false);
             
-            // Recarrega os dados para mostrar o status atualizado
-            handleSearch();
+            // Recarrega os dados para mostrar o status atualizado e ROLA PARA O TOPO
+            await handleSearch();
 
         } catch (error: any) {
             console.error(`Erro ao ${currentAction.toLowerCase()} registro:`, error);
@@ -332,6 +355,8 @@ const StatusRegistro = () => {
                 description: error.message || `Ocorreu um erro ao ${currentAction.toLowerCase()} o registro.`,
                 variant: "destructive",
             });
+        } finally {
+            setIsTogglingActivate(false); // 🚀 DESATIVA O LOADING DO BOTÃO TOGGLE
         }
     }
 
@@ -356,52 +381,54 @@ const StatusRegistro = () => {
 
 
     return (
-        <div className="min-h-screen bg-background relative overflow-hidden">
-            <div className="fixed inset-0 z-0">
-                {/* ... (Código do Background Animado) ... */}
-                <div
-                    className="absolute inset-0 opacity-5"
-                    style={{
-                        background: 'linear-gradient(-45deg, hsl(var(--background)), hsl(var(--primary)), hsl(var(--background)), hsl(var(--primary)))',
-                        backgroundSize: '400% 400%',
-                        animation: 'gradient-flow 15s ease-in-out infinite'
-                    }}
-                />
-                <div className="absolute inset-0">
-                     {/* ... (Floating Geometric Shapes) ... */}
-                    <div
-                        className="absolute top-1/4 left-1/4 w-32 h-32 opacity-3"
-                        style={{
-                            background: 'linear-gradient(135deg, hsl(var(--primary) / 0.1), transparent)',
-                            borderRadius: '30% 70% 70% 30% / 30% 30% 70% 70%',
-                            animation: 'float-shapes 20s ease-in-out infinite'
-                        }}
-                    />
-                    <div
-                        className="absolute top-3/4 right-1/4 w-48 h-48 opacity-2"
-                        style={{
-                            background: 'linear-gradient(45deg, hsl(var(--primary) / 0.05), transparent)',
-                            borderRadius: '70% 30% 30% 70% / 70% 70% 30% 30%',
-                            animation: 'float-shapes 25s ease-in-out infinite reverse'
-                        }}
-                    />
-                    <div
-                        className="absolute top-1/2 right-1/3 w-24 h-24 opacity-4"
-                        style={{
-                            background: 'radial-gradient(circle, hsl(var(--primary) / 0.08), transparent)',
-                            borderRadius: '50%',
-                            animation: 'float-shapes 18s ease-in-out infinite 5s'
-                        }}
-                    />
-                </div>
-            </div>
+       
 
-            <Sidebar isOpen={sidebarOpen} toggleSidebar={handleToggleSidebar} />
-            
-            <div className="flex-1 flex flex-col overflow-hidden">
-                <Header toggleSidebar={handleToggleSidebar} />
+ <div className="min-h-screen bg-background relative  overflow-hidden">
+      {/* Animated Background and Header/Sidebar components */}
+      <div className="fixed inset-0 z-0">
+        <div
+          className="absolute inset-0 opacity-5"
+          style={{
+            background: 'linear-gradient(-45deg, hsl(var(--black-primary)), hsl(var(--primary)), hsl(var(--black-primary)), hsl(var(--primary)))',
+            backgroundSize: '400% 400%',
+            animation: 'gradient-flow 15s ease-in-out infinite'
+          }}
+        />
+        <div className="absolute inset-0">
+          <div
+            className="absolute top-1/4 left-1/4 w-32 h-32 opacity-3"
+            style={{
+              background: 'linear-gradient(135deg, hsl(var(--primary) / 0.50), transparent)',
+              borderRadius: '30% 70% 70% 30% / 30% 30% 70% 70%',
+              animation: 'float-shapes 20s ease-in-out infinite'
+            }}
+          />
+          <div
+            className="absolute top-3/4 right-1/4 w-48 h-48 opacity-2"
+            style={{
+              background: 'linear-gradient(45deg, hsl(var(--black-primary) / 0.50), transparent)',
+              borderRadius: '70% 30% 30% 70% / 70% 70% 30% 30%',
+              animation: 'float-shapes 25s ease-in-out infinite reverse'
+            }}
+          />
+          <div
+            className="absolute top-1/2 right-1/3 w-24 h-24 opacity-4"
+            style={{
+              background: 'radial-gradient(circle, hsl(var(--primary) / 0.50), transparent)',
+              borderRadius: '50%',
+              animation: 'float-shapes 18s ease-in-out infinite 5s'
+            }}
+          />
+        </div>
+      </div>
 
-                <main className="container mx-auto px-4 py-20 relative z-10">
+    <Sidebar isOpen={sidebarOpen} toggleSidebar={handleToggleSidebar} />
+
+      <div className="flex-1 flex flex-col overflow-hidden">
+        {/* 💡 CORREÇÃO: Header usa 'toggleSidebar' */}
+        <Header toggleSidebar={handleToggleSidebar} />
+
+      <main className="pt-16 mobile-container py-4 sm:py-20 space-y-6 sm:space-y-8 relative z-10">
                     <div className="mb-8">
                         <h1 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-foreground to-primary bg-clip-text text-transparent page-title">
                             Alterar Status do Registro
@@ -411,8 +438,18 @@ const StatusRegistro = () => {
                         </p>
                     </div>
                     
-
-                    {/* 💡 INTEGRAÇÃO: Utiliza o componente de filtros modular */}
+                    {/* 💡 INTEGRAÇÃO: Utiliza o componente de resultados modular (TOPO) */}
+                    {reportData.length > 0 && (
+                        <ResultadosRelatorioDetalhado
+                            reportData={reportData}
+                            statusFilter={status}
+                            referenceTime={referenceTime}
+                            selectedDates={selectedDates}
+                            onEditRecord={handleEditRecord} // Passa a função de abrir o modal
+                        />
+                    )}
+                    
+                    {/* 💡 INTEGRAÇÃO: Utiliza o componente de filtros modular (BAIXO) */}
                     <RelatorioFiltros
                         selectedDates={selectedDates}
                         setSelectedDates={setSelectedDates}
@@ -431,107 +468,111 @@ const StatusRegistro = () => {
                         isPartner={isPartner}
                         onSearch={handleSearch}
                         customTips={statusRegistroTips}
-                        
+                        isLoading={isLoading} // 🚀 PASSANDO O ESTADO DE LOADING
                     />
 
-                    {/* 💡 INTEGRAÇÃO: Utiliza o componente de resultados modular */}
-                    {reportData.length > 0 && (
-                        <ResultadosRelatorioDetalhado
-                            reportData={reportData}
-                            statusFilter={status}
-                            referenceTime={referenceTime}
-                            selectedDates={selectedDates}
-                            onEditRecord={handleEditRecord} // Passa a função de abrir o modal
-                        />
-                    )}
                     
                     {/* MODAL DE EDIÇÃO DE STATUS (Originalmente mantido) */}
                     <Dialog open={editModalOpen} onOpenChange={setEditModalOpen}>
-                        <DialogContent className="sm:max-w-md">
-                            <DialogHeader>
-                                <DialogTitle>Alterar Status do Registro</DialogTitle>
-                                <DialogDescription>
-                                    Atualize o status do registro de ponto selecionado.
-                                </DialogDescription>
-                            </DialogHeader>
+                       <DialogContent className="w-full max-w-fit max-h-[90vh] overflow-y-auto">
+        <DialogHeader>
+            <DialogTitle>Alterar Status do Registro</DialogTitle>
+            <DialogDescription>
+                Atualize o status do registro de ponto selecionado.
+            </DialogDescription>
+        </DialogHeader>
 
-                            <div className="space-y-4 pt-4">
-                                <Label className="text-base font-semibold text-foreground flex flex-col gap-2">
-                                    Status Atual:
-                                    <Badge
-                                        className={`${getStatusColor(statusUpdate.statusRecord)} text-base`}
-                                    >
-                                        {statusOptions.find(s => s.value === statusUpdate.statusRecord)?.label || statusUpdate.statusRecord}
-                                    </Badge>
-                                </Label>
+        <div className="space-y-4 pt-4">
+            <Label className="text-base font-semibold text-foreground flex flex-col gap-2">
+                Status Atual:
+                <Badge
+                    // Usa a função de cor do seu utilitário
+                    className={`${getStatusColor(statusUpdate.statusRecord)} text-base`}
+                >
+                    {statusOptions.find(s => s.value === statusUpdate.statusRecord)?.label || statusUpdate.statusRecord}
+                </Badge>
+            </Label>
 
-                                <div className="space-y-2">
-                                    <Label htmlFor="new-status">Novo Status</Label>
-                                    <Select
-                                        value={statusUpdate.statusRecord}
-                                        onValueChange={(value) => setStatusUpdate(prev => ({ ...prev, statusRecord: value }))}
-                                    >
-                                        <SelectTrigger id="new-status" className="h-10 focus:border-primary">
-                                            <SelectValue placeholder="Selecione um novo status" />
-                                        </SelectTrigger>
-                                        <SelectContent>
-                                        {statusOptions
-                                                // 💡 NOVO FILTRO: Inclui APENAS Folga, Falta e Abono (DOCTOR_APPOINTMENT)
-                                                .filter(opt => ["DAY_OFF", "ABSENCE", "TIME_OFF"].includes(opt.value))
-                                                .map((option) => (
-                                                <SelectItem
-                                                    key={option.value}
-                                                    value={option.value}
-                                                >
-                                                    {option.label}
-                                                </SelectItem>
-                                            ))}
-                                        </SelectContent>
-                                    </Select>
-                                    <p className="text-xs text-muted-foreground">O registro será atualizado com o status selecionado.</p>
-                                </div>
-                            </div>
+            <div className="space-y-2">
+                <Label htmlFor="new-status">Novo Status</Label>
+                <Select
+                    value={statusUpdate.statusRecord}
+                    onValueChange={(value) => setStatusUpdate(prev => ({ ...prev, statusRecord: value }))}
+                >
+                    <SelectTrigger id="new-status" className="h-10 focus:border-primary">
+                        <SelectValue placeholder="Selecione um novo status" />
+                    </SelectTrigger>
+                    <SelectContent>
+                    {statusOptions
+                            // Filtra apenas para Folga, Falta e Abono, conforme sua regra
+                            .filter(opt => ["DAY_OFF", "ABSENCE", "TIME_OFF"].includes(opt.value))
+                            .map((option) => (
+                            <SelectItem
+                                key={option.value}
+                                value={option.value}
+                            >
+                                {option.label}
+                            </SelectItem>
+                        ))}
+                    </SelectContent>
+                </Select>
+                <p className="text-xs text-muted-foreground">O registro será atualizado com o status selecionado.</p>
+            </div>
+        </div>
 
-                            <div className="flex justify-between items-center pt-4">
-                                {/* NOVO: Botão para Inativar/Ativar Registro */}
-                                <Button
-                                    type="button"
-                                    variant="destructive"
-                                    onClick={handleToggleActivateRecord}
-                                    disabled={!statusUpdate.timeRecordId || !statusUpdate.employeeId}
-                                >
-                                    <ZapOff className="h-4 w-4 mr-2" />
-                                    {/* O texto é dinâmico, pois o endpoint faz um TOGGLE */}
-                                    {selectedRecord?.active ? "Inativar Registro" : "Ativar Registro"}
-                                </Button>
-                                
-                                <div className="flex space-x-2">
-                                    <Button
-                                        type="button"
-                                        variant="outline"
-                                        onClick={() => setEditModalOpen(false)}
-                                    >
-                                        Cancelar
-                                    </Button>
-                                    <Button
-                                        type="button"
-                                        onClick={handleUpdateStatus}
-                                        className="bg-primary hover:bg-primary/90"
-                                        disabled={!statusUpdate.timeRecordId || !statusUpdate.employeeId || !statusUpdate.statusRecord}
-                                    >
-                                        <Save className="h-4 w-4 mr-2" />
-                                        Salvar Status
-                                    </Button>
-                                </div>
-                            </div>
-                        </DialogContent>
-                    </Dialog>
+        {/* 💡 AJUSTE DO RODAPÉ APLICADO:
+            - flex-col sm:flex-row: Empilha no celular e fica lado a lado em telas maiores.
+            - justify-between: Separa os dois grupos de botões.
+        */}
+        <div className="flex flex-col sm:flex-row justify-between items-start sm:items-center gap-4 pt-4">
+            {/* Botão de Inativar/Ativar Registro (lado esquerdo) */}
+            <Button
+                type="button"
+                variant="destructive"
+                onClick={handleToggleActivateRecord}
+                disabled={!statusUpdate.timeRecordId || !statusUpdate.employeeId || isTogglingActivate} // 🚀 Desabilita se estiver carregando
+                className="w-full sm:w-auto" 
+            >
+                {isTogglingActivate ? ( // 🚀 MOSTRA SPINNER
+                    <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                ) : (
+                    <ZapOff className="h-4 w-4 mr-2" />
+                )}
+                
+                {isTogglingActivate ? "Aguarde..." : selectedRecord?.active ? "Inativar Registro" : "Ativar Registro"}
+            </Button>
+            
+            {/* Botões de Cancelar/Salvar Status (lado direito) */}
+            <div className="flex space-x-2 w-full sm:w-auto justify-end">
+                <Button
+                    type="button"
+                    variant="outline"
+                    onClick={() => setEditModalOpen(false)}
+                >
+                    Cancelar
+                </Button>
+                <Button
+                    type="button"
+                    onClick={handleUpdateStatus}
+                    className="bg-primary hover:bg-primary/90"
+                    disabled={!statusUpdate.timeRecordId || !statusUpdate.employeeId || !statusUpdate.statusRecord || isSavingStatus} // 🚀 Desabilita se estiver carregando
+                >
+                    {isSavingStatus ? ( // 🚀 MOSTRA SPINNER
+                        <Loader2 className="h-4 w-4 mr-2 animate-spin" />
+                    ) : (
+                        <Save className="h-4 w-4 mr-2" />
+                    )}
+                    
+                    {isSavingStatus ? "Salvando..." : "Salvar Status"}
+                </Button>
+            </div>
+        </div>
+    </DialogContent>
+</Dialog>
                     {/* FIM MODAL DE EDIÇÃO DE STATUS */}
                 </main>
             </div>
         </div>
     );
 };
-
-// 💡 CORREÇÃO FINAL: Exporta com o nome do arquivo, como padrão em TSX
 export default StatusRegistro;

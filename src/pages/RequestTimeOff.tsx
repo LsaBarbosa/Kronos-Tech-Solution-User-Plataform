@@ -1,7 +1,7 @@
 // src/pages/RequestTimeOff.tsx
 
 import { z } from "zod";
-import { CalendarIcon, Clock, FileUp, User } from "lucide-react";
+import { CalendarIcon, Clock, FileUp, User, AlertCircle, X, Loader2 } from "lucide-react"; // 💡 Adicionado AlertCircle, X, Loader2
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { useForm } from "react-hook-form";
@@ -40,11 +40,66 @@ import { Separator } from "../components/ui/separator";
 import { useCallback, useState } from "react";
 import Sidebar from "@/components/Sidebar";
 import Header from "@/components/Header";
+// 💡 Importa constantes de validação
+import { ALLOWED_ACCEPT_STRING, MAX_UPLOAD_SIZE_BYTES, ALLOWED_MIME_TYPES } from "../types/document"; 
+
+
+// ===========================================
+// FUNÇÕES DE COMPRESSÃO E CONVERSÃO (ADICIONADAS)
+// Estas funções garantem que a imagem seja otimizada e que o limite de 5MB seja validado.
+// ===========================================
+
+const blobToFile = (blob: Blob, fileName: string): File => {
+    return new File([blob], fileName, { type: blob.type, lastModified: Date.now() });
+};
+
+const compressImage = (file: File, quality: number = 0.7): Promise<File> => {
+    return new Promise((resolve) => {
+        // Ignora arquivos que não são imagens ou que são vetoriais/gifs
+        if (!file.type.startsWith('image/') || file.type === 'image/gif' || file.type.startsWith('image/svg')) {
+            return resolve(file);
+        }
+
+        const reader = new FileReader();
+        reader.readAsDataURL(file);
+
+        reader.onload = (event: ProgressEvent<FileReader>) => {
+            const img = document.createElement('img');
+            img.src = event.target?.result as string;
+
+            img.onload = () => {
+                const canvas = document.createElement('canvas');
+                const ctx = canvas.getContext('2d');
+                
+                canvas.width = img.width;
+                canvas.height = img.height;
+
+                ctx?.drawImage(img, 0, 0, img.width, img.height);
+                
+                // Força a saída para 'image/jpeg' com qualidade 0.7
+                const outputMimeType = 'image/jpeg';
+
+                canvas.toBlob((blob) => {
+                    // Só retorna o comprimido se for menor que o original, garantindo otimização.
+                    if (blob && blob.size < file.size) { 
+                        const compressedFile = blobToFile(blob, file.name);
+                        resolve(compressedFile);
+                    } else {
+                        resolve(file); // Retorna o original
+                    }
+                }, outputMimeType, quality);
+            };
+            img.onerror = () => resolve(file);
+        };
+        reader.onerror = () => resolve(file);
+    });
+};
+
 
 // Definição de tipo para a função que fecha o Popover
 type SetOpen = React.Dispatch<React.SetStateAction<boolean>>;
 
-// Schema de validação (para integração com react-hook-form e exibição de erros)
+// Schema de validação
 const formSchema = z.object({
   startDate: z.date().optional(),
   endDate: z.date().optional(),
@@ -68,6 +123,11 @@ export function RequestTimeOff() {
   // Estados para controlar a abertura/fechamento dos Popovers do calendário
   const [isStartDatePickerOpen, setIsStartDatePickerOpen] = useState(false);
   const [isEndDatePickerOpen, setIsEndDatePickerOpen] = useState(false);
+  // 💡 NOVO: Estado para erro de arquivo, não gerenciado pelo Zod.
+  const [fileError, setFileError] = useState<string | null>(null); 
+  // 💡 NOVO: Estado para saber se está comprimindo
+  const [isProcessingFile, setIsProcessingFile] = useState(false); 
+
 
   const handleToggleSidebar = useCallback(() => setSidebarOpen((prev) => !prev), []);
   
@@ -82,15 +142,49 @@ export function RequestTimeOff() {
       document: formState.document,
     },
   });
+  
+  // 💡 handleFileChange AGORA É ASSÍNCRONA E INCLUI COMPRESSÃO/VALIDAÇÃO
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
+    let file = e.target.files ? e.target.files[0] : null;
+    
+    setFileError(null);
+    handleChange("document", null); // Limpa o documento no estado do formulário
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    const file = e.target.files ? e.target.files[0] : null;
+    if (!file) {
+        return;
+    }
+    
+    // 1. Validação do tipo de arquivo
+    const fileExtension = file.name.split('.').pop()?.toLowerCase();
+    const isAllowedType = ALLOWED_MIME_TYPES.some(type => fileExtension && type.includes(fileExtension));
+    
+    if (!fileExtension || !isAllowedType) {
+        setFileError("Tipo de arquivo não permitido.");
+        e.target.value = ""; // Limpa o input file
+        return;
+    }
+
+    // 2. Compressão de imagem (se aplicável)
+    if (file.type.startsWith('image/')) {
+        setIsProcessingFile(true); // Inicia feedback visual
+        file = await compressImage(file);
+        setIsProcessingFile(false); // Encerra feedback visual
+    }
+
+    // 3. Validação do tamanho do arquivo (APÓS potencial compressão)
+    if (file.size > MAX_UPLOAD_SIZE_BYTES) {
+        const maxSizeMB = (MAX_UPLOAD_SIZE_BYTES / 1024 / 1024).toFixed(0);
+        setFileError(`Arquivo muito grande. O limite é de ${maxSizeMB}MB (após compressão para imagens).`);
+        e.target.value = ""; // Limpa o input file
+        return;
+    }
+    
+    // 4. Arquivo selecionado e validado com sucesso
     handleChange("document", file);
   };
 
   /**
    * Função para lidar com a mudança de data no calendário.
-   * Agora recebe a função setter do Popover para fechá-lo automaticamente.
    */
   const handleDateChange = (
     field: "startDate" | "endDate",
@@ -100,26 +194,71 @@ export function RequestTimeOff() {
     form.setValue(field, date);
     handleChange(field, date);
     if (date) {
-      setOpen(false); // <--- FECHA O CALENDÁRIO AUTOMATICAMENTE
+      setOpen(false); // FECHA O CALENDÁRIO AUTOMATICAMENTE
     }
   };
 
   const clearFile = () => {
-    handleChange("document", null);
+    setFileError(null); // Limpa o erro
+    handleChange("document", null); // Limpa o estado do formulário
     const fileInput = document.getElementById("document-upload") as HTMLInputElement;
     if (fileInput) {
       fileInput.value = ""; // Limpa visualmente o input de arquivo
     }
   };
 
+  const isUploadDisabled = isLoading || isProcessingFile;
+  const selectedFile = formState.document as File | null;
+
+
   return (
-    <div className="min-h-screen bg-background">
-      <Sidebar isOpen={sidebarOpen} toggleSidebar={handleToggleSidebar} />
+  
+
+ <div className="min-h-screen bg-background relative  overflow-hidden">
+      {/* Animated Background and Header/Sidebar components */}
+      <div className="fixed inset-0 z-0">
+        <div
+          className="absolute inset-0 opacity-5"
+          style={{
+            background: 'linear-gradient(-45deg, hsl(var(--black-primary)), hsl(var(--primary)), hsl(var(--black-primary)), hsl(var(--primary)))',
+            backgroundSize: '400% 400%',
+            animation: 'gradient-flow 15s ease-in-out infinite'
+          }}
+        />
+        <div className="absolute inset-0">
+          <div
+            className="absolute top-1/4 left-1/4 w-32 h-32 opacity-3"
+            style={{
+              background: 'linear-gradient(135deg, hsl(var(--primary) / 0.50), transparent)',
+              borderRadius: '30% 70% 70% 30% / 30% 30% 70% 70%',
+              animation: 'float-shapes 20s ease-in-out infinite'
+            }}
+          />
+          <div
+            className="absolute top-3/4 right-1/4 w-48 h-48 opacity-2"
+            style={{
+              background: 'linear-gradient(45deg, hsl(var(--black-primary) / 0.50), transparent)',
+              borderRadius: '70% 30% 30% 70% / 70% 70% 30% 30%',
+              animation: 'float-shapes 25s ease-in-out infinite reverse'
+            }}
+          />
+          <div
+            className="absolute top-1/2 right-1/3 w-24 h-24 opacity-4"
+            style={{
+              background: 'radial-gradient(circle, hsl(var(--primary) / 0.50), transparent)',
+              borderRadius: '50%',
+              animation: 'float-shapes 18s ease-in-out infinite 5s'
+            }}
+          />
+        </div>
+      </div>
+
+    <Sidebar isOpen={sidebarOpen} toggleSidebar={handleToggleSidebar} />
 
       <div className="flex-1 flex flex-col overflow-hidden">
         <Header toggleSidebar={handleToggleSidebar} />
 
-        <main className="flex-1 mobile-container py-4 pt-20 pb-8">
+      <main className="pt-16 mobile-container py-4 sm:py-20 space-y-6 sm:space-y-8 relative z-10">
           <div className="max-w-4xl mx-auto">
             <div className="mb-6 sm:mb-8">
               <h1 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-foreground to-primary bg-clip-text text-transparent page-title">
@@ -163,7 +302,7 @@ export function RequestTimeOff() {
                                       )}
                                     >
                                       {formState.startDate ? (
-                                        format(formState.startDate, "PPP", {
+                                        format(formState.startDate, "dd MMM yyyy", { // Alterado o formato para "dd MMM yyyy"
                                           locale: ptBR,
                                         })
                                       ) : (
@@ -216,7 +355,7 @@ export function RequestTimeOff() {
                                       )}
                                     >
                                       {formState.endDate ? (
-                                        format(formState.endDate, "PPP", {
+                                        format(formState.endDate, "dd MMM yyyy", { // 💡 CORREÇÃO: Usar formState.endDate
                                           locale: ptBR,
                                         })
                                       ) : (
@@ -367,38 +506,58 @@ export function RequestTimeOff() {
                             <FileUp className="w-4 h-4 mr-2 text-primary" />
                             Comprovante (Atestado/Documento)
                           </FormLabel>
-                          <div className="flex items-center space-x-2">
-                            <Input
-                              id="document-upload"
-                              type="file"
-                              className="flex-1"
-                              onChange={handleFileChange}
-                              accept="application/pdf,image/jpeg,image/png,application/vnd.openxmlformats-officedocument.wordprocessingml.document,application/msword"
-                            />
-                            {formState.document && (
-                              <Button
-                                type="button"
-                                variant="outline"
-                                size="sm"
-                                onClick={clearFile}
-                                className="text-red-500 hover:text-red-600"
-                                title="Remover arquivo"
-                              >
-                                Remover
-                              </Button>
-                            )}
-                          </div>
-                          <FormDescription>
-                            Formatos aceitos: PDF, JPEG, PNG, DOCX, DOC.
-                          </FormDescription>
-                          {formState.document && (
-                            <p className="text-sm text-muted-foreground mt-1">
-                              Arquivo selecionado:{" "}
-                              <span className="font-semibold text-primary">
-                                {formState.document.name}
-                              </span>
+                          <Input
+                            id="document-upload"
+                            type="file"
+                            className="flex-1"
+                            onChange={handleFileChange} // 💡 AGORA USA A FUNÇÃO ASSÍNCRONA OTIMIZADA
+                            accept={ALLOWED_ACCEPT_STRING} // 💡 Usa a constante de tipos permitidos
+                            disabled={isUploadDisabled}
+                          />
+
+                          {/* 💡 Exibe o Erro de Arquivo (Tamanho/Tipo) */}
+                          {fileError && (
+                            <p className="text-sm text-destructive flex items-center gap-2 mt-2">
+                              <AlertCircle className="h-4 w-4" /> {fileError}
                             </p>
                           )}
+                          
+                          {/* 💡 Exibe o status de processamento */}
+                          {isProcessingFile && (
+                              <p className="text-sm text-primary flex items-center gap-2 mt-2">
+                                  <Loader2 className="h-4 w-4 animate-spin" /> Otimizando imagem, aguarde...
+                              </p>
+                          )}
+
+                          {/* 💡 Pré-visualização do Arquivo Selecionado */}
+                          {selectedFile && !fileError && (
+                            <div className="flex items-center justify-between p-3 border border-border rounded-lg bg-muted/50 mt-3">
+                              <div className="flex items-center space-x-3">
+                                <FileUp className="w-5 h-5 text-primary" />
+                                <div>
+                                  <p className="font-medium text-foreground text-sm line-clamp-1">{selectedFile.name}</p>
+                                  <p className="text-xs text-muted-foreground">{(selectedFile.size / 1024 / 1024).toFixed(2)} MB</p>
+                                </div>
+                              </div>
+                              <Button
+                                type="button"
+                                variant="ghost"
+                                size="icon"
+                                onClick={clearFile}
+                                className="text-destructive hover:bg-destructive/10"
+                                disabled={isUploadDisabled}
+                              >
+                                <X className="h-4 w-4" />
+                              </Button>
+                            </div>
+                          )}
+
+                          <FormDescription className="mt-4"> {/* 💡 ATUALIZADA A DESCRIÇÃO */}
+                            Formatos aceitos: PDF, JPEG, PNG, DOCX, DOC.
+                            <br />
+                            O arquivo **não deve exceder {(MAX_UPLOAD_SIZE_BYTES / 1024 / 1024).toFixed(0)}MB**. Imagens são otimizadas automaticamente.
+                          </FormDescription>
+
                         </FormItem>
                       </div>
 
@@ -407,9 +566,15 @@ export function RequestTimeOff() {
                         <Button
                           type="submit"
                           className="w-full md:w-auto"
-                          disabled={isLoading || !formState.startDate || !formState.endDate || !formState.managerId}
+                          // 💡 Bloqueia o envio se o arquivo estiver em processamento ou com erro de arquivo
+                          disabled={isUploadDisabled || !!fileError || !formState.startDate || !formState.endDate || !formState.managerId} 
                         >
-                          {isLoading ? "Enviando..." : "Solicitar Abono"}
+                          {isLoading ? (
+                            <>
+                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
+                                Enviando...
+                            </>
+                          ) : "Solicitar Abono"}
                         </Button>
                       </div>
                     </form>

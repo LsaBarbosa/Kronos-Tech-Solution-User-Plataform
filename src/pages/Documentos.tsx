@@ -333,7 +333,7 @@ const Documentos = () => {
 
 
   return (
-    <div className="min-h-screen bg-background relative overflow-hidden">
+    <div className="min-h-screen bg-background relative  overflow-hidden">
       {/* Animated Background and Header/Sidebar components */}
       <div className="fixed inset-0 z-0">
         <div

@@ -118,8 +118,8 @@ export const ResultadosRelatorioSimples: React.FC<ResultadosSimplesProps> = ({
                 
                 return [
                     `${formattedDateWithDayOfWeek}${holiday}`, // <--- ALTERADO (Agora inclui o dia da semana)
-                    day.startHour || 'N/A', // 💡 NOVO
-                    day.endHour || 'N/A',   // 💡 NOVO
+                    day.startHour || 'N/A',  
+                    day.endHour || 'N/A',    
                     day.totalHours,
                     day.balance,
                 ];
@@ -247,16 +247,16 @@ export const ResultadosRelatorioSimples: React.FC<ResultadosSimplesProps> = ({
                                 <th scope="col" className="px-6 py-3 text-left text-xs font-medium text-primary uppercase tracking-wider">
                                     Data
                                 </th>
-                                <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-primary uppercase tracking-wider">
-                                    Entrada 💡
+                                <th scope="col" className="px-6 py-3 text-center text-xs font-medium text-primary uppercase tracking-wider">
+                                    Entrada
                                 </th>
-                                <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-primary uppercase tracking-wider">
-                                    Saída 💡
+                                <th scope="col" className="px-6 py-3 text-center text-xs font-medium text-primary uppercase tracking-wider">
+                                    Saída
                                 </th>
-                                <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-primary uppercase tracking-wider">
+                                <th scope="col" className="px-6 py-3 text-center text-xs font-medium text-primary uppercase tracking-wider">
                                     Horas Trabalhadas
                                 </th>
-                                <th scope="col" className="px-6 py-3 text-right text-xs font-medium text-primary uppercase tracking-wider">
+                                <th scope="col" className="px-6 py-3 text-center text-xs font-medium text-primary uppercase tracking-wider">
                                     Saldo do Dia
                                 </th>
                             </tr>
@@ -272,12 +272,12 @@ export const ResultadosRelatorioSimples: React.FC<ResultadosSimplesProps> = ({
                                         <td className="px-6 py-4 whitespace-nowrap text-sm font-medium text-foreground flex items-center gap-2">
                                             <CalendarIcon className="h-4 w-4 text-primary/70" />
                                             {day.startDate}
-                                            {isHoliday(dayDate) && <Badge variant="outline" className="text-destructive border-destructive/50 bg-destructive/5">Feriado</Badge>}
+                                            {isHoliday(dayDate) && <Badge variant="outline" className="text-destructive   border-destructive/50 bg-destructive/5">Feriado</Badge>}
                                         </td>
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-right font-medium">{day.startHour || 'N/A'}</td> 
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-right font-medium">{day.endHour || 'N/A'}</td>   
-                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-right font-medium">{day.totalHours}</td>
-                                        <td className={`px-6 py-4 whitespace-nowrap text-sm text-right font-bold ${day.balance.startsWith('-') ? 'text-destructive' : 'text-green-600'}`}>
+                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-center font-medium">{day.startHour || 'N/A'}</td> 
+                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-center font-medium">{day.endHour || 'N/A'}</td>   
+                                        <td className="px-6 py-4 whitespace-nowrap text-sm text-center font-medium">{day.totalHours}</td>
+                                        <td className={`px-6 py-4 whitespace-nowrap text-sm text-center font-bold ${day.balance.startsWith('-') ? 'text-destructive' : 'text-green-600'}`}>
                                             {day.balance}
                                         </td>
                                     </tr>

@@ -1,4 +1,4 @@
-// src/pages/RelatorioDetalhado.tsx (Atualizado com novo estilo PDF)
+// src/pages/RelatorioDetalhado.tsx (Atualizado com lógica de scroll)
 
 import React, { useState, useEffect, useCallback, useRef } from "react";
 import { useToast } from "@/hooks/use-toast";
@@ -84,7 +84,7 @@ const RelatorioDetalhado = () => {
     const [selectedEmployee, setSelectedEmployee] = useState("");
     const [employeeActive, setEmployeeActive] = useState("active");
     const [isActive, setIsActive] = useState(true);
-    const [status, setStatus] = useState("");
+    const [status, setStatus] = useState<string[]>([]);
     const [reportType, setReportType] = useState<"detailed" | "simple">("detailed");
     const [reportData, setReportData] = useState<DetailedReportItem[]>([]);
     const [reportDataSimple, setReportDataSimple] = useState<ReportDataSimple | null>(null);
@@ -94,6 +94,7 @@ const RelatorioDetalhado = () => {
     const { toast } = useToast();
     const [managers, setManagers] = useState<Manager[]>([]);
     const [isPartner, setIsPartner] = useState(false);
+    const [isLoading, setIsLoading] = useState(false);
 
 
     const statusRegistroTips = (
@@ -259,6 +260,7 @@ const RelatorioDetalhado = () => {
     const handleSearch = async () => {
         setReportDataSimple(null);
         setReportData([]);
+        setIsLoading(true);
 
         try {
             const token = localStorage.getItem("token");
@@ -272,7 +274,7 @@ const RelatorioDetalhado = () => {
                 reference: referenceTime,
                 active: isActive,
                 dates: formattedDates,
-                ...(status && { status: status }),
+                ...(status.length > 0 && { statuses: status }),
             };
 
             const apiUrl = new URL(`${API_BASE_URL}records/report`, window.location.origin);
@@ -316,13 +318,19 @@ const RelatorioDetalhado = () => {
                 title: "Busca realizada",
                 description: `Relatório detalhado gerado para as datas: ${datesList}`,
             });
+
+            // NOVO: Redireciona para o topo da tela
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+
         } catch (error) {
             console.error("Erro na busca:", error);
             toast({
                 title: "Erro",
                 description: (error as Error).message || "Ocorreu um erro ao buscar o relatório.",
                 variant: "destructive",
-            });
+          });
+        } finally {
+            setIsLoading(false); // FIM: Desativa o loading
         }
     };
 
@@ -330,6 +338,7 @@ const RelatorioDetalhado = () => {
     const handleSimpleSearch = async () => {
         setReportData([]);
         setReportDataSimple(null);
+        setIsLoading(true);
 
         try {
             const token = localStorage.getItem("token");
@@ -386,15 +395,22 @@ const RelatorioDetalhado = () => {
                 title: "Busca realizada",
                 description: `Relatório simples gerado para as datas: ${datesList}`,
             });
+
+            // NOVO: Redireciona para o topo da tela
+            window.scrollTo({ top: 0, behavior: 'smooth' });
+
         } catch (error) {
             console.error("Erro na busca simples:", error);
             toast({
                 title: "Erro",
                 description: (error as Error).message || "Ocorreu um erro ao buscar o relatório simples.",
                 variant: "destructive",
-            });
+     });
+        } finally {
+            setIsLoading(false); // FIM: Desativa o loading
         }
     };
+
 
     const handleSearchClick = () => {
         if (reportType === "detailed") {
@@ -486,7 +502,7 @@ const handleDownloadPDFDetailed = () => {
             { content: formattedStart, styles: { fontStyle: fontStyle } },
             { content: formattedEnd, styles: { fontStyle: fontStyle } },
             { content: item.hoursWork, styles: { fontStyle: fontStyle } },
-            { content: isBreak ? 'N/A' : item.balance, styles: { fontStyle: fontStyle } },
+            { content: isBreak ? '00:00' : item.balance, styles: { fontStyle: fontStyle } },
             // 🚀 NOVO: Adiciona (FERIADO) ao status
             { content: isItemHoliday ? `${statusLabel} (FERIADO)` : statusLabel, styles: { fontStyle: fontStyle } }    
         ];
@@ -624,7 +640,7 @@ const handleDownloadCSVDetailed = () => {
             item.endWork, // DD-MM-YYYY
             item.endHour,
             item.hoursWork,
-            item.statusRecord === 'IMPLICIT_BREAK' ? 'N/A' : item.balance,
+            item.statusRecord === 'IMPLICIT_BREAK' ? '00:00' : item.balance,
             getTranslatedStatus(item.statusRecord), 
             item.employeeData.employeeName,
             item.employeeData.companyName,
@@ -798,55 +814,54 @@ const handleDownloadCSVSimple = () => {
 
     const handleToggleSidebar = () => setSidebarOpen((prev) => !prev);
     return (
-        <div className="min-h-screen bg-background relative overflow-hidden">
-            {/* Animated Background (Mantido para o layout) */}
-            <div className="fixed inset-0 z-0">
-                <div
-                    className="absolute inset-0 opacity-5"
-                    style={{
-                        background: 'linear-gradient(-45deg, hsl(var(--black-primary)), hsl(var(--primary)), hsl(var(--black-primary)), hsl(var(--primary)))',
-                        backgroundSize: '400% 400%',
-                        animation: 'gradient-flow 15s ease-in-out infinite'
-                    }}
-                />
-                <div className="absolute inset-0">
-                    <div
-                        className="absolute top-1/4 left-1/4 w-32 h-32 opacity-3"
-                        style={{
-                            background: 'linear-gradient(135deg, hsl(var(--primary) / 0.1), transparent)',
-                            borderRadius: '30% 70% 70% 30% / 30% 30% 70% 70%',
-                            animation: 'float-shapes 20s ease-in-out infinite'
-                        }}
-                    />
-                    <div
-                        className="absolute top-3/4 right-1/4 w-48 h-48 opacity-2"
-                        style={{
-                            background: 'linear-gradient(45deg, hsl(var(--black-primary) / 0.05), transparent)',
-                            borderRadius: '70% 30% 30% 70% / 70% 70% 30% 30%',
-                            animation: 'float-shapes 25s ease-in-out infinite reverse'
-                        }}
-                    />
-                    <div
-                        className="absolute top-1/2 right-1/3 w-24 h-24 opacity-4"
-                        style={{
-                            background: 'radial-gradient(circle, hsl(var(--primary) / 0.08), transparent)',
-                            borderRadius: '50%',
-                            animation: 'float-shapes 18s ease-in-out infinite 5s'
-                        }}
-                    />
-                </div>
-            </div>
+     
 
+ <div className="min-h-screen bg-background relative  overflow-hidden">
+      {/* Animated Background and Header/Sidebar components */}
+      <div className="fixed inset-0 z-0">
+        <div
+          className="absolute inset-0 opacity-5"
+          style={{
+            background: 'linear-gradient(-45deg, hsl(var(--black-primary)), hsl(var(--primary)), hsl(var(--black-primary)), hsl(var(--primary)))',
+            backgroundSize: '400% 400%',
+            animation: 'gradient-flow 15s ease-in-out infinite'
+          }}
+        />
+        <div className="absolute inset-0">
+          <div
+            className="absolute top-1/4 left-1/4 w-32 h-32 opacity-3"
+            style={{
+              background: 'linear-gradient(135deg, hsl(var(--primary) / 0.50), transparent)',
+              borderRadius: '30% 70% 70% 30% / 30% 30% 70% 70%',
+              animation: 'float-shapes 20s ease-in-out infinite'
+            }}
+          />
+          <div
+            className="absolute top-3/4 right-1/4 w-48 h-48 opacity-2"
+            style={{
+              background: 'linear-gradient(45deg, hsl(var(--black-primary) / 0.50), transparent)',
+              borderRadius: '70% 30% 30% 70% / 70% 70% 30% 30%',
+              animation: 'float-shapes 25s ease-in-out infinite reverse'
+            }}
+          />
+          <div
+            className="absolute top-1/2 right-1/3 w-24 h-24 opacity-4"
+            style={{
+              background: 'radial-gradient(circle, hsl(var(--primary) / 0.50), transparent)',
+              borderRadius: '50%',
+              animation: 'float-shapes 18s ease-in-out infinite 5s'
+            }}
+          />
+        </div>
+      </div>
 
-            {/* 💡 CORREÇÃO: Sidebar usa 'toggleSidebar' */}
-            <Sidebar isOpen={sidebarOpen} toggleSidebar={handleToggleSidebar} />
+    <Sidebar isOpen={sidebarOpen} toggleSidebar={handleToggleSidebar} />
 
-            <div className="flex-1 flex flex-col overflow-hidden">
-                {/* 💡 CORREÇÃO: Header usa 'toggleSidebar' */}
-                <Header toggleSidebar={handleToggleSidebar} />
+      <div className="flex-1 flex flex-col overflow-hidden">
+        {/* 💡 CORREÇÃO: Header usa 'toggleSidebar' */}
+        <Header toggleSidebar={handleToggleSidebar} />
 
-
-                <main className="container mx-auto px-4 py-20 relative z-10">
+      <main className="pt-16 mobile-container py-4 sm:py-20 space-y-6 sm:space-y-8 relative z-10">
                     <div className="mb-8">
                         <h1 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-foreground to-primary bg-clip-text text-transparent page-title">
                             Relatório De Horas
@@ -856,35 +871,7 @@ const handleDownloadCSVSimple = () => {
                         </p>
                     </div>
 
-                    <RelatorioFiltros
-                        selectedDates={selectedDates}
-                        setSelectedDates={setSelectedDates}
-                        referenceTime={referenceTime}
-                        setReferenceTime={setReferenceTime}
-                        selectedEmployee={selectedEmployee}
-                        setSelectedEmployee={setSelectedEmployee}
-                        employeeActive={employeeActive}
-                        setEmployeeActive={setEmployeeActive}
-                        isActive={isActive}
-                        setIsActive={setIsActive}
-                        status={status}
-                        setStatus={setStatus}
-                        reportType={reportType}
-                        setReportType={(type) => {
-                            setReportType(type);
-                            setReportData([]);
-                            setReportDataSimple(null);
-                            if (type === "simple") setStatus("");
-                        }}
-                        employees={employees}
-                        isPartner={isPartner}
-                        onSearch={handleSearchClick}
-                        onDownloadPDF={handleDownloadPDF} // Passa o novo router de PDF
-                        onDownloadCSV={handleDownloadCSV} // Passa o novo router de CSV
-                        customTips={statusRegistroTips}
-                    />
-
-                    {/* EXIBIÇÃO CONDICIONAL DOS RESULTADOS */}
+                    {/* EXIBIÇÃO CONDICIONAL DOS RESULTADOS (TOPO) */}
 
                     {/* 1. RELATÓRIO DETALHADO */}
                     {(reportType === "detailed" && reportData.length > 0) && (
@@ -905,6 +892,36 @@ const handleDownloadCSVSimple = () => {
                             selectedDates={selectedDates}
                         />
                     )}
+
+                    {/* FILTROS (BAIXO) */}
+                    <RelatorioFiltros
+                        selectedDates={selectedDates}
+                        setSelectedDates={setSelectedDates}
+                        referenceTime={referenceTime}
+                        setReferenceTime={setReferenceTime}
+                        selectedEmployee={selectedEmployee}
+                        setSelectedEmployee={setSelectedEmployee}
+                        employeeActive={employeeActive}
+                        setEmployeeActive={setEmployeeActive}
+                        isActive={isActive}
+                        setIsActive={setIsActive}
+                        status={status}
+                        setStatus={setStatus}
+                        reportType={reportType}
+                        setReportType={(type) => {
+                            setReportType(type);
+                            setReportData([]);
+                            setReportDataSimple(null);
+                            if (type === "simple") setStatus([]);
+                        }}
+                        employees={employees}
+                        isPartner={isPartner}
+                        onSearch={handleSearchClick}
+                        onDownloadPDF={handleDownloadPDF} // Passa o novo router de PDF
+                        onDownloadCSV={handleDownloadCSV} // Passa o novo router de CSV
+                        customTips={statusRegistroTips}
+                        isLoading={isLoading}
+                    />
 
                     <Card className="border-l-4 border-l-primary shadow-card">
                         <RegistroEdicaoModal

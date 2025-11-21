@@ -5,13 +5,12 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
-import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
+ import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 
 // 🚀 NOVAS IMPORTAÇÕES PARA O COMBOBOX DE BUSCA
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Command, CommandInput, CommandItem, CommandList, CommandEmpty } from "@/components/ui/command";
-import { Check, CalendarIcon, Search, Download, FileText, CalendarCheck, CalendarX } from "lucide-react"; 
+import { Check, CalendarIcon, Search, Download, FileText, CalendarCheck, CalendarX , ChevronDown, Loader2} from "lucide-react"; 
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, startOfDay, isSameDay } from "date-fns"; 
 import { ptBR } from "date-fns/locale";
 import { Employee, statusOptions, allHolidays } from "@/utils/report-utils";
@@ -28,8 +27,8 @@ interface RelatorioFiltrosProps {
     setEmployeeActive: React.Dispatch<React.SetStateAction<string>>;
     isActive: boolean;
     setIsActive: React.Dispatch<React.SetStateAction<boolean>>;
-    status: string;
-    setStatus: React.Dispatch<React.SetStateAction<string>>;
+    status: string[];
+    setStatus: React.Dispatch<React.SetStateAction<string[]>>;
     reportType: "detailed" | "simple";
     setReportType: React.Dispatch<React.SetStateAction<"detailed" | "simple">>;
     employees: Employee[];
@@ -39,6 +38,7 @@ interface RelatorioFiltrosProps {
     onDownloadCSV?: () => void;
     hideTips?: boolean;
     customTips?: React.ReactNode
+    isLoading: boolean;
 }
 
 const isHoliday = (date: Date) => {
@@ -68,12 +68,13 @@ export const RelatorioFiltros: React.FC<RelatorioFiltrosProps> = ({
     onDownloadPDF,
     onDownloadCSV,
     hideTips,
-    customTips
+    customTips,
+    isLoading
 }) => {
     const [displayMonth, setDisplayMonth] = React.useState<Date | undefined>(startOfDay(new Date()));
     
-    // 🚀 NOVO ESTADO: Controla a abertura/fechamento do Combobox (Popover)
-    const [open, setOpen] = React.useState(false); 
+   const [open, setOpen] = React.useState(false); 
+   const [openStatus, setOpenStatus] = React.useState(false);
 
     const handleDateSelect = (days: Date[] | undefined) => {
         setSelectedDates(days || []);
@@ -121,21 +122,43 @@ export const RelatorioFiltros: React.FC<RelatorioFiltrosProps> = ({
             setSelectedDates(uniqueDates);
         }
     };
-
-    const handleReportTypeChange = (typeValue: string) => {
+const handleReportTypeChange = (typeValue: string) => {
         const type: "detailed" | "simple" = typeValue as "detailed" | "simple";
         if (reportType !== type) {
             setReportType(type);
-            // Ao mudar para Simples, o status deve ser resetado/ignorado
-            if (type === "simple") {
-                setStatus("");
+             if (type === "simple") {
+                setStatus([]);  
             }
         }
     };
+    
+    // NOVA FUNÇÃO: Lida com a mudança de estado dos checkboxes de status
+    const handleStatusChange = (value: string, checked: boolean) => {
+        setStatus((prevStatus) => {
+            if (checked) {
+                // Adiciona o valor se ele ainda não estiver presente
+                return Array.from(new Set([...prevStatus, value]));
+            } else {
+                // Remove o valor
+                return prevStatus.filter((s) => s !== value);
+            }
+        });
+    };
+
+    // FUNÇÃO AUXILIAR: Retorna o label amigável para exibição
+    const getStatusLabel = (value: string) => {
+        const option = statusOptions.find(opt => opt.value === value);
+        return option ? option.label : value;
+    };
+    
+    // Texto de exibição do Popover Trigger
+    const displayStatusText = status.length > 0
+        ? status.map(getStatusLabel).join(', ')
+        : 'Todos os status';
 
 
     return (
-        <div className="grid grid-cols-1 lg:grid-cols-2 gap-8">
+        <div className="grid mb-6 grid-cols-1 lg:grid-cols-2 gap-8">
 
             {/* CARD 1: SELEÇÃO DE DATAS */}
             <Card className="border-2 border-primary/20 shadow-xl hover:shadow-2xl transition-all duration-300 bg-gradient-to-br from-card via-card to-primary/5">
@@ -242,24 +265,9 @@ export const RelatorioFiltros: React.FC<RelatorioFiltrosProps> = ({
     </div>
 )}
 
-                    {selectedDates.length > 0 && (
-                        <div className="mt-4 p-4 bg-gradient-to-br from-primary/10 to-secondary/10 rounded-xl border-2 border-primary/30 backdrop-blur-sm shadow-md shadow-primary/10">
-                            <h4 className="text-sm font-extrabold text-foreground mb-3 flex items-center gap-2">
-                                <div className="w-2.5 h-2.5 rounded-full bg-primary animate-ping"></div>
-                                Datas Selecionadas ({selectedDates.length})
-                            </h4>
-                            <div className="flex flex-wrap gap-2">
-                                {selectedDates.map((date, index) => (
-                                    <span
-                                        key={index}
-                                        className="inline-flex items-center px-3 py-1.5 rounded-full text-xs font-semibold bg-gradient-to-r from-primary to-primary/80 text-primary-foreground shadow-lg shadow-primary/20 border border-primary/30"
-                                    >
-                                        {format(date, "dd/MM/yyyy", { locale: ptBR })}
-                                    </span>
-                                ))}
-                            </div>
-                        </div>
-                    )}
+                   
+                        
+                  
                 </CardContent>
             </Card>
 
@@ -275,10 +283,7 @@ export const RelatorioFiltros: React.FC<RelatorioFiltrosProps> = ({
                             Parâmetros do Relatório
                         </span>
                     </CardTitle>
-                    <CardDescription className="text-muted-foreground relative z-10 flex items-center gap-2">
-                        <div className="w-1 h-1 rounded-full bg-primary/50"></div>
-                        Configure os filtros para o relatório
-                    </CardDescription>
+                   
                 </CardHeader>
                 <CardContent className="pt-6 space-y-6 relative">
                     <div className="absolute inset-0 opacity-5">
@@ -336,10 +341,10 @@ export const RelatorioFiltros: React.FC<RelatorioFiltrosProps> = ({
                                 <Label htmlFor="reg-inativo" className="text-sm cursor-pointer font-medium">Reprovado</Label>
                             </div>
                         </RadioGroup>
-                        <p className="text-xs text-muted-foreground flex items-center gap-1">
+                        <div className="text-xs text-muted-foreground flex items-center gap-1">
                             <div className="w-1 h-1 rounded-full bg-muted-foreground/50"></div>
                             Incluir registros ativos ou inativos no relatório
-                        </p>
+                        </div>
                     </div>
 
           
@@ -468,40 +473,75 @@ export const RelatorioFiltros: React.FC<RelatorioFiltrosProps> = ({
             />
             <div className="absolute inset-0 rounded-md bg-gradient-to-r from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none border border-transparent group-hover:border-primary/30"></div>
         </div>
-        <p className="text-xs text-muted-foreground flex items-center gap-1">
+        <div className="text-xs text-muted-foreground flex items-center gap-1">
             <div className="w-1 h-1 rounded-full bg-muted-foreground/50"></div>
             Horário de referência para cálculo do relatório
-        </p>
+        </div>
     </div>
 )}
 
                     {/* SEÇÃO STATUS DE REGISTRO (VISÍVEL SOMENTE SE reportType === "detailed") */}
-                    {reportType === "detailed" && (
+                   {reportType === "detailed" && (
                         <div className="space-y-3 relative">
                             <Label className="text-sm font-semibold text-foreground flex items-center gap-2">
                                 <div className="w-1.5 h-1.5 rounded-full bg-primary"></div>
                                 Status
                             </Label>
-                            <Select value={status} onValueChange={setStatus}>
-                                <SelectTrigger className="focus:border-primary focus:ring-2 focus:ring-primary/40 border-primary/30 bg-background hover:border-primary/50 transition-all duration-200 shadow-sm">
-                                    <SelectValue placeholder="Todos os status" />
-                                </SelectTrigger>
-                                <SelectContent className="border-primary/20">
-                                    {statusOptions.map((option) => (
-                                        <SelectItem
-                                            key={option.value}
-                                            value={option.value}
-                                            className="hover:bg-primary/10 focus:bg-primary/10 hover:text-foreground focus:text-foreground transition-colors duration-150"
+                            
+                            {/* SUBSTITUIÇÃO: <Select> por Popover com Checkboxes */}
+                            <Popover open={openStatus} onOpenChange={setOpenStatus}>
+                                <PopoverTrigger asChild>
+                                    <Button
+                                        variant="outline"
+                                        role="combobox"
+                                        aria-expanded={openStatus}
+                                        className="w-full justify-between focus:ring-2 focus:ring-primary/40 border-primary/30 bg-background hover:border-primary/50 transition-all duration-200 shadow-sm min-h-10 text-left items-center"
+                                    >
+                                        <span className="truncate pr-2">
+                                            {displayStatusText}
+                                        </span>
+                                        <ChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                                    </Button>
+                                </PopoverTrigger>
+                                
+                                <PopoverContent className="w-[--radix-popover-trigger-width] p-0" align="start">
+                                    <div className="max-h-60 overflow-y-auto p-2 space-y-1">
+                                        {/* Opção padrão: Limpar todos */}
+                                        <div 
+                                            className="flex items-center space-x-2 p-2 rounded-md hover:bg-primary/10 cursor-pointer transition-colors"
+                                            onClick={() => {
+                                                setStatus([]);
+                                                setOpenStatus(false);
+                                            }}
                                         >
-                                            {option.label}
-                                        </SelectItem>
-                                    ))}
-                                </SelectContent>
-                            </Select>
-                            <p className="text-xs text-muted-foreground flex items-center gap-1">
+                                            <FileText className="h-4 w-4 opacity-50 text-destructive" />
+                                            <Label className="text-sm font-medium text-destructive cursor-pointer">Limpar seleção (Todos)</Label>
+                                        </div>
+                                        
+                                        {/* Mapeia as opções de status */}
+                                        {statusOptions.map((option) => (
+                                            <div key={option.value} className="flex items-center space-x-2 p-2 rounded-md hover:bg-primary/10 transition-colors">
+                                                <Checkbox
+                                                    id={`status-${option.value}`}
+                                                    checked={status.includes(option.value)}
+                                                    onCheckedChange={(checked: boolean | "indeterminate") => 
+                                                        handleStatusChange(option.value, checked === true)
+                                                    }
+                                                />
+                                                <Label htmlFor={`status-${option.value}`} className="cursor-pointer text-sm font-medium">
+                                                    {option.label}
+                                                </Label>
+                                            </div>
+                                        ))}
+                                    </div>
+                                </PopoverContent>
+                            </Popover>
+                            {/* FIM DA SUBSTITUIÇÃO */}
+
+                            <div className="text-xs text-muted-foreground flex items-center gap-1">
                                 <div className="w-1 h-1 rounded-full bg-muted-foreground/50"></div>
                                 Status dos registros a serem filtrados
-                            </p>
+                            </div>
                         </div>
                     )}
                     {/* FIM DA SEÇÃO STATUS DE REGISTRO */}
@@ -515,11 +555,19 @@ export const RelatorioFiltros: React.FC<RelatorioFiltrosProps> = ({
                             onClick={onSearch}
                             size="lg"
                             className="group w-full font-bold text-lg bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary shadow-xl hover:shadow-primary/40 transition-all duration-300 relative overflow-hidden transform hover:scale-[1.005] hover:translate-y-[-1px]"
-                            disabled={selectedDates.length === 0}
+                            disabled={selectedDates.length === 0 || isLoading}
                         >
                             <div className="absolute inset-0 bg-gradient-to-r from-white/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                            <Search className="mr-2 h-5 w-5 relative z-10" />
-                            <span className="relative z-10">Buscar</span>
+                            {/* Lógica de Carregamento */}
+                            {isLoading ? (
+                                <Loader2 className="mr-2 h-5 w-5 animate-spin relative z-10" /> // NOVO: Spinner
+                            ) : (
+                                <Search className="mr-2 h-5 w-5 relative z-10" />
+                            )}
+                            
+                            <span className="relative z-10">
+                                {isLoading ? "Buscando..." : "Buscar"}
+                            </span>
                         </Button>
 
                         {/* BOTÃO DOWNLOAD PDF (DESTRUCTIVE/ALERTA) */}
