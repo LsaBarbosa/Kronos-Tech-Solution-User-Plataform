@@ -147,7 +147,7 @@ const Usuario = () => {
 
       <main className="pt-16 mobile-container py-4 sm:py-20 space-y-6 sm:space-y-8 relative z-10">
           <div className="max-w-6xl mx-auto">
-            <h1 className="text-3xl font-bold mb-6 text-foreground">Meu Perfil</h1>
+            <h1 className="text-3xl font-bold mb-6 text-foreground page-title">Meu Perfil</h1>
             
             <div className="grid gap-6 md:grid-cols-2">
               

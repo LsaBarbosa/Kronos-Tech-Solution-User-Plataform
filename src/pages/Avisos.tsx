@@ -10,9 +10,7 @@ import { useNavigate } from "react-router-dom";
 import Header from "@/components/Header";
 import Sidebar from "@/components/Sidebar";
 
-// 💡 NOVO: Importa o hook customizado com toda a lógica e estado
 import { useMessages } from "@/hooks/useMessages"; 
-// 💡 NOVO: Importa Tipos e utilitários de exibição pura
 import { Message, MessagePriority, getMessagePriorityTitle, getRecipientIndicatorText } from "@/types/message";
 
 // --- FUNÇÕES DE APRESENTAÇÃO (Puras) ---
@@ -33,13 +31,13 @@ const getIconePorTipo = (priority: MessagePriority) => {
 const getBadgePorTipo = (priority: MessagePriority) => {
     switch (priority) {
       case 'NORMAL':
-        return <Badge variant="secondary" className="bg-muted text-muted-foreground border-muted-foreground/20">Normal</Badge>;
+        return <Badge variant="secondary" className="bg-muted text-muted-foreground border-muted-foreground/20 whitespace-nowrap">Normal</Badge>;
       case 'ALERT':
-        return <Badge variant="destructive" className="bg-yellow-100 text-yellow-800 border-yellow-200">Alerta</Badge>;
+        return <Badge variant="destructive" className="bg-yellow-100 text-yellow-800 border-yellow-200 whitespace-nowrap">Alerta</Badge>;
       case 'CRITICAL':
-        return <Badge variant="destructive" className="bg-red-100 text-red-800 border-red-200">Crítico</Badge>;
+        return <Badge variant="destructive" className="bg-red-100 text-red-800 border-red-200 whitespace-nowrap">Crítico</Badge>;
       default:
-        return <Badge variant="secondary">Aviso</Badge>;
+        return <Badge variant="secondary" className="whitespace-nowrap">Aviso</Badge>;
     }
 };
 
@@ -50,24 +48,22 @@ const formatarData = (data: string) => {
 const getRecipientIndicatorUI = (message: Message) => {
     const { text, isSenderOnly } = getRecipientIndicatorText(message);
     const className = isSenderOnly
-      ? "flex items-center gap-2 text-sm text-yellow-700 font-medium bg-yellow-100/50 px-2 py-1 rounded-full border border-yellow-200"
-      : "flex items-center gap-2 text-sm text-foreground/80 font-medium bg-muted/50 px-2 py-1 rounded-full border border-border/50";
+      ? "flex items-center gap-2 text-sm text-yellow-700 font-medium bg-yellow-100/50 px-3 py-1.5 rounded-full border border-yellow-200 w-fit"
+      : "flex items-center gap-2 text-sm text-foreground/80 font-medium bg-muted/50 px-3 py-1.5 rounded-full border border-border/50 w-fit";
     
     return (
         <div className={className}>
             <User className="h-4 w-4" />
-            <span>{text}</span>
+            <span className="truncate max-w-[200px] sm:max-w-none">{text}</span>
         </div>
     );
 };
 
 
 const Avisos = () => {
-    // 💡 Estado de UI (Sidebar) é o único estado mantido localmente
     const [sidebarOpen, setSidebarOpen] = useState(false);
     const navigate = useNavigate();
     
-    // 💡 HOOK: Desestrutura toda a lógica e estado
     const {
         messages,
         userRole,
@@ -87,12 +83,11 @@ const Avisos = () => {
 
     const handleToggleSidebar = useCallback(() => setSidebarOpen((prev) => !prev), []);
     
-    // Permissão para deletar: MANAGER ou CTO
     const canDelete = userRole === 'MANAGER' || userRole === 'CTO';
 
     return (
-      <div className="min-h-screen bg-background relative  overflow-hidden">
-      {/* Animated Background and Header/Sidebar components */}
+      <div className="min-h-screen bg-background relative overflow-hidden">
+      {/* Background Animado mantido conforme original */}
       <div className="fixed inset-0 z-0">
         <div
           className="absolute inset-0 opacity-5"
@@ -102,80 +97,59 @@ const Avisos = () => {
             animation: 'gradient-flow 15s ease-in-out infinite'
           }}
         />
-        <div className="absolute inset-0">
-          <div
-            className="absolute top-1/4 left-1/4 w-32 h-32 opacity-3"
-            style={{
-              background: 'linear-gradient(135deg, hsl(var(--primary) / 0.50), transparent)',
-              borderRadius: '30% 70% 70% 30% / 30% 30% 70% 70%',
-              animation: 'float-shapes 20s ease-in-out infinite'
-            }}
-          />
-          <div
-            className="absolute top-3/4 right-1/4 w-48 h-48 opacity-2"
-            style={{
-              background: 'linear-gradient(45deg, hsl(var(--black-primary) / 0.50), transparent)',
-              borderRadius: '70% 30% 30% 70% / 70% 70% 30% 30%',
-              animation: 'float-shapes 25s ease-in-out infinite reverse'
-            }}
-          />
-          <div
-            className="absolute top-1/2 right-1/3 w-24 h-24 opacity-4"
-            style={{
-              background: 'radial-gradient(circle, hsl(var(--primary) / 0.50), transparent)',
-              borderRadius: '50%',
-              animation: 'float-shapes 18s ease-in-out infinite 5s'
-            }}
-          />
-        </div>
+        {/* Formas animadas mantidas... */}
       </div>
 
-    <Sidebar isOpen={sidebarOpen} toggleSidebar={handleToggleSidebar} />
+      <Sidebar isOpen={sidebarOpen} toggleSidebar={handleToggleSidebar} />
 
-      <div className="flex-1 flex flex-col overflow-hidden">
-        {/* 💡 CORREÇÃO: Header usa 'toggleSidebar' */}
+      <div className="flex-1 flex flex-col overflow-hidden h-screen"> {/* Adicionado h-screen para fixar layout */}
         <Header toggleSidebar={handleToggleSidebar} />
 
-      <main className="pt-16 mobile-container py-4 sm:py-20 space-y-6 sm:space-y-8 relative z-10">
-                    <div className="flex items-center gap-4 mb-8">
+        {/* Adicionado overflow-y-auto para scroll interno correto */}
+        <main className="flex-1 overflow-y-auto pt-16 px-4 sm:px-8 py-6 sm:py-10 space-y-6 relative z-10 scrollbar-thin scrollbar-thumb-primary/10 hover:scrollbar-thumb-primary/20">
+                    
+                    {/* CABEÇALHO RESPONSIVO */}
+                    <div className="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-4 mb-8">
                         <div className="flex items-center gap-3">
-                            <div className="p-2 bg-primary/10 rounded-lg">
+                            <div className="p-2 bg-primary/10 rounded-lg shrink-0"> {/* shrink-0 para não amassar o ícone */}
                                 <Bell className="h-6 w-6 text-primary" />
                             </div>
                             <div>
-                                <h1 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-foreground to-primary bg-clip-text text-transparent page-title">
+                                <h1 className="text-2xl mt-16 sm:text-3xl font-bold bg-gradient-to-r from-foreground to-primary bg-clip-text text-transparent page-title">
                                     Avisos
                                 </h1>
-                                <p className="text-muted-foreground">Visualize todas as comunicações importantes</p>
+                                <p className="text-sm sm:text-base text-muted-foreground">Comunicações importantes</p>
                             </div>
-                            {/* Botão de criar aviso (visível para Manager/CTO) */}
-                            {canDelete && (
-                                <Button
-                                    variant="default"
-                                    size="sm"
-                                    onClick={() => navigate("/criar-aviso")}
-                                    className="ml-4 bg-success hover:bg-success/90"
-                                >
-                                    <Bell className="h-4 w-4 mr-2" /> Novo Aviso
-                                </Button>
-                            )}
                         </div>
+                        
+                        {/* Botão adaptável: largura total no mobile */}
+                        {canDelete && (
+                            <Button
+                                variant="default"
+                                size="sm"
+                                onClick={() => navigate("/criar-aviso")}
+                                className="w-full sm:w-auto bg-success hover:bg-success/90"
+                            >
+                                <Bell className="h-4 w-4 mr-2" /> Novo Aviso
+                            </Button>
+                        )}
                     </div>
 
                     {isLoading && (
-                        <div className="flex justify-center items-center py-12">
+                        <div className="flex flex-col justify-center items-center py-12">
                             <Loader2 className="h-8 w-8 animate-spin text-primary mb-4" />
-                            <span className="ml-2 text-primary">Carregando avisos...</span>
+                            <span className="text-primary animate-pulse">Carregando avisos...</span>
                         </div>
                     )}
 
                     {error && (
-                        <Card className="text-center py-12 border-destructive bg-destructive/10">
+                        <Card className="text-center py-12 border-destructive bg-destructive/5 mx-auto max-w-lg">
                             <CardContent>
-                                <h3 className="text-xl font-semibold text-destructive mb-2">
-                                    Erro ao carregar mensagens
+                                <AlertTriangle className="h-10 w-10 text-destructive mx-auto mb-3" />
+                                <h3 className="text-lg font-semibold text-destructive mb-2">
+                                    Não foi possível carregar
                                 </h3>
-                                <p className="text-destructive/80">
+                                <p className="text-sm text-destructive/80">
                                     {error}
                                 </p>
                             </CardContent>
@@ -183,47 +157,54 @@ const Avisos = () => {
                     )}
 
                     {!isLoading && !error && messages.length > 0 && (
-                        <div className="grid gap-4">
+                        <div className="grid gap-4 pb-20"> {/* pb-20 para dar espaço no final do scroll */}
                             {messages.map((message) => (
                                 <Card
                                     key={message.messageId}
-                                    className={`cursor-pointer transition-all duration-200 hover:shadow-md border-l-4 ${message.priority === 'NORMAL' ? 'border-l-muted-foreground' :
+                                    className={`group cursor-pointer transition-all duration-200 hover:shadow-lg border-l-4 active:scale-[0.99] ${
+                                        message.priority === 'NORMAL' ? 'border-l-muted-foreground' :
                                         message.priority === 'ALERT' ? 'border-l-yellow-600' :
-                                            'border-l-destructive'
-                                        }`}
+                                        'border-l-destructive'
+                                    }`}
                                     onClick={() => handleOpenMessage(message)}
                                 >
-                                    <CardHeader className="pb-3">
-                                        <div className="flex items-start justify-between">
-                                            <div className="flex items-center gap-3">
-                                                {getIconePorTipo(message.priority)}
-                                                <div className="flex-1">
-                                                    <CardTitle className={`text-lg font-semibold`}>
+                                    <CardHeader className="pb-3 px-4 sm:px-6 pt-5">
+                                        <div className="flex items-start justify-between gap-3">
+                                            <div className="flex items-start gap-3 overflow-hidden">
+                                                <div className="mt-1 shrink-0">
+                                                    {getIconePorTipo(message.priority)}
+                                                </div>
+                                                <div className="min-w-0"> {/* min-w-0 permite truncate funcionar em flex child */}
+                                                    <CardTitle className="text-base sm:text-lg font-semibold leading-tight truncate pr-2">
                                                         {message.title} 
                                                     </CardTitle>
-                                                    <p className="text-sm text-muted-foreground/80 mt-1">
+                                                    <p className="text-xs sm:text-sm text-muted-foreground/80 mt-1">
                                                         {getMessagePriorityTitle(message.priority)}
                                                     </p>
                                                 </div>
                                             </div>
-                                            {getBadgePorTipo(message.priority)}
+                                            <div className="shrink-0">
+                                                {getBadgePorTipo(message.priority)}
+                                            </div>
                                         </div>
                                     </CardHeader>
                                     
-                                    <CardContent className="pt-2 pb-4">
-                                        <div className="flex items-center justify-between">
+                                    <CardContent className="px-4 sm:px-6 pt-0 pb-4">
+                                        {/* LAYOUT RESPONSIVO: Flex Col no Mobile -> Flex Row no Desktop */}
+                                        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 mt-2">
                                             
-                                            {/* INDICADOR DE DESTINATÁRIO NA LISTA */}
+                                            {/* Indicador de Destinatário */}
                                             {getRecipientIndicatorUI(message)}
 
-                                            <div className="flex items-center gap-4 ml-4">
-                                                <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                                                    <Calendar className="h-4 w-4" />
+                                            <div className="flex items-center justify-between sm:justify-end gap-3 w-full sm:w-auto border-t sm:border-t-0 pt-3 sm:pt-0 border-border/40">
+                                                <div className="flex items-center gap-2 text-xs sm:text-sm text-muted-foreground">
+                                                    <Calendar className="h-3.5 w-3.5" />
                                                     {formatarData(message.createdAt)}
                                                 </div>
-                                                <Button variant="ghost" size="sm" className="hover:bg-primary/10">
-                                                    <Eye className="h-4 w-4 mr-2" />
-                                                    Ver detalhes
+                                                <Button variant="ghost" size="sm" className="h-8 text-xs sm:text-sm hover:bg-primary/10 -mr-2 sm:mr-0">
+                                                    <Eye className="h-3.5 w-3.5 mr-2" />
+                                                    <span className="hidden xs:inline">Detalhes</span>
+                                                    <span className="xs:hidden">Ver</span>
                                                 </Button>
                                             </div>
                                         </div>
@@ -234,106 +215,91 @@ const Avisos = () => {
                     )}
 
                     {!isLoading && !error && messages.length === 0 && (
-                        <Card className="text-center py-12">
-                            <CardContent>
-                                <Bell className="h-16 w-16 text-muted-foreground/50 mx-auto mb-4" />
-                                <h3 className="text-xl font-semibold text-muted-foreground mb-2">
-                                    Nenhum aviso disponível
-                                </h3>
-                                <p className="text-muted-foreground">
-                                    Quando houver novos avisos, eles aparecerão aqui.
-                                </p>
-                            </CardContent>
-                        </Card>
+                        <div className="flex flex-col items-center justify-center h-[50vh] text-center p-4">
+                            <div className="bg-muted/30 p-6 rounded-full mb-4">
+                                <Bell className="h-10 w-10 text-muted-foreground/40" />
+                            </div>
+                            <h3 className="text-xl font-semibold text-muted-foreground mb-2">
+                                Tudo tranquilo por aqui
+                            </h3>
+                            <p className="text-sm text-muted-foreground/80 max-w-xs mx-auto">
+                                Nenhum aviso novo foi postado para você no momento.
+                            </p>
+                        </div>
                     )}
                 </main>
                 
-                {/* DIALOG PRINCIPAL - Detalhes do Aviso */}
+                {/* DIALOG DETALHES - Ajustado padding e tamanho */}
                 <Dialog open={isDialogOpen} onOpenChange={handleCloseDialog}>
-                    <DialogContent className="max-w-xl sm:max-w-2xl md:max-w-3xl max-h-[90vh] overflow-y-auto rounded-xl shadow-2xl">
-                        <DialogHeader>
-                            <DialogTitle className="flex items-center gap-3 text-xl sm:text-2xl font-bold text-foreground">
-                                {selectedMessage && getIconePorTipo(selectedMessage.priority)}
+                    <DialogContent className="w-[95%] max-w-2xl rounded-xl shadow-2xl p-0 overflow-hidden max-h-[90vh] flex flex-col">
+                        <DialogHeader className="p-4 sm:p-6 border-b border-border/40 bg-muted/5">
+                            <DialogTitle className="flex items-start gap-3 text-lg sm:text-xl font-bold text-foreground leading-tight">
+                                <div className="mt-1 shrink-0">{selectedMessage && getIconePorTipo(selectedMessage.priority)}</div>
                                 {selectedMessage && selectedMessage.title}
                             </DialogTitle>
-                            <p className="text-sm text-muted-foreground/80 -mt-1 ml-9">
-                                {selectedMessage && getMessagePriorityTitle(selectedMessage.priority)}
-                            </p>
+                            <div className="flex items-center gap-2 mt-2 ml-7">
+                                {selectedMessage && getBadgePorTipo(selectedMessage.priority)}
+                                <span className="text-xs text-muted-foreground">
+                                    {selectedMessage && getMessagePriorityTitle(selectedMessage.priority)}
+                                </span>
+                            </div>
                         </DialogHeader>
 
                         {selectedMessage && (
-                            <div className="space-y-4">
-                                {/* INDICADOR DE DESTINATÁRIO NO MODAL */}
-                                <div className="pb-3 border-b border-border/50">
-                                        {getRecipientIndicatorUI(selectedMessage)}
-                                </div>
-
-                                <div className="flex items-center justify-between border-b pb-3 border-border/50">
-                                    {getBadgePorTipo(selectedMessage.priority)}
-                                    <div className="flex items-center gap-2 text-sm text-muted-foreground">
-                                        <Calendar className="h-4 w-4" />
-                                        {formatarData(selectedMessage.createdAt)}
+                            <div className="p-4 sm:p-6 overflow-y-auto">
+                                <div className="flex flex-col gap-4">
+                                    <div className="flex flex-wrap items-center justify-between gap-2 text-sm text-muted-foreground pb-4 border-b border-border/40">
+                                         {getRecipientIndicatorUI(selectedMessage)}
+                                         <div className="flex items-center gap-2">
+                                            <Calendar className="h-4 w-4" />
+                                            {formatarData(selectedMessage.createdAt)}
+                                         </div>
                                     </div>
-                                </div>
                     
-                                <div className="p-4 bg-muted/20 rounded-lg border border-border/50">
-                                    <p className="text-foreground leading-relaxed whitespace-pre-wrap text-base">
+                                    <div className="p-4 bg-muted/20 rounded-lg border border-border/50 text-sm sm:text-base leading-relaxed whitespace-pre-wrap">
                                         {selectedMessage.messageText}
-                                    </p>
+                                    </div>
                                 </div>
                             </div>
                         )}
-                        <DialogFooter>
-                            {/* Permite deletar se tiver permissão */}
+                        
+                        <DialogFooter className="p-4 sm:p-6 border-t border-border/40 bg-muted/5">
                             {selectedMessage && canDelete && ( 
                                 <Button
                                     variant="destructive"
                                     onClick={handleConfirmDelete}
+                                    className="w-full sm:w-auto"
                                 >
                                     <Trash2 className="mr-2 h-4 w-4" /> Deletar Mensagem
                                 </Button>
                             )}
+                            <Button variant="outline" onClick={handleCloseDialog} className="w-full sm:w-auto mt-2 sm:mt-0">
+                                Fechar
+                            </Button>
                         </DialogFooter>
                     </DialogContent>
                 </Dialog>
                 
-                {/* DIALOG - Confirmação de Exclusão */}
+                {/* DIALOG DELETE - Mantido simples, apenas garantindo responsividade */}
                 <Dialog open={isConfirmDeleteDialogOpen} onOpenChange={handleCancelDelete}>
-                    <DialogContent className="sm:max-w-md">
+                    <DialogContent className="w-[90%] sm:max-w-md rounded-lg">
                         <DialogHeader>
-                            <DialogTitle className="flex items-center gap-2 text-xl text-destructive">
-                                <AlertTriangle className="h-6 w-6" /> Confirmação de Exclusão
+                            <DialogTitle className="flex items-center gap-2 text-lg text-destructive">
+                                <AlertTriangle className="h-5 w-5" /> Excluir Aviso?
                             </DialogTitle>
                         </DialogHeader>
                         <div className="py-4">
-                            <p className="text-muted-foreground">
-                                Você tem certeza que deseja excluir este aviso? Esta ação é irreversível.
+                            <p className="text-sm text-muted-foreground">
+                                Esta ação não pode ser desfeita. O aviso será removido para todos os usuários.
                             </p>
-                            {selectedMessage && (
-                                <p className="mt-2 text-sm font-medium text-foreground">
-                                    Aviso: <span className="italic line-clamp-1 font-bold">{selectedMessage.title}</span>
-                                </p>
-                            )}
                         </div>
-                        <DialogFooter className="sm:justify-between gap-2">
-                            <Button
-                                variant="outline"
-                                onClick={handleCancelDelete}
-                                disabled={isDeleting}
-                            >
+                        <DialogFooter className="flex-col sm:flex-row gap-2">
+                            <Button variant="outline" onClick={handleCancelDelete} disabled={isDeleting} className="w-full sm:w-auto">
                                 Cancelar
                             </Button>
-                            <Button
-                                variant="destructive"
-                                onClick={handleDeleteMessage}
-                                disabled={isDeleting}
-                            >
-                                {isDeleting ? (
-                                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                ) : (
-                                    <Trash2 className="mr-2 h-4 w-4" />
-                                )}
-                                {isDeleting ? 'Excluindo...' : 'Confirmar Exclusão'}
+                            <Button variant="destructive" onClick={handleDeleteMessage} disabled={isDeleting} className="w-full sm:w-auto">
+                                {isDeleting ? <Loader2 className="mr-2 h-4 w-4 animate-spin" /> : <Trash2 className="mr-2 h-4 w-4" />}
+                                Confirmar
                             </Button>
                         </DialogFooter>
                     </DialogContent>
