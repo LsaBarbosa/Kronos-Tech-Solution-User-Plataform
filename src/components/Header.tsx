@@ -28,17 +28,16 @@ const Header = ({ toggleSidebar }: HeaderProps) => {
           </Button>
         </div>
 
-        {/* 2. CENTER - Kronos Solutions Name (CORRIGIDO: Removido 'hidden md:block' e adicionado ajuste de fonte) */}
-        {/* Agora visível em todos os tamanhos de tela. */}
-       <div 
-          className="absolute left-1/2 transform -translate-x-1/2 cursor-pointer" // <-- NOVO: cursor-pointer
-          onClick={() => navigate("/dashboard")} // <-- NOVO: Handler de navegação
-          title="Ir para o Dashboard" // <-- NOVO: Tooltip
-        >
-           <span className="text-base sm:text-lg md:text-xl font-bold bg-gradient-to-r from-foreground to-primary bg-clip-text text-transparent whitespace-nowrap">
-              Kronos Solutions
-           </span>
-        </div>
+      <div className="absolute left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2">
+          
+            <img
+              src="/Kronos_logo.png"
+              alt="Kronos Tech Solution"
+              // Altura ajustada para manter a proporção no header
+              className="h-10 md:h-12 w-auto object-contain"
+            />
+         
+        </div>
         
         {/* 3. Right side - Theme Toggle */}
         <div className="flex items-center gap-2 md:gap-4 pr-2 md:pr-0">
