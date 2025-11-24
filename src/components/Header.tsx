@@ -33,8 +33,9 @@ const Header = ({ toggleSidebar }: HeaderProps) => {
             <img
               src="/Kronos_logo.png"
               alt="Kronos Tech Solution"
+              onClick={() => navigate("/dashboard")}
               // Altura ajustada para manter a proporção no header
-              className="h-10 md:h-12 w-auto object-contain"
+              className="h-10 md:h-12 w-auto object-contain cursor-pointer"
             />
          
         </div>
