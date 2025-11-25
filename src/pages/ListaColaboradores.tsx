@@ -84,6 +84,7 @@ const isValidEmail = (email: string) => {
 const ListaColaboradores = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [colaboradores, setColaboradores] = useState<CombinedColaborator[]>([]);
+  const [showInactive, setShowInactive] = useState(false);
   const handleToggleSidebar = useCallback(() => setSidebarOpen((prev) => !prev), []);
   const [isLoading, setIsLoading] = useState(true);
   const [faceImageFile, setFaceImageFile] = useState<File | null>(null);
@@ -105,15 +106,17 @@ const ListaColaboradores = () => {
         throw new Error("Token de autenticação não encontrado.");
       }
 
+      const isActive = !showInactive;
+
       const [employeesResponse, usersResponse] = await Promise.all([
-        fetch(`${API_BASE_URL}employee`, {
+        fetch(`${API_BASE_URL}employee?active=${isActive}`, {
           method: "GET",
           headers: {
             "Content-Type": "application/json",
             Authorization: `Bearer ${token}`,
           },
         }),
-        fetch(`${API_BASE_URL}users/search`, {
+        fetch(`${API_BASE_URL}users/search?active=${isActive}`, {
           method: "GET",
           headers: {
             "Content-Type": "application/json",
@@ -202,7 +205,7 @@ const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
 
   useEffect(() => {
     fetchColaboradores();
-  }, []);
+  }, [showInactive]);
 
   const formatCurrency = (value: number) => {
     return new Intl.NumberFormat("pt-BR", {
@@ -234,8 +237,7 @@ const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
       const matchesCargo =
         filters.cargo === "" ||
         colaborador.jobPosition.toLowerCase().includes(filters.cargo.toLowerCase());
-
-      return matchesNome && matchesCargo;
+       return matchesNome && matchesCargo;
     });
   }, [filters, colaboradores]);
 
@@ -637,6 +639,32 @@ const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
                 </div>
               </div>
 
+              <div className="space-y-2 flex flex-col justify-end">
+                  <div className="flex items-center justify-between border p-2 rounded-md bg-background/50">
+                    <Label htmlFor="status-toggle" className="cursor-pointer flex flex-col">
+                      <span className="font-semibold">Status de Visualização</span>
+                      <span className="text-xs text-muted-foreground">
+                        {showInactive ? "Exibindo Inativos" : "Exibindo Ativos"}
+                      </span>
+                    </Label>
+                    <div className="flex items-center gap-2">
+                      <span className={`text-xs font-medium ${!showInactive ? "text-primary" : "text-muted-foreground"}`}>
+                        Ativos
+                      </span>
+                      <Switch
+                        id="status-toggle"
+                        checked={showInactive}
+                        onCheckedChange={setShowInactive}
+                        className="data-[state=checked]:bg-destructive" 
+                      />
+                      <span className={`text-xs font-medium ${showInactive ? "text-destructive" : "text-muted-foreground"}`}>
+                        Inativos
+                      </span>
+                    </div>
+                  </div>
+                </div>
+              
+
               {hasActiveFilters && (
                 <div className="flex items-center justify-between">
                   <p className="text-sm text-muted-foreground">
@@ -729,7 +757,12 @@ const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
                             <CardTitle className="text-xl group-hover:text-primary transition-colors duration-300 flex items-center gap-2">
                               <User className="w-5 h-5" />
                               {colaborador.fullName}
-                            </CardTitle>
+                              {!colaborador.active && (
+                              <Badge variant="destructive" className="ml-2 text-xs px-2 py-0.5 h-5">
+                                Inativo
+                              </Badge>
+                            )}
+                          </CardTitle>
                             <Badge className="w-fit bg-primary/10 text-primary border-primary/20 hover:bg-primary/20 mt-2">
                               {colaborador.jobPosition}
                             </Badge>
