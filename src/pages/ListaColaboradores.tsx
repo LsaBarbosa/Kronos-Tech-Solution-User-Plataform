@@ -649,7 +649,7 @@ const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
                     </Label>
                     <div className="flex items-center gap-2">
                       <span className={`text-xs font-medium ${!showInactive ? "text-primary" : "text-muted-foreground"}`}>
-                        Ativos
+                        
                       </span>
                       <Switch
                         id="status-toggle"
@@ -658,7 +658,7 @@ const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
                         className="data-[state=checked]:bg-destructive" 
                       />
                       <span className={`text-xs font-medium ${showInactive ? "text-destructive" : "text-muted-foreground"}`}>
-                        Inativos
+                        
                       </span>
                     </div>
                   </div>
