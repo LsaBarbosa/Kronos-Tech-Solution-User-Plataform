@@ -1,7 +1,7 @@
 // src/pages/RequestTimeOff.tsx
 
 import { z } from "zod";
-import { CalendarIcon, Clock, FileUp, User, AlertCircle, X, Loader2 } from "lucide-react"; // 💡 Adicionado AlertCircle, X, Loader2
+import { CalendarIcon, Clock, FileUp, User, AlertCircle, X, Loader2, HelpCircle } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { useForm } from "react-hook-form";
@@ -35,19 +35,13 @@ import {
 } from "../components/ui/popover";
 import { Calendar } from "../components/ui/calendar";
 import { cn } from "../lib/utils";
-import { useRequestTimeOff } from "../hooks/useRequestTimeOff";
+import { useRequestManualRegistration } from "../hooks/useManualRegister";
 import { Separator } from "../components/ui/separator";
 import { useCallback, useState } from "react";
 import Sidebar from "@/components/Sidebar";
 import Header from "@/components/Header";
-// 💡 Importa constantes de validação
 import { ALLOWED_ACCEPT_STRING, MAX_UPLOAD_SIZE_BYTES, ALLOWED_MIME_TYPES } from "../types/document"; 
-
-
-// ===========================================
-// FUNÇÕES DE COMPRESSÃO E CONVERSÃO (ADICIONADAS)
-// Estas funções garantem que a imagem seja otimizada e que o limite de 5MB seja validado.
-// ===========================================
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"; // Importe o RadioGroup
 
 const blobToFile = (blob: Blob, fileName: string): File => {
     return new File([blob], fileName, { type: blob.type, lastModified: Date.now() });
@@ -55,39 +49,28 @@ const blobToFile = (blob: Blob, fileName: string): File => {
 
 const compressImage = (file: File, quality: number = 0.7): Promise<File> => {
     return new Promise((resolve) => {
-        // Ignora arquivos que não são imagens ou que são vetoriais/gifs
         if (!file.type.startsWith('image/') || file.type === 'image/gif' || file.type.startsWith('image/svg')) {
             return resolve(file);
         }
-
         const reader = new FileReader();
         reader.readAsDataURL(file);
-
         reader.onload = (event: ProgressEvent<FileReader>) => {
             const img = document.createElement('img');
             img.src = event.target?.result as string;
-
             img.onload = () => {
                 const canvas = document.createElement('canvas');
                 const ctx = canvas.getContext('2d');
-                
                 canvas.width = img.width;
                 canvas.height = img.height;
-
                 ctx?.drawImage(img, 0, 0, img.width, img.height);
-                
-                // Força a saída para 'image/jpeg' com qualidade 0.7
-                const outputMimeType = 'image/jpeg';
-
                 canvas.toBlob((blob) => {
-                    // Só retorna o comprimido se for menor que o original, garantindo otimização.
                     if (blob && blob.size < file.size) { 
                         const compressedFile = blobToFile(blob, file.name);
                         resolve(compressedFile);
                     } else {
-                        resolve(file); // Retorna o original
+                        resolve(file);
                     }
-                }, outputMimeType, quality);
+                }, 'image/jpeg', quality);
             };
             img.onerror = () => resolve(file);
         };
@@ -95,11 +78,8 @@ const compressImage = (file: File, quality: number = 0.7): Promise<File> => {
     });
 };
 
-
-// Definição de tipo para a função que fecha o Popover
 type SetOpen = React.Dispatch<React.SetStateAction<boolean>>;
 
-// Schema de validação
 const formSchema = z.object({
   startDate: z.date().optional(),
   endDate: z.date().optional(),
@@ -107,9 +87,10 @@ const formSchema = z.object({
   endHour: z.string().nonempty(),
   managerId: z.string().nonempty(),
   document: z.any(),
+  requestType: z.enum(['TIME_OFF_REQUEST', 'FORGOTTEN_REGISTRATION']), // Validação do Zod
 });
 
-export function RequestTimeOff() {
+export function RequestManualRegistration() {
   const {
     formState,
     managers,
@@ -117,17 +98,13 @@ export function RequestTimeOff() {
     errors,
     handleChange,
     handleSubmit,
-  } = useRequestTimeOff();
+  } = useRequestManualRegistration();
   
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  // Estados para controlar a abertura/fechamento dos Popovers do calendário
   const [isStartDatePickerOpen, setIsStartDatePickerOpen] = useState(false);
   const [isEndDatePickerOpen, setIsEndDatePickerOpen] = useState(false);
-  // 💡 NOVO: Estado para erro de arquivo, não gerenciado pelo Zod.
   const [fileError, setFileError] = useState<string | null>(null); 
-  // 💡 NOVO: Estado para saber se está comprimindo
   const [isProcessingFile, setIsProcessingFile] = useState(false); 
-
 
   const handleToggleSidebar = useCallback(() => setSidebarOpen((prev) => !prev), []);
   
@@ -140,52 +117,42 @@ export function RequestTimeOff() {
       endHour: formState.endHour,
       managerId: formState.managerId,
       document: formState.document,
+      requestType: formState.requestType, // Valor inicial
     },
   });
   
-  // 💡 handleFileChange AGORA É ASSÍNCRONA E INCLUI COMPRESSÃO/VALIDAÇÃO
   const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     let file = e.target.files ? e.target.files[0] : null;
-    
     setFileError(null);
-    handleChange("document", null); // Limpa o documento no estado do formulário
+    handleChange("document", null); 
 
-    if (!file) {
-        return;
-    }
+    if (!file) return;
     
-    // 1. Validação do tipo de arquivo
     const fileExtension = file.name.split('.').pop()?.toLowerCase();
     const isAllowedType = ALLOWED_MIME_TYPES.some(type => fileExtension && type.includes(fileExtension));
     
     if (!fileExtension || !isAllowedType) {
         setFileError("Tipo de arquivo não permitido.");
-        e.target.value = ""; // Limpa o input file
+        e.target.value = "";
         return;
     }
 
-    // 2. Compressão de imagem (se aplicável)
     if (file.type.startsWith('image/')) {
-        setIsProcessingFile(true); // Inicia feedback visual
+        setIsProcessingFile(true);
         file = await compressImage(file);
-        setIsProcessingFile(false); // Encerra feedback visual
+        setIsProcessingFile(false); 
     }
 
-    // 3. Validação do tamanho do arquivo (APÓS potencial compressão)
     if (file.size > MAX_UPLOAD_SIZE_BYTES) {
         const maxSizeMB = (MAX_UPLOAD_SIZE_BYTES / 1024 / 1024).toFixed(0);
-        setFileError(`Arquivo muito grande. O limite é de ${maxSizeMB}MB (após compressão para imagens).`);
-        e.target.value = ""; // Limpa o input file
+        setFileError(`Arquivo muito grande. O limite é de ${maxSizeMB}MB.`);
+        e.target.value = "";
         return;
     }
     
-    // 4. Arquivo selecionado e validado com sucesso
     handleChange("document", file);
   };
 
-  /**
-   * Função para lidar com a mudança de data no calendário.
-   */
   const handleDateChange = (
     field: "startDate" | "endDate",
     date: Date | undefined,
@@ -194,88 +161,104 @@ export function RequestTimeOff() {
     form.setValue(field, date);
     handleChange(field, date);
     if (date) {
-      setOpen(false); // FECHA O CALENDÁRIO AUTOMATICAMENTE
+      setOpen(false);
     }
   };
 
   const clearFile = () => {
-    setFileError(null); // Limpa o erro
-    handleChange("document", null); // Limpa o estado do formulário
+    setFileError(null);
+    handleChange("document", null);
     const fileInput = document.getElementById("document-upload") as HTMLInputElement;
     if (fileInput) {
-      fileInput.value = ""; // Limpa visualmente o input de arquivo
+      fileInput.value = "";
     }
   };
 
   const isUploadDisabled = isLoading || isProcessingFile;
   const selectedFile = formState.document as File | null;
 
-
   return (
-  
-
- <div className="min-h-screen bg-background relative  overflow-hidden">
-      {/* Animated Background and Header/Sidebar components */}
+    <div className="min-h-screen bg-background relative overflow-hidden">
+      {/* Background animations */}
       <div className="fixed inset-0 z-0">
-        <div
-          className="absolute inset-0 opacity-5"
-          style={{
-            background: 'linear-gradient(-45deg, hsl(var(--black-primary)), hsl(var(--primary)), hsl(var(--black-primary)), hsl(var(--primary)))',
-            backgroundSize: '400% 400%',
-            animation: 'gradient-flow 15s ease-in-out infinite'
-          }}
-        />
-        <div className="absolute inset-0">
-          <div
-            className="absolute top-1/4 left-1/4 w-32 h-32 opacity-3"
-            style={{
-              background: 'linear-gradient(135deg, hsl(var(--primary) / 0.50), transparent)',
-              borderRadius: '30% 70% 70% 30% / 30% 30% 70% 70%',
-              animation: 'float-shapes 20s ease-in-out infinite'
-            }}
-          />
-          <div
-            className="absolute top-3/4 right-1/4 w-48 h-48 opacity-2"
-            style={{
-              background: 'linear-gradient(45deg, hsl(var(--black-primary) / 0.50), transparent)',
-              borderRadius: '70% 30% 30% 70% / 70% 70% 30% 30%',
-              animation: 'float-shapes 25s ease-in-out infinite reverse'
-            }}
-          />
-          <div
-            className="absolute top-1/2 right-1/3 w-24 h-24 opacity-4"
-            style={{
-              background: 'radial-gradient(circle, hsl(var(--primary) / 0.50), transparent)',
-              borderRadius: '50%',
-              animation: 'float-shapes 18s ease-in-out infinite 5s'
-            }}
-          />
-        </div>
+        <div className="absolute inset-0 opacity-5" style={{ background: 'linear-gradient(-45deg, hsl(var(--black-primary)), hsl(var(--primary)), hsl(var(--black-primary)), hsl(var(--primary)))', backgroundSize: '400% 400%', animation: 'gradient-flow 15s ease-in-out infinite' }} />
       </div>
 
-    <Sidebar isOpen={sidebarOpen} toggleSidebar={handleToggleSidebar} />
+      <Sidebar isOpen={sidebarOpen} toggleSidebar={handleToggleSidebar} />
 
       <div className="flex-1 flex flex-col overflow-hidden">
         <Header toggleSidebar={handleToggleSidebar} />
 
-      <main className="pt-16 mobile-container py-4 sm:py-20 space-y-6 sm:space-y-8 relative z-10">
+        <main className="pt-16 mobile-container py-4 sm:py-20 space-y-6 sm:space-y-8 relative z-10">
           <div className="max-w-4xl mx-auto">
             <div className="mb-6 sm:mb-8">
               <h1 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-foreground to-primary bg-clip-text text-transparent page-title">
-                Solicitar Abono </h1>
+                Solicitação de Ajuste
+              </h1>
               <p className="text-sm sm:text-base text-muted-foreground mt-2">
-                Preencha o período exato e anexe um comprovante (opcional) para abono de horas.
+                Solicite abono de horas ou informe esquecimento de registro de ponto.
               </p>
             </div>
             <Card className="border-l-4 border-l-primary shadow-card">
               <Card className="border-primary/20 shadow-lg">
                 <CardContent>
                   <Form {...form}>
-                    <form
-                      // Usa o handleSubmit do hook customizado para a submissão final
-                      onSubmit={handleSubmit}
-                      className="grid gap-6 mt-6 md:grid-cols-2"
-                    >
+                    <form onSubmit={handleSubmit} className="grid gap-6 mt-6 md:grid-cols-2">
+                      
+                      {/* SELETOR DE TIPO DE SOLICITAÇÃO */}
+                      <div className="md:col-span-2">
+                        <FormField
+                          control={form.control}
+                          name="requestType"
+                          render={({ field }) => (
+                            <FormItem className="space-y-3">
+                              <FormLabel className="text-base font-semibold flex items-center">
+                                <HelpCircle className="w-4 h-4 mr-2 text-primary" />
+                                Tipo de Solicitação
+                              </FormLabel>
+                              <FormControl>
+                                <RadioGroup
+                                  onValueChange={(val: any) => {
+                                    field.onChange(val);
+                                    handleChange("requestType", val);
+                                  }}
+                                  defaultValue={field.value}
+                                  className="flex flex-col sm:flex-row gap-4"
+                                >
+                                  <FormItem className="flex items-center space-x-3 space-y-0 border p-4 rounded-md w-full cursor-pointer hover:bg-muted/50 transition-colors">
+                                    <FormControl>
+                                      <RadioGroupItem value="TIME_OFF_REQUEST" />
+                                    </FormControl>
+                                    <FormLabel className="font-normal cursor-pointer w-full">
+                                      Abono de Horas
+                                      <FormDescription>
+                                        Para justificativas médicas ou folgas acordadas.
+                                      </FormDescription>
+                                    </FormLabel>
+                                  </FormItem>
+                                  <FormItem className="flex items-center space-x-3 space-y-0 border p-4 rounded-md w-full cursor-pointer hover:bg-muted/50 transition-colors">
+                                    <FormControl>
+                                      <RadioGroupItem value="FORGOTTEN_REGISTRATION" />
+                                    </FormControl>
+                                    <FormLabel className="font-normal cursor-pointer w-full">
+                                      Esquecimento de Ponto
+                                      <FormDescription>
+                                        Caso tenha esquecido de bater o ponto.
+                                      </FormDescription>
+                                    </FormLabel>
+                                  </FormItem>
+                                </RadioGroup>
+                              </FormControl>
+                              <FormMessage />
+                            </FormItem>
+                          )}
+                        />
+                      </div>
+
+                      <div className="md:col-span-2">
+                        <Separator className="my-2 bg-muted" />
+                      </div>
+
                       {/* Datas */}
                       <div className="md:col-span-2 grid grid-cols-2 gap-4">
                         <FormField
@@ -287,10 +270,7 @@ export function RequestTimeOff() {
                                 <CalendarIcon className="w-4 h-4 mr-2 text-primary" />
                                 Data de Início*
                               </FormLabel>
-                              <Popover
-                                open={isStartDatePickerOpen} // <--- CONTROLADO PELO ESTADO
-                                onOpenChange={setIsStartDatePickerOpen} // <--- ATUALIZA O ESTADO
-                              >
+                              <Popover open={isStartDatePickerOpen} onOpenChange={setIsStartDatePickerOpen}>
                                 <PopoverTrigger asChild>
                                   <FormControl>
                                     <Button
@@ -298,13 +278,11 @@ export function RequestTimeOff() {
                                       className={cn(
                                         "w-full justify-start text-left font-normal ",
                                         !formState.startDate && "text-muted-foreground",
-                                        errors.startDate && "border-destructive" // Erro do hook
+                                        errors.startDate && "border-destructive"
                                       )}
                                     >
                                       {formState.startDate ? (
-                                        format(formState.startDate, "dd MMM yyyy", { // Alterado o formato para "dd MMM yyyy"
-                                          locale: ptBR,
-                                        })
+                                        format(formState.startDate, "dd MMM yyyy", { locale: ptBR })
                                       ) : (
                                         <span>Selecione a data</span>
                                       )}
@@ -316,17 +294,12 @@ export function RequestTimeOff() {
                                     mode="single"
                                     locale={ptBR}
                                     selected={formState.startDate}
-                                    onSelect={(date) =>
-                                      handleDateChange("startDate", date, setIsStartDatePickerOpen) // <--- PASSA O SETTER
-                                    }
-                                    // disabled={(date) => isBefore(date, new Date())} <--- REMOVIDO PARA PERMITIR DATAS PASSADAS
+                                    onSelect={(date) => handleDateChange("startDate", date, setIsStartDatePickerOpen)}
                                     initialFocus
                                   />
                                 </PopoverContent>
                               </Popover>
-                              <FormMessage className="text-destructive">
-                                {errors.startDate}
-                              </FormMessage>
+                              <FormMessage className="text-destructive">{errors.startDate}</FormMessage>
                             </FormItem>
                           )}
                         />
@@ -340,10 +313,7 @@ export function RequestTimeOff() {
                                 <CalendarIcon className="w-4 h-4 mr-2 text-primary" />
                                 Data de Fim*
                               </FormLabel>
-                              <Popover
-                                open={isEndDatePickerOpen} // <--- CONTROLADO PELO ESTADO
-                                onOpenChange={setIsEndDatePickerOpen} // <--- ATUALIZA O ESTADO
-                              >
+                              <Popover open={isEndDatePickerOpen} onOpenChange={setIsEndDatePickerOpen}>
                                 <PopoverTrigger asChild>
                                   <FormControl>
                                     <Button
@@ -355,9 +325,7 @@ export function RequestTimeOff() {
                                       )}
                                     >
                                       {formState.endDate ? (
-                                        format(formState.endDate, "dd MMM yyyy", { // 💡 CORREÇÃO: Usar formState.endDate
-                                          locale: ptBR,
-                                        })
+                                        format(formState.endDate, "dd MMM yyyy", { locale: ptBR })
                                       ) : (
                                         <span>Selecione a data</span>
                                       )}
@@ -369,17 +337,12 @@ export function RequestTimeOff() {
                                     mode="single"
                                     locale={ptBR}
                                     selected={formState.endDate}
-                                    onSelect={(date) =>
-                                      handleDateChange("endDate", date, setIsEndDatePickerOpen) // <--- PASSA O SETTER
-                                    }
-                                    // disabled={(date) => isBefore(date, new Date())} <--- REMOVIDO PARA PERMITIR DATAS PASSADAS
+                                    onSelect={(date) => handleDateChange("endDate", date, setIsEndDatePickerOpen)}
                                     initialFocus
                                   />
                                 </PopoverContent>
                               </Popover>
-                              <FormMessage className="text-destructive">
-                                {errors.endDate}
-                              </FormMessage>
+                              <FormMessage className="text-destructive">{errors.endDate}</FormMessage>
                             </FormItem>
                           )}
                         />
@@ -400,18 +363,14 @@ export function RequestTimeOff() {
                                 <Input
                                   {...field}
                                   type="time"
-                                  className={cn(
-                                    errors.startHour && "border-destructive"
-                                  )}
+                                  className={cn(errors.startHour && "border-destructive")}
                                   onChange={(e) => {
                                     field.onChange(e);
                                     handleChange("startHour", e.target.value);
                                   }}
                                 />
                               </FormControl>
-                              <FormMessage className="text-destructive">
-                                {errors.startHour}
-                              </FormMessage>
+                              <FormMessage className="text-destructive">{errors.startHour}</FormMessage>
                             </FormItem>
                           )}
                         />
@@ -428,24 +387,20 @@ export function RequestTimeOff() {
                                 <Input
                                   {...field}
                                   type="time"
-                                  className={cn(
-                                    errors.endHour && "border-destructive"
-                                  )}
+                                  className={cn(errors.endHour && "border-destructive")}
                                   onChange={(e) => {
                                     field.onChange(e);
                                     handleChange("endHour", e.target.value);
                                   }}
                                 />
                               </FormControl>
-                              <FormMessage className="text-destructive">
-                                {errors.endHour}
-                              </FormMessage>
+                              <FormMessage className="text-destructive">{errors.endHour}</FormMessage>
                             </FormItem>
                           )}
                         />
                       </div>
 
-                      {/* Seleção do Manager */}
+                      {/* Manager */}
                       <FormField
                         control={form.control}
                         name="managerId"
@@ -463,24 +418,14 @@ export function RequestTimeOff() {
                               value={field.value}
                             >
                               <FormControl>
-                                <SelectTrigger
-                                  className={cn(
-                                    errors.managerId && "border-destructive"
-                                  )}
-                                >
+                                <SelectTrigger className={cn(errors.managerId && "border-destructive")}>
                                   <SelectValue placeholder="Selecione o Gestor" />
                                 </SelectTrigger>
                               </FormControl>
                               <SelectContent>
                                 {managers.map((manager) => (
-                                  <SelectItem
-                                    key={manager.userId}
-                                    value={manager.userId}
-                                    className="flex flex-col items-start"
-                                  >
-                                    <span className="font-medium">
-                                      {manager.username}
-                                    </span>
+                                  <SelectItem key={manager.userId} value={manager.userId} className="flex flex-col items-start">
+                                    <span className="font-medium">{manager.username}</span>
                                   </SelectItem>
                                 ))}
                               </SelectContent>
@@ -488,9 +433,7 @@ export function RequestTimeOff() {
                             <FormDescription>
                               O gestor da sua empresa que fará a aprovação.
                             </FormDescription>
-                            <FormMessage className="text-destructive">
-                              {errors.managerId}
-                            </FormMessage>
+                            <FormMessage className="text-destructive">{errors.managerId}</FormMessage>
                           </FormItem>
                         )}
                       />
@@ -499,37 +442,31 @@ export function RequestTimeOff() {
                         <Separator className="my-4 bg-muted" />
                       </div>
 
-                      {/* Upload de Documento (Opcional) */}
+                      {/* Upload */}
                       <div className="md:col-span-2">
                         <FormItem>
                           <FormLabel className="flex items-center">
                             <FileUp className="w-4 h-4 mr-2 text-primary" />
-                            Comprovante (Atestado/Documento)
+                            Comprovante (Opcional)
                           </FormLabel>
                           <Input
                             id="document-upload"
                             type="file"
                             className="flex-1"
-                            onChange={handleFileChange} // 💡 AGORA USA A FUNÇÃO ASSÍNCRONA OTIMIZADA
-                            accept={ALLOWED_ACCEPT_STRING} // 💡 Usa a constante de tipos permitidos
+                            onChange={handleFileChange}
+                            accept={ALLOWED_ACCEPT_STRING}
                             disabled={isUploadDisabled}
                           />
-
-                          {/* 💡 Exibe o Erro de Arquivo (Tamanho/Tipo) */}
                           {fileError && (
                             <p className="text-sm text-destructive flex items-center gap-2 mt-2">
                               <AlertCircle className="h-4 w-4" /> {fileError}
                             </p>
                           )}
-                          
-                          {/* 💡 Exibe o status de processamento */}
                           {isProcessingFile && (
                               <p className="text-sm text-primary flex items-center gap-2 mt-2">
                                   <Loader2 className="h-4 w-4 animate-spin" /> Otimizando imagem, aguarde...
                               </p>
                           )}
-
-                          {/* 💡 Pré-visualização do Arquivo Selecionado */}
                           {selectedFile && !fileError && (
                             <div className="flex items-center justify-between p-3 border border-border rounded-lg bg-muted/50 mt-3">
                               <div className="flex items-center space-x-3">
@@ -539,42 +476,28 @@ export function RequestTimeOff() {
                                   <p className="text-xs text-muted-foreground">{(selectedFile.size / 1024 / 1024).toFixed(2)} MB</p>
                                 </div>
                               </div>
-                              <Button
-                                type="button"
-                                variant="ghost"
-                                size="icon"
-                                onClick={clearFile}
-                                className="text-destructive hover:bg-destructive/10"
-                                disabled={isUploadDisabled}
-                              >
+                              <Button type="button" variant="ghost" size="icon" onClick={clearFile} className="text-destructive hover:bg-destructive/10" disabled={isUploadDisabled}>
                                 <X className="h-4 w-4" />
                               </Button>
                             </div>
                           )}
-
-                          <FormDescription className="mt-4"> {/* 💡 ATUALIZADA A DESCRIÇÃO */}
-                            Formatos aceitos: PDF, JPEG, PNG, DOCX, DOC.
-                            <br />
-                            O arquivo **não deve exceder {(MAX_UPLOAD_SIZE_BYTES / 1024 / 1024).toFixed(0)}MB**. Imagens são otimizadas automaticamente.
+                          <FormDescription className="mt-4">
+                            Formatos aceitos: PDF, JPEG, PNG, DOCX, DOC. <br />
+                            Limite de {(MAX_UPLOAD_SIZE_BYTES / 1024 / 1024).toFixed(0)}MB.
                           </FormDescription>
-
                         </FormItem>
                       </div>
 
-                      {/* Botão de Envio */}
+                      {/* Submit */}
                       <div className="md:col-span-2 flex justify-end mt-4">
                         <Button
                           type="submit"
                           className="w-full md:w-auto"
-                          // 💡 Bloqueia o envio se o arquivo estiver em processamento ou com erro de arquivo
                           disabled={isUploadDisabled || !!fileError || !formState.startDate || !formState.endDate || !formState.managerId} 
                         >
                           {isLoading ? (
-                            <>
-                                <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                                Enviando...
-                            </>
-                          ) : "Solicitar Abono"}
+                            <> <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Enviando... </>
+                          ) : "Enviar Solicitação"}
                         </Button>
                       </div>
                     </form>
@@ -589,4 +512,4 @@ export function RequestTimeOff() {
   );
 }
 
-export default RequestTimeOff;
+export default RequestManualRegistration;

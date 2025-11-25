@@ -1,6 +1,6 @@
 // src/pages/TimeOffApprovals.tsx
 
-import React, { useCallback } from 'react';
+import React from 'react';
 import Sidebar from '@/components/Sidebar';
 import Header from '@/components/Header';
 import { useTimeOffApprovals } from '../hooks/useTimeOffApprovals';
@@ -29,75 +29,75 @@ import { cn } from '../lib/utils';
 import { API_BASE_URL } from '../config/api';
 
 // ---------------------------------------------------------------------
-// --- 1. FUNÇÕES DE UTILIDADE E TIPOS (Refatorada para DD/MM/YY)
+// --- 1. FUNÇÕES DE UTILIDADE E TIPOS
 // ---------------------------------------------------------------------
 
 const formatBackendDate = (dateString: string): string => {
-    // 1. Pega apenas a parte da data, ignorando o tempo se houver.
     const dateOnly = dateString.split(' ')[0];
-    
-    // 2. Tenta dividir a string usando qualquer separador comum (/, -, ou .)
     const parts = dateOnly.split(/[-\/\.]/); 
 
     if (parts.length === 3) {
-        // Verifica a ordem esperada no backend: Ano (index 0), Mês (index 1), Dia (index 2).
-        // Se a ordem for diferente na sua API, ajuste os índices abaixo.
-        
         const year = parts[2]; 
         const month = parts[1]; 
         const day = parts[0]; 
-        
-        // Obtém os últimos dois dígitos do ano (YY)
         const shortYear = year.slice(-2); 
-
-        // 3. Retorna no formato CORRETO: DD/MM/YY
         return `${day}/${month}/${shortYear}`; 
     }
-    
-    // Se não conseguir dividir, retorna a string original
     return dateString;
 };
 
-// --- Mapeamento de Status e Cores ---
+// --- ATUALIZADO: Mapeamento de Status e Cores ---
 const statusMap: Record<StatusRecord | string, string> = {
-    TIME_OFF_REQUEST: 'Pendente',
-    TIME_OFF: 'Aprovado',
-    TIME_OFF_REJECTED: 'Rejeitado',
+    TIME_OFF_REQUEST: 'Abono Pendente',
+    FORGOTTEN_REGISTRATION: 'Esq. Ponto Pendente', // 💡 Novo
+    TIME_OFF: 'Abono Aprovado',
+    TIME_OFF_REJECTED: 'Abono Rejeitado',
+    UPDATED: 'Aprovado (Ajuste)', // 💡 Novo (Esquecimento Aprovado)
+    UPDATE_REJECTED: 'Rejeitado (Ajuste)', // 💡 Novo (Esquecimento Rejeitado)
     PENDING: 'Pendente',
     APPROVED: 'Aprovado',
     REJECTED: 'Rejeitado',
     ALL: 'Todos',
 };
 
+// --- ATUALIZADO: Rótulos do Filtro ---
 const statusOptions: { value: StatusFilterType, label: string }[] = [
-    { value: 'PENDING', label: 'Pendentes' },
+    { value: 'PENDING', label: 'Pendentes (Abonos/Esquecimentos)' },
     { value: 'APPROVED', label: 'Aprovados' },
     { value: 'REJECTED', label: 'Rejeitados' },
     { value: 'ALL', label: 'Todos os Status' },
 ];
 
 type StatusFilterType = 'PENDING' | 'APPROVED' | 'REJECTED' | 'ALL';
+// Hack para inferir o tipo do registro a partir do hook, caso não queira importar a interface explicitamente
 type ITimeOffRecord = typeof useTimeOffApprovals extends () => { approvalsData: { records: infer R } | undefined } ? R extends (infer T)[] ? T : never : never;
 
-
- 
-
 const renderStatusBadge = (status: StatusRecord) => {
-    const baseClasses = 'px-2.5 py-0.5 rounded-full text-xs font-medium';
+    const baseClasses = 'px-2.5 py-0.5 rounded-full text-xs font-medium border';
+    
     switch (status) {
         case 'TIME_OFF_REQUEST':
-            return <span className={cn(baseClasses, 'bg-amber-100 text-amber-800 dark:bg-amber-900 dark:text-amber-300')}>{statusMap[status]}</span>;
+            return <span className={cn(baseClasses, 'bg-amber-100 text-amber-800 border-amber-200 dark:bg-amber-900/50 dark:text-amber-200 dark:border-amber-800')}>{statusMap[status]}</span>;
+        
+        // 💡 NOVO CASE: Esquecimento de Ponto (Roxo)
+        case 'FORGOTTEN_REGISTRATION':
+            return <span className={cn(baseClasses, 'bg-purple-100 text-purple-800 border-purple-200 dark:bg-purple-900/50 dark:text-purple-200 dark:border-purple-800')}>{statusMap[status]}</span>;
+            
         case 'TIME_OFF':
-            return <span className={cn(baseClasses, 'bg-green-100 text-green-800 dark:bg-green-900 dark:text-green-300')}>{statusMap[status]}</span>;
+        case 'UPDATED': // Inclui UPDATED como verde (aprovado)
+            return <span className={cn(baseClasses, 'bg-green-100 text-green-800 border-green-200 dark:bg-green-900/50 dark:text-green-200 dark:border-green-800')}>{statusMap[status]}</span>;
+            
         case 'TIME_OFF_REJECTED':
-            return <span className={cn(baseClasses, 'bg-red-100 text-red-800 dark:bg-red-900 dark:text-red-300')}>{statusMap[status]}</span>;
+        case 'UPDATE_REJECTED': // Inclui UPDATE_REJECTED como vermelho (rejeitado)
+            return <span className={cn(baseClasses, 'bg-red-100 text-red-800 border-red-200 dark:bg-red-900/50 dark:text-red-200 dark:border-red-800')}>{statusMap[status]}</span>;
+            
         default:
-            return <span className={cn(baseClasses, 'bg-gray-100 text-gray-800 dark:bg-gray-800 dark:text-gray-300')}>{status}</span>;
+            return <span className={cn(baseClasses, 'bg-gray-100 text-gray-800 border-gray-200 dark:bg-gray-800 dark:text-gray-300')}>{status}</span>;
     }
 };
 
 // ---------------------------------------------------------------------
-// --- 2. HOOK DE RESPONSIVIDADE (Mantido)
+// --- 2. HOOK DE RESPONSIVIDADE
 // ---------------------------------------------------------------------
 
 const useIsDesktop = () => {
@@ -110,12 +110,11 @@ const useIsDesktop = () => {
   return isDesktop;
 };
 
-
 // ---------------------------------------------------------------------
-// --- 3. COMPONENTE DE ITEM RESPONSIVO (Item do Abono - Mantido)
+// --- 3. COMPONENTE DE ITEM RESPONSIVO
 // ---------------------------------------------------------------------
 
-const TimeOffApprovalItem: React.FC<ITimeOffRecord & {
+const ManualRegisterApprovalItem: React.FC<ITimeOffRecord & {
   handleAction: (id: number, action: 'approve' | 'reject') => void;
   handleDownload: (documentId?: string, employeeId?: string) => Promise<void>;
   isMutating: boolean;
@@ -127,9 +126,10 @@ const TimeOffApprovalItem: React.FC<ITimeOffRecord & {
     } = props;
     
     const isDesktop = useIsDesktop();
-    const isPending = statusRecord === 'TIME_OFF_REQUEST';
     
-    // Memoização dos valores
+    // 💡 ATUALIZADO: Considera ambos os tipos como pendentes para mostrar botões
+    const isPending = statusRecord === 'TIME_OFF_REQUEST' || statusRecord === 'FORGOTTEN_REGISTRATION';
+    
     const formattedStartWork = React.useMemo(() => formatBackendDate(startWork), [startWork]);
     const formattedEndWork = React.useMemo(() => formatBackendDate(endWork), [endWork]);
     const employeeName = employeeData.employeeName;
@@ -141,7 +141,6 @@ const TimeOffApprovalItem: React.FC<ITimeOffRecord & {
                 key={timeRecordId} 
                 className={cn(
                     'border-l-4', 
-                    
                     isMutating && 'opacity-50 pointer-events-none'
                 )}
             >
@@ -149,11 +148,9 @@ const TimeOffApprovalItem: React.FC<ITimeOffRecord & {
                 <TableCell>
                     <div className="flex flex-col">
                         <p className="font-medium text-foreground">
-                            {/* Exibição: DD/MM/YY - HH:mm */}
                             {formattedStartWork} - {startHour}
                         </p>
                         <p className="font-medium text-foreground">
-                            {/* Exibição: DD/MM/YY - HH:mm */}
                             {formattedEndWork} - {endHour}
                         </p>
                     </div>
@@ -162,7 +159,6 @@ const TimeOffApprovalItem: React.FC<ITimeOffRecord & {
                 <TableCell>{renderStatusBadge(statusRecord)}</TableCell>
                 <TableCell className="text-right flex justify-end gap-2">
                     
-                    {/* Botão de Download */}
                     {documentDownloadPath && (
                         <Button
                             variant="outline"
@@ -175,13 +171,12 @@ const TimeOffApprovalItem: React.FC<ITimeOffRecord & {
                         </Button>
                     )}
 
-                    {/* Botões de Ação (Apenas se Pendente) */}
                     {isPending && (
                         <>
                             <Button
                                 variant="outline"
                                 size="icon"
-                                title="Aprovar Abono"
+                                title="Aprovar"
                                 onClick={() => handleAction(timeRecordId, 'approve')}
                                 disabled={isMutating}
                             >
@@ -190,7 +185,7 @@ const TimeOffApprovalItem: React.FC<ITimeOffRecord & {
                             <Button
                                 variant="outline"
                                 size="icon"
-                                title="Rejeitar Abono"
+                                title="Rejeitar"
                                 onClick={() => handleAction(timeRecordId, 'reject')}
                                 disabled={isMutating}
                             >
@@ -208,11 +203,9 @@ const TimeOffApprovalItem: React.FC<ITimeOffRecord & {
         <Card 
             className={cn(
                 "mb-4 overflow-hidden shadow-card border-l-4 transition-colors",
-                
                 isMutating && 'opacity-50 pointer-events-none'
             )}
         >
-            {/* Cabeçalho */}
             <CardHeader className="flex flex-row items-center justify-between space-y-0 p-3 bg-muted/20">
                 <CardTitle className="text-sm font-semibold flex items-center">
                     <User className="h-4 w-4 mr-2 text-primary" />
@@ -223,33 +216,25 @@ const TimeOffApprovalItem: React.FC<ITimeOffRecord & {
                 </div>
             </CardHeader>
             
-            {/* Corpo: Detalhes do Abono */}
             <CardContent className="p-4 text-sm space-y-2">
-                
-                {/* Período De */}
                 <div className="flex items-center justify-between border-b pb-1">
                     <div className="font-medium flex items-center text-gray-500 dark:text-gray-400">
                         <CalendarCheck className="h-4 w-4 mr-1" /> De
                     </div>
                     <span className="font-bold text-sm">
-                         {/* Exibição: DD/MM/YY - HH:mm */}
                          {formattedStartWork} - {startHour}
                     </span>
                 </div>
 
-                {/* Período Até */}
                  <div className="flex items-center justify-between border-b pb-1">
                     <div className="font-medium flex items-center text-gray-500 dark:text-gray-400">
                         <CalendarCheck className="h-4 w-4 mr-1" /> Até
                     </div>
                     <span className="font-bold text-sm">
-                         {/* Exibição: DD/MM/YY - HH:mm */}
                          {formattedEndWork} - {endHour}
                     </span>
                 </div>
 
-
-                {/* Duração Total */}
                 <div className="flex items-center justify-between pt-1">
                     <div className="font-medium flex items-center text-gray-500 dark:text-gray-400">
                         <Clock className="h-4 w-4 mr-1" /> Duração Total
@@ -258,9 +243,7 @@ const TimeOffApprovalItem: React.FC<ITimeOffRecord & {
                 </div>
             </CardContent>
             
-            {/* Rodapé: Ações (Botões) */}
             <div className="flex justify-end space-x-3 p-4 pt-0 border-t bg-muted/50 dark:bg-muted/30">
-                
                 {documentDownloadPath && (
                     <Button
                         variant="ghost"
@@ -300,11 +283,10 @@ const TimeOffApprovalItem: React.FC<ITimeOffRecord & {
     );
 };
 
-
 // ---------------------------------------------------------------------
-// --- 4. COMPONENTE PRINCIPAL (TimeOffApprovals - Mantido)
+// --- 4. COMPONENTE PRINCIPAL
 // ---------------------------------------------------------------------
-const TimeOffApprovals = () => {
+const ManualRegisterApprovals = () => {
     const { 
         approvalsData, 
         isLoading, 
@@ -321,90 +303,77 @@ const TimeOffApprovals = () => {
         handleToggleSidebar,
     } = useTimeOffApprovals();
     
-    // Usando o hook de responsividade
-    const isDesktop = useIsDesktop(); //
+    const isDesktop = useIsDesktop();
 
     const currentRecords = approvalsData?.records || [];
     const totalPages = approvalsData?.totalPages ?? 0;
     const totalElements = approvalsData?.totalElements ?? 0;
 
-const handleDownload = async (documentId?: string, employeeId?: string) => {
-    if (!documentId || !employeeId) {
-        alert('Dados insuficientes para realizar o download.');
-        return;
-    }
-     
-    try {
-        const token = localStorage.getItem('token');
-        if (!token) {
-            alert('Token de autenticação ausente.');
+    const handleDownload = async (documentId?: string, employeeId?: string) => {
+        if (!documentId || !employeeId) {
+            alert('Dados insuficientes para realizar o download.');
             return;
         }
-
-        // 1. Monta a URL: /documents/{documentId}?employeeId={employeeId}
-        const url = `${API_BASE_URL}documents/${documentId}?employeeId=${employeeId}`;
-
-        // 2. Realiza o fetch (passando o token no header)
-        const response = await fetch(url, {
-            headers: {
-                'Authorization': `Bearer ${token}`,
-            },
-        });
-
-        if (!response.ok) {
-            let errorMessage = "Não foi possível realizar o download.";
-            try {
-                const errorData = await response.json();
-                errorMessage = errorData.detail || errorMessage;
-            } catch {
-                // Resposta não é JSON
+        
+        try {
+            const token = localStorage.getItem('token');
+            if (!token) {
+                alert('Token de autenticação ausente.');
+                return;
             }
-            throw new Error(errorMessage);
-        }
 
-        // 3. Extrai o nome do arquivo do header Content-Disposition
-        const contentDisposition = response.headers.get('Content-Disposition');
-        let filename = `justificativa_abono_${employeeId}.`; // Nome padrão
+            const url = `${API_BASE_URL}documents/${documentId}?employeeId=${employeeId}`;
 
-        if (contentDisposition) {
-            const filenameMatch = contentDisposition.match(/filename="(.+?)"/);
-            if (filenameMatch && filenameMatch[1]) {
-                // Remove aspas duplas, se houver, e garante UTF-8
-                filename = decodeURIComponent(filenameMatch[1].replace(/\"/g, ''));
+            const response = await fetch(url, {
+                headers: {
+                    'Authorization': `Bearer ${token}`,
+                },
+            });
+
+            if (!response.ok) {
+                let errorMessage = "Não foi possível realizar o download.";
+                try {
+                    const errorData = await response.json();
+                    errorMessage = errorData.detail || errorMessage;
+                } catch { }
+                throw new Error(errorMessage);
             }
+
+            const contentDisposition = response.headers.get('Content-Disposition');
+            let filename = `justificativa_abono_${employeeId}.`;
+
+            if (contentDisposition) {
+                const filenameMatch = contentDisposition.match(/filename="(.+?)"/);
+                if (filenameMatch && filenameMatch[1]) {
+                    filename = decodeURIComponent(filenameMatch[1].replace(/\"/g, ''));
+                }
+            }
+
+            const blob = await response.blob();
+            const href = window.URL.createObjectURL(blob);
+            const link = window.document.createElement('a');
+            link.href = href;
+            link.download = filename;
+            window.document.body.appendChild(link);
+            link.click();
+            window.document.body.removeChild(link);
+            window.URL.revokeObjectURL(href);
+
+        } catch (error) {
+            console.error("Erro ao iniciar o download:", error);
+            alert(`Falha ao baixar o documento: ${(error as Error).message}.`);
         }
-
-        // 4. Cria o Blob e força o download
-        const blob = await response.blob();
-        const href = window.URL.createObjectURL(blob);
-        const link = window.document.createElement('a');
-        link.href = href;
-        link.download = filename;
-        window.document.body.appendChild(link);
-        link.click();
-        window.document.body.removeChild(link);
-        window.URL.revokeObjectURL(href);
-
-        console.log(`Download de ${filename} iniciado`);
-
-    } catch (error) {
-        console.error("Erro ao iniciar o download:", error);
-        alert(`Falha ao baixar o documento: ${(error as Error).message}.`);
-    }
-};
+    };
     
-    // Conteúdo principal da página
-     const mainContent = (
+    const mainContent = (
     <div className="max-w-4xl mx-auto p-4 md:p-8 relative z-10">
         <div className="mb-6 sm:mb-8">
             <h1 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-foreground to-primary bg-clip-text text-transparent page-title">
-                Aprovação de Abonos Manuais
+                Aprovação de Abonos/Ajustes
             </h1>
         </div>
 
-            {/* CARD DE FILTROS (Estilização Aprimorada) */}
             <Card  className="mb-6 border-l-4 border-l-primary shadow-card">
-                 
                 <CardContent className="flex flex-col md:flex-row gap-4 pt-6">
                     <div className="flex-1">
                         <label className="text-sm font-medium mb-1 block">Buscar Colaborador</label>
@@ -449,7 +418,6 @@ const handleDownload = async (documentId?: string, employeeId?: string) => {
                 </CardContent>
             </Card>
 
-            {/* Lógica de Exibição da Lista/Tabela (com isDesktop) */}
             {isLoading && currentRecords.length === 0 ? (
                 <div className="flex justify-center items-center h-40">
                     <Loader2 className="h-8 w-8 animate-spin text-primary" />
@@ -458,7 +426,7 @@ const handleDownload = async (documentId?: string, employeeId?: string) => {
             ) : currentRecords.length > 0 ? (
                 <>
                     {isDesktop ? (
-                        // --- Exibição Desktop (Tabela) ---
+                        // --- Exibição Desktop ---
                         <Card  className="mb-6 border-l-4 border-l-primary shadow-card relative">
                              {isLoading && (
                                 <div className="absolute inset-0 bg-white/70 dark:bg-gray-900/70 flex items-center justify-center z-10 rounded-lg">
@@ -477,7 +445,7 @@ const handleDownload = async (documentId?: string, employeeId?: string) => {
                                 </TableHeader>
                                 <TableBody>
                                     {currentRecords.map((record) => (
-                                        <TimeOffApprovalItem
+                                        <ManualRegisterApprovalItem
                                             key={record.timeRecordId}
                                             {...record}
                                             handleAction={handleAction}
@@ -489,7 +457,7 @@ const handleDownload = async (documentId?: string, employeeId?: string) => {
                             </Table>
                         </Card>
                     ) : (
-                        // --- Exibição Mobile (Cards) ---
+                        // --- Exibição Mobile ---
                         <div className="space-y-4 relative">
                              {isLoading && (
                                 <div className="absolute inset-0 bg-white/70 dark:bg-gray-900/70 flex items-center justify-center z-10 rounded-lg">
@@ -497,7 +465,7 @@ const handleDownload = async (documentId?: string, employeeId?: string) => {
                                 </div>
                             )}
                             {currentRecords.map((record) => (
-                                <TimeOffApprovalItem
+                                <ManualRegisterApprovalItem
                                     key={record.timeRecordId}
                                     {...record}
                                     handleAction={handleAction}
@@ -508,8 +476,6 @@ const handleDownload = async (documentId?: string, employeeId?: string) => {
                         </div>
                     )}
 
-
-                    {/* Paginação */}
                     <div className="mt-6 flex justify-center">
                         {totalPages > 1 && (
                             <PaginationComponent
@@ -527,7 +493,7 @@ const handleDownload = async (documentId?: string, employeeId?: string) => {
                     <AlertDescription className='text-foreground'>
                         {employeeNameFilter 
                             ? `Nenhuma solicitação encontrada para o colaborador "${employeeNameFilter}" no status ${statusMap[statusFilter]}.`
-                            : `Não há solicitações de abono manual no status ${statusMap[statusFilter]}.`
+                            : `Não há solicitações neste status.`
                         }
                     </AlertDescription>
                 </Alert>
@@ -535,10 +501,8 @@ const handleDownload = async (documentId?: string, employeeId?: string) => {
         </div>
     );
 
-    // Renderização da estrutura principal (Mantido)
     return (
     <div className="min-h-screen bg-background relative  overflow-hidden">
-      {/* Animated Background and Header/Sidebar components */}
       <div className="fixed inset-0 z-0">
         <div
           className="absolute inset-0 opacity-5"
@@ -579,7 +543,6 @@ const handleDownload = async (documentId?: string, employeeId?: string) => {
     <Sidebar isOpen={sidebarOpen} toggleSidebar={handleToggleSidebar} />
 
       <div className="flex-1 flex flex-col overflow-hidden">
-        {/* 💡 CORREÇÃO: Header usa 'toggleSidebar' */}
         <Header toggleSidebar={handleToggleSidebar} />
 
       <main className="pt-16 mobile-container py-4 sm:py-20 space-y-6 sm:space-y-8 relative z-10">
@@ -590,4 +553,4 @@ const handleDownload = async (documentId?: string, employeeId?: string) => {
     );
 };
 
-export default TimeOffApprovals;
+export default ManualRegisterApprovals;

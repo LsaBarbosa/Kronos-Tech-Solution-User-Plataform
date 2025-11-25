@@ -172,7 +172,7 @@ const Sidebar = ({ isOpen, toggleSidebar }: SidebarProps) => {
                         }}
             >
               <TimerReset className="mr-3 sidebar-icon-sm text-primary group-hover:text-primary transition-colors" />
-              <span className="font-medium sidebar-text-sm">Abono de Horas</span>
+              <span className="font-medium sidebar-text-sm">Registro Manual</span>
             </Button>
 
                  <Button
@@ -372,7 +372,7 @@ const Sidebar = ({ isOpen, toggleSidebar }: SidebarProps) => {
                         className="w-full justify-start sidebar-fixed-height-sm px-4 pl-12 text-left sidebar-text-sm hover:bg-primary/10 hover:text-foreground transition-colors group"
                       >
                         <TimerReset className="mr-2 sidebar-icon-xs text-muted-foreground group-hover:text-foreground transition-colors" />
-                        <span className="flex-1">Abono de Horas</span>
+                        <span className="flex-1">Registro Manual</span>
                         {adminTimeOffOpen ? (
                           <ChevronDown className="sidebar-icon-xxs text-muted-foreground group-hover:text-foreground transition-colors" />
                         ) : (
@@ -390,7 +390,7 @@ const Sidebar = ({ isOpen, toggleSidebar }: SidebarProps) => {
                         }}
                       >
                         <Activity className="mr-2 sidebar-icon-xxs" />
-                        <span>Gestão de abono de horas</span>
+                        <span>Gestão de Horas Manuais</span>
                       </Button>
                     </CollapsibleContent>
                   </Collapsible>

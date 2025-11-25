@@ -1,4 +1,5 @@
-// Tipos de Status que são usados para relatórios e exibição
+// src/types/recordApproval.ts
+
 export type StatusRecord =
   | 'CREATED'
   | 'PENDING'
@@ -12,10 +13,10 @@ export type StatusRecord =
   | 'REQUEST_VACATION'
   | 'VACATION'
   | 'VACATION_REJECTED'
-  | 'TIME_OFF_REQUEST' // NOVO: Abono Solicitado
-  | 'TIME_OFF'         // NOVO: Abono Aprovado
-  | 'TIME_OFF_REJECTED'; // NOVO: Abono Rejeitado
-
+  | 'TIME_OFF_REQUEST'
+  | 'TIME_OFF'
+  | 'TIME_OFF_REJECTED'
+  | 'FORGOTTEN_REGISTRATION'; // NOVO STATUS ADICIONADO
 
 export interface EmployeeData {
   employeeName: string;
@@ -36,10 +37,10 @@ export interface TimeRecordResponse {
   active: boolean;
   employeeId: string;
   employeeData: EmployeeData;
-  documentDownloadPath?: string; // Adicionado para compatibilidade futura com aprovações
+  documentDownloadPath?: string;
 }
 
-// NOVO: Interface para a resposta paginada de TimeRecords (usado no listTimeOffRequests)
+// NOVO: Interface para a resposta paginada de TimeRecords
 export interface TimeRecordPageResponse {
   records: TimeRecordResponse[];
   totalPages: number;
@@ -49,7 +50,7 @@ export interface TimeRecordPageResponse {
   isLast: boolean;
 }
 
-// Interface para a requisição de alteração de ponto (usado no usePendingApproval)
+// Interface para a requisição de alteração de ponto
 export interface TimeRecordApprovalResponse {
   timeRecordId: number;
   partnerName: string;
@@ -74,13 +75,12 @@ export interface ITimeRecordApprovalResponse {
   timeRecordId: number;
   partnerName: string;
   managerUsername: string;
-  newStartWork: string; // LocalDateTime
-  newEndWork: string; // LocalDateTime
-  currentStartWork: string; // LocalDateTime
-  currentEndWork: string | null; // LocalDateTime
+  newStartWork: string;
+  newEndWork: string;
+  currentStartWork: string;
+  currentEndWork: string | null;
 }
 
-// Tipo para a resposta paginada do backend
 export interface ITimeRecordApprovalPageResponse {
   approvals: ITimeRecordApprovalResponse[];
   totalPages: number;
@@ -90,13 +90,11 @@ export interface ITimeRecordApprovalPageResponse {
   isLast: boolean;
 }
 
-// Parâmetros de query para a chamada de serviço
 export interface IPendingApprovalQueryParams {
   page: number;
-  employeeName: string; // Pode ser string vazia se não houver filtro
+  employeeName: string;
 }
 
-// Outros tipos se existirem...
 export interface IUpdateStatusRequest {
   statusRecord: string;
 }
@@ -109,21 +107,12 @@ export interface IRequestTimeOffData {
     managerId: string;
 }
 
-/**
- * [NOVO] Interface para os parâmetros de query da listagem GET /records/time-off-requests
- */
 export interface ITimeOffQueryParams {
     page: number;
     size: number;
     employeeName?: string;
-    // O tipo 'PENDING' | 'APPROVED' | 'REJECTED' | 'ALL' é usado para filtros no frontend/backend
-    status: 'PENDING' | 'APPROVED' | 'REJECTED' | 'ALL'; 
+    status: 'PENDING' | 'APPROVED' | 'REJECTED' | 'ALL';
 }
-
-/**
- * [EXPORT CORRIGIDO] Interface de resposta paginada.
- * Corresponde ao TimeRecordPageResponse no Java.
- */
 export interface TimeRecordPageResponse {
     records: TimeRecordResponse[]; // Reutiliza a interface TimeRecordResponse
     totalPages: number;
@@ -132,7 +121,4 @@ export interface TimeRecordPageResponse {
     isFirst: boolean;
     isLast: boolean;
 }
-
-// Para manter a consistência e resolver o erro "Cannot find name 'ITimeRecordPageResponse'", 
-// iremos re-exportar ou renomear. Por convenção, usaremos TimeRecordPageResponse.
 export type ITimeRecordPageResponse = TimeRecordPageResponse;

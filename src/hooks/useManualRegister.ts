@@ -11,10 +11,9 @@ import {
 import { listUsers } from "../service/user.Service"; 
 import { requestTimeOff } from "../service/vacation.service";
 
-// 1. NOVO TIPO: Define que o objeto de erros usará chaves de TimeOffFormState,
-// mas os valores serão strings de mensagem de erro.
 type TimeOffFormErrors = Partial<Record<keyof TimeOffFormState, string>>;
 
+// ATUALIZADO: Default agora inclui requestType
 const defaultFormState: TimeOffFormState = {
   startDate: undefined,
   endDate: undefined,
@@ -22,21 +21,18 @@ const defaultFormState: TimeOffFormState = {
   endHour: "18:00",
   managerId: "",
   document: null,
+  requestType: "TIME_OFF_REQUEST", // Padrão é Abono
 };
 
-
-export const useRequestTimeOff = () => {
+export const useRequestManualRegistration = () => {
   const { toast } = useToast();
   const [formState, setFormState] = useState<TimeOffFormState>(defaultFormState);
   
   const [managers, setManagers] = useState<UserAccountData[]>([]); 
   const [isLoading, setIsLoading] = useState(false);
   
-  // 2. APLICAÇÃO DO NOVO TIPO
   const [errors, setErrors] = useState<TimeOffFormErrors>({});
 
-  // 1. Busca os Managers disponíveis
-  // ... (Lógica de useEffect inalterada)
   useEffect(() => {
     const fetchManagers = async () => {
       try {
@@ -55,9 +51,7 @@ export const useRequestTimeOff = () => {
     fetchManagers();
   }, [toast]);
 
-  // 2. Lógica de Validação do Formulário
   const validateForm = (): boolean => {
-    // 3. APLICAÇÃO DO NOVO TIPO: newErrors agora aceita strings de erro
     const newErrors: TimeOffFormErrors = {};
 
     if (!formState.startDate) {
@@ -70,7 +64,6 @@ export const useRequestTimeOff = () => {
       newErrors.managerId = "A seleção do gestor é obrigatória";
     }
 
-    // Validação de Lógica de Datas/Horas (o tipo Date é garantido pelo if)
     if (formState.startDate && formState.endDate) {
       if (isBefore(formState.endDate, formState.startDate)) {
         newErrors.endDate = "A data de fim não pode ser anterior à data de início";
@@ -90,8 +83,6 @@ export const useRequestTimeOff = () => {
     return Object.keys(newErrors).length === 0;
   };
 
-  // ... (Restante do código do hook, com pequenos ajustes de tipagem em handleChange)
-
   const handleSubmit = async (event: React.FormEvent) => {
     event.preventDefault();
     if (!validateForm()) {
@@ -106,26 +97,32 @@ export const useRequestTimeOff = () => {
     setIsLoading(true);
 
     try {
+      // ATUALIZADO: Inclui requestType no payload
       const payload: RequestTimeOffRequestPayload = {
         startDate: format(formState.startDate!, "dd-MM-yyyy"),
         endDate: format(formState.endDate!, "dd-MM-yyyy"),
         startHour: formState.startHour,
         endHour: formState.endHour,
         managerId: formState.managerId,
+        requestType: formState.requestType, 
       };
 
-      const createdId = await requestTimeOff(payload, formState.document);
+      await requestTimeOff(payload, formState.document);
+
+      const message = formState.requestType === 'FORGOTTEN_REGISTRATION' 
+        ? 'Solicitação de esquecimento enviada!' 
+        : 'Solicitação de abono enviada!';
 
       toast({
         title: "Sucesso!",
-        description: `Solicitação de abono criada!`,
+        description: message,
       });
 
       setFormState(defaultFormState);
       setErrors({});
     } catch (error) {
-      console.error("Erro ao solicitar abono:", error);
-      const errorMessage = (error as Error).message || "Não foi possível processar a solicitação de abono. Verifique se não há conflitos de registro.";
+      console.error("Erro ao solicitar:", error);
+      const errorMessage = (error as Error).message || "Não foi possível processar a solicitação.";
       toast({
         title: "Erro na Solicitação",
         description: errorMessage,
@@ -143,14 +140,12 @@ export const useRequestTimeOff = () => {
     setFormState((prev) => ({ ...prev, [key]: value }));
     if (errors[key]) {
       setErrors((prev) => {
-        // Cast necessário ao deletar para garantir que o objeto está sendo tratado como TimeOffFormErrors
         const newErrors = { ...prev } as TimeOffFormErrors; 
         delete newErrors[key];
         return newErrors;
       });
     }
   };
-
 
   return {
     formState,
