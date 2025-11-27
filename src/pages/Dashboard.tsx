@@ -456,7 +456,7 @@ const Dashboard = () => {
                                         >
                                             {/* Rótulo e Ícone */}
                                             <div className="flex items-center text-sm font-medium text-foreground">
-                                                <ListChecks className="w-4 h-4 mr-2 text-primary" /> Solicitação de alteração no Ponto
+                                                <ListChecks className="w-4 h-4 mr-2 text-primary" /> Solicitação de ajuste no Ponto
                                             </div>
                                             {/* Contador */}
                                             <span 
@@ -500,7 +500,7 @@ const Dashboard = () => {
                                         >
                                             {/* Rótulo e Ícone */}
                                             <div className="flex items-center text-sm font-medium text-foreground">
-                                                <Activity className="w-4 h-4 mr-2 text-primary" /> Solicitação de Abono
+                                                <Activity className="w-4 h-4 mr-2 text-primary" /> Solicitação de ajuste de manual
                                             </div>
                                             {/* Contador */}
                                             <span 
