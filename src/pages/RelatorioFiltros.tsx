@@ -39,6 +39,7 @@ interface RelatorioFiltrosProps {
     hideTips?: boolean;
     customTips?: React.ReactNode
     isLoading: boolean;
+    hasResults?: boolean;
 }
 
 const isHoliday = (date: Date) => {
@@ -69,7 +70,8 @@ export const RelatorioFiltros: React.FC<RelatorioFiltrosProps> = ({
     onDownloadCSV,
     hideTips,
     customTips,
-    isLoading
+    isLoading,
+    hasResults = false
 }) => {
     const [displayMonth, setDisplayMonth] = React.useState<Date | undefined>(startOfDay(new Date()));
     
@@ -577,7 +579,7 @@ const handleReportTypeChange = (typeValue: string) => {
             onClick={onDownloadPDF}
             size="lg"
             variant="outline"
-            disabled={selectedDates.length === 0}
+            disabled={!hasResults || isLoading}
             className="group w-full font-semibold border-2 border-red-600/40 bg-gradient-to-r from-red-600/10 to-red-600/5 text-red-600 hover:bg-red-600/15 transition-all duration-200 relative overflow-hidden shadow-md hover:shadow-lg hover:shadow-red-600/20 transform hover:scale-[1.005]"
         >
             <Download className="mr-2 h-4 w-4 relative z-10" />
@@ -591,7 +593,7 @@ const handleReportTypeChange = (typeValue: string) => {
             onClick={onDownloadCSV}
             size="lg"
             variant="outline"
-            disabled={selectedDates.length === 0}
+            disabled={!hasResults || isLoading}
             className="group w-full font-semibold border-2 border-green-600/40 bg-gradient-to-r from-green-600/10 to-green-600/5 text-green-600 hover:bg-green-600/15 transition-all duration-200 relative overflow-hidden shadow-md hover:shadow-lg hover:shadow-green-600/20 transform hover:scale-[1.005]"
         >
             <FileText className="mr-2 h-4 w-4 relative z-10" />

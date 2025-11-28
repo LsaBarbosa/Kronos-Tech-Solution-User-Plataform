@@ -96,6 +96,9 @@ const RelatorioDetalhado = () => {
     const [isPartner, setIsPartner] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
 
+    const hasResults = reportType === "detailed" 
+        ? reportData.length > 0 
+        : (reportDataSimple?.days.length || 0) > 0;
 
     const statusRegistroTips = (
   <div className="space-y-3"> 
@@ -916,6 +919,7 @@ const handleDownloadCSVSimple = () => {
                         }}
                         employees={employees}
                         isPartner={isPartner}
+                        hasResults={hasResults}
                         onSearch={handleSearchClick}
                         onDownloadPDF={handleDownloadPDF} // Passa o novo router de PDF
                         onDownloadCSV={handleDownloadCSV} // Passa o novo router de CSV
