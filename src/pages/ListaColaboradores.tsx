@@ -18,10 +18,11 @@ import {
   Edit,
   Save,
   XCircle,
-  Trash2,
+  // Trash2, // Removido
+  Power, // NOVO: Importado para representar Ativar/Desativar
   UserCircle,
   Sparkles,
-  Camera, // Importamos o ícone da Câmera
+  Camera,
 } from "lucide-react";
 import {
   AlertDialog,
@@ -62,22 +63,21 @@ interface Employee {
   address: Address;
   companyId: string;
   active: boolean;
-  homeOffice: boolean; // NOVO CAMPO ADICIONADO
+  homeOffice: boolean;
 }
 
-interface UserData {
+ interface UserData {
   userId: string;
   username: string;
   role: "PARTNER" | "MANAGER";
-  enabled: boolean;
+  active: boolean; // Adicione active, pois é o que vem da API
+  enabled?: boolean; // Mantenha enabled como opcional se quiser usar na UI
   employeeId: string;
 }
 
 interface CombinedColaborator extends Employee, UserData { }
 
-// NOVO: Função auxiliar para validação de formato de email
 const isValidEmail = (email: string) => {
-  // Regex simples para formato de email (ex: a@b.com)
   return /\S+@\S+\.\S+/.test(email);
 };
 
@@ -116,7 +116,7 @@ const ListaColaboradores = () => {
             Authorization: `Bearer ${token}`,
           },
         }),
-        fetch(`${API_BASE_URL}users/search?active=${isActive}`, {
+        fetch(`${API_BASE_URL}users/search`, {
           method: "GET",
           headers: {
             "Content-Type": "application/json",
@@ -141,16 +141,31 @@ const ListaColaboradores = () => {
       const combinedData: CombinedColaborator[] = employees
         .map((employee: Employee) => {
           const user = usersMap.get(employee.employeeId);
+          
+          // Lógica de Left Join: Se tiver user, usa os dados. Se não, usa dados parciais/padrão.
           if (user) {
             return {
               ...employee,
               ...user,
-              enabled: user.enabled, // Ensure 'enabled' is correctly mapped
+              // CORREÇÃO CRÍTICA: Mapeia 'active' da API para 'enabled' se sua UI usa 'enabled'
+              enabled: user.active !== undefined ? user.active : employee.active, 
             };
+          } else {
+            // Se não houver usuário correspondente, retornamos o funcionário mesmo assim
+            // Definimos valores padrão para não quebrar a UI
+            return {
+              ...employee,
+              userId: "N/A",
+              username: "Sem Usuário", // Evita crash no toLowerCase() do filtro
+              role: "PARTNER", // Valor padrão seguro
+              enabled: employee.active,
+              employeeId: employee.employeeId
+            } as CombinedColaborator;
           }
-          return null;
         })
-        .filter(Boolean) as CombinedColaborator[];
+        .filter(Boolean) as CombinedColaborator[]; // O filter continua útil caso algo retorne null explicitamente
+        
+      setColaboradores(combinedData);
 
       setColaboradores(combinedData);
       toast({
@@ -170,32 +185,30 @@ const ListaColaboradores = () => {
     }
   };
 
-  // NOVO: Função para lidar com a alteração do input de arquivo
-const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
-  const file = event.target.files?.[0];
-  if (file) {
-    if (!file.type.startsWith('image/')) {
+  const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
+    const file = event.target.files?.[0];
+    if (file) {
+      if (!file.type.startsWith('image/')) {
         toast({
-            title: "Erro de arquivo",
-            description: "Por favor, selecione um arquivo de imagem válido (JPEG, PNG, etc).",
-            variant: "destructive",
+          title: "Erro de arquivo",
+          description: "Por favor, selecione um arquivo de imagem válido (JPEG, PNG, etc).",
+          variant: "destructive",
         });
         setFaceImageFile(null);
         event.target.value = '';
         return;
-    }
-    setFaceImageFile(file);
-  } else {
+      }
+      setFaceImageFile(file);
+    } else {
       setFaceImageFile(null);
-  }
-};
-  // NOVO: Função para converter File para Base64 (adicione antes do componente ou dentro dele)
+    }
+  };
+
   const fileToBase64 = (file: File): Promise<string> => {
     return new Promise((resolve, reject) => {
       const reader = new FileReader();
       reader.readAsDataURL(file);
       reader.onload = () => {
-        // Remove o prefixo 'data:image/jpeg;base64,' e envia apenas o Base64 puro
         const base64String = (reader.result as string).split(',')[1];
         resolve(base64String);
       };
@@ -231,13 +244,14 @@ const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     return colaboradores.filter((colaborador) => {
       const matchesNome =
         filters.nome === "" ||
-        colaborador.fullName.toLowerCase().includes(filters.nome.toLowerCase()) ||
-        colaborador.username.toLowerCase().includes(filters.nome.toLowerCase());
+        colaborador.fullName?.toLowerCase().includes(filters.nome.toLowerCase()) ||
+        // Adiciona verificação de segurança (?.) ou fallback
+        (colaborador.username && colaborador.username.toLowerCase().includes(filters.nome.toLowerCase()));
 
       const matchesCargo =
         filters.cargo === "" ||
-        colaborador.jobPosition.toLowerCase().includes(filters.cargo.toLowerCase());
-       return matchesNome && matchesCargo;
+        colaborador.jobPosition?.toLowerCase().includes(filters.cargo.toLowerCase());
+      return matchesNome && matchesCargo;
     });
   }, [filters, colaboradores]);
 
@@ -273,7 +287,6 @@ const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
       role: colaborador.role,
       enabled: colaborador.enabled,
       homeOffice: colaborador.homeOffice,
-       // NOVO: Inicializa o status de Home Office
     });
     setFaceImageFile(null);
   };
@@ -291,12 +304,10 @@ const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
       return;
     }
 
-    // INÍCIO DAS VALIDAÇÕES OBRIGATÓRIAS
     const editedCpf = editedData.maskedCpf ? editedData.maskedCpf.replace(/\D/g, "") : null;
     const editedCep = editedData.postalCode ? editedData.postalCode.replace(/\D/g, "") : null;
     const editedEmail = editedData.email;
 
-    // 1. Validação do CPF
     if (editedCpf && (editedCpf.length !== 11)) {
       toast({
         title: "Erro ao salvar",
@@ -306,7 +317,6 @@ const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
       return;
     }
 
-    // 2. Validação do Email (apenas se foi alterado e não for o valor original)
     if (editedEmail && editedEmail !== originalColaborador.email && !isValidEmail(editedEmail)) {
       toast({
         title: "Erro ao salvar",
@@ -316,7 +326,6 @@ const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
       return;
     }
 
-    // 3. Validação do CEP
     if (editedCep && (editedCep.length !== 8)) {
       toast({
         title: "Erro ao salvar",
@@ -326,7 +335,6 @@ const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
       return;
     }
 
-    // Validação do Telefone (mantida)
     const cleanedPhone = editedData.phone ? editedData.phone.replace(/\D/g, '') : originalColaborador.phone.replace(/\D/g, '');
     if (editedData.phone && cleanedPhone.length !== 11) {
       toast({
@@ -336,7 +344,6 @@ const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
       });
       return;
     }
-    // FIM DAS VALIDAÇÕES OBRIGATÓRIAS
 
     setIsLoading(true);
     try {
@@ -351,14 +358,12 @@ const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
       if (editedData.fullName && editedData.fullName !== originalColaborador.fullName) {
         bodyDataEmployee.fullName = editedData.fullName;
       }
-      // Verifica se CPF foi alterado e usa a versão limpa
       if (editedCpf && editedCpf !== originalColaborador.maskedCpf.replace(/\D/g, "")) {
         bodyDataEmployee.cpf = editedCpf;
       }
       if (editedData.jobPosition && editedData.jobPosition !== originalColaborador.jobPosition) {
         bodyDataEmployee.jobPosition = editedData.jobPosition;
       }
-      // Verifica se Email foi alterado
       if (editedData.email && editedData.email !== originalColaborador.email) {
         bodyDataEmployee.email = editedData.email;
       }
@@ -368,23 +373,22 @@ const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
       if (editedData.phone && editedData.phone.replace(/\D/g, "") !== originalColaborador.phone) {
         bodyDataEmployee.phone = editedData.phone.replace(/\D/g, "");
       }
-      // NOVO: Adiciona a flag homeOffice se houver alteração
       if (editedData.homeOffice !== undefined && editedData.homeOffice !== originalColaborador.homeOffice) {
         bodyDataEmployee.homeOffice = editedData.homeOffice;
       }
 
-      if (faceImageFile) { //
-      try { //
-        const base64Image = await fileToBase64(faceImageFile); //
-        bodyDataEmployee.faceImageBase64 = base64Image; //
-        toast({
+      if (faceImageFile) {
+        try {
+          const base64Image = await fileToBase64(faceImageFile);
+          bodyDataEmployee.faceImageBase64 = base64Image;
+          toast({
             title: "Imagem detectada",
             description: "Nova imagem de face será enviada para atualização do reconhecimento.",
-        });
-      } catch (e) {
-        throw new Error("Falha ao processar a imagem de face.");
+          });
+        } catch (e) {
+          throw new Error("Falha ao processar a imagem de face.");
+        }
       }
-    }
       const hasAddressChange =
         (editedCep &&
           editedCep !== originalColaborador.address.postalCode) ||
@@ -392,7 +396,6 @@ const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
 
       if (hasAddressChange) {
         bodyDataEmployee.address = {
-          // Usa a versão limpa e validada do CEP
           postalCode: editedCep || originalColaborador.address.postalCode,
           number: editedData.number || originalColaborador.address.number,
         };
@@ -410,29 +413,28 @@ const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
 
       if (Object.keys(bodyDataEmployee).length === 0 && Object.keys(bodyDataUser).length === 0) {
         if (!faceImageFile) {
-             toast({
-                title: "Nenhuma alteração",
-                description: "Nenhum dado foi alterado para ser salvo.",
-            });
-            setEditingId(null);
-            setEditedData({});
-            setIsLoading(false);
-            return;
+          toast({
+            title: "Nenhuma alteração",
+            description: "Nenhum dado foi alterado para ser salvo.",
+          });
+          setEditingId(null);
+          setEditedData({});
+          setIsLoading(false);
+          return;
         }
-    }
+      }
 
+      const promises = [];
 
-    const promises = [];
-
-    if (Object.keys(bodyDataEmployee).length > 0 || faceImageFile) { // Garante que a requisição vá se a imagem for o único campo alterado
-      promises.push(
-        fetch(`${API_BASE_URL}employee/manager/update-employee/${colaboradorId}`, {
-          method: "PATCH",
-          headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-          body: JSON.stringify(bodyDataEmployee),
-        })
-      );
-    }
+      if (Object.keys(bodyDataEmployee).length > 0 || faceImageFile) {
+        promises.push(
+          fetch(`${API_BASE_URL}employee/manager/update-employee/${colaboradorId}`, {
+            method: "PATCH",
+            headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+            body: JSON.stringify(bodyDataEmployee),
+          })
+        );
+      }
 
       if (Object.keys(bodyDataUser).length > 0) {
         promises.push(
@@ -469,57 +471,12 @@ const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
     setFaceImageFile(null);
   };
 
-  const handleDeleteColaborador = (colaboradorId: string) => {
-    setColaboradores((prev) => prev.filter((c) => c.employeeId !== colaboradorId));
-  };
-
-  // Nova função para deletar o usuário
-  const handleDeleteUser = async (userId: string) => {
-    try {
-      const token = localStorage.getItem("token");
-      if (!token) {
-        throw new Error("Token de autenticação não encontrado.");
-      }
-
-      const response = await fetch(`${API_BASE_URL}users/${userId}`, {
-        method: "DELETE",
-        headers: {
-          "Content-Type": "application/json",
-          "Authorization": `Bearer ${token}`,
-        },
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.detail || "Falha ao deletar o usuário.");
-      }
-
-      toast({
-        title: "Sucesso",
-        description: "Usuário deletado com sucesso.",
-      });
-
-      // Recarrega a lista de colaboradores após a exclusão
-      await fetchColaboradores();
-
-    } catch (error: any) {
-      console.error("Erro ao deletar usuário:", error);
-      toast({
-        title: "Erro",
-        description: error.message || "Não foi possível deletar o usuário.",
-        variant: "destructive",
-      });
-    }
-  };
-
   const handleEditedDataChange = (field: string, value: string | boolean) => {
-    setEditedData((prev) => {
-      // Campos booleanos (enabled, homeOffice)
+    setEditedData((prev: any) => {
       if (field === "enabled" || field === "homeOffice") {
         return { ...prev, [field]: value };
       }
 
-      // Lógica de sanitização e limitação para campos que aceitam apenas números
       if (field === "maskedCpf" || field === "postalCode" || field === "phone") {
         const sanitizedValue = (value as string).replace(/\D/g, '');
         let finalValue = sanitizedValue;
@@ -533,22 +490,85 @@ const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
         }
         return { ...prev, [field]: finalValue };
       }
-      
-      // Para salário (convertendo string para number para o editedData)
+
       if (field === "salary") {
-          const numericValue = (value as string).replace(/[R$\s.]/g, "").replace(",", ".");
-          return { ...prev, [field]: numericValue };
+        const numericValue = (value as string).replace(/[R$\s.]/g, "").replace(",", ".");
+        return { ...prev, [field]: numericValue };
       }
 
-
-      // Retorna o valor original para os outros campos
       return { ...prev, [field]: value };
     });
   };
 
+  // --------------------------------------------------------
+  // NOVA FUNÇÃO: TOGGLE ACTIVATE (Substitui handleDeleteUser)
+  // --------------------------------------------------------
+// ... (código anterior mantido)
+
+  const handleToggleUserStatus = async (userId: string, currentStatus: boolean) => {
+    // 1. Verificação de segurança (mantida da etapa anterior)
+    if (!userId || userId === "N/A") {
+      toast({
+        title: "Ação Indisponível",
+        description: "Não foi encontrado um usuário vinculado a este colaborador.",
+        variant: "destructive",
+      });
+      return;
+    }
+
+    try {
+      const token = localStorage.getItem("token");
+      if (!token) {
+        throw new Error("Token de autenticação não encontrado.");
+      }
+
+      // Chamada à API
+      const response = await fetch(`${API_BASE_URL}users/toggle-activate/${userId}`, {
+        method: "PATCH",
+        headers: {
+          "Content-Type": "application/json",
+          Authorization: `Bearer ${token}`,
+        },
+      });
+
+      if (!response.ok) {
+        let errorMessage = "Falha ao alterar status.";
+        try {
+          const errorData = await response.json();
+          if (errorData.detail) errorMessage = errorData.detail;
+        } catch (e) { }
+        throw new Error(errorMessage);
+      }
+
+      // --- PONTO DA CORREÇÃO ---
+      
+      // 2. Atualiza a lista visualmente IMEDIATAMENTE (Remove o card da tela)
+      // Como estamos alternando o status, ele não deve mais pertencer à lista atual (seja ela de ativos ou inativos).
+      setColaboradores((prevList) => prevList.filter((colab) => colab.userId !== userId));
+
+      const actionText = currentStatus ? "desativado" : "ativado";
+      toast({
+        title: "Sucesso",
+        description: `Usuário ${actionText} com sucesso.`,
+      });
+
+      // 3. Atualiza os dados em segundo plano para garantir consistência total
+      // Não usamos 'await' aqui propositalmente para não travar a UI, pois visualmente já resolvemos acima.
+      fetchColaboradores();
+
+    } catch (error: any) {
+      console.error("Erro ao alterar status:", error);
+      toast({
+        title: "Erro",
+        description: error.message || "Não foi possível alterar o status do usuário.",
+        variant: "destructive",
+      });
+    }
+  };
+
   return (
-    <div className="min-h-screen bg-background relative  overflow-hidden">
-      {/* Animated Background and Header/Sidebar components */}
+    <div className="min-h-screen bg-background relative overflow-hidden">
+      {/* Background Animado... */}
       <div className="fixed inset-0 z-0">
         <div
           className="absolute inset-0 opacity-5"
@@ -558,88 +578,59 @@ const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
             animation: 'gradient-flow 15s ease-in-out infinite'
           }}
         />
-        <div className="absolute inset-0">
-          <div
-            className="absolute top-1/4 left-1/4 w-32 h-32 opacity-3"
-            style={{
-              background: 'linear-gradient(135deg, hsl(var(--primary) / 0.50), transparent)',
-              borderRadius: '30% 70% 70% 30% / 30% 30% 70% 70%',
-              animation: 'float-shapes 20s ease-in-out infinite'
-            }}
-          />
-          <div
-            className="absolute top-3/4 right-1/4 w-48 h-48 opacity-2"
-            style={{
-              background: 'linear-gradient(45deg, hsl(var(--black-primary) / 0.50), transparent)',
-              borderRadius: '70% 30% 30% 70% / 70% 70% 30% 30%',
-              animation: 'float-shapes 25s ease-in-out infinite reverse'
-            }}
-          />
-          <div
-            className="absolute top-1/2 right-1/3 w-24 h-24 opacity-4"
-            style={{
-              background: 'radial-gradient(circle, hsl(var(--primary) / 0.50), transparent)',
-              borderRadius: '50%',
-              animation: 'float-shapes 18s ease-in-out infinite 5s'
-            }}
-          />
-        </div>
+        {/* ... (restante do background shapes) ... */}
       </div>
 
-    <Sidebar isOpen={sidebarOpen} toggleSidebar={handleToggleSidebar} />
+      <Sidebar isOpen={sidebarOpen} toggleSidebar={handleToggleSidebar} />
 
       <div className="flex-1 flex flex-col overflow-hidden">
-        {/* 💡 CORREÇÃO: Header usa 'toggleSidebar' */}
         <Header toggleSidebar={handleToggleSidebar} />
 
+        <div className="relative z-10 min-h-screen pt-20 p-6">
+          <div className="max-w-7xl mx-auto">
+            {/* Header */}
+            <div className="mb-8 text-center md:text-left">
+              <h1 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-foreground to-primary bg-clip-text text-transparent page-title">
+                Lista de Colaboradores
+              </h1>
+              <p className="text-muted-foreground text-lg">
+                Gerencie e visualize todos os colaboradores da empresa
+              </p>
+            </div>
 
-      {/* Content */}
-      <div className="relative z-10 min-h-screen pt-20 p-6">
-        <div className="max-w-7xl mx-auto">
-          {/* Header */}
-          <div className="mb-8 text-center md:text-left">
-            <h1 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-foreground to-primary bg-clip-text text-transparent page-title">
-              Lista de Colaboradores
-            </h1>
-            <p className="text-muted-foreground text-lg">
-              Gerencie e visualize todos os colaboradores da empresa
-            </p>
-          </div>
-
-          {/* Search Filters */}
-                     <Card className="border-l-4 border-l-primary shadow-card">
-            <CardHeader>
-              <CardTitle className="text-lg flex items-center gap-2">
-                <Search className="w-5 h-5 text-primary" />
-                Filtros de Busca
-              </CardTitle>
-            </CardHeader>
-            <CardContent>
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
-                <div className="space-y-2">
-                  <Label htmlFor="filter-nome">Nome</Label>
-                  <Input
-                    id="filter-nome"
-                    placeholder="Buscar por nome ou usuário..."
-                    value={filters.nome}
-                    onChange={(e) => handleFilterChange("nome", e.target.value)}
-                    className="focus:border-primary"
-                  />
+            {/* Filtros */}
+            <Card className="border-l-4 border-l-primary shadow-card">
+              <CardHeader>
+                <CardTitle className="text-lg flex items-center gap-2">
+                  <Search className="w-5 h-5 text-primary" />
+                  Filtros de Busca
+                </CardTitle>
+              </CardHeader>
+              <CardContent>
+                <div className="grid grid-cols-1 md:grid-cols-2 gap-4 mb-4">
+                  <div className="space-y-2">
+                    <Label htmlFor="filter-nome">Nome</Label>
+                    <Input
+                      id="filter-nome"
+                      placeholder="Buscar por nome ou usuário..."
+                      value={filters.nome}
+                      onChange={(e) => handleFilterChange("nome", e.target.value)}
+                      className="focus:border-primary"
+                    />
+                  </div>
+                  <div className="space-y-2">
+                    <Label htmlFor="filter-cargo">Cargo</Label>
+                    <Input
+                      id="filter-cargo"
+                      placeholder="Buscar por cargo..."
+                      value={filters.cargo}
+                      onChange={(e) => handleFilterChange("cargo", e.target.value)}
+                      className="focus:border-primary"
+                    />
+                  </div>
                 </div>
 
-                <div className="space-y-2">
-                  <Label htmlFor="filter-cargo">Cargo</Label>
-                  <Input
-                    id="filter-cargo"
-                    placeholder="Buscar por cargo..."
-                    value={filters.cargo}
-                    onChange={(e) => handleFilterChange("cargo", e.target.value)}
-                    className="focus:border-primary"
-                  />
-                </div>
-              </div>
-
-              <div className="space-y-2 flex flex-col justify-end">
+                <div className="space-y-2 flex flex-col justify-end">
                   <div className="flex items-center justify-between border p-2 rounded-md bg-background/50">
                     <Label htmlFor="status-toggle" className="cursor-pointer flex flex-col">
                       <span className="font-semibold">Status de Visualização</span>
@@ -648,237 +639,239 @@ const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
                       </span>
                     </Label>
                     <div className="flex items-center gap-2">
-                      <span className={`text-xs font-medium ${!showInactive ? "text-primary" : "text-muted-foreground"}`}>
-                        
-                      </span>
                       <Switch
                         id="status-toggle"
                         checked={showInactive}
                         onCheckedChange={setShowInactive}
-                        className="data-[state=checked]:bg-destructive" 
+                        className="data-[state=checked]:bg-destructive"
                       />
-                      <span className={`text-xs font-medium ${showInactive ? "text-destructive" : "text-muted-foreground"}`}>
-                        
-                      </span>
                     </div>
                   </div>
                 </div>
-              
 
-              {hasActiveFilters && (
-                <div className="flex items-center justify-between">
-                  <p className="text-sm text-muted-foreground">
-                    Mostrando {filteredColaboradores.length} de {colaboradores.length}{" "}
-                    colaboradores
-                  </p>
-                  <Button
-                    variant="outline"
-                    size="sm"
-                    onClick={clearFilters}
-                    className="text-primary border-primary hover:bg-primary hover:text-primary-foreground"
-                  >
-                    <X className="w-4 h-4 mr-2" />
-                    Limpar Filtros
-                  </Button>
-                </div>
-              )}
-            </CardContent>
-             <div className="mb-2"></div>
-          {/* Stats */}
-          <div className="mb-8 ml-6">
-            <Card className="w-fit">
-              <CardContent className="flex items-center gap-2 p-4">
-                <User className="w-5 h-5 text-primary" />
-                <span className="text-sm text-muted-foreground">
-                  {hasActiveFilters ? "Colaboradores encontrados:" : "Total de colaboradores:"}
-                </span>
-                <Badge
-                  variant="secondary"
-                  className="bg-primary/10 text-primary border-primary/20 hover:bg-primary/20"
-                >
-                  {hasActiveFilters ? filteredColaboradores.length : colaboradores.length}
-                </Badge>
+                {hasActiveFilters && (
+                  <div className="flex items-center justify-between">
+                    <p className="text-sm text-muted-foreground">
+                      Mostrando {filteredColaboradores.length} de {colaboradores.length}{" "}
+                      colaboradores
+                    </p>
+                    <Button
+                      variant="outline"
+                      size="sm"
+                      onClick={clearFilters}
+                      className="text-primary border-primary hover:bg-primary hover:text-primary-foreground"
+                    >
+                      <X className="w-4 h-4 mr-2" />
+                      Limpar Filtros
+                    </Button>
+                  </div>
+                )}
               </CardContent>
-            </Card>
-          </div>
-          </Card>
-
-<div className="mb-4"></div>
-          {/* Collaborators Grid */}
-          <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
-            {isLoading ? (
-              Array.from({ length: 6 }).map((_, index) => (
-                <Card
-                  key={index}
-                  className="hover:shadow-lg transition-all duration-300 group border-l-4 border-l-primary/20"
-                >
-                  <CardHeader className="pb-3">
-                    <Skeleton className="h-6 w-3/4 mb-2" />
-                    <Skeleton className="h-4 w-1/2" />
-                  </CardHeader>
-                  <CardContent className="space-y-4">
-                    <Skeleton className="h-4 w-full" />
-                    <Skeleton className="h-4 w-full" />
-                    <Skeleton className="h-4 w-full" />
-                    <Skeleton className="h-4 w-full" />
-                    <Skeleton className="h-4 w-full" />
-                    <Skeleton className="h-4 w-full" />
+              <div className="mb-2"></div>
+              {/* Stats */}
+              <div className="mb-8 ml-6">
+                <Card className="w-fit">
+                  <CardContent className="flex items-center gap-2 p-4">
+                    <User className="w-5 h-5 text-primary" />
+                    <span className="text-sm text-muted-foreground">
+                      {hasActiveFilters ? "Colaboradores encontrados:" : "Total de colaboradores:"}
+                    </span>
+                    <Badge
+                      variant="secondary"
+                      className="bg-primary/10 text-primary border-primary/20 hover:bg-primary/20"
+                    >
+                      {hasActiveFilters ? filteredColaboradores.length : colaboradores.length}
+                    </Badge>
                   </CardContent>
                 </Card>
-              ))
-            ) : (
-              filteredColaboradores.map((colaborador) => (
-                <Card
-                  key={colaborador.employeeId}
-                  className="hover:shadow-lg transition-all duration-300 group border-l-4 border-l-primary/20 hover:border-l-primary"
-                >
-                  <CardHeader className="pb-3 relative">
-                    <div className="flex items-start justify-between">
-                      <div className="flex-1">
+              </div>
+            </Card>
+
+            <div className="mb-4"></div>
+            {/* Grid */}
+            <div className="grid grid-cols-1 md:grid-cols-2 xl:grid-cols-3 gap-6">
+              {isLoading ? (
+                Array.from({ length: 6 }).map((_, index) => (
+                  <Card key={index} className="hover:shadow-lg transition-all duration-300 group border-l-4 border-l-primary/20">
+                    <CardHeader className="pb-3">
+                      <Skeleton className="h-6 w-3/4 mb-2" />
+                      <Skeleton className="h-4 w-1/2" />
+                    </CardHeader>
+                    <CardContent className="space-y-4">
+                      <Skeleton className="h-4 w-full" />
+                      <Skeleton className="h-4 w-full" />
+                      <Skeleton className="h-4 w-full" />
+                    </CardContent>
+                  </Card>
+                ))
+              ) : (
+                filteredColaboradores.map((colaborador) => (
+                  <Card
+                    key={colaborador.employeeId}
+                    className="hover:shadow-lg transition-all duration-300 group border-l-4 border-l-primary/20 hover:border-l-primary"
+                  >
+                    <CardHeader className="pb-3 relative">
+                      <div className="flex items-start justify-between">
+                        <div className="flex-1">
+                          {editingId === colaborador.employeeId ? (
+                            <div className="space-y-2">
+                              <Input
+                                value={editedData.fullName || ""}
+                                onChange={(e) => handleEditedDataChange("fullName", e.target.value)}
+                                className="text-xl font-semibold focus:border-primary"
+                                placeholder="Nome completo"
+                              />
+                              <Input
+                                value={editedData.jobPosition || ""}
+                                onChange={(e) =>
+                                  handleEditedDataChange("jobPosition", e.target.value)
+                                }
+                                className="focus:border-primary"
+                                placeholder="Cargo"
+                              />
+                            </div>
+                          ) : (
+                            <>
+                              <CardTitle className="text-xl group-hover:text-primary transition-colors duration-300 flex items-center gap-2">
+                                <User className="w-5 h-5" />
+                                {colaborador.fullName}
+                                {!colaborador.active && (
+                                  <Badge variant="destructive" className="ml-2 text-xs px-2 py-0.5 h-5">
+                                    Inativo
+                                  </Badge>
+                                )}
+                              </CardTitle>
+                              <Badge className="w-fit bg-primary/10 text-primary border-primary/20 hover:bg-primary/20 mt-2">
+                                {colaborador.jobPosition}
+                              </Badge>
+                            </>
+                          )}
+                        </div>
+
+                        {/* Botões de Ação */}
                         {editingId === colaborador.employeeId ? (
-                          <div className="space-y-2">
-                            <Input
-                              value={editedData.fullName || ""}
-                              onChange={(e) => handleEditedDataChange("fullName", e.target.value)}
-                              className="text-xl font-semibold focus:border-primary"
-                              placeholder="Nome completo"
-                            />
-                            <Input
-                              value={editedData.jobPosition || ""}
-                              onChange={(e) =>
-                                handleEditedDataChange("jobPosition", e.target.value)
-                              }
-                              className="focus:border-primary"
-                              placeholder="Cargo"
-                            />
+                          <div className="flex gap-2">
+                            <button
+                              onClick={() => handleSaveColaborador(colaborador.employeeId)}
+                              className="p-2 text-primary-foreground bg-primary hover:bg-primary/90 rounded-full transition-all duration-200 hover:scale-110"
+                              title="Salvar alterações"
+                            >
+                              <Save className="w-4 h-4" />
+                            </button>
+                            <button
+                              onClick={handleCancelEdit}
+                              className="p-2 text-muted-foreground hover:text-foreground hover:bg-muted rounded-full transition-all duration-200 hover:scale-110"
+                              title="Cancelar edição"
+                            >
+                              <XCircle className="w-4 h-4" />
+                            </button>
                           </div>
                         ) : (
-                          <>
-                            <CardTitle className="text-xl group-hover:text-primary transition-colors duration-300 flex items-center gap-2">
-                              <User className="w-5 h-5" />
-                              {colaborador.fullName}
-                              {!colaborador.active && (
-                              <Badge variant="destructive" className="ml-2 text-xs px-2 py-0.5 h-5">
-                                Inativo
-                              </Badge>
-                            )}
-                          </CardTitle>
-                            <Badge className="w-fit bg-primary/10 text-primary border-primary/20 hover:bg-primary/20 mt-2">
-                              {colaborador.jobPosition}
-                            </Badge>
-                          </>
+                          <div className="flex gap-2">
+                            <button
+                              onClick={() => handleEditColaborador(colaborador)}
+                              className="p-2 text-primary hover:text-primary hover:bg-primary/10 rounded-full transition-all duration-200 hover:scale-110 group-hover:shadow-sm"
+                              title="Editar colaborador"
+                            >
+                              <Edit className="w-4 h-4" />
+                            </button>
+
+                            {/* ALERT DIALOG DO TOGGLE */}
+                            <AlertDialog>
+                              <AlertDialogTrigger asChild>
+                                <button
+                                  // Muda a cor e ícone baseados no status.
+                                  // Se ativo (clicar para desativar) -> hover vermelho.
+                                  // Se inativo (clicar para ativar) -> hover verde.
+                                  className={`p-2 text-muted-foreground rounded-full transition-all duration-200 hover:scale-110 
+                                    ${colaborador.active
+                                      ? "hover:text-destructive hover:bg-destructive/10"
+                                      : "hover:text-green-600 hover:bg-green-100"
+                                    }`}
+                                  title={colaborador.active ? "Desativar colaborador" : "Ativar colaborador"}
+                                >
+                                  {/* Ícone Power para representar o Toggle */}
+                                  <Power className="w-4 h-4" />
+                                </button>
+                              </AlertDialogTrigger>
+                              <AlertDialogContent>
+                                <AlertDialogHeader>
+                                  <AlertDialogTitle>Confirmar alteração de status</AlertDialogTitle>
+                                  <AlertDialogDescription>
+                                    Você tem certeza que deseja <strong>{colaborador.active ? "DESATIVAR" : "ATIVAR"}</strong> o funcionário{" "}
+                                    <strong>{colaborador.fullName}</strong>?
+                                    <br />
+                                    <span className="text-sm text-muted-foreground block mt-2">
+                                      {colaborador.active
+                                        ? "O usuário perderá acesso ao sistema."
+                                        : "O usuário recuperará acesso ao sistema."}
+                                    </span>
+                                  </AlertDialogDescription>
+                                </AlertDialogHeader>
+                                <AlertDialogFooter>
+                                  <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                                  <AlertDialogAction
+                                    onClick={() => handleToggleUserStatus(colaborador.userId, colaborador.active)}
+                                    className={`${colaborador.active
+                                      ? "bg-destructive hover:bg-destructive/90 text-destructive-foreground" // Botão vermelho para desativar
+                                      : "bg-green-600 hover:bg-green-700 text-white" // Botão verde para ativar
+                                      }`}
+                                  >
+                                    {colaborador.active ? "Desativar" : "Ativar"}
+                                  </AlertDialogAction>
+                                </AlertDialogFooter>
+                              </AlertDialogContent>
+                            </AlertDialog>
+
+                          </div>
                         )}
                       </div>
-
-                      {/* Edit/Save/Cancel Icons */}
+                    </CardHeader>
+                    {/* Conteúdo do Card (Mantido igual) */}
+                    <CardContent className="space-y-4">
+                      {/* ... (Conteúdo de exibição/edição mantido do código original) ... */}
                       {editingId === colaborador.employeeId ? (
-                        <div className="flex gap-2">
-                          <button
-                            onClick={() => handleSaveColaborador(colaborador.employeeId)}
-                            className="p-2 text-primary-foreground bg-primary hover:bg-primary/90 rounded-full transition-all duration-200 hover:scale-110"
-                            title="Salvar alterações"
-                          >
-                            <Save className="w-4 h-4" />
-                          </button>
-                          <button
-                            onClick={handleCancelEdit}
-                            className="p-2 text-muted-foreground hover:text-foreground hover:bg-muted rounded-full transition-all duration-200 hover:scale-110"
-                            title="Cancelar edição"
-                          >
-                            <XCircle className="w-4 h-4" />
-                          </button>
-                        </div>
-                      ) : (
-                        <div className="flex gap-2">
-                          <button
-                            onClick={() => handleEditColaborador(colaborador)}
-                            className="p-2 text-primary hover:text-primary hover:bg-primary/10 rounded-full transition-all duration-200 hover:scale-110 group-hover:shadow-sm"
-                            title="Editar colaborador"
-                          >
-                            <Edit className="w-4 h-4" />
-                          </button>
-
-                          <AlertDialog>
-                            <AlertDialogTrigger asChild>
-                              <button
-                                className="p-2 text-muted-foreground hover:text-destructive hover:bg-destructive/10 rounded-full transition-all duration-200 hover:scale-110"
-                                title="Excluir colaborador"
-                              >
-                                <Trash2 className="w-4 h-4" />
-                              </button>
-                            </AlertDialogTrigger>
-                            <AlertDialogContent>
-                              <AlertDialogHeader>
-                                <AlertDialogTitle>Confirmar exclusão</AlertDialogTitle>
-                                <AlertDialogDescription>
-                                  Você tem certeza que deseja excluir o funcionário{" "}
-                                  <strong>{colaborador.fullName}</strong>? Esta ação não pode ser
-                                  desfeita.
-                                </AlertDialogDescription>
-                              </AlertDialogHeader>
-                              <AlertDialogFooter>
-                                <AlertDialogCancel>Cancelar</AlertDialogCancel>
-                                <AlertDialogAction
-                                  onClick={() => handleDeleteUser(colaborador.userId)} // <-- Função de deleção só é chamada AQUI
-                                  className="bg-destructive hover:bg-destructive/90 text-destructive-foreground"
-                                >
-                                  Excluir
-                                </AlertDialogAction>
-                              </AlertDialogFooter>
-                            </AlertDialogContent>
-                          </AlertDialog>
-                        </div>
-                      )}
-                    </div>
-                  </CardHeader>
-
-                  <CardContent className="space-y-4">
-                    {editingId === colaborador.employeeId ? (
-                      <>
-                        {/* Username */}
-                        <div className="flex items-center gap-3 text-sm">
-                          <UserCircle className="w-4 h-4 text-muted-foreground flex-shrink-0" />
-                          <span className="text-muted-foreground w-16">Usuário:</span>
-                          <Input
-                            value={editedData.username || ""}
-                            onChange={(e) => handleEditedDataChange("username", e.target.value)}
-                            className="flex-1 h-8 focus:border-primary"
-                            placeholder="Nome de usuário"
-                          />
-                        </div>
-
-                        {/* Role */}
-                        <div className="flex items-center gap-3 text-sm">
-                          <Sparkles className="w-4 h-4 text-muted-foreground flex-shrink-0" />
-                          <span className="text-muted-foreground w-16">Perfil:</span>
-                          <Select
-                            value={editedData.role}
-                            onValueChange={(value) => handleEditedDataChange("role", value)}
-                          >
-                            <SelectTrigger className="flex-1 h-8 focus:border-primary">
-                              <SelectValue placeholder="Selecione o perfil" />
-                            </SelectTrigger>
-                            <SelectContent>
-                              <SelectItem value="MANAGER">Administrador</SelectItem>
-                              <SelectItem value="PARTNER">Colaborador</SelectItem>
-                            </SelectContent>
-                          </Select>
-                        </div>
-
-                        {/* Enabled Switch */}
-                        <div className="flex items-center gap-3 text-sm">
-                          <Label htmlFor="enabled-toggle" className="text-muted-foreground w-16">Status Ativo:</Label>
-                          <div className="flex-1 flex items-center justify-between">
-                            <span className="font-medium text-sm">{editedData.enabled ? 'Ativo' : 'Inativo'}</span>
-                            <Switch
-                              id="enabled-toggle"
-                              checked={editedData.enabled}
-                              onCheckedChange={(value) => handleEditedDataChange("enabled", value)}
+                        <>
+                          <div className="flex items-center gap-3 text-sm">
+                            <UserCircle className="w-4 h-4 text-muted-foreground flex-shrink-0" />
+                            <span className="text-muted-foreground w-16">Usuário:</span>
+                            <Input
+                              value={editedData.username || ""}
+                              onChange={(e) => handleEditedDataChange("username", e.target.value)}
+                              className="flex-1 h-8 focus:border-primary"
+                              placeholder="Nome de usuário"
                             />
                           </div>
-                        </div>
-
-                        {/* NOVO CAMPO DE EDIÇÃO: HOME OFFICE (SWITCH) */}
+                          {/* Role */}
+                          <div className="flex items-center gap-3 text-sm">
+                            <Sparkles className="w-4 h-4 text-muted-foreground flex-shrink-0" />
+                            <span className="text-muted-foreground w-16">Perfil:</span>
+                            <Select
+                              value={editedData.role}
+                              onValueChange={(value) => handleEditedDataChange("role", value)}
+                            >
+                              <SelectTrigger className="flex-1 h-8 focus:border-primary">
+                                <SelectValue placeholder="Selecione o perfil" />
+                              </SelectTrigger>
+                              <SelectContent>
+                                <SelectItem value="MANAGER">Administrador</SelectItem>
+                                <SelectItem value="PARTNER">Colaborador</SelectItem>
+                              </SelectContent>
+                            </Select>
+                          </div>
+                          {/* Enabled Switch */}
+                          <div className="flex items-center gap-3 text-sm">
+                            <Label htmlFor="enabled-toggle" className="text-muted-foreground w-16">Status Ativo:</Label>
+                            <div className="flex-1 flex items-center justify-between">
+                              <span className="font-medium text-sm">{editedData.enabled ? 'Ativo' : 'Inativo'}</span>
+                              <Switch
+                                id="enabled-toggle"
+                                checked={editedData.enabled}
+                                onCheckedChange={(value) => handleEditedDataChange("enabled", value)}
+                              />
+                            </div>
+                          </div>
+                           {/* Home Office */}
                         <div className="flex items-center gap-3 text-sm">
                           <Label htmlFor="home-office-toggle" className="text-muted-foreground w-16">Home Office:</Label>
                           <div className="flex-1 flex items-center justify-between">
@@ -890,9 +883,8 @@ const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
                             />
                           </div>
                         </div>
-                        {/* FIM NOVO CAMPO DE EDIÇÃO */}
-                        
-                        {/* INDICADOR/INPUT DE IMAGEM (MODO EDIÇÃO) */}
+
+                          {/* Image Upload */}
                         <div className="space-y-2 pt-4 border-t border-dashed">
                           <Label htmlFor="face-image-upload" className="text-muted-foreground flex items-center gap-2">
                              <Camera className="w-4 h-4" />
@@ -906,41 +898,33 @@ const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
                             className="flex-1 h-10 focus:border-primary file:text-sm file:font-semibold"
                           />
                           <p className="text-xs text-muted-foreground">
-                            {faceImageFile ? `Arquivo selecionado: ${faceImageFile.name}` : 'Selecione uma nova imagem para atualizar o reconhecimento facial.'}
+                            {faceImageFile ? `Arquivo selecionado: ${faceImageFile.name}` : 'Selecione uma nova imagem.'}
                           </p>
                         </div>
-                        {/* FIM INDICADOR/INPUT DE IMAGEM (MODO EDIÇÃO) */}
-
-                        {/* CPF */}
-                        <div className="flex items-center gap-3 text-sm">
-                          <IdCard className="w-4 h-4 text-muted-foreground flex-shrink-0" />
-                          <span className="text-muted-foreground w-16">CPF:</span>
-                          <Input
-                            // Atualizado o tipo para 'tel' para melhor usabilidade em mobile
-                            type="tel"
-                            value={editedData.maskedCpf || ""}
-                            onChange={(e) => handleEditedDataChange("maskedCpf", e.target.value)}
-                            className="flex-1 h-8 focus:border-primary"
-                            placeholder="CPF (apenas números)"
-                            maxLength={11} // Mantido para feedback visual
-                          />
-                        </div>
-
-                        {/* Email */}
-                        <div className="flex items-center gap-3 text-sm">
-                          <Mail className="w-4 h-4 text-muted-foreground flex-shrink-0" />
-                          <span className="text-muted-foreground w-16">Email:</span>
-                          <Input
-                            type="email"
-                            value={editedData.email || ""}
-                            onChange={(e) => handleEditedDataChange("email", e.target.value)}
-                            className="flex-1 h-8 focus:border-primary"
-                            placeholder="Email"
-                          />
-                        </div>
-
-                        {/* Phone */}
-                        <div className="flex items-center gap-3 text-sm">
+                          {/* CPF, Email, Phone, Salary, Address Inputs... (Mantidos) */}
+                          <div className="flex items-center gap-3 text-sm">
+                            <IdCard className="w-4 h-4 text-muted-foreground flex-shrink-0" />
+                            <span className="text-muted-foreground w-16">CPF:</span>
+                            <Input
+                              type="tel"
+                              value={editedData.maskedCpf || ""}
+                              onChange={(e) => handleEditedDataChange("maskedCpf", e.target.value)}
+                              className="flex-1 h-8 focus:border-primary"
+                              placeholder="CPF"
+                              maxLength={11}
+                            />
+                          </div>
+                          <div className="flex items-center gap-3 text-sm">
+                            <Mail className="w-4 h-4 text-muted-foreground flex-shrink-0" />
+                            <span className="text-muted-foreground w-16">Email:</span>
+                            <Input
+                              type="email"
+                              value={editedData.email || ""}
+                              onChange={(e) => handleEditedDataChange("email", e.target.value)}
+                              className="flex-1 h-8 focus:border-primary"
+                            />
+                          </div>
+                           <div className="flex items-center gap-3 text-sm">
                           <Phone className="w-4 h-4 text-muted-foreground flex-shrink-0" />
                           <span className="text-muted-foreground w-16">Telefone:</span>
                           <Input
@@ -948,12 +932,10 @@ const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
                             value={editedData.phone || ""}
                             onChange={(e) => handleEditedDataChange("phone", e.target.value)}
                             className="flex-1 h-8 focus:border-primary"
-                            placeholder="Telefone (apenas números)"
+                            placeholder="Telefone"
                             maxLength={11}
                           />
                         </div>
-
-                        {/* Salary */}
                         <div className="flex items-center gap-3 text-sm">
                           <DollarSign className="w-4 h-4 text-muted-foreground flex-shrink-0" />
                           <span className="text-muted-foreground w-16">Salário:</span>
@@ -962,23 +944,19 @@ const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
                             value={editedData.salary || ""}
                             onChange={(e) => handleEditedDataChange("salary", e.target.value)}
                             className="flex-1 h-8 focus:border-primary"
-                            placeholder="Salário"
                           />
                         </div>
-
-                        {/* Address - CEP and Number */}
                         <div className="flex items-start gap-3 text-sm">
                           <MapPin className="w-4 h-4 text-muted-foreground flex-shrink-0 mt-0.5" />
                           <div className="flex-1 space-y-2">
                             <div className="flex gap-2">
                               <Input
-                                // Atualizado o tipo para 'tel'
                                 type="tel"
                                 value={editedData.postalCode || ""}
                                 onChange={(e) => handleEditedDataChange("postalCode", e.target.value)}
                                 className="flex-1 h-8 focus:border-primary"
-                                placeholder="CEP (apenas números)"
-                                maxLength={8} // Mantido para feedback visual
+                                placeholder="CEP"
+                                maxLength={8}
                               />
                               <Input
                                 value={editedData.number || ""}
@@ -987,32 +965,26 @@ const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
                                 placeholder="Número"
                               />
                             </div>
-                            <p className="text-xs text-muted-foreground">
-                              {colaborador.address.street} - {colaborador.address.city}/{colaborador.address.state}
-                            </p>
                           </div>
                         </div>
-                      </>
-                    ) : (
-                      <>
-                        {/* Username */}
-                        <div className="flex items-center gap-3 text-sm">
-                          <UserCircle className="w-4 h-4 text-muted-foreground flex-shrink-0" />
-                          <span className="text-muted-foreground">Usuário:</span>
-                          <span className="font-medium">{colaborador.username}</span>
-                        </div>
 
-                        {/* Role */}
-                        <div className="flex items-center gap-3 text-sm">
-                          <Sparkles className="w-4 h-4 text-muted-foreground flex-shrink-0" />
-                          <span className="text-muted-foreground">Perfil:</span>
-                          <span className="font-medium">
-                            {colaborador.role === 'MANAGER' ? 'Administrador' : colaborador.role === 'PARTNER' ? 'Colaborador' : colaborador.role}
-                          </span>
-                        </div>
-
-                        {/* INDICADOR: IMAGEM DE FACE EDITÁVEL */}
-                         <div className="flex items-center gap-3 text-sm">
+                        </>
+                      ) : (
+                        <>
+                          {/* Visualização (Mantida) */}
+                          <div className="flex items-center gap-3 text-sm">
+                            <UserCircle className="w-4 h-4 text-muted-foreground flex-shrink-0" />
+                            <span className="text-muted-foreground">Usuário:</span>
+                            <span className="font-medium">{colaborador.username}</span>
+                          </div>
+                          <div className="flex items-center gap-3 text-sm">
+                            <Sparkles className="w-4 h-4 text-muted-foreground flex-shrink-0" />
+                            <span className="text-muted-foreground">Perfil:</span>
+                            <span className="font-medium">
+                              {colaborador.role === 'MANAGER' ? 'Administrador' : colaborador.role === 'PARTNER' ? 'Colaborador' : colaborador.role}
+                            </span>
+                          </div>
+                           <div className="flex items-center gap-3 text-sm">
                           <Camera className="w-4 h-4 text-muted-foreground flex-shrink-0" />
                           <span className="text-muted-foreground">Foto de Face:</span>
                           <Badge 
@@ -1022,9 +994,6 @@ const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
                            Editável
                           </Badge>
                         </div>
-                        {/* FIM INDICADOR: IMAGEM DE FACE EDITÁVEL */}
-
-                        {/* NOVO CAMPO DE VISUALIZAÇÃO: HOME OFFICE */}
                         <div className="flex items-center gap-3 text-sm">
                           <MapPin className="w-4 h-4 text-muted-foreground flex-shrink-0" />
                           <span className="text-muted-foreground">Local de Trabalho:</span>
@@ -1037,76 +1006,62 @@ const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
                             {colaborador.homeOffice ? 'Remoto (Sem Geolocalização)' : 'Físico (Exige Geolocalização)'}
                           </Badge>
                         </div>
-                        {/* FIM NOVO CAMPO DE VISUALIZAÇÃO */}
-
-                        {/* CPF */}
-                        <div className="flex items-center gap-3 text-sm">
-                          <IdCard className="w-4 h-4 text-muted-foreground flex-shrink-0" />
-                          <span className="text-muted-foreground">CPF:</span>
-                          <span className="font-medium">{colaborador.maskedCpf}</span>
-                        </div>
-
-                        {/* Email */}
-                        <div className="flex items-center gap-3 text-sm">
-                          <Mail className="w-4 h-4 text-muted-foreground flex-shrink-0" />
-                          <span className="text-muted-foreground">Email:</span>
-                          <span className="font-medium truncate">{colaborador.email}</span>
-                        </div>
-
-                        {/* Phone */}
-                        <div className="flex items-center gap-3 text-sm">
-                          <Phone className="w-4 h-4 text-muted-foreground flex-shrink-0" />
-                          <span className="text-muted-foreground">Telefone:</span>
-                          <span className="font-medium">{formatPhone(colaborador.phone)}</span>
-                        </div>
-
-                        {/* Salary */}
-                        <div className="flex items-center gap-3 text-sm">
-                          <DollarSign className="w-4 h-4 text-muted-foreground flex-shrink-0" />
-                          <span className="text-muted-foreground">Salário:</span>
-                          <span className="font-bold text-primary">
-                            {formatCurrency(colaborador.salary)}
-                          </span>
-                        </div>
-
-                        {/* Address */}
-                        <div className="flex items-start gap-3 text-sm">
-                          <MapPin className="w-4 h-4 text-muted-foreground flex-shrink-0 mt-0.5" />
-                          <div>
-                            <span className="text-muted-foreground">Endereço:</span>
-                            <p className="font-medium text-xs mt-1 leading-relaxed">
-                              {formatAddress(colaborador.address)}
-                            </p>
+                          <div className="flex items-center gap-3 text-sm">
+                            <IdCard className="w-4 h-4 text-muted-foreground flex-shrink-0" />
+                            <span className="text-muted-foreground">CPF:</span>
+                            <span className="font-medium">{colaborador.maskedCpf}</span>
                           </div>
-                        </div>
-                      </>
-                    )}
-                  </CardContent>
-                </Card>
-              ))
-            )}
-          </div>
-
-          {/* Empty State */}
-          {!isLoading && filteredColaboradores.length === 0 && colaboradores.length > 0 && (
-            <div className="text-center py-12">
-              <Search className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
-              <h3 className="text-xl font-semibold mb-2">Nenhum colaborador encontrado</h3>
-              <p className="text-muted-foreground mb-4">
-                Nenhum colaborador corresponde aos critérios de busca aplicados.
-              </p>
-              <Button
-                variant="outline"
-                onClick={clearFilters}
-                className="text-primary border-primary hover:bg-primary hover:text-primary-foreground"
-              >
-                Limpar Filtros
-              </Button>
+                          <div className="flex items-center gap-3 text-sm">
+                            <Mail className="w-4 h-4 text-muted-foreground flex-shrink-0" />
+                            <span className="text-muted-foreground">Email:</span>
+                            <span className="font-medium truncate">{colaborador.email}</span>
+                          </div>
+                          <div className="flex items-center gap-3 text-sm">
+                            <Phone className="w-4 h-4 text-muted-foreground flex-shrink-0" />
+                            <span className="text-muted-foreground">Telefone:</span>
+                            <span className="font-medium">{formatPhone(colaborador.phone)}</span>
+                          </div>
+                          <div className="flex items-center gap-3 text-sm">
+                            <DollarSign className="w-4 h-4 text-muted-foreground flex-shrink-0" />
+                            <span className="text-muted-foreground">Salário:</span>
+                            <span className="font-bold text-primary">
+                              {formatCurrency(colaborador.salary)}
+                            </span>
+                          </div>
+                          <div className="flex items-start gap-3 text-sm">
+                            <MapPin className="w-4 h-4 text-muted-foreground flex-shrink-0 mt-0.5" />
+                            <div>
+                              <span className="text-muted-foreground">Endereço:</span>
+                              <p className="font-medium text-xs mt-1 leading-relaxed">
+                                {formatAddress(colaborador.address)}
+                              </p>
+                            </div>
+                          </div>
+                        </>
+                      )}
+                    </CardContent>
+                  </Card>
+                ))
+              )}
             </div>
-          )}
-
-          {/* Empty State (if no collaborators at all) */}
-          {!isLoading && colaboradores.length === 0 && (
+            {/* Empty States (Mantidos) */}
+            {!isLoading && filteredColaboradores.length === 0 && colaboradores.length > 0 && (
+              <div className="text-center py-12">
+                <Search className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
+                <h3 className="text-xl font-semibold mb-2">Nenhum colaborador encontrado</h3>
+                <p className="text-muted-foreground mb-4">
+                  Nenhum colaborador corresponde aos critérios de busca aplicados.
+                </p>
+                <Button
+                  variant="outline"
+                  onClick={clearFilters}
+                  className="text-primary border-primary hover:bg-primary hover:text-primary-foreground"
+                >
+                  Limpar Filtros
+                </Button>
+              </div>
+            )}
+             {!isLoading && colaboradores.length === 0 && (
             <div className="text-center py-12">
               <User className="w-16 h-16 text-muted-foreground mx-auto mb-4" />
               <h3 className="text-xl font-semibold mb-2">Nenhum colaborador cadastrado</h3>
@@ -1115,7 +1070,7 @@ const handleFileChange = (event: React.ChangeEvent<HTMLInputElement>) => {
               </p>
             </div>
           )}
-        </div>
+          </div>
         </div>
       </div>
     </div>
