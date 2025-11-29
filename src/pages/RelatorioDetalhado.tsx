@@ -444,7 +444,6 @@ const COLOR_HEADER = [4, 60, 107]; // Azul escuro
 const COLOR_MAIN_RECORD = [255, 255, 255]; // Branco (para registros normais)
 const COLOR_BREAK_RECORD = [230, 240, 255]; // Azul muito claro (para pausas)
 const COLOR_HOLIDAY_ROW = [255, 245, 245]; // Vermelho muito claro (para feriados)
-    
 const handleDownloadPDFDetailed = () => {
         if (reportData.length === 0) {
             toast({ title: "Erro", description: "Não há dados para gerar o PDF.", variant: "destructive" });
@@ -453,7 +452,30 @@ const handleDownloadPDFDetailed = () => {
 
         const doc = new jsPDF();
         
-        // --- Helpers para Cálculo de Horas (Locais) ---
+        // --- CORES E CONFIGURAÇÕES DE ESTILO ---
+        const PRIMARY_COLOR = [41, 128, 185]; // Azul Institucional
+        const TEXT_COLOR = [51, 65, 85];      // Cinza Escuro (Slate)
+        const LABEL_COLOR = [100, 116, 139];  // Cinza Claro
+        const BG_LIGHT = [248, 250, 252];     // Fundo Card
+
+        // --- MAPA DE CORES POR STATUS (RGB) ---
+        // Você pode ajustar esses valores RGB conforme sua preferência
+        const getStatusRGB = (status: string): [number, number, number] => {
+            switch (status) {
+                case 'CREATED': return [22, 163, 74];       // Verde (Sucesso)
+                case 'UPDATED': return [37, 99, 235];       // Azul (Info)
+                case 'PENDING': return [234, 179, 8];       // Amarelo/Ouro (Atenção)
+                case 'ABSENCE': return [220, 38, 38];       // Vermelho (Erro/Falta)
+                case 'DAY_OFF': return [100, 116, 139];     // Cinza Azulado (Folga)
+                case 'TIME_OFF': return [147, 51, 234];     // Roxo (Abono)
+                case 'VACATION': return [13, 148, 136];     // Teal (Férias)
+                case 'IMPLICIT_BREAK': return [156, 163, 175]; // Cinza (Pausa)
+                case 'PENDING_APPROVAL': return [249, 115, 22]; // Laranja
+                default: return [71, 85, 105];              // Cinza Escuro (Padrão)
+            }
+        };
+
+        // --- Helpers de Cálculo (Mantidos) ---
         const timeToMinutes = (time: string) => {
             if (!time || time === '--:--' || time.trim() === '') return 0;
             const sign = time.startsWith('-') ? -1 : 1;
@@ -478,8 +500,6 @@ const handleDownloadPDFDetailed = () => {
         reportData.forEach((item) => {
             const isBreak = item.statusRecord === 'IMPLICIT_BREAK';
             const isPending = item.statusRecord === 'PENDING';
-
-            // Soma apenas se não for Pausa e não for Pendente
             if (!isBreak && !isPending) {
                 totalMinutesWorked += timeToMinutes(item.hoursWork);
                 totalMinutesBalance += timeToMinutes(item.balance);
@@ -489,41 +509,85 @@ const handleDownloadPDFDetailed = () => {
         const totalHoursStr = minutesToTime(totalMinutesWorked);
         const totalBalanceStr = minutesToTime(totalMinutesBalance);
 
-        // --- Configuração do Nome do Arquivo e Dados Básicos ---
+        // --- Dados Básicos ---
         const fileName = `relatorio_detalhado_${format(new Date(), 'yyyyMMdd_HHmmss')}.pdf`;
         const employeeName = reportData[0]?.employeeData?.employeeName || 'N/A';
         const companyName = reportData[0]?.employeeData?.companyName || 'N/A';
-        
         const periodStart = selectedDates[0] ? format(selectedDates[0], 'dd/MM/yyyy') : '-';
         const periodEnd = selectedDates[selectedDates.length - 1] ? format(selectedDates[selectedDates.length - 1], 'dd/MM/yyyy') : '-';
 
-        // --- Cabeçalho do PDF ---
-        doc.setFontSize(16);
-        doc.text("Relatório de Ponto Detalhado", 14, 15);
+        // ======================== CABEÇALHO ========================
+        doc.setFillColor(PRIMARY_COLOR[0], PRIMARY_COLOR[1], PRIMARY_COLOR[2]);
+        doc.rect(14, 15, 2, 12, 'F'); 
+
+        doc.setFont("helvetica", "bold");
+        doc.setFontSize(22);
+        doc.setTextColor(TEXT_COLOR[0], TEXT_COLOR[1], TEXT_COLOR[2]);
+        doc.text("Relatório de Ponto", 20, 24);
+
+        doc.setFont("helvetica", "normal");
+        doc.setFontSize(9);
+        doc.setTextColor(LABEL_COLOR[0], LABEL_COLOR[1], LABEL_COLOR[2]);
+        doc.text(`Gerado em: ${format(new Date(), 'dd/MM/yyyy HH:mm')}`, 196, 24, { align: 'right' });
+
+        const boxY = 32;
+        const boxHeight = 35;
         
+        doc.setFillColor(BG_LIGHT[0], BG_LIGHT[1], BG_LIGHT[2]);
+        doc.setDrawColor(226, 232, 240);
+        doc.roundedRect(14, boxY, 182, boxHeight, 2, 2, 'FD');
+
+        // Coluna 1
+        const col1X = 20;
+        doc.setFontSize(8);
+        doc.setTextColor(LABEL_COLOR[0], LABEL_COLOR[1], LABEL_COLOR[2]);
+        doc.text("EMPRESA", col1X, boxY + 8);
         doc.setFontSize(10);
-        doc.text(`Empresa: ${companyName}`, 14, 22);
-        doc.text(`Colaborador: ${employeeName}`, 14, 27);
-        doc.text(`Período: ${periodStart} a ${periodEnd}`, 14, 32);
-        doc.text(`Gerado em: ${format(new Date(), 'dd/MM/yyyy HH:mm')}`, 14, 37);
+        doc.setFont("helvetica", "bold");
+        doc.setTextColor(TEXT_COLOR[0], TEXT_COLOR[1], TEXT_COLOR[2]);
+        doc.text(companyName.toUpperCase(), col1X, boxY + 13);
 
-        // [NOVAS LINHAS] Exibindo os totais calculados
-        doc.setFont("helvetica", "bold"); // Negrito para destaque
-        doc.text(`Total Horas Trabalhadas: ${totalHoursStr}`, 14, 44);
-        
-        // Define cor do saldo (Vermelho se negativo, Preto/Verde se positivo)
+        doc.setFontSize(8);
+        doc.setFont("helvetica", "normal");
+        doc.setTextColor(LABEL_COLOR[0], LABEL_COLOR[1], LABEL_COLOR[2]);
+        doc.text("COLABORADOR", col1X, boxY + 23);
+        doc.setFontSize(10);
+        doc.setFont("helvetica", "bold");
+        doc.setTextColor(TEXT_COLOR[0], TEXT_COLOR[1], TEXT_COLOR[2]);
+        doc.text(employeeName.toUpperCase(), col1X, boxY + 28);
+
+        // Coluna 2
+        const col2X = 110;
+        const col3X = 155;
+        doc.setFontSize(8);
+        doc.setFont("helvetica", "normal");
+        doc.setTextColor(LABEL_COLOR[0], LABEL_COLOR[1], LABEL_COLOR[2]);
+        doc.text("PERÍODO SELECIONADO", col2X, boxY + 8);
+        doc.setFontSize(10);
+        doc.setFont("helvetica", "bold");
+        doc.setTextColor(TEXT_COLOR[0], TEXT_COLOR[1], TEXT_COLOR[2]);
+        doc.text(`${periodStart} a ${periodEnd}`, col2X, boxY + 13);
+
+        // Totais
+        doc.setFontSize(8);
+        doc.setFont("helvetica", "normal");
+        doc.setTextColor(LABEL_COLOR[0], LABEL_COLOR[1], LABEL_COLOR[2]);
+        doc.text("TOTAL TRABALHADO", col2X, boxY + 23);
+        doc.text("SALDO DO PERÍODO", col3X, boxY + 23);
+
+        doc.setFontSize(12);
+        doc.setFont("helvetica", "bold");
+        doc.setTextColor(TEXT_COLOR[0], TEXT_COLOR[1], TEXT_COLOR[2]);
+        doc.text(totalHoursStr, col2X, boxY + 29);
+
         if (totalMinutesBalance < 0) {
-            doc.setTextColor(220, 53, 69); // Vermelho
+            doc.setTextColor(220, 38, 38);
         } else {
-            doc.setTextColor(0, 0, 0); // Preto (ou use verde se preferir)
+            doc.setTextColor(22, 163, 74);
         }
-        doc.text(`Saldo Total no Período: ${totalBalanceStr}`, 14, 49);
-        
-        // Reseta fonte e cor
-        doc.setFont("helvetica", "normal"); 
-        doc.setTextColor(0, 0, 0);
+        doc.text(totalBalanceStr, col3X, boxY + 29);
 
-        // --- Preparação dos Dados da Tabela ---
+        // ======================== TABELA ESTILIZADA ========================
         const tableBody: any[] = [];
 
         reportData.forEach((item) => {
@@ -544,54 +608,93 @@ const handleDownloadPDFDetailed = () => {
             const isItemHoliday = startDate && isHoliday(startDate);
             const statusLabel = getTranslatedStatus(item.statusRecord);
             
-            const fillColor = isItemHoliday ? COLOR_HOLIDAY_ROW : (isBreak ? COLOR_BREAK_RECORD : COLOR_MAIN_RECORD);
+            // Lógica de cores da linha (mais sutil agora, pois o status terá cor própria)
+            // Se for feriado, usamos um vermelho muito claro. Se for pausa, cinza claro.
+            // Se for normal, deixamos o padrão (que será alternado pelo autoTable)
+            let rowFillColor = undefined; 
+            if (isItemHoliday) rowFillColor = [254, 242, 242]; // Red-50
+            if (isBreak) rowFillColor = [248, 250, 252]; // Slate-50
+
             const fontStyle = isBreak ? 'italic' : 'normal';
+            
+            // Pega a cor específica do status para pintar o BACKGROUND da célula
+            const statusRGB = getStatusRGB(item.statusRecord);
 
             const rowCells = [
                 { content: colInicio, styles: { fontStyle: fontStyle, halign: 'center' } }, 
                 { content: colFim, styles: { fontStyle: fontStyle, halign: 'center' } },    
                 { content: displayDuration, styles: { fontStyle: fontStyle, halign: 'center' } }, 
                 { content: displayBalance, styles: { fontStyle: fontStyle, halign: 'center' } },  
-                { content: isItemHoliday ? `${statusLabel} (FERIADO)` : statusLabel, styles: { fontStyle: fontStyle } } 
+                
+                // CÉLULA DE STATUS: Fundo colorido e texto branco
+                { 
+                    content: isItemHoliday ? `${statusLabel} (FERIADO)` : statusLabel, 
+                    styles: { 
+                        fontStyle: 'bold',
+                        textColor: [255, 255, 255], // Texto branco
+                        fillColor: statusRGB,       // Fundo colorido do status
+                        halign: 'center',
+                        cellPadding: 3 // Um pouco mais de espaço
+                    } 
+                } 
             ];
 
-            tableBody.push(rowCells.map(cell => ({
-                ...cell,
-                styles: { ...cell.styles, fillColor: fillColor }
-            })));
+            // Se houver cor de linha especial (feriado), aplica nas outras células
+            if (rowFillColor) {
+                tableBody.push(rowCells.map((cell, index) => {
+                    // Não sobrescreve a cor da célula de status (índice 4)
+                    if (index === 4) return cell;
+                    return {
+                        ...cell,
+                        styles: { ...cell.styles, fillColor: rowFillColor }
+                    };
+                }));
+            } else {
+                tableBody.push(rowCells);
+            }
         });
 
-        // --- Geração da Tabela (AutoTable) ---
         autoTable(doc, {
-            startY: 55, // [AJUSTADO] Movido para baixo (era 45) para dar espaço aos novos totais
+            startY: boxY + boxHeight + 10,
             head: [['Início da Jornada', 'Fim da Jornada', 'Duração', 'Saldo', 'Status']], 
             body: tableBody,
+            theme: 'grid', // Usa linhas de grade, mas vamos customizar
             styles: {
                 fontSize: 9,
-                cellPadding: 3,
+                cellPadding: 4, // Mais espaçamento interno para visual moderno
                 valign: 'middle',
+                lineWidth: 0, // Remove bordas verticais padrão grossas
+                lineColor: [226, 232, 240],
             },
             headStyles: {
-                fillColor: [41, 128, 185], 
+                fillColor: PRIMARY_COLOR, 
                 textColor: 255,
                 fontStyle: 'bold',
-                halign: 'center'
+                halign: 'center',
+                cellPadding: 5,
+                lineWidth: 0, // Cabeçalho flat sem bordas
             },
             columnStyles: {
-                0: { cellWidth: 40 },
-                1: { cellWidth: 40 },
+                0: { cellWidth: 45 },
+                1: { cellWidth: 45 },
                 2: { cellWidth: 25 },
                 3: { cellWidth: 25 },
-                4: { cellWidth: 'auto' }
+                4: { cellWidth: 'auto', fontStyle: 'bold' } // Status negrito
             },
+            // Estilo alternado moderno (Zebra Striping)
             alternateRowStyles: {
-                fillColor: [245, 245, 245]
+                fillColor: [249, 250, 251] // Cinza muito claro para linhas alternadas
+            },
+            // Customização de bordas: Apenas linhas horizontais finas
+            didDrawCell: (data) => {
+                if (data.section === 'body' && data.column.index === 0) {
+                    // Opcional: Lógica extra de desenho se necessário
+                }
             }
         });
 
         doc.save(fileName);
     };
-
     // === LÓGICA DE DOWNLOAD PDF SIMPLES (RENOMEADA) ===
   const handleDownloadPDFSimple = () => {
     if (!reportDataSimple || reportDataSimple.days.length === 0) {
