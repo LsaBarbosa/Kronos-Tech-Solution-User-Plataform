@@ -447,112 +447,108 @@ const COLOR_HOLIDAY_ROW = [255, 245, 245]; // Vermelho muito claro (para feriado
     
 // === LÓGICA DE DOWNLOAD PDF DETALHADA (RENOMEADA E ESTILIZADA) ===
 const handleDownloadPDFDetailed = () => {
-    // 1. CHECAGEM INICIAL (MANTIDA)
-    if (reportData.length === 0) {
-        toast({ title: "Erro", description: "Não há dados para gerar o PDF.", variant: "destructive" });
-        return;
-    }
+        if (reportData.length === 0) {
+            toast({ title: "Erro", description: "Não há dados para gerar o PDF.", variant: "destructive" });
+            return;
+        }
 
-    const doc = new jsPDF();
-    const fileName = `relatorio_detalhado_${format(new Date(), 'yyyyMMdd_HHmmss')}.pdf`;
-
-    // 2. 🚀 CORREÇÃO DE ERRO DE EXECUÇÃO: USO DE OPTIONAL CHAINING
-    const employeeName = reportData[0]?.employeeData?.employeeName || 'N/A';
-    const companyName = reportData[0]?.employeeData?.companyName || 'N/A';
-    // -----------------------------------------------------------
-
-    // Datas únicas para checagem de feriado (Usando parseDate e isHoliday)
-    const uniqueDates = Array.from(new Set(reportData.map(item => item.startWork)));
-    const validDates = uniqueDates.map(dateStr => parseDate(dateStr)).filter((d): d is Date => d !== null);
-    const holidayDates = validDates.filter(date => isHoliday(date));
-    const holidayList = holidayDates.map(date => format(date, 'dd/MM/yy')).join(', ');
-    
-    // --- Cabeçalho
-    doc.setFontSize(18);
-    doc.text("RELATÓRIO DETALHADO DE PONTO", 14, 20);
-    doc.setFontSize(10);
-    doc.text(`Funcionário: ${employeeName}`, 14, 30);
-    doc.text(`Empresa: ${companyName}`, 14, 35);
-    doc.text(`Carga horária diária: ${referenceTime}`, 14, 40);
-    
-    // 🚀 NOVO: Lista de Feriados no cabeçalho
-    doc.text(`Feriados no Período: ${holidayList || 'Nenhum'}`, 14, 45);
-    
-    doc.text(`Período de Referência: ${format(selectedDates[0], 'dd/MM/yyyy')} a ${format(selectedDates[selectedDates.length - 1], 'dd/MM/yyyy')}`, 14, 50);
-
-    // --- Corpo da Tabela
-    const tableBody: any[] = [];
-
-    reportData.forEach((item, index) => {
-        const isBreak = item.statusRecord === 'IMPLICIT_BREAK';
-        const isPending = item.statusRecord === 'PENDING';
-        const formattedDateStart = formatDateWithDayOfWeek(item.startWork);
-        const formattedDateEnd = isPending ? '-' : formatDateWithDayOfWeek(item.endWork);
-        const displayEndHour = isPending ? '--:--' : item.endHour;
-        const displayBalance = isPending ? '--:--' : item.balance;
-        const formattedStart = `${formattedDateStart}\n${item.startHour}`;
-        const formattedEnd = isPending ? '--:--' : `${formattedDateEnd}\n${displayEndHour}`;
+        const doc = new jsPDF();
         
-        // 🚀 NOVO: Checa se o registro é feriado
-        const startDate = parseDate(item.startWork);
-        const isItemHoliday = startDate && isHoliday(startDate);
-
-        const statusLabel = getTranslatedStatus(item.statusRecord);
+        // --- Configuração do Nome do Arquivo e Dados Básicos ---
+        const fileName = `relatorio_detalhado_${format(new Date(), 'yyyyMMdd_HHmmss')}.pdf`;
+        const employeeName = reportData[0]?.employeeData?.employeeName || 'N/A';
+        const companyName = reportData[0]?.employeeData?.companyName || 'N/A';
         
-        // 🚀 NOVO: Define a cor da linha com base no status e feriado
-        const fillColor = isItemHoliday ? COLOR_HOLIDAY_ROW : (isBreak ? COLOR_BREAK_RECORD : COLOR_MAIN_RECORD);
-        const fontStyle = isBreak ? 'italic' : 'normal';
+        // Pega data inicial e final do filtro para exibir no cabeçalho
+        const periodStart = selectedDates[0] ? format(selectedDates[0], 'dd/MM/yyyy') : '-';
+        const periodEnd = selectedDates[selectedDates.length - 1] ? format(selectedDates[selectedDates.length - 1], 'dd/MM/yyyy') : '-';
 
-        const rowCells = [
-            { content: formattedStart, styles: { fontStyle: fontStyle } },
-            { content: formattedEnd, styles: { fontStyle: fontStyle } },
-            { content: item.hoursWork, styles: { fontStyle: fontStyle } },
-            { content: isPending ? '--:--' : item.hoursWork, styles: { fontStyle: fontStyle } },
-            { content: isBreak ? '00:00' : item.balance, styles: { fontStyle: fontStyle } },
-            // 🚀 NOVO: Adiciona (FERIADO) ao status
-            { content: isItemHoliday ? `${statusLabel} (FERIADO)` : statusLabel, styles: { fontStyle: fontStyle } }    
-        ];
+        // --- Cabeçalho do PDF ---
+        doc.setFontSize(16);
+        doc.text("Relatório de Ponto Detalhado", 14, 15);
+        
+        doc.setFontSize(10);
+        doc.text(`Empresa: ${companyName}`, 14, 22);
+        doc.text(`Colaborador: ${employeeName}`, 14, 27);
+        doc.text(`Período: ${periodStart} a ${periodEnd}`, 14, 32);
+        doc.text(`Gerado em: ${format(new Date(), 'dd/MM/yyyy HH:mm')}`, 14, 37);
 
-        // 3. 🚀 CORREÇÃO DO ESTILO DA LINHA: Aplica o fillColor individualmente a cada célula
-        tableBody.push(rowCells.map(cell => ({
-            ...cell,
+        // --- Preparação dos Dados da Tabela ---
+        const tableBody: any[] = [];
+
+        reportData.forEach((item) => {
+            const isBreak = item.statusRecord === 'IMPLICIT_BREAK';
+            const isPending = item.statusRecord === 'PENDING';
+
+            // 1. Formata Datas (Trata PENDING para não quebrar)
+            const formattedDateStart = formatDateWithDayOfWeek(item.startWork);
+            const formattedDateEnd = isPending ? '-' : formatDateWithDayOfWeek(item.endWork);
+
+            // 2. Define Valores de Hora e Saldo (Trata PENDING)
+            const displayEndHour = isPending ? '--:--' : item.endHour;
+            const displayDuration = isPending ? '--:--' : item.hoursWork;
+            const displayBalance = (isBreak || isPending) ? '00:00' : item.balance;
+
+            // 3. Monta o conteúdo das Colunas (Data + \n + Hora)
+            // A quebra de linha (\n) faz com que a hora fique abaixo da data na mesma célula
+            const colInicio = `${formattedDateStart}\n${item.startHour}`;
+            const colFim = isPending ? 'Em andamento' : `${formattedDateEnd}\n${displayEndHour}`;
+            
+            // 4. Estilização da Linha
+            const startDate = parseDate(item.startWork);
+            const isItemHoliday = startDate && isHoliday(startDate);
+            const statusLabel = getTranslatedStatus(item.statusRecord);
+            
+            const fillColor = isItemHoliday ? COLOR_HOLIDAY_ROW : (isBreak ? COLOR_BREAK_RECORD : COLOR_MAIN_RECORD);
+            const fontStyle = isBreak ? 'italic' : 'normal';
+
+            // 5. Array da Linha (Ordem exata do cabeçalho)
+            const rowCells = [
+                { content: colInicio, styles: { fontStyle: fontStyle, halign: 'center' } }, // Início
+                { content: colFim, styles: { fontStyle: fontStyle, halign: 'center' } },    // Fim
+                { content: displayDuration, styles: { fontStyle: fontStyle, halign: 'center' } }, // Duração
+                { content: displayBalance, styles: { fontStyle: fontStyle, halign: 'center' } },  // Saldo
+                { content: isItemHoliday ? `${statusLabel} (FERIADO)` : statusLabel, styles: { fontStyle: fontStyle } } // Status
+            ];
+
+            // Aplica a cor de fundo definida
+            tableBody.push(rowCells.map(cell => ({
+                ...cell,
+                styles: { ...cell.styles, fillColor: fillColor }
+            })));
+        });
+
+        // --- Geração da Tabela (AutoTable) ---
+        autoTable(doc, {
+            startY: 45,
+            // [CONFIGURAÇÃO SOLICITADA]
+            head: [['Início da Jornada', 'Fim da Jornada', 'Duração', 'Saldo', 'Status']], 
+            body: tableBody,
             styles: {
-                ...cell.styles,
-                fillColor: fillColor,
+                fontSize: 9,
+                cellPadding: 3,
+                valign: 'middle', // Centraliza verticalmente
+            },
+            headStyles: {
+                fillColor: [41, 128, 185], // Cor azul padrão para o cabeçalho
+                textColor: 255,
+                fontStyle: 'bold',
+                halign: 'center' // Centraliza o texto do cabeçalho
+            },
+            columnStyles: {
+                0: { cellWidth: 40 }, // Largura fixa para Início
+                1: { cellWidth: 40 }, // Largura fixa para Fim
+                2: { cellWidth: 25 }, // Largura Duração
+                3: { cellWidth: 25 }, // Largura Saldo
+                4: { cellWidth: 'auto' } // Status ocupa o resto
+            },
+            alternateRowStyles: {
+                fillColor: [245, 245, 245]
             }
-        })));
-    });
+        });
 
-    // --- autoTable
-    autoTable(doc, {
-        head: [['Início da Jornada)', 'Fim da Jornada', 'Duração', 'Saldo', 'Status']],
-        body: tableBody,
-        startY: 55,
-        theme: 'striped',
-        headStyles: { 
-            fillColor: COLOR_HEADER, 
-            textColor: 255, 
-            halign: 'center', 
-            valign: 'middle' 
-        },
-        bodyStyles: { 
-            fontSize: 10,
-            halign: 'center',
-        },
-        // Remove didParseCell que duplicava a lógica de cor
-    });
-
-    // --- Rodapé
-    const pageCount = doc.getNumberOfPages();
-    for (let i = 1; i <= pageCount; i++) {
-        doc.setPage(i);
-        doc.setFontSize(8);
-        doc.text(`Gerado em: ${format(new Date(), 'dd/MM/yyyy HH:mm', { locale: ptBR })} | Página ${i} de ${pageCount}`, 14, doc.internal.pageSize.height - 10);
-    }
-
-    doc.save(fileName);
-};
-   
+        doc.save(fileName);
+    };
 
 
     // === LÓGICA DE DOWNLOAD PDF SIMPLES (RENOMEADA) ===
