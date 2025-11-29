@@ -445,7 +445,6 @@ const COLOR_MAIN_RECORD = [255, 255, 255]; // Branco (para registros normais)
 const COLOR_BREAK_RECORD = [230, 240, 255]; // Azul muito claro (para pausas)
 const COLOR_HOLIDAY_ROW = [255, 245, 245]; // Vermelho muito claro (para feriados)
     
-// === LÓGICA DE DOWNLOAD PDF DETALHADA (RENOMEADA E ESTILIZADA) ===
 const handleDownloadPDFDetailed = () => {
         if (reportData.length === 0) {
             toast({ title: "Erro", description: "Não há dados para gerar o PDF.", variant: "destructive" });
@@ -454,12 +453,47 @@ const handleDownloadPDFDetailed = () => {
 
         const doc = new jsPDF();
         
+        // --- Helpers para Cálculo de Horas (Locais) ---
+        const timeToMinutes = (time: string) => {
+            if (!time || time === '--:--' || time.trim() === '') return 0;
+            const sign = time.startsWith('-') ? -1 : 1;
+            const parts = time.replace('-', '').split(':');
+            if (parts.length !== 2) return 0;
+            const [h, m] = parts.map(Number);
+            return sign * ((h * 60) + m);
+        };
+
+        const minutesToTime = (totalMinutes: number) => {
+            const sign = totalMinutes < 0 ? '-' : '';
+            const absMinutes = Math.abs(totalMinutes);
+            const h = Math.floor(absMinutes / 60);
+            const m = absMinutes % 60;
+            return `${sign}${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
+        };
+
+        // --- Cálculo dos Totais ---
+        let totalMinutesWorked = 0;
+        let totalMinutesBalance = 0;
+
+        reportData.forEach((item) => {
+            const isBreak = item.statusRecord === 'IMPLICIT_BREAK';
+            const isPending = item.statusRecord === 'PENDING';
+
+            // Soma apenas se não for Pausa e não for Pendente
+            if (!isBreak && !isPending) {
+                totalMinutesWorked += timeToMinutes(item.hoursWork);
+                totalMinutesBalance += timeToMinutes(item.balance);
+            }
+        });
+
+        const totalHoursStr = minutesToTime(totalMinutesWorked);
+        const totalBalanceStr = minutesToTime(totalMinutesBalance);
+
         // --- Configuração do Nome do Arquivo e Dados Básicos ---
         const fileName = `relatorio_detalhado_${format(new Date(), 'yyyyMMdd_HHmmss')}.pdf`;
         const employeeName = reportData[0]?.employeeData?.employeeName || 'N/A';
         const companyName = reportData[0]?.employeeData?.companyName || 'N/A';
         
-        // Pega data inicial e final do filtro para exibir no cabeçalho
         const periodStart = selectedDates[0] ? format(selectedDates[0], 'dd/MM/yyyy') : '-';
         const periodEnd = selectedDates[selectedDates.length - 1] ? format(selectedDates[selectedDates.length - 1], 'dd/MM/yyyy') : '-';
 
@@ -473,6 +507,22 @@ const handleDownloadPDFDetailed = () => {
         doc.text(`Período: ${periodStart} a ${periodEnd}`, 14, 32);
         doc.text(`Gerado em: ${format(new Date(), 'dd/MM/yyyy HH:mm')}`, 14, 37);
 
+        // [NOVAS LINHAS] Exibindo os totais calculados
+        doc.setFont("helvetica", "bold"); // Negrito para destaque
+        doc.text(`Total Horas Trabalhadas: ${totalHoursStr}`, 14, 44);
+        
+        // Define cor do saldo (Vermelho se negativo, Preto/Verde se positivo)
+        if (totalMinutesBalance < 0) {
+            doc.setTextColor(220, 53, 69); // Vermelho
+        } else {
+            doc.setTextColor(0, 0, 0); // Preto (ou use verde se preferir)
+        }
+        doc.text(`Saldo Total no Período: ${totalBalanceStr}`, 14, 49);
+        
+        // Reseta fonte e cor
+        doc.setFont("helvetica", "normal"); 
+        doc.setTextColor(0, 0, 0);
+
         // --- Preparação dos Dados da Tabela ---
         const tableBody: any[] = [];
 
@@ -480,21 +530,16 @@ const handleDownloadPDFDetailed = () => {
             const isBreak = item.statusRecord === 'IMPLICIT_BREAK';
             const isPending = item.statusRecord === 'PENDING';
 
-            // 1. Formata Datas (Trata PENDING para não quebrar)
             const formattedDateStart = formatDateWithDayOfWeek(item.startWork);
             const formattedDateEnd = isPending ? '-' : formatDateWithDayOfWeek(item.endWork);
 
-            // 2. Define Valores de Hora e Saldo (Trata PENDING)
             const displayEndHour = isPending ? '--:--' : item.endHour;
             const displayDuration = isPending ? '--:--' : item.hoursWork;
             const displayBalance = (isBreak || isPending) ? '00:00' : item.balance;
 
-            // 3. Monta o conteúdo das Colunas (Data + \n + Hora)
-            // A quebra de linha (\n) faz com que a hora fique abaixo da data na mesma célula
             const colInicio = `${formattedDateStart}\n${item.startHour}`;
             const colFim = isPending ? 'Em andamento' : `${formattedDateEnd}\n${displayEndHour}`;
             
-            // 4. Estilização da Linha
             const startDate = parseDate(item.startWork);
             const isItemHoliday = startDate && isHoliday(startDate);
             const statusLabel = getTranslatedStatus(item.statusRecord);
@@ -502,16 +547,14 @@ const handleDownloadPDFDetailed = () => {
             const fillColor = isItemHoliday ? COLOR_HOLIDAY_ROW : (isBreak ? COLOR_BREAK_RECORD : COLOR_MAIN_RECORD);
             const fontStyle = isBreak ? 'italic' : 'normal';
 
-            // 5. Array da Linha (Ordem exata do cabeçalho)
             const rowCells = [
-                { content: colInicio, styles: { fontStyle: fontStyle, halign: 'center' } }, // Início
-                { content: colFim, styles: { fontStyle: fontStyle, halign: 'center' } },    // Fim
-                { content: displayDuration, styles: { fontStyle: fontStyle, halign: 'center' } }, // Duração
-                { content: displayBalance, styles: { fontStyle: fontStyle, halign: 'center' } },  // Saldo
-                { content: isItemHoliday ? `${statusLabel} (FERIADO)` : statusLabel, styles: { fontStyle: fontStyle } } // Status
+                { content: colInicio, styles: { fontStyle: fontStyle, halign: 'center' } }, 
+                { content: colFim, styles: { fontStyle: fontStyle, halign: 'center' } },    
+                { content: displayDuration, styles: { fontStyle: fontStyle, halign: 'center' } }, 
+                { content: displayBalance, styles: { fontStyle: fontStyle, halign: 'center' } },  
+                { content: isItemHoliday ? `${statusLabel} (FERIADO)` : statusLabel, styles: { fontStyle: fontStyle } } 
             ];
 
-            // Aplica a cor de fundo definida
             tableBody.push(rowCells.map(cell => ({
                 ...cell,
                 styles: { ...cell.styles, fillColor: fillColor }
@@ -520,27 +563,26 @@ const handleDownloadPDFDetailed = () => {
 
         // --- Geração da Tabela (AutoTable) ---
         autoTable(doc, {
-            startY: 45,
-            // [CONFIGURAÇÃO SOLICITADA]
+            startY: 55, // [AJUSTADO] Movido para baixo (era 45) para dar espaço aos novos totais
             head: [['Início da Jornada', 'Fim da Jornada', 'Duração', 'Saldo', 'Status']], 
             body: tableBody,
             styles: {
                 fontSize: 9,
                 cellPadding: 3,
-                valign: 'middle', // Centraliza verticalmente
+                valign: 'middle',
             },
             headStyles: {
-                fillColor: [41, 128, 185], // Cor azul padrão para o cabeçalho
+                fillColor: [41, 128, 185], 
                 textColor: 255,
                 fontStyle: 'bold',
-                halign: 'center' // Centraliza o texto do cabeçalho
+                halign: 'center'
             },
             columnStyles: {
-                0: { cellWidth: 40 }, // Largura fixa para Início
-                1: { cellWidth: 40 }, // Largura fixa para Fim
-                2: { cellWidth: 25 }, // Largura Duração
-                3: { cellWidth: 25 }, // Largura Saldo
-                4: { cellWidth: 'auto' } // Status ocupa o resto
+                0: { cellWidth: 40 },
+                1: { cellWidth: 40 },
+                2: { cellWidth: 25 },
+                3: { cellWidth: 25 },
+                4: { cellWidth: 'auto' }
             },
             alternateRowStyles: {
                 fillColor: [245, 245, 245]
@@ -549,7 +591,6 @@ const handleDownloadPDFDetailed = () => {
 
         doc.save(fileName);
     };
-
 
     // === LÓGICA DE DOWNLOAD PDF SIMPLES (RENOMEADA) ===
   const handleDownloadPDFSimple = () => {
