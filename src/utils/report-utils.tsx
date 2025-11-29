@@ -25,7 +25,8 @@ export interface DetailedReportItem {
         employeeName: string;
         companyName: string;
     };
-    // Campo 'breaks' foi removido
+    latitude?: number;
+    longitude?: number;
 }
 
 export interface ReportDay {

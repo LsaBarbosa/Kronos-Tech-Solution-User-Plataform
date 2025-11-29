@@ -3,7 +3,7 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { CalendarIcon, Download, Edit, Coffee, FileText } from "lucide-react"; // Usando Coffee para Pausa
+import { CalendarIcon, Download, Edit, Coffee, FileText, MapPin } from "lucide-react"; // Usando Coffee para Pausa
 import { DetailedReportItem, statusOptions, getStatusColor, getTranslatedStatus, formatDateWithDayOfWeek } from "@/utils/report-utils"; 
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
@@ -17,6 +17,54 @@ import { PaginationComponent } from "./ui/PaginationComponent";
 
 // Define 5 itens por página para a paginação local (Client-Side)
 const ROWS_PER_PAGE = 5; 
+const getAddressFromCoordinates = async (latitude: number, longitude: number): Promise<string> => {
+    if (!latitude || !longitude) return "Localização indisponível";
+
+    try {
+        // API OpenStreetMap (Nominatim)
+        const url = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`;
+        
+        const response = await fetch(url, {
+            headers: {
+                'User-Agent': 'KronosSystem/1.0',
+                'Accept-Language': 'pt-BR' // Força resposta em português
+            }
+        });
+
+        if (!response.ok) throw new Error('Erro na geocodificação');
+
+        const data = await response.json();
+        
+        // LÓGICA ATUALIZADA:
+        // Verifica se o objeto 'address' existe na resposta
+        if (data.address) {
+            const { road, village, municipality, state, postcode } = data.address;
+
+            // Cria um array com os campos desejados na ordem que você pediu
+            const addressParts = [
+                road, 
+                village, 
+                municipality, 
+                state, 
+                postcode
+            ];
+
+            // O .filter(Boolean) remove campos que vierem vazios ou nulos (undefined)
+            // O .join(", ") junta tudo com vírgula e espaço
+            const formattedAddress = addressParts.filter(Boolean).join(", ");
+
+            // Retorna o endereço formatado. Se ficar vazio (nenhum campo encontrado), usa o display_name como fallback.
+            return formattedAddress || data.display_name;
+        }
+
+        // Fallback caso o objeto address não venha estruturado
+        return data.display_name || "Endereço não encontrado";
+
+    } catch (error) {
+        console.error("Erro ao buscar endereço:", error);
+        return "Erro ao carregar endereço";
+    }
+};
 
 interface ResultadosDetalhadoProps {
     reportData: DetailedReportItem[];
@@ -42,6 +90,8 @@ export const ResultadosRelatorioDetalhado: React.FC<ResultadosDetalhadoProps> = 
     const isInitialMount = useRef(true); 
     // --- FIM PAGINAÇÃO E SCROLL CONTROL ---
 
+    const [addressMap, setAddressMap] = useState<Record<number, string>>({});
+
     // --- CÁLCULOS DE PAGINAÇÃO (Memorizados) ---
     const totalElements = reportData.length;
     const totalPages = Math.ceil(totalElements / ROWS_PER_PAGE);
@@ -58,6 +108,37 @@ export const ResultadosRelatorioDetalhado: React.FC<ResultadosDetalhadoProps> = 
     if (currentPage > 0 && currentRecords.length === 0 && totalElements > 0) {
         setCurrentPage(0);
     }
+
+  useEffect(() => {
+        const fetchAddresses = async () => {
+            const newAddresses: Record<number, string> = {};
+            let hasNewAddress = false;
+
+            // Filtra registros que são CREATED, têm coordenadas e ainda não têm endereço no estado
+            const recordsToFetch = currentRecords.filter(item => 
+                item.statusRecord === 'CREATED' && 
+                item.latitude && 
+                item.longitude && 
+                !addressMap[item.timeRecordId]
+            );
+
+            if (recordsToFetch.length === 0) return;
+
+            await Promise.all(recordsToFetch.map(async (record) => {
+                if (record.latitude && record.longitude) {
+                    const addr = await getAddressFromCoordinates(record.latitude, record.longitude);
+                    newAddresses[record.timeRecordId] = addr;
+                    hasNewAddress = true;
+                }
+            }));
+
+            if (hasNewAddress) {
+                setAddressMap(prev => ({ ...prev, ...newAddresses }));
+            }
+        };
+
+        fetchAddresses();
+    }, [currentRecords, addressMap]);
     
 // --- FUNÇÃO DE DOWNLOAD ROBUSTA (MANTIDA) ---
     const handleDocumentDownload = async (documentId: string, employeeId: string, employeeName: string) => {
@@ -364,7 +445,8 @@ export const ResultadosRelatorioDetalhado: React.FC<ResultadosDetalhadoProps> = 
                 <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                     {currentRecords.map((item, index) => {
                         const isBreak = item.statusRecord === 'IMPLICIT_BREAK';
-                        
+                        const isCreated = item.statusRecord === 'CREATED';
+                        const address = addressMap[item.timeRecordId];
                         const handleCardClick = () => {
                             // Impedir a edição de registros de Pausa (IMPLICIT_BREAK)
                             if (!isBreak) {
@@ -413,6 +495,16 @@ export const ResultadosRelatorioDetalhado: React.FC<ResultadosDetalhadoProps> = 
                                             </>
                                         )}
                                     </div>
+{isCreated && item.latitude && item.longitude && (
+                                        <div className="flex flex-col pt-3 border-t mt-2">
+                                            <div className="flex items-start gap-2 text-xs text-muted-foreground">
+                                                <MapPin className="h-3 w-3 mt-0.5 text-primary shrink-0" />
+                                                <span className="break-words leading-tight">
+                                                    {address ? address : <span className="animate-pulse">Carregando localização...</span>}
+                                                </span>
+                                            </div>
+                                        </div>
+                                    )}
 
                                     {/* --- Botão/Status de Documento Anexo --- */}
                                     {item.documentDownloadPath && ( 
