@@ -1,3 +1,5 @@
+// src/pages/RelatorioFiltros.tsx
+
 import React from "react";
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
@@ -5,16 +7,14 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
- import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-
-// 🚀 NOVAS IMPORTAÇÕES PARA O COMBOBOX DE BUSCA
+import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Command, CommandInput, CommandItem, CommandList, CommandEmpty } from "@/components/ui/command";
-import { Check, CalendarIcon, Search, Download, FileText, CalendarCheck, CalendarX , ChevronDown, Loader2} from "lucide-react"; 
+import { Check, CalendarIcon, Search, Download, FileText, CalendarCheck, CalendarX, ChevronDown, Loader2 } from "lucide-react"; 
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, startOfDay, isSameDay } from "date-fns"; 
 import { ptBR } from "date-fns/locale";
 import { Employee, statusOptions, allHolidays } from "@/utils/report-utils";
-import { cn } from "@/lib/utils"; // Assumindo que a função de utilidade cn está disponível
+import { cn } from "@/lib/utils";
 
 interface RelatorioFiltrosProps {
     selectedDates: Date[];
@@ -29,24 +29,16 @@ interface RelatorioFiltrosProps {
     setIsActive: React.Dispatch<React.SetStateAction<boolean>>;
     status: string[];
     setStatus: React.Dispatch<React.SetStateAction<string[]>>;
-    reportType: "detailed" | "simple";
-    setReportType: React.Dispatch<React.SetStateAction<"detailed" | "simple">>;
     employees: Employee[];
     isPartner: boolean;
     onSearch: () => void;
     onDownloadPDF?: () => void;
     onDownloadCSV?: () => void;
     hideTips?: boolean;
-    customTips?: React.ReactNode
+    customTips?: React.ReactNode;
     isLoading: boolean;
     hasResults?: boolean;
 }
-
-const isHoliday = (date: Date) => {
-    return allHolidays.some(holiday =>
-        holiday.toDateString() === date.toDateString()
-    );
-};
 
 export const RelatorioFiltros: React.FC<RelatorioFiltrosProps> = ({
     selectedDates,
@@ -61,22 +53,18 @@ export const RelatorioFiltros: React.FC<RelatorioFiltrosProps> = ({
     setIsActive,
     status,
     setStatus,
-    reportType,
-    setReportType,
     employees,
     isPartner,
     onSearch,
     onDownloadPDF,
     onDownloadCSV,
-    hideTips,
     customTips,
     isLoading,
     hasResults = false
 }) => {
     const [displayMonth, setDisplayMonth] = React.useState<Date | undefined>(startOfDay(new Date()));
-    
-   const [open, setOpen] = React.useState(false); 
-   const [openStatus, setOpenStatus] = React.useState(false);
+    const [open, setOpen] = React.useState(false); 
+    const [openStatus, setOpenStatus] = React.useState(false);
 
     const handleDateSelect = (days: Date[] | undefined) => {
         setSelectedDates(days || []);
@@ -84,14 +72,11 @@ export const RelatorioFiltros: React.FC<RelatorioFiltrosProps> = ({
     
     const isMonthFullySelected = React.useMemo(() => {
         if (!displayMonth || selectedDates.length === 0) return false;
-
         const daysInMonth = eachDayOfInterval({ 
             start: startOfMonth(displayMonth), 
             end: endOfMonth(displayMonth) 
         });
-
         if (daysInMonth.length === 0) return false;
-
         return daysInMonth.every(dayOfMonth => 
             selectedDates.some(selectedDate => isSameDay(selectedDate, dayOfMonth))
         );
@@ -99,7 +84,6 @@ export const RelatorioFiltros: React.FC<RelatorioFiltrosProps> = ({
 
     const handleSelectMonth = () => {
         if (!displayMonth) return;
-
         const daysInMonth = eachDayOfInterval({ 
             start: startOfMonth(displayMonth), 
             end: endOfMonth(displayMonth) 
@@ -114,54 +98,35 @@ export const RelatorioFiltros: React.FC<RelatorioFiltrosProps> = ({
             let newSelectedDates = selectedDates.filter(selectedDate => {
                 return !daysInMonth.some(dayOfMonth => isSameDay(selectedDate, dayOfMonth));
             });
-            
             newSelectedDates = [...newSelectedDates, ...daysInMonth];
-
             const uniqueDates = Array.from(new Set(newSelectedDates.map(d => d.getTime())))
                                     .map(time => new Date(time))
                                     .sort((a, b) => a.getTime() - b.getTime());
-                                    
             setSelectedDates(uniqueDates);
         }
     };
-const handleReportTypeChange = (typeValue: string) => {
-        const type: "detailed" | "simple" = typeValue as "detailed" | "simple";
-        if (reportType !== type) {
-            setReportType(type);
-             if (type === "simple") {
-                setStatus([]);  
-            }
-        }
-    };
-    
-    // NOVA FUNÇÃO: Lida com a mudança de estado dos checkboxes de status
+
     const handleStatusChange = (value: string, checked: boolean) => {
         setStatus((prevStatus) => {
             if (checked) {
-                // Adiciona o valor se ele ainda não estiver presente
                 return Array.from(new Set([...prevStatus, value]));
             } else {
-                // Remove o valor
                 return prevStatus.filter((s) => s !== value);
             }
         });
     };
 
-    // FUNÇÃO AUXILIAR: Retorna o label amigável para exibição
     const getStatusLabel = (value: string) => {
         const option = statusOptions.find(opt => opt.value === value);
         return option ? option.label : value;
     };
     
-    // Texto de exibição do Popover Trigger
     const displayStatusText = status.length > 0
         ? status.map(getStatusLabel).join(', ')
         : 'Todos os status';
 
-
     return (
         <div className="grid mb-6 grid-cols-1 lg:grid-cols-2 gap-8">
-
             {/* CARD 1: SELEÇÃO DE DATAS */}
             <Card className="border-2 border-primary/20 shadow-xl hover:shadow-2xl transition-all duration-300 bg-gradient-to-br from-card via-card to-primary/5">
                 <CardHeader className="border-b border-primary/20 bg-gradient-to-r from-primary/10 via-primary/5 to-transparent">
@@ -176,9 +141,7 @@ const handleReportTypeChange = (typeValue: string) => {
                     </CardDescription>
                 </CardHeader>
                 <CardContent className="pt-6">
-                    <Card className="border-l-4 border-l-primary shadow-2xl shadow-primary/10 w-lg  p-4 transition-all duration-300 hover:shadow-primary/20">
-
-                         {/* BOTÃO ALTERNÁVEL: Selecionar ou Remover Mês Inteiro */}
+                    <Card className="border-l-4 border-l-primary shadow-2xl shadow-primary/10 w-lg p-4 transition-all duration-300 hover:shadow-primary/20">
                         <Button
                             onClick={handleSelectMonth}
                             variant="outline"
@@ -189,18 +152,13 @@ const handleReportTypeChange = (typeValue: string) => {
                             }`}
                             disabled={!displayMonth}
                         >
-                            {isMonthFullySelected ? (
-                                <CalendarX className="mr-2 h-4 w-4 relative z-10" />
-                            ) : (
-                                <CalendarCheck className="mr-2 h-4 w-4 relative z-10" />
-                            )}
+                            {isMonthFullySelected ? <CalendarX className="mr-2 h-4 w-4 relative z-10" /> : <CalendarCheck className="mr-2 h-4 w-4 relative z-10" />}
                             <span className="relative z-10">
                                 {isMonthFullySelected ? "Remover" : "Selecionar"} {displayMonth ? format(displayMonth, "MMMM 'de' yyyy", { locale: ptBR }) : "Mês Inteiro"}
                             </span>
                         </Button>
                         
-                        {/* CALENDÁRIO COM ESTILIZAÇÃO APERFEIÇOADA */}
-                    <Calendar
+                        <Calendar
                             mode="multiple"
                             selected={selectedDates}
                             onSelect={handleDateSelect}
@@ -208,15 +166,10 @@ const handleReportTypeChange = (typeValue: string) => {
                             onMonthChange={setDisplayMonth} 
                             className="w-full pointer-events-auto"
                             locale={ptBR}
-                            // Estilos base (classNames) ajustados
                             classNames={{
-                                day: "font-normal aria-selected:opacity-100  w-9 h-9 relative rounded-full transition-all duration-200",
-                                // A cor do texto principal é text-foreground, mas será sobreposta pelo modifiersClassNames.
+                                day: "font-normal aria-selected:opacity-100 w-9 h-9 relative rounded-full transition-all duration-200",
                                 day_selected: "bg-transparent text-foreground rounded-full",
-                                
-                                // 🚀 CORREÇÃO DO DIA ATUAL: Garante que o texto seja foreground (preto/branco) e não seja removido.
-                                day_today: "bg-primary/50  w-9 h-9 text-foreground font-bold  border-primary/50 hover:bg-primary/10 transition-colors duration-150 rounded-full",
-                                
+                                day_today: "bg-primary/50 w-9 h-9 text-foreground font-bold border-primary/50 hover:bg-primary/10 transition-colors duration-150 rounded-full",
                                 day_outside: "text-muted-foreground opacity-50",
                                 day_disabled: "text-muted-foreground opacity-50",
                                 day_range_middle: "aria-selected:bg-primary/20 aria-selected:text-primary",
@@ -227,49 +180,22 @@ const handleReportTypeChange = (typeValue: string) => {
                                 holiday: allHolidays,
                             }}
                             modifiersClassNames={{
-                                // 🚀 SELEÇÃO: Cor de fundo forte (primary/red) com texto BRANCO (primary-foreground)
                                 selected: "bg-primary text-primary-foreground w-9 h-9 font-extrabold rounded-full shadow-xl shadow-primary/30 hover:bg-primary/90 transition-all duration-300",
-                                
-                                // 🚀 FERIADO: Fundo leve com texto contrastante (destructive)
-                                holiday:
-                                    " bg-destructive/40 text-destructive font-bold  w-9 h-9 border border-destructive/50 rounded-full shadow-inner shadow-destructive/5 hover:bg-destructive/20 transition-all duration-200",
+                                holiday: "bg-destructive/40 text-destructive font-bold w-9 h-9 border border-destructive/50 rounded-full shadow-inner shadow-destructive/5 hover:bg-destructive/20 transition-all duration-200",
                             }}
                         />
-                        {/* LEGENDA DE DATAS */}
-                    <div className="grid grid-cols-1 gap-3 ml-4 mb-4 text-xs pt-4 border-t border-border/50">
-                            {/* Data selecionada (Agora Circular e Primary) */}
-                            <div className="flex items-center gap-3">
-                                <div className="w-4 h-4 rounded-full bg-primary shadow-sm shadow-primary/30"></div>
-                                <span className="text-muted-foreground">Data selecionada</span>
-                            </div>
-                            {/* Feriado nacional (Circular, Border Destructive/Light background) */}
-                            <div className="flex items-center gap-3">
-                                <div className="w-4 h-4 rounded-full bg-destructive/10 border border-destructive/50 shadow-sm shadow-destructive/10"></div>
-                                <span className="text-destructive font-semibold">Feriado nacional</span>
-                            </div>
-                            {/* Hoje (Retangular, Border Primary/Very Light background) */}
-                            <div className="flex items-center gap-3">
-                                <div className="w-4 h-4 rounded-full border-2 border-primary/50 bg-primary/5"></div>
-                                <span className="text-muted-foreground">Hoje</span>
-                            </div>
+                        <div className="grid grid-cols-1 gap-3 ml-4 mb-4 text-xs pt-4 border-t border-border/50">
+                            <div className="flex items-center gap-3"><div className="w-4 h-4 rounded-full bg-primary shadow-sm shadow-primary/30"></div><span className="text-muted-foreground">Data selecionada</span></div>
+                            <div className="flex items-center gap-3"><div className="w-4 h-4 rounded-full bg-destructive/10 border border-destructive/50 shadow-sm shadow-destructive/10"></div><span className="text-destructive font-semibold">Feriado nacional</span></div>
+                            <div className="flex items-center gap-3"><div className="w-4 h-4 rounded-full border-2 border-primary/50 bg-primary/5"></div><span className="text-muted-foreground">Hoje</span></div>
                         </div>
                     </Card>
 
-                    {/* DICAS DE USO */}
-                  {customTips && ( // 👈 CONDIÇÃO: Renderiza APENAS se customTips for fornecido
-    <div className="mt-4 p-4 bg-gradient-to-br from-primary/5 to-secondary/5 rounded-xl border border-primary/20 backdrop-blur-sm shadow-inner shadow-primary/5">
-        {/*
-            Renderiza o conteúdo passado pela prop. 
-            O componente pai (StatusRegistro) será responsável por formatar este conteúdo
-            (ex: título, lista <ul>, etc.).
-        */}
-        {customTips}
-    </div>
-)}
-
-                   
-                        
-                  
+                    {customTips && (
+                        <div className="mt-4 p-4 bg-gradient-to-br from-primary/5 to-secondary/5 rounded-xl border border-primary/20 backdrop-blur-sm shadow-inner shadow-primary/5">
+                            {customTips}
+                        </div>
+                    )}
                 </CardContent>
             </Card>
 
@@ -280,12 +206,9 @@ const handleReportTypeChange = (typeValue: string) => {
                     <CardTitle className="text-foreground flex items-center gap-3 relative z-10">
                         <div className="p-2 rounded-lg bg-gradient-to-br from-primary/20 to-primary/10 shadow-md">
                             <div className="w-3 h-3 rounded-full bg-gradient-to-br from-primary to-primary/80 animate-pulse shadow-sm"></div>
-                        </div >
-                        <span className="bg-gradient-to-r from-foreground to-primary bg-clip-text text-transparent font-extrabold">
-                            Parâmetros do Relatório
-                        </span>
+                        </div>
+                        <span className="bg-gradient-to-r from-foreground to-primary bg-clip-text text-transparent font-extrabold">Parâmetros do Relatório</span>
                     </CardTitle>
-                   
                 </CardHeader>
                 <CardContent className="pt-6 space-y-6 relative">
                     <div className="absolute inset-0 opacity-5">
@@ -293,36 +216,6 @@ const handleReportTypeChange = (typeValue: string) => {
                         <div className="absolute bottom-4 left-4 w-8 h-8 bg-gradient-to-br from-secondary to-secondary/60 rounded-full blur-lg"></div>
                     </div>
 
-                    {/* SEÇÃO TIPO DE RELATÓRIO (RADIO BUTTONS) */}
-                    <div className="space-y-3 relative border-b border-primary/20 pb-4">
-                        <Label className="text-sm font-semibold text-foreground flex items-center gap-2">
-                            <div className="w-1.5 h-1.5 rounded-full bg-primary"></div>
-                            Tipo de Relatório
-                        </Label>
-                        <RadioGroup
-                            value={reportType}
-                            onValueChange={handleReportTypeChange}
-                            className="p-3 rounded-xl bg-gradient-to-r from-primary/5 to-secondary/5 border border-primary/20 flex flex-wrap gap-4 shadow-inner"
-                        >
-                            <div className="flex items-center space-x-3 p-2 rounded-lg hover:bg-primary/10 transition-colors cursor-pointer">
-                                <RadioGroupItem 
-                                    value="detailed" 
-                                    id="report-detailed" 
-                                    className="data-[state=checked]:border-primary data-[state=checked]:text-primary border-primary/50"
-                                />
-                                <Label htmlFor="report-detailed" className="text-sm cursor-pointer font-medium">Detalhado</Label>
-                            </div>
-                            <div className="flex items-center space-x-3 p-2 rounded-lg hover:bg-primary/10 transition-colors cursor-pointer">
-                                <RadioGroupItem 
-                                    value="simple" 
-                                    id="report-simple" 
-                                    className="data-[state=checked]:border-primary data-[state=checked]:text-primary border-primary/50"
-                                />
-                                <Label htmlFor="report-simple" className="text-sm cursor-pointer font-medium">Simples</Label>
-                            </div>
-                        </RadioGroup>
-                    </div>
-                    
                     {/* REGISTRO APROVADO/REPROVADO */}
                     <div className="space-y-3 relative">
                         <Label className="text-sm font-semibold text-foreground flex items-center gap-2">
@@ -343,14 +236,9 @@ const handleReportTypeChange = (typeValue: string) => {
                                 <Label htmlFor="reg-inativo" className="text-sm cursor-pointer font-medium">Reprovado</Label>
                             </div>
                         </RadioGroup>
-                        <div className="text-xs text-muted-foreground flex items-center gap-1">
-                            <div className="w-1 h-1 rounded-full bg-muted-foreground/50"></div>
-                            Incluir registros ativos ou inativos no relatório
-                        </div>
                     </div>
 
-          
-                    {/* STATUS DO FUNCIONÁRIO (RADIO GROUP) */}
+                    {/* STATUS DO FUNCIONÁRIO */}
                     {!isPartner && (
                         <div className="space-y-3 relative">
                             <Label className="text-sm font-semibold text-foreground flex items-center gap-2">
@@ -378,14 +266,13 @@ const handleReportTypeChange = (typeValue: string) => {
                         </div>
                     )}
 
-                    {/* 🚀 FUNCIONÁRIO (COMBOBOX COM BUSCA) */}
+                    {/* FUNCIONÁRIO */}
                     {!isPartner && (
                         <div className="space-y-3 relative">
                             <Label className="text-sm font-semibold text-foreground flex items-center gap-2">
                                 <div className="w-1.5 h-1.5 rounded-full bg-primary"></div>
                                 Funcionário
                             </Label>
-                            
                             <Popover open={open} onOpenChange={setOpen}>
                                 <PopoverTrigger asChild>
                                     <Button
@@ -395,58 +282,32 @@ const handleReportTypeChange = (typeValue: string) => {
                                         className="w-full justify-between focus:ring-2 focus:ring-primary/40 border-primary/30 bg-background hover:border-primary/50 transition-all duration-200 shadow-sm"
                                         disabled={isPartner}
                                     >
-                                        {/* Exibe o nome do funcionário selecionado ou o placeholder */}
                                         {selectedEmployee
                                             ? employees.find((employee) => employee.employeeId === selectedEmployee)?.fullName
                                             : "Selecione um funcionário..."}
                                         <Search className="ml-2 h-4 w-4 shrink-0 opacity-50" />
                                     </Button>
                                 </PopoverTrigger>
-                                
                                 <PopoverContent className="w-[--radix-popover-trigger-width] p-0">
                                     <Command>
-                                        {/* Input de busca */}
                                         <CommandInput placeholder="Buscar funcionário..." />
-                                        
                                         <CommandList>
-                                            {/* Mensagem de lista vazia */}
                                             <CommandEmpty>Nenhum funcionário encontrado.</CommandEmpty>
-                                            
-                                            {/* Opção padrão: Todos os Funcionários */}
                                             <CommandItem
                                                 key="all-employees"
-                                                value="all-employees" // Valor para busca interna
-                                                onSelect={() => {
-                                                    setSelectedEmployee("");
-                                                    setOpen(false);
-                                                }}
+                                                value="all-employees"
+                                                onSelect={() => { setSelectedEmployee(""); setOpen(false); }}
                                             >
-                                                <Check
-                                                    className={cn(
-                                                        "mr-2 h-4 w-4",
-                                                        selectedEmployee === "" ? "opacity-100 text-primary" : "opacity-0"
-                                                    )}
-                                                />
+                                                <Check className={cn("mr-2 h-4 w-4", selectedEmployee === "" ? "opacity-100 text-primary" : "opacity-0")} />
                                                 Todos os Funcionários
                                             </CommandItem>
-                                            
-                                            {/* Mapeia a lista de funcionários */}
                                             {employees.map((employee) => (
                                                 <CommandItem
                                                     key={employee.employeeId}
-                                                    // Usar o nome completo para a busca do Command
-                                                    value={employee.fullName} 
-                                                    onSelect={() => {
-                                                        setSelectedEmployee(employee.employeeId);
-                                                        setOpen(false);
-                                                    }}
+                                                    value={employee.fullName}
+                                                    onSelect={() => { setSelectedEmployee(employee.employeeId); setOpen(false); }}
                                                 >
-                                                    <Check
-                                                        className={cn(
-                                                            "mr-2 h-4 w-4",
-                                                            selectedEmployee === employee.employeeId ? "opacity-100 text-primary" : "opacity-0"
-                                                        )}
-                                                    />
+                                                    <Check className={cn("mr-2 h-4 w-4", selectedEmployee === employee.employeeId ? "opacity-100 text-primary" : "opacity-0")} />
                                                     {employee.fullName}
                                                 </CommandItem>
                                             ))}
@@ -457,150 +318,105 @@ const handleReportTypeChange = (typeValue: string) => {
                         </div>
                     )}
 
-
-          {/* CARGA HORÁRIA DIÁRIA */}
-                   {setReferenceTime && ( // 👈 NOVA CONDIÇÃO: Renderiza APENAS se setReferenceTime for fornecido
-    <div className="space-y-3 relative">
-        <Label htmlFor="reference-time" className="text-sm font-semibold text-foreground flex items-center gap-2">
-            <div className="w-1.5 h-1.5 rounded-full bg-primary"></div>
-            Carga Horária diária
-        </Label>
-        <div className="relative group">
-            <Input
-                id="reference-time"
-                type="time"
-                value={referenceTime}
-                onChange={(e) => setReferenceTime(e.target.value)}
-                className="focus:border-primary focus:ring-2 focus:ring-primary/40 border-primary/30 bg-background hover:border-primary/50 transition-all duration-200 shadow-sm"
-            />
-            <div className="absolute inset-0 rounded-md bg-gradient-to-r from-primary/5 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-200 pointer-events-none border border-transparent group-hover:border-primary/30"></div>
-        </div>
-        <div className="text-xs text-muted-foreground flex items-center gap-1">
-            <div className="w-1 h-1 rounded-full bg-muted-foreground/50"></div>
-            Horário de referência para cálculo do relatório
-        </div>
-    </div>
-)}
-
-                    {/* SEÇÃO STATUS DE REGISTRO (VISÍVEL SOMENTE SE reportType === "detailed") */}
-                   {reportType === "detailed" && (
+                    {/* CARGA HORÁRIA */}
+                    {setReferenceTime && (
                         <div className="space-y-3 relative">
-                            <Label className="text-sm font-semibold text-foreground flex items-center gap-2">
+                            <Label htmlFor="reference-time" className="text-sm font-semibold text-foreground flex items-center gap-2">
                                 <div className="w-1.5 h-1.5 rounded-full bg-primary"></div>
-                                Status
+                                Carga Horária diária
                             </Label>
-                            
-                            {/* SUBSTITUIÇÃO: <Select> por Popover com Checkboxes */}
-                            <Popover open={openStatus} onOpenChange={setOpenStatus}>
-                                <PopoverTrigger asChild>
-                                    <Button
-                                        variant="outline"
-                                        role="combobox"
-                                        aria-expanded={openStatus}
-                                        className="w-full justify-between focus:ring-2 focus:ring-primary/40 border-primary/30 bg-background hover:border-primary/50 transition-all duration-200 shadow-sm min-h-10 text-left items-center"
-                                    >
-                                        <span className="truncate pr-2">
-                                            {displayStatusText}
-                                        </span>
-                                        <ChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
-                                    </Button>
-                                </PopoverTrigger>
-                                
-                                <PopoverContent className="w-[--radix-popover-trigger-width] p-0" align="start">
-                                    <div className="max-h-60 overflow-y-auto p-2 space-y-1">
-                                        {/* Opção padrão: Limpar todos */}
-                                        <div 
-                                            className="flex items-center space-x-2 p-2 rounded-md hover:bg-primary/10 cursor-pointer transition-colors"
-                                            onClick={() => {
-                                                setStatus([]);
-                                                setOpenStatus(false);
-                                            }}
-                                        >
-                                            <FileText className="h-4 w-4 opacity-50 text-destructive" />
-                                            <Label className="text-sm font-medium text-destructive cursor-pointer">Limpar seleção (Todos)</Label>
-                                        </div>
-                                        
-                                        {/* Mapeia as opções de status */}
-                                        {statusOptions.map((option) => (
-                                            <div key={option.value} className="flex items-center space-x-2 p-2 rounded-md hover:bg-primary/10 transition-colors">
-                                                <Checkbox
-                                                    id={`status-${option.value}`}
-                                                    checked={status.includes(option.value)}
-                                                    onCheckedChange={(checked: boolean | "indeterminate") => 
-                                                        handleStatusChange(option.value, checked === true)
-                                                    }
-                                                />
-                                                <Label htmlFor={`status-${option.value}`} className="cursor-pointer text-sm font-medium">
-                                                    {option.label}
-                                                </Label>
-                                            </div>
-                                        ))}
-                                    </div>
-                                </PopoverContent>
-                            </Popover>
-                            {/* FIM DA SUBSTITUIÇÃO */}
-
-                            <div className="text-xs text-muted-foreground flex items-center gap-1">
-                                <div className="w-1 h-1 rounded-full bg-muted-foreground/50"></div>
-                                Status dos registros a serem filtrados
+                            <div className="relative group">
+                                <Input
+                                    id="reference-time"
+                                    type="time"
+                                    value={referenceTime}
+                                    onChange={(e) => setReferenceTime(e.target.value)}
+                                    className="focus:border-primary focus:ring-2 focus:ring-primary/40 border-primary/30 bg-background hover:border-primary/50 transition-all duration-200 shadow-sm"
+                                />
                             </div>
                         </div>
                     )}
-                    {/* FIM DA SEÇÃO STATUS DE REGISTRO */}
+
+                    {/* STATUS DE REGISTRO */}
+                    <div className="space-y-3 relative">
+                        <Label className="text-sm font-semibold text-foreground flex items-center gap-2">
+                            <div className="w-1.5 h-1.5 rounded-full bg-primary"></div>
+                            Status
+                        </Label>
+                        <Popover open={openStatus} onOpenChange={setOpenStatus}>
+                            <PopoverTrigger asChild>
+                                <Button
+                                    variant="outline"
+                                    role="combobox"
+                                    aria-expanded={openStatus}
+                                    className="w-full justify-between focus:ring-2 focus:ring-primary/40 border-primary/30 bg-background hover:border-primary/50 transition-all duration-200 shadow-sm min-h-10 text-left items-center"
+                                >
+                                    <span className="truncate pr-2">{displayStatusText}</span>
+                                    <ChevronDown className="ml-2 h-4 w-4 shrink-0 opacity-50" />
+                                </Button>
+                            </PopoverTrigger>
+                            <PopoverContent className="w-[--radix-popover-trigger-width] p-0" align="start">
+                                <div className="max-h-60 overflow-y-auto p-2 space-y-1">
+                                    <div 
+                                        className="flex items-center space-x-2 p-2 rounded-md hover:bg-primary/10 cursor-pointer transition-colors"
+                                        onClick={() => { setStatus([]); setOpenStatus(false); }}
+                                    >
+                                        <FileText className="h-4 w-4 opacity-50 text-destructive" />
+                                        <Label className="text-sm font-medium text-destructive cursor-pointer">Limpar seleção (Todos)</Label>
+                                    </div>
+                                    {statusOptions.map((option) => (
+                                        <div key={option.value} className="flex items-center space-x-2 p-2 rounded-md hover:bg-primary/10 transition-colors">
+                                            <Checkbox
+                                                id={`status-${option.value}`}
+                                                checked={status.includes(option.value)}
+                                                onCheckedChange={(checked) => handleStatusChange(option.value, checked === true)}
+                                            />
+                                            <Label htmlFor={`status-${option.value}`} className="cursor-pointer text-sm font-medium">{option.label}</Label>
+                                        </div>
+                                    ))}
+                                </div>
+                            </PopoverContent>
+                        </Popover>
+                    </div>
 
                     {/* BOTÕES DE AÇÃO */}
                     <div className="space-y-3 pt-6 border-t border-primary/20 relative">
-                        <div className="absolute -top-px left-1/2 transform -translate-x-1/2 w-24 h-px bg-gradient-to-r from-transparent via-primary/50 to-transparent"></div>
-
-                        {/* BOTÃO BUSCAR (PRIMARY) */}
                         <Button
                             onClick={onSearch}
                             size="lg"
-                            className="group w-full font-bold text-lg bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary shadow-xl hover:shadow-primary/40 transition-all duration-300 relative overflow-hidden transform hover:scale-[1.005] hover:translate-y-[-1px]"
+                            className="group w-full font-bold text-lg bg-gradient-to-r from-primary to-primary/90 hover:from-primary/90 hover:to-primary shadow-xl hover:shadow-primary/40 transition-all duration-300 relative overflow-hidden transform hover:scale-[1.005]"
                             disabled={selectedDates.length === 0 || isLoading}
                         >
-                            <div className="absolute inset-0 bg-gradient-to-r from-white/20 to-transparent opacity-0 group-hover:opacity-100 transition-opacity duration-300"></div>
-                            {/* Lógica de Carregamento */}
-                            {isLoading ? (
-                                <Loader2 className="mr-2 h-5 w-5 animate-spin relative z-10" /> // NOVO: Spinner
-                            ) : (
-                                <Search className="mr-2 h-5 w-5 relative z-10" />
-                            )}
-                            
-                            <span className="relative z-10">
-                                {isLoading ? "Buscando..." : "Buscar"}
-                            </span>
+                            {isLoading ? <Loader2 className="mr-2 h-5 w-5 animate-spin relative z-10" /> : <Search className="mr-2 h-5 w-5 relative z-10" />}
+                            <span className="relative z-10">{isLoading ? "Buscando..." : "Buscar"}</span>
                         </Button>
 
-                        {/* BOTÃO DOWNLOAD PDF (DESTRUCTIVE/ALERTA) */}
-                       {/* BOTÃO DOWNLOAD PDF (DESTRUCTIVE/ALERTA) */}
-    {onDownloadPDF && ( // 👈 NOVA CONDIÇÃO: Renderiza APENAS se onDownloadPDF for fornecido
-        <Button
-            onClick={onDownloadPDF}
-            size="lg"
-            variant="outline"
-            disabled={!hasResults || isLoading}
-            className="group w-full font-semibold border-2 border-red-600/40 bg-gradient-to-r from-red-600/10 to-red-600/5 text-red-600 hover:bg-red-600/15 transition-all duration-200 relative overflow-hidden shadow-md hover:shadow-lg hover:shadow-red-600/20 transform hover:scale-[1.005]"
-        >
-            <Download className="mr-2 h-4 w-4 relative z-10" />
-            <span className="relative z-10">Download PDF</span>
-        </Button>
-    )}
+                        {onDownloadPDF && (
+                            <Button
+                                onClick={onDownloadPDF}
+                                size="lg"
+                                variant="outline"
+                                disabled={!hasResults || isLoading}
+                                className="group w-full font-semibold border-2 border-red-600/40 bg-gradient-to-r from-red-600/10 to-red-600/5 text-red-600 hover:bg-red-600/15 transition-all duration-200 relative overflow-hidden shadow-md hover:shadow-lg transform hover:scale-[1.005]"
+                            >
+                                <Download className="mr-2 h-4 w-4 relative z-10" />
+                                <span className="relative z-10">Download PDF</span>
+                            </Button>
+                        )}
 
-    {/* BOTÃO DOWNLOAD CSV (SUCCESS/CONFIRMAÇÃO) */}
-    {onDownloadCSV && ( // 👈 NOVA CONDIÇÃO: Renderiza APENAS se onDownloadCSV for fornecido
-        <Button
-            onClick={onDownloadCSV}
-            size="lg"
-            variant="outline"
-            disabled={!hasResults || isLoading}
-            className="group w-full font-semibold border-2 border-green-600/40 bg-gradient-to-r from-green-600/10 to-green-600/5 text-green-600 hover:bg-green-600/15 transition-all duration-200 relative overflow-hidden shadow-md hover:shadow-lg hover:shadow-green-600/20 transform hover:scale-[1.005]"
-        >
-            <FileText className="mr-2 h-4 w-4 relative z-10" />
-            <span className="relative z-10">Download CSV</span>
-        </Button>
-    )}
-</div>
+                        {onDownloadCSV && (
+                            <Button
+                                onClick={onDownloadCSV}
+                                size="lg"
+                                variant="outline"
+                                disabled={!hasResults || isLoading}
+                                className="group w-full font-semibold border-2 border-green-600/40 bg-gradient-to-r from-green-600/10 to-green-600/5 text-green-600 hover:bg-green-600/15 transition-all duration-200 relative overflow-hidden shadow-md hover:shadow-lg transform hover:scale-[1.005]"
+                            >
+                                <FileText className="mr-2 h-4 w-4 relative z-10" />
+                                <span className="relative z-10">Download CSV</span>
+                            </Button>
+                        )}
+                    </div>
                 </CardContent>
             </Card>
         </div>

@@ -1,6 +1,6 @@
-// src/pages/RelatorioDetalhado.tsx (Atualizado com lógica de scroll)
+// src/pages/RelatorioDetalhado.tsx
 
-import React, { useState, useEffect, useCallback, useRef } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { useToast } from "@/hooks/use-toast";
 import Header from "@/components/Header";
 import Sidebar from "@/components/Sidebar";
@@ -14,68 +14,48 @@ import autoTable from "jspdf-autotable";
 
 import {
     DetailedReportItem,
-    ReportDataSimple,
     Employee,
     Manager,
     EditRecordFormData,
     editRecordSchema,
     decodeToken,
     isHoliday,
-    statusOptions,
     getTranslatedStatus,
     formatDateWithDayOfWeek,
 } from "@/utils/report-utils";
 import { API_BASE_URL } from "@/config/api";
 
-// Importa os novos sub-componentes
-
+// Sub-componentes
 import { ResultadosRelatorioDetalhado } from "@/components/ResultadosRelatorioDetalhado";
-import { ResultadosRelatorioSimples } from "@/components/ResultadosRelatorioSimples";
 import { RegistroEdicaoModal } from "@/components/RegistroEdicaoModal";
 
-// Componentes da UI que sobraram
+// UI
 import { Card } from "@/components/ui/card";
 import { RelatorioFiltros } from "./RelatorioFiltros";
 import { Info } from "lucide-react";
 
-// === FUNÇÃO UTILITÁRIA PARA GERAÇÃO DE CSV (NOVA) ===
+// === FUNÇÃO UTILITÁRIA PARA GERAÇÃO DE CSV ===
 const generateCSV = (data: any[], headers: string[], fileName: string) => {
-    // Cabeçalho CSV (separado por ponto e vírgula, compatível com Excel brasileiro)
     const csvHeaders = headers.join(';');
-
-    // Mapeamento dos dados para as linhas CSV
     const csvRows = data.map(row =>
         row.map((item: any) => {
-            // Converte o item para string
             let value = String(item);
-
-            // Remove quebras de linha e substitui vírgulas por pontos (para valores numéricos/horários)
-            // Se o item for um array (deve ser tratado na função chamadora, mas garantindo a sanitização)
             value = value.replace(/\n/g, ' ').replace(/,/g, '.');
-
-            // Coloca aspas se o valor contiver o separador (ponto e vírgula)
             return /;/.test(value) ? `"${value.replace(/"/g, '""')}"` : value;
         }).join(';')
     ).join('\n');
 
-    // Adiciona o BOM (Byte Order Mark) para garantir que caracteres especiais e acentuação funcionem corretamente no Excel
     const csvContent = `\ufeff${csvHeaders}\n${csvRows}`;
-
     const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
     const url = URL.createObjectURL(blob);
-
     const link = document.createElement('a');
     link.href = url;
     link.setAttribute('download', fileName);
     document.body.appendChild(link);
     link.click();
     document.body.removeChild(link);
-
-    // Libera a URL do objeto
     URL.revokeObjectURL(url);
 };
-// === FIM FUNÇÃO UTILITÁRIA CSV ===
-
 
 const RelatorioDetalhado = () => {
     const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -85,9 +65,10 @@ const RelatorioDetalhado = () => {
     const [employeeActive, setEmployeeActive] = useState("active");
     const [isActive, setIsActive] = useState(true);
     const [status, setStatus] = useState<string[]>([]);
-    const [reportType, setReportType] = useState<"detailed" | "simple">("detailed");
+    
+    // Removido estado de reportType (apenas detalhado agora)
     const [reportData, setReportData] = useState<DetailedReportItem[]>([]);
-    const [reportDataSimple, setReportDataSimple] = useState<ReportDataSimple | null>(null);
+    
     const [editModalOpen, setEditModalOpen] = useState(false);
     const [selectedRecord, setSelectedRecord] = useState<DetailedReportItem | null>(null);
     const [employees, setEmployees] = useState<Employee[]>([]);
@@ -96,68 +77,36 @@ const RelatorioDetalhado = () => {
     const [isPartner, setIsPartner] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
 
-    const hasResults = reportType === "detailed" 
-        ? reportData.length > 0 
-        : (reportDataSimple?.days.length || 0) > 0;
+    // Verifica se há dados para habilitar botões de download
+    const hasResults = reportData.length > 0;
 
     const statusRegistroTips = (
-  <div className="space-y-3"> 
+        <div className="space-y-3"> 
             <h1 className="text-lg font-bold text-primary flex items-center gap-2">
                 <Info className="w-5 h-5 text-primary"/> Instruções
             </h1>
-            
-            {/* Conteúdo Detalhado */}
             <div className="pt-2"> 
                 <h4 className="text-sm font-bold text-primary flex items-center gap-2">
                     <div className="w-2 h-2 rounded-full bg-primary"></div>
                     <span className="animate-pulse">Relatório Detalhado</span>
                 </h4>
                 <ul className="list-disc list-inside text-xs space-y-1 text-muted-foreground ml-2 pt-1">
-                    <li>
-                        Retorna todos registros feitos na data slecionada.
-                    </li>
-                    <li>
-                        É possível filtrar pelo status do registro.
-                    </li>
+                    <li>Retorna todos registros feitos na data selecionada.</li>
+                    <li>É possível filtrar pelo status do registro.</li>
                 </ul>
             </div>
-            
-            {/* Conteúdo Simples */}
-            <div className="pt-2"> 
-                <h4 className="text-sm font-bold text-primary flex items-center gap-2">
-                    <div className="w-2 h-2 rounded-full bg-primary"></div>
-                    <span className="animate-pulse">Relatório Simples</span>
-                </h4>
-                <ul className="list-disc list-inside text-xs space-y-1 text-muted-foreground ml-2 pt-1">
-                    <li>
-                         Retorna a primeira e a última hora registrada e o saldo de horas da data slecionada.
-                    </li>
-                </ul>
-            </div>
-            
-            {/* Conteúdo Ajuste */}
             <div className="pt-2"> 
                 <h4 className="text-sm font-bold text-primary flex items-center gap-2">
                     <div className="w-2 h-2 rounded-full bg-primary"></div>
                     <span className="animate-pulse">Ajuste no ponto</span>
                 </h4>
                 <ul className="list-disc list-inside text-xs space-y-1 text-muted-foreground ml-2 pt-1">
-                    <li>
-                         Após a geração do relatório detalhado, clique no registro e envie a solicitação.
-                    </li>
-                    <li>
-                         A solicitação será enviada so gestor que aprovará ou negará a requisição.
-                    </li>
-                    <li>
-                         Solicitações não aprovadas em 30 dias devem ser refeitas.
-                    </li>
+                    <li>Após a geração do relatório, clique no registro e envie a solicitação.</li>
+                    <li>A solicitação será enviada ao gestor que aprovará ou negará.</li>
                 </ul>
             </div>
         </div>
     );
-
-    // REMOVIDO: O estado de pausas aninhadas (editBreaks) não é mais necessário
-    // const [editBreaks, setEditBreaks] = useState<BreakEditItem[]>([]); 
 
     const form = useForm<EditRecordFormData>({
         resolver: zodResolver(editRecordSchema),
@@ -169,6 +118,20 @@ const RelatorioDetalhado = () => {
             managerId: "",
         },
     });
+
+    // --- Helpers de Data ---
+    const parseDate = (dateString: string): Date | null => {
+        if (!dateString) return null;
+        const parts = dateString.split('-');
+        if (parts.length === 3) {
+            const [day, month, year] = parts;
+            const date = new Date(parseInt(year), parseInt(month) - 1, parseInt(day), 12);
+            if (!isNaN(date.getTime()) && date.getDate() === parseInt(day)) {
+                return date;
+            }
+        }
+        return null;
+    };
 
     const fetchEmployees = useCallback(async () => {
         try {
@@ -192,22 +155,15 @@ const RelatorioDetalhado = () => {
             const activeStatus = employeeActive === "active";
             const url = employeeActive ? `${API_BASE_URL}employee?active=${activeStatus}` : `${API_BASE_URL}employee`;
 
-
             const response = await fetch(url, {
                 method: "GET",
-                headers: {
-                    "Content-Type": "application/json",
-                    Authorization: `Bearer ${token}`,
-                },
+                headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
             });
 
             if (response.ok) {
                 const data = await response.json();
-
                 setEmployees(data.employees || []);
-                if (!selectedEmployee) {
-                    setSelectedEmployee("");
-                }
+                if (!selectedEmployee) setSelectedEmployee("");
             }
         } catch (error) {
             console.error("Erro ao buscar funcionários:", error);
@@ -217,16 +173,11 @@ const RelatorioDetalhado = () => {
     const fetchManagers = async () => {
         try {
             const token = localStorage.getItem("token");
-            if (!token) {
-                throw new Error("Token de autenticação não encontrado.");
-            }
+            if (!token) throw new Error("Token de autenticação não encontrado.");
 
             const response = await fetch(`${API_BASE_URL}users/search`, {
                 method: "GET",
-                headers: {
-                    "Content-Type": "application/json",
-                    Authorization: `Bearer ${token}`,
-                },
+                headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
             });
 
             if (!response.ok) {
@@ -237,42 +188,29 @@ const RelatorioDetalhado = () => {
             const data = await response.json();
             const filteredManagers: Manager[] = data.users
                 .filter((user: any) => user.role === "MANAGER")
-                .map((user: any) => ({
-                    id: user.userId,
-                    name: user.username,
-                }));
+                .map((user: any) => ({ id: user.userId, name: user.username }));
             setManagers(filteredManagers);
         } catch (error) {
             console.error("Erro ao buscar gerentes:", error);
-            toast({
-                title: "Erro",
-                description: (error as Error).message || "Não foi possível carregar a lista de administradores.",
-                variant: "destructive",
-            });
+            toast({ title: "Erro", description: (error as Error).message, variant: "destructive" });
         }
     };
-
 
     useEffect(() => {
         fetchEmployees();
         fetchManagers();
     }, [fetchEmployees]);
 
-
-    // FUNÇÃO DE BUSCA DETALHADA
+    // === BUSCA ===
     const handleSearch = async () => {
-        setReportDataSimple(null);
         setReportData([]);
         setIsLoading(true);
 
         try {
             const token = localStorage.getItem("token");
-            if (!token) {
-                throw new Error("Token de autenticação não encontrado.");
-            }
+            if (!token) throw new Error("Token não encontrado.");
 
             const formattedDates = selectedDates.map(date => format(date, "dd-MM-yyyy"));
-
             const requestBody = {
                 reference: referenceTime,
                 active: isActive,
@@ -281,170 +219,40 @@ const RelatorioDetalhado = () => {
             };
 
             const apiUrl = new URL(`${API_BASE_URL}records/report`, window.location.origin);
-            if (selectedEmployee) {
-                apiUrl.searchParams.append("employeeId", selectedEmployee);
-            }
+            if (selectedEmployee) apiUrl.searchParams.append("employeeId", selectedEmployee);
 
             const response = await fetch(apiUrl.toString(), {
                 method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    Authorization: `Bearer ${token}`,
-                },
+                headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
                 body: JSON.stringify(requestBody),
             });
 
             if (!response.ok) {
                 const errorData = await response.json();
-                throw new Error(errorData.detail || "Erro ao buscar o relatório detalhado. Tente novamente mais tarde.");
+                throw new Error(errorData.detail || "Erro ao buscar o relatório.");
             }
 
             const data: DetailedReportItem[] = await response.json();
 
             if (data.length === 0) {
-                setReportData([]);
-                toast({
-                    title: "Aviso",
-                    description: "Não há registro para as datas selecionadas",
-                    variant: "default",
-                });
+                toast({ title: "Aviso", description: "Não há registros para os filtros selecionados", variant: "default" });
                 return;
             }
 
             setReportData(data);
-
-            const datesList = selectedDates
-                .map(date => format(date, "dd/MM/yyyy", { locale: ptBR }))
-                .join(", ");
-
-            toast({
-                title: "Busca realizada",
-                description: `Relatório detalhado gerado para as datas: ${datesList}`,
-            });
-
-            // NOVO: Redireciona para o topo da tela
+            toast({ title: "Busca realizada", description: `Relatório gerado com sucesso.` });
             window.scrollTo({ top: 0, behavior: 'smooth' });
 
         } catch (error) {
             console.error("Erro na busca:", error);
-            toast({
-                title: "Erro",
-                description: (error as Error).message || "Ocorreu um erro ao buscar o relatório.",
-                variant: "destructive",
-          });
+            toast({ title: "Erro", description: (error as Error).message, variant: "destructive" });
         } finally {
-            setIsLoading(false); // FIM: Desativa o loading
+            setIsLoading(false);
         }
     };
 
-    // FUNÇÃO DE BUSCA SIMPLES
-    const handleSimpleSearch = async () => {
-        setReportData([]);
-        setReportDataSimple(null);
-        setIsLoading(true);
-
-        try {
-            const token = localStorage.getItem("token");
-            if (!token) {
-                throw new Error("Token de autenticação não encontrado.");
-            }
-
-            const formattedDates = selectedDates.map(date => format(date, "dd-MM-yyyy"));
-            const requestBody = {
-                reference: referenceTime,
-                dates: formattedDates,
-                employeeActive: employeeActive === "active",
-                active: isActive,
-            };
-
-            const apiUrl = new URL(`${API_BASE_URL}records/report/simple`, window.location.origin);
-            if (selectedEmployee) {
-                apiUrl.searchParams.append("employeeId", selectedEmployee);
-            }
-
-            const response = await fetch(apiUrl.toString(), {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    Authorization: `Bearer ${token}`,
-                },
-                body: JSON.stringify(requestBody),
-            });
-
-            if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.detail || "Erro ao buscar o relatório simples. Tente novamente mais tarde.");
-            }
-
-            const data: ReportDataSimple = await response.json();
-
-            if (data.days.length === 0) {
-                setReportDataSimple(null);
-                toast({
-                    title: "Aviso",
-                    description: "Não há registro para as datas selecionadas com os filtros aplicados.",
-                    variant: "default",
-                });
-                return;
-            }
-
-            setReportDataSimple(data);
-
-            const datesList = selectedDates
-                .map(date => format(date, "dd/MM/yyyy", { locale: ptBR }))
-                .join(", ");
-
-            toast({
-                title: "Busca realizada",
-                description: `Relatório simples gerado para as datas: ${datesList}`,
-            });
-
-            // NOVO: Redireciona para o topo da tela
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-
-        } catch (error) {
-            console.error("Erro na busca simples:", error);
-            toast({
-                title: "Erro",
-                description: (error as Error).message || "Ocorreu um erro ao buscar o relatório simples.",
-                variant: "destructive",
-     });
-        } finally {
-            setIsLoading(false); // FIM: Desativa o loading
-        }
-    };
-
-
-    const handleSearchClick = () => {
-        if (reportType === "detailed") {
-            handleSearch();
-        } else {
-            handleSimpleSearch();
-        }
-    };
-
-   // FUNÇÕES AUXILIARES NECESSÁRIAS
-const parseDate = (dateString: string): Date | null => {
-    if (!dateString) return null;
-    const parts = dateString.split('-'); // DD-MM-YYYY
-    if (parts.length === 3) {
-        const [day, month, year] = parts;
-        // Ajuste para evitar o problema de fuso horário ao criar a data
-        const date = new Date(parseInt(year), parseInt(month) - 1, parseInt(day), 12); // Usar meio-dia (12h)
-        
-        // Checagem de validade extra para garantir que a data não seja inválida
-        if (!isNaN(date.getTime()) && date.getDate() === parseInt(day)) {
-            return date;
-        }
-    }
-    return null;
-};
-    
-const COLOR_HEADER = [4, 60, 107]; // Azul escuro
-const COLOR_MAIN_RECORD = [255, 255, 255]; // Branco (para registros normais)
-const COLOR_BREAK_RECORD = [230, 240, 255]; // Azul muito claro (para pausas)
-const COLOR_HOLIDAY_ROW = [255, 245, 245]; // Vermelho muito claro (para feriados)
-const handleDownloadPDFDetailed = () => {
+    // === PDF DETALHADO (MODERNO E ESTILIZADO) ===
+    const handleDownloadPDFDetailed = () => {
         if (reportData.length === 0) {
             toast({ title: "Erro", description: "Não há dados para gerar o PDF.", variant: "destructive" });
             return;
@@ -452,30 +260,29 @@ const handleDownloadPDFDetailed = () => {
 
         const doc = new jsPDF();
         
-        // --- CORES E CONFIGURAÇÕES DE ESTILO ---
-        const PRIMARY_COLOR = [41, 128, 185]; // Azul Institucional
-        const TEXT_COLOR = [51, 65, 85];      // Cinza Escuro (Slate)
-        const LABEL_COLOR = [100, 116, 139];  // Cinza Claro
-        const BG_LIGHT = [248, 250, 252];     // Fundo Card
+        // Configurações Visuais
+        const PRIMARY_COLOR = [41, 128, 185]; 
+        const TEXT_COLOR = [51, 65, 85];      
+        const LABEL_COLOR = [100, 116, 139];  
+        const BG_LIGHT = [248, 250, 252];     
 
-        // --- MAPA DE CORES POR STATUS (RGB) ---
-        // Você pode ajustar esses valores RGB conforme sua preferência
+        // Mapa de cores para Status
         const getStatusRGB = (status: string): [number, number, number] => {
             switch (status) {
-                case 'CREATED': return [22, 163, 74];       // Verde (Sucesso)
-                case 'UPDATED': return [37, 99, 235];       // Azul (Info)
-                case 'PENDING': return [234, 179, 8];       // Amarelo/Ouro (Atenção)
-                case 'ABSENCE': return [220, 38, 38];       // Vermelho (Erro/Falta)
-                case 'DAY_OFF': return [100, 116, 139];     // Cinza Azulado (Folga)
-                case 'TIME_OFF': return [147, 51, 234];     // Roxo (Abono)
-                case 'VACATION': return [13, 148, 136];     // Teal (Férias)
-                case 'IMPLICIT_BREAK': return [156, 163, 175]; // Cinza (Pausa)
-                case 'PENDING_APPROVAL': return [249, 115, 22]; // Laranja
-                default: return [71, 85, 105];              // Cinza Escuro (Padrão)
+                case 'CREATED': return [22, 163, 74];       
+                case 'UPDATED': return [37, 99, 235];       
+                case 'PENDING': return [234, 179, 8];       
+                case 'ABSENCE': return [220, 38, 38];       
+                case 'DAY_OFF': return [100, 116, 139];     
+                case 'TIME_OFF': return [147, 51, 234];     
+                case 'VACATION': return [13, 148, 136];     
+                case 'IMPLICIT_BREAK': return [156, 163, 175]; 
+                case 'PENDING_APPROVAL': return [249, 115, 22]; 
+                default: return [71, 85, 105];              
             }
         };
 
-        // --- Helpers de Cálculo (Mantidos) ---
+        // Helpers de cálculo de horas
         const timeToMinutes = (time: string) => {
             if (!time || time === '--:--' || time.trim() === '') return 0;
             const sign = time.startsWith('-') ? -1 : 1;
@@ -493,7 +300,6 @@ const handleDownloadPDFDetailed = () => {
             return `${sign}${String(h).padStart(2, '0')}:${String(m).padStart(2, '0')}`;
         };
 
-        // --- Cálculo dos Totais ---
         let totalMinutesWorked = 0;
         let totalMinutesBalance = 0;
 
@@ -509,14 +315,14 @@ const handleDownloadPDFDetailed = () => {
         const totalHoursStr = minutesToTime(totalMinutesWorked);
         const totalBalanceStr = minutesToTime(totalMinutesBalance);
 
-        // --- Dados Básicos ---
+        // Dados do Cabeçalho
         const fileName = `relatorio_detalhado_${format(new Date(), 'yyyyMMdd_HHmmss')}.pdf`;
         const employeeName = reportData[0]?.employeeData?.employeeName || 'N/A';
         const companyName = reportData[0]?.employeeData?.companyName || 'N/A';
         const periodStart = selectedDates[0] ? format(selectedDates[0], 'dd/MM/yyyy') : '-';
         const periodEnd = selectedDates[selectedDates.length - 1] ? format(selectedDates[selectedDates.length - 1], 'dd/MM/yyyy') : '-';
 
-        // ======================== CABEÇALHO ========================
+        // --- Layout do Cabeçalho ---
         doc.setFillColor(PRIMARY_COLOR[0], PRIMARY_COLOR[1], PRIMARY_COLOR[2]);
         doc.rect(14, 15, 2, 12, 'F'); 
 
@@ -537,7 +343,6 @@ const handleDownloadPDFDetailed = () => {
         doc.setDrawColor(226, 232, 240);
         doc.roundedRect(14, boxY, 182, boxHeight, 2, 2, 'FD');
 
-        // Coluna 1
         const col1X = 20;
         doc.setFontSize(8);
         doc.setTextColor(LABEL_COLOR[0], LABEL_COLOR[1], LABEL_COLOR[2]);
@@ -556,7 +361,6 @@ const handleDownloadPDFDetailed = () => {
         doc.setTextColor(TEXT_COLOR[0], TEXT_COLOR[1], TEXT_COLOR[2]);
         doc.text(employeeName.toUpperCase(), col1X, boxY + 28);
 
-        // Coluna 2
         const col2X = 110;
         const col3X = 155;
         doc.setFontSize(8);
@@ -568,7 +372,6 @@ const handleDownloadPDFDetailed = () => {
         doc.setTextColor(TEXT_COLOR[0], TEXT_COLOR[1], TEXT_COLOR[2]);
         doc.text(`${periodStart} a ${periodEnd}`, col2X, boxY + 13);
 
-        // Totais
         doc.setFontSize(8);
         doc.setFont("helvetica", "normal");
         doc.setTextColor(LABEL_COLOR[0], LABEL_COLOR[1], LABEL_COLOR[2]);
@@ -587,7 +390,7 @@ const handleDownloadPDFDetailed = () => {
         }
         doc.text(totalBalanceStr, col3X, boxY + 29);
 
-        // ======================== TABELA ESTILIZADA ========================
+        // --- Tabela ---
         const tableBody: any[] = [];
 
         reportData.forEach((item) => {
@@ -608,16 +411,11 @@ const handleDownloadPDFDetailed = () => {
             const isItemHoliday = startDate && isHoliday(startDate);
             const statusLabel = getTranslatedStatus(item.statusRecord);
             
-            // Lógica de cores da linha (mais sutil agora, pois o status terá cor própria)
-            // Se for feriado, usamos um vermelho muito claro. Se for pausa, cinza claro.
-            // Se for normal, deixamos o padrão (que será alternado pelo autoTable)
             let rowFillColor = undefined; 
-            if (isItemHoliday) rowFillColor = [254, 242, 242]; // Red-50
-            if (isBreak) rowFillColor = [248, 250, 252]; // Slate-50
+            if (isItemHoliday) rowFillColor = [254, 242, 242]; 
+            if (isBreak) rowFillColor = [248, 250, 252]; 
 
             const fontStyle = isBreak ? 'italic' : 'normal';
-            
-            // Pega a cor específica do status para pintar o BACKGROUND da célula
             const statusRGB = getStatusRGB(item.statusRecord);
 
             const rowCells = [
@@ -625,29 +423,22 @@ const handleDownloadPDFDetailed = () => {
                 { content: colFim, styles: { fontStyle: fontStyle, halign: 'center' } },    
                 { content: displayDuration, styles: { fontStyle: fontStyle, halign: 'center' } }, 
                 { content: displayBalance, styles: { fontStyle: fontStyle, halign: 'center' } },  
-                
-                // CÉLULA DE STATUS: Fundo colorido e texto branco
                 { 
                     content: isItemHoliday ? `${statusLabel} (FERIADO)` : statusLabel, 
                     styles: { 
                         fontStyle: 'bold',
-                        textColor: [255, 255, 255], // Texto branco
-                        fillColor: statusRGB,       // Fundo colorido do status
+                        textColor: [255, 255, 255], 
+                        fillColor: statusRGB,       
                         halign: 'center',
-                        cellPadding: 3 // Um pouco mais de espaço
+                        cellPadding: 3 
                     } 
                 } 
             ];
 
-            // Se houver cor de linha especial (feriado), aplica nas outras células
             if (rowFillColor) {
                 tableBody.push(rowCells.map((cell, index) => {
-                    // Não sobrescreve a cor da célula de status (índice 4)
-                    if (index === 4) return cell;
-                    return {
-                        ...cell,
-                        styles: { ...cell.styles, fillColor: rowFillColor }
-                    };
+                    if (index === 4) return cell; 
+                    return { ...cell, styles: { ...cell.styles, fillColor: rowFillColor } };
                 }));
             } else {
                 tableBody.push(rowCells);
@@ -658,12 +449,12 @@ const handleDownloadPDFDetailed = () => {
             startY: boxY + boxHeight + 10,
             head: [['Início da Jornada', 'Fim da Jornada', 'Duração', 'Saldo', 'Status']], 
             body: tableBody,
-            theme: 'grid', // Usa linhas de grade, mas vamos customizar
+            theme: 'grid',
             styles: {
                 fontSize: 9,
-                cellPadding: 4, // Mais espaçamento interno para visual moderno
+                cellPadding: 4,
                 valign: 'middle',
-                lineWidth: 0, // Remove bordas verticais padrão grossas
+                lineWidth: 0,
                 lineColor: [226, 232, 240],
             },
             headStyles: {
@@ -672,214 +463,59 @@ const handleDownloadPDFDetailed = () => {
                 fontStyle: 'bold',
                 halign: 'center',
                 cellPadding: 5,
-                lineWidth: 0, // Cabeçalho flat sem bordas
+                lineWidth: 0,
             },
             columnStyles: {
                 0: { cellWidth: 45 },
                 1: { cellWidth: 45 },
                 2: { cellWidth: 25 },
                 3: { cellWidth: 25 },
-                4: { cellWidth: 'auto', fontStyle: 'bold' } // Status negrito
+                4: { cellWidth: 'auto', fontStyle: 'bold' }
             },
-            // Estilo alternado moderno (Zebra Striping)
             alternateRowStyles: {
-                fillColor: [249, 250, 251] // Cinza muito claro para linhas alternadas
-            },
-            // Customização de bordas: Apenas linhas horizontais finas
-            didDrawCell: (data) => {
-                if (data.section === 'body' && data.column.index === 0) {
-                    // Opcional: Lógica extra de desenho se necessário
-                }
+                fillColor: [249, 250, 251] 
             }
         });
 
         doc.save(fileName);
     };
-    // === LÓGICA DE DOWNLOAD PDF SIMPLES (RENOMEADA) ===
-  const handleDownloadPDFSimple = () => {
-    if (!reportDataSimple || reportDataSimple.days.length === 0) {
-        toast({ title: "Erro", description: "Não há dados para gerar o PDF.", variant: "destructive" });
-        return;
-    }
 
-    const doc = new jsPDF();
-    const fileName = `relatorio_simples_${format(new Date(), 'yyyyMMdd_HHmmss')}.pdf`;
-
-const employeeName = reportDataSimple.employeeName || 'N/A';
-    const companyName = reportDataSimple.companyName || 'N/A';    
-
-    // --- Cabeçalho
-    doc.setFontSize(18);
-    doc.text("RELATÓRIO SIMPLES DE PONTO", 14, 20);
-    doc.setFontSize(10);
-doc.text(`Funcionário: ${employeeName}`, 14, 30);
-    doc.text(`Empresa: ${companyName}`, 14, 35);
-    doc.text(`Carga horária diária: ${referenceTime}`, 14, 40);
-    doc.text(`Total de Horas Trabalhadas: ${reportDataSimple.totalHoursWorked}`, 14, 45);
-    doc.text(`Saldo Total: ${reportDataSimple.totalBalance}`, 14, 50);
-    doc.text(`Período de Referência: ${format(selectedDates[0], 'dd/MM/yyyy')} a ${format(selectedDates[selectedDates.length - 1], 'dd/MM/yyyy')}`, 14, 55);
-
-
-    // --- Corpo da Tabela
-    const tableData = reportDataSimple.days.map(day => {
-        const parts = day.startDate.split('/'); // Assumindo DD/MM/YYYY no day.startDate
-        const dayDate = new Date(`${parts[2]}-${parts[1]}-${parts[0]}`); // Cria Date para isHoliday
-        const holiday = isHoliday(dayDate) ? ' 🎉' : '';
-
-        // 🚀 NOVO: Formatação com Dia da Semana
-        const formattedDateWithDayOfWeek = formatDateWithDayOfWeek(day.startDate);
-
-        return [
-            `${formattedDateWithDayOfWeek}${holiday}`, // AGORA INCLUI O DIA DA SEMANA
-            day.startHour || 'N/A',
-            day.endHour || 'N/A',
-            day.totalHours,
-            day.balance,
-        ];
-    });
-
-    // --- autoTable
-    autoTable(doc, {
-        head: [['Data', 'Entrada', 'Saída', 'Total de Horas', 'Saldo do Dia']],
-        body: tableData,
-        startY: 65,
-        theme: 'striped',
-        headStyles: { 
-            fillColor: COLOR_HEADER, 
-            textColor: 255, 
-            halign: 'center', 
-            valign: 'middle' 
-        },
-        bodyStyles: { fontSize: 10 },
-    });
-    
-    // --- Rodapé
-    const pageCount = doc.getNumberOfPages();
-    for (let i = 1; i <= pageCount; i++) {
-        doc.setPage(i);
-        doc.setFontSize(8);
-        doc.text(`Gerado em: ${format(new Date(), 'dd/MM/yyyy HH:mm', { locale: ptBR })} | Página ${i} de ${pageCount}`, 14, doc.internal.pageSize.height - 10);
-    }
-
-    doc.save(fileName);
-};
-    // === FIM LÓGICA DE DOWNLOAD PDF SIMPLES ===
-
-
-    // === FUNÇÃO DE DOWNLOAD CSV DETALHADA (NOVA) ===
-  // FUNÇÃO DE DOWNLOAD CSV DETALHADA (Corrigida)
-const handleDownloadCSVDetailed = () => {
-    if (reportData.length === 0) {
-        toast({ title: "Erro", description: "Não há dados para gerar o CSV.", variant: "destructive" });
-        return;
-    }
-
-    const headers = [
-        "Data Início", "Hora Início", "Data Fim", "Hora Fim", "Duração", "Saldo", "Status", "Funcionário", "Empresa"
-    ];
-
-    // 🚀 CORREÇÃO DE TIPAGEM: Mapeia para um array de arrays de strings (string[][])
-    const csvDataRows = reportData.map(item => {
-        const isPending = item.statusRecord === 'PENDING';
-        return [
-            item.startWork, // DD-MM-YYYY
-            item.startHour,
-            isPending ? '' : item.endWork, // Deixa vazio se pendente
-            isPending ? '' : item.endHour, // Deixa vazio se pendente
-            isPending ? '' : item.hoursWork, 
-            item.statusRecord === 'IMPLICIT_BREAK' ? '00:00' : item.balance,
-            getTranslatedStatus(item.statusRecord), 
-            item.employeeData.employeeName,
-            item.employeeData.companyName,
-        ];
-    });
-
-    const fileName = `relatorio_detalhado_csv_${format(new Date(), 'yyyyMMdd_HHmmss')}.csv`;
-    
-    // O generateCSV precisa ser chamado com (data: string[][], headers: string[], fileName: string)
-    generateCSV(csvDataRows, headers, fileName); 
-
-    toast({ title: "CSV Gerado", description: "Relatório detalhado baixado em formato CSV!", });
-};
-    // === FIM LÓGICA DE DOWNLOAD CSV DETALHADA ===
-
-
-    // === FUNÇÃO DE DOWNLOAD CSV SIMPLES (NOVA) ===
-  // FUNÇÃO DE DOWNLOAD CSV SIMPLES (Corrigida)
-// FUNÇÃO DE DOWNLOAD CSV SIMPLES (Corrigida)
-const handleDownloadCSVSimple = () => {
-    if (!reportDataSimple || reportDataSimple.days.length === 0) {
-        toast({ title: "Erro", description: "Não há dados para gerar o CSV.", variant: "destructive" });
-        return;
-    }
-
-    const headers = [
-        "Data", "Entrada", "Saída", "Total de Horas", "Saldo do Dia"
-    ];
-
-    // 🚀 CORREÇÃO DE TIPAGEM: Mapeia para um array de arrays de strings (string[][])
-    const csvDataRows = reportDataSimple.days.map(day => {
-        const parts = day.startDate.split('/');
-        const dayDate = new Date(`${parts[2]}-${parts[1]}-${parts[0]}`);
-        const holiday = isHoliday(dayDate) ? ' (Feriado)' : '';
-
-        // 🚀 NOVO: Formatação com Dia da Semana
-        const formattedDateWithDayOfWeek = formatDateWithDayOfWeek(day.startDate);
-
-        return [
-            `${formattedDateWithDayOfWeek}${holiday}`, // Inclui dia da semana e marcador
-            day.startHour || 'N/A',
-            day.endHour || 'N/A',
-            day.totalHours,
-            day.balance,
-        ];
-    });
-
-    const fileName = `relatorio_simples_csv_${format(new Date(), 'yyyyMMdd_HHmmss')}.csv`;
-
-    // O generateCSV precisa ser chamado com (data: string[][], headers: string[], fileName: string)
-    generateCSV(csvDataRows, headers, fileName);
-
-    toast({ title: "CSV Gerado", description: "Relatório simples baixado em formato CSV!", });
-};
-    // === FIM LÓGICA DE DOWNLOAD CSV SIMPLES ===
-
-
-    // === FUNÇÃO ROUTER PARA O BOTÃO PDF ===
-    const handleDownloadPDF = () => {
-        if (reportType === "detailed") {
-            handleDownloadPDFDetailed();
-        } else {
-            handleDownloadPDFSimple();
+    // === CSV DETALHADO ===
+    const handleDownloadCSVDetailed = () => {
+        if (reportData.length === 0) {
+            toast({ title: "Erro", description: "Não há dados para gerar o CSV.", variant: "destructive" });
+            return;
         }
-    };
-    // === FIM FUNÇÃO ROUTER PDF ===
 
-    // === FUNÇÃO ROUTER PARA O BOTÃO CSV (NOVA) ===
-    const handleDownloadCSV = () => {
-        if (reportType === "detailed") {
-            handleDownloadCSVDetailed();
-        } else {
-            handleDownloadCSVSimple();
-        }
-    };
-    // === FIM FUNÇÃO ROUTER CSV ===
+        const headers = ["Data Início", "Hora Início", "Data Fim", "Hora Fim", "Duração", "Saldo", "Status", "Funcionário", "Empresa"];
 
+        const csvDataRows = reportData.map(item => {
+            const isPending = item.statusRecord === 'PENDING';
+            return [
+                item.startWork, 
+                item.startHour,
+                isPending ? '' : item.endWork, 
+                isPending ? '' : item.endHour, 
+                isPending ? '' : item.hoursWork,
+                (item.statusRecord === 'IMPLICIT_BREAK' || isPending) ? '00:00' : item.balance,
+                getTranslatedStatus(item.statusRecord), 
+                item.employeeData.employeeName,
+                item.employeeData.companyName,
+            ];
+        });
+
+        const fileName = `relatorio_detalhado_csv_${format(new Date(), 'yyyyMMdd_HHmmss')}.csv`;
+        generateCSV(csvDataRows, headers, fileName); 
+        toast({ title: "CSV Gerado", description: "Relatório detalhado baixado em formato CSV!" });
+    };
 
     const handleEditRecord = (record: DetailedReportItem) => {
         setSelectedRecord(record);
-
         const formatDateToInput = (dateString: string) => {
             if (!dateString) return "";
             const parts = dateString.split('-');
-            if (parts.length === 3) {
-                const [day, month, year] = parts;
-                return `${year}-${month}-${day}`;
-            }
-            return dateString;
+            return parts.length === 3 ? `${parts[2]}-${parts[1]}-${parts[0]}` : dateString;
         };
-
-        // NOTA: A Lógica de Pausa Aninhada FOI REMOVIDA DESTA FUNÇÃO
 
         form.reset({
             startDate: formatDateToInput(record.startWork),
@@ -888,31 +524,20 @@ const handleDownloadCSVSimple = () => {
             startHour: record.startHour,
             endHour: record.endHour,
         });
-
         setEditModalOpen(true);
     };
 
     const handleSaveRecord = async (data: EditRecordFormData) => {
         try {
             const token = localStorage.getItem("token");
-            if (!token) {
-                throw new Error("Token de autenticação não encontrado.");
-            }
+            if (!token) throw new Error("Token de autenticação não encontrado.");
+            if (!selectedRecord || !selectedRecord.timeRecordId) throw new Error("Registro não encontrado.");
 
-            if (!selectedRecord || !selectedRecord.timeRecordId) {
-                throw new Error("Registro selecionado para edição não encontrado.");
-            }
-
-            // NOTA: A Lógica de Mapeamento de Pausas Aninhadas FOI REMOVIDA DESTA FUNÇÃO
-            // const breakUpdates = mapEditBreaksToSubmission(editBreaks); 
-
-            // Função para converter YYYY-MM-DD (Input Date) para DD-MM-YYYY (Formato Java esperado)
             const formatDate = (dateString: string) => {
                 const [year, month, day] = dateString.split('-');
                 return `${day}-${month}-${year}`;
             };
 
-            // ESTRUTURA DO BODY AGORA CORRESPONDE AO UpdateTimeRecordRequest (Java) - SEM breaks
             const requestBody = {
                 startDate: formatDate(data.startDate),
                 endDate: formatDate(data.endDate),
@@ -921,94 +546,44 @@ const handleDownloadCSVSimple = () => {
                 managerId: data.managerId,
             };
 
-
             const endpoint = `${API_BASE_URL}records/update/time-record/${selectedRecord.timeRecordId}`;
-
             const response = await fetch(endpoint, {
                 method: "PUT",
-                headers: {
-                    "Content-Type": "application/json",
-                    Authorization: `Bearer ${token}`,
-                },
+                headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
                 body: JSON.stringify(requestBody),
             });
 
             if (!response.ok) {
                 const errorData = await response.json();
-                throw new Error(errorData.detail || errorData.message || "Erro ao solicitar a aprovação de alteração.");
+                throw new Error(errorData.detail || "Erro ao solicitar a aprovação.");
             }
 
-            // MENSAGEM SIMPLES DE CONFIRMAÇÃO
-            toast({
-                title: "Sucesso",
-                description: "Solicitação de alteração enviada para aprovação do administrador.",
-            });
-
+            toast({ title: "Sucesso", description: "Solicitação enviada para aprovação." });
             setEditModalOpen(false);
             setSelectedRecord(null);
             form.reset();
-
             handleSearch();
         } catch (error) {
             console.error("Erro ao salvar:", error);
-            toast({
-                title: "Erro",
-                description: (error as Error).message || "Ocorreu um erro ao salvar o registro.",
-                variant: "destructive",
-            });
+            toast({ title: "Erro", description: (error as Error).message, variant: "destructive" });
         }
     };
 
     const handleToggleSidebar = () => setSidebarOpen((prev) => !prev);
+
     return (
-     
+        <div className="min-h-screen bg-background relative overflow-hidden">
+            <div className="fixed inset-0 z-0">
+                <div className="absolute inset-0 opacity-5" style={{ background: 'linear-gradient(-45deg, hsl(var(--black-primary)), hsl(var(--primary)), hsl(var(--black-primary)), hsl(var(--primary)))', backgroundSize: '400% 400%', animation: 'gradient-flow 15s ease-in-out infinite' }} />
+                {/* Background animations (mantidas) */}
+            </div>
 
- <div className="min-h-screen bg-background relative  overflow-hidden">
-      {/* Animated Background and Header/Sidebar components */}
-      <div className="fixed inset-0 z-0">
-        <div
-          className="absolute inset-0 opacity-5"
-          style={{
-            background: 'linear-gradient(-45deg, hsl(var(--black-primary)), hsl(var(--primary)), hsl(var(--black-primary)), hsl(var(--primary)))',
-            backgroundSize: '400% 400%',
-            animation: 'gradient-flow 15s ease-in-out infinite'
-          }}
-        />
-        <div className="absolute inset-0">
-          <div
-            className="absolute top-1/4 left-1/4 w-32 h-32 opacity-3"
-            style={{
-              background: 'linear-gradient(135deg, hsl(var(--primary) / 0.50), transparent)',
-              borderRadius: '30% 70% 70% 30% / 30% 30% 70% 70%',
-              animation: 'float-shapes 20s ease-in-out infinite'
-            }}
-          />
-          <div
-            className="absolute top-3/4 right-1/4 w-48 h-48 opacity-2"
-            style={{
-              background: 'linear-gradient(45deg, hsl(var(--black-primary) / 0.50), transparent)',
-              borderRadius: '70% 30% 30% 70% / 70% 70% 30% 30%',
-              animation: 'float-shapes 25s ease-in-out infinite reverse'
-            }}
-          />
-          <div
-            className="absolute top-1/2 right-1/3 w-24 h-24 opacity-4"
-            style={{
-              background: 'radial-gradient(circle, hsl(var(--primary) / 0.50), transparent)',
-              borderRadius: '50%',
-              animation: 'float-shapes 18s ease-in-out infinite 5s'
-            }}
-          />
-        </div>
-      </div>
+            <Sidebar isOpen={sidebarOpen} toggleSidebar={handleToggleSidebar} />
 
-    <Sidebar isOpen={sidebarOpen} toggleSidebar={handleToggleSidebar} />
+            <div className="flex-1 flex flex-col overflow-hidden">
+                <Header toggleSidebar={handleToggleSidebar} />
 
-      <div className="flex-1 flex flex-col overflow-hidden">
-        {/* 💡 CORREÇÃO: Header usa 'toggleSidebar' */}
-        <Header toggleSidebar={handleToggleSidebar} />
-
-      <main className="pt-16 mobile-container py-4 sm:py-20 space-y-6 sm:space-y-8 relative z-10">
+                <main className="pt-16 mobile-container py-4 sm:py-20 space-y-6 sm:space-y-8 relative z-10">
                     <div className="mb-8">
                         <h1 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-foreground to-primary bg-clip-text text-transparent page-title">
                             Relatório De Horas
@@ -1018,10 +593,7 @@ const handleDownloadCSVSimple = () => {
                         </p>
                     </div>
 
-                    {/* EXIBIÇÃO CONDICIONAL DOS RESULTADOS (TOPO) */}
-
-                    {/* 1. RELATÓRIO DETALHADO */}
-                    {(reportType === "detailed" && reportData.length > 0) && (
+                    {reportData.length > 0 && (
                         <ResultadosRelatorioDetalhado
                             reportData={reportData}
                             statusFilter={status}
@@ -1031,16 +603,6 @@ const handleDownloadCSVSimple = () => {
                         />
                     )}
 
-                    {/* 2. RELATÓRIO SIMPLES */}
-                    {(reportType === "simple" && reportDataSimple && reportDataSimple.days.length > 0) && (
-                        <ResultadosRelatorioSimples
-                            reportDataSimple={reportDataSimple}
-                            referenceTime={referenceTime}
-                            selectedDates={selectedDates}
-                        />
-                    )}
-
-                    {/* FILTROS (BAIXO) */}
                     <RelatorioFiltros
                         selectedDates={selectedDates}
                         setSelectedDates={setSelectedDates}
@@ -1054,19 +616,12 @@ const handleDownloadCSVSimple = () => {
                         setIsActive={setIsActive}
                         status={status}
                         setStatus={setStatus}
-                        reportType={reportType}
-                        setReportType={(type) => {
-                            setReportType(type);
-                            setReportData([]);
-                            setReportDataSimple(null);
-                            if (type === "simple") setStatus([]);
-                        }}
                         employees={employees}
                         isPartner={isPartner}
                         hasResults={hasResults}
-                        onSearch={handleSearchClick}
-                        onDownloadPDF={handleDownloadPDF} // Passa o novo router de PDF
-                        onDownloadCSV={handleDownloadCSV} // Passa o novo router de CSV
+                        onSearch={handleSearch}
+                        onDownloadPDF={handleDownloadPDFDetailed} 
+                        onDownloadCSV={handleDownloadCSVDetailed} 
                         customTips={statusRegistroTips}
                         isLoading={isLoading}
                     />
@@ -1077,12 +632,10 @@ const handleDownloadCSVSimple = () => {
                             setIsOpen={setEditModalOpen}
                             managers={managers}
                             selectedRecord={selectedRecord}
-
                             onSaveRecord={handleSaveRecord}
-                            form={form} // Passa a instância completa do useForm
+                            form={form}
                         />
                     </Card>
-
                 </main>
             </div>
         </div>
