@@ -485,11 +485,13 @@ const handleDownloadPDFDetailed = () => {
 
     reportData.forEach((item, index) => {
         const isBreak = item.statusRecord === 'IMPLICIT_BREAK';
-        const formattedDateStart = formatDateWithDayOfWeek(item.startWork); // 'DD-MM-YYYY' -> 'Dia, DD/MM/YYYY'
-        const formattedDateEnd = formatDateWithDayOfWeek(item.endWork);   // 'DD-MM-YYYY' -> 'Dia, DD/MM/YYYY'
-
+        const isPending = item.statusRecord === 'PENDING';
+        const formattedDateStart = formatDateWithDayOfWeek(item.startWork);
+        const formattedDateEnd = isPending ? '-' : formatDateWithDayOfWeek(item.endWork);
+        const displayEndHour = isPending ? '--:--' : item.endHour;
+        const displayBalance = isPending ? '--:--' : item.balance;
         const formattedStart = `${formattedDateStart}\n${item.startHour}`;
-        const formattedEnd = `${formattedDateEnd}\n${item.endHour}`;
+        const formattedEnd = isPending ? '--:--' : `${formattedDateEnd}\n${displayEndHour}`;
         
         // 🚀 NOVO: Checa se o registro é feriado
         const startDate = parseDate(item.startWork);
@@ -505,6 +507,7 @@ const handleDownloadPDFDetailed = () => {
             { content: formattedStart, styles: { fontStyle: fontStyle } },
             { content: formattedEnd, styles: { fontStyle: fontStyle } },
             { content: item.hoursWork, styles: { fontStyle: fontStyle } },
+            { content: isPending ? '--:--' : item.hoursWork, styles: { fontStyle: fontStyle } },
             { content: isBreak ? '00:00' : item.balance, styles: { fontStyle: fontStyle } },
             // 🚀 NOVO: Adiciona (FERIADO) ao status
             { content: isItemHoliday ? `${statusLabel} (FERIADO)` : statusLabel, styles: { fontStyle: fontStyle } }    
@@ -637,12 +640,13 @@ const handleDownloadCSVDetailed = () => {
 
     // 🚀 CORREÇÃO DE TIPAGEM: Mapeia para um array de arrays de strings (string[][])
     const csvDataRows = reportData.map(item => {
+        const isPending = item.statusRecord === 'PENDING';
         return [
             item.startWork, // DD-MM-YYYY
             item.startHour,
-            item.endWork, // DD-MM-YYYY
-            item.endHour,
-            item.hoursWork,
+            isPending ? '' : item.endWork, // Deixa vazio se pendente
+            isPending ? '' : item.endHour, // Deixa vazio se pendente
+            isPending ? '' : item.hoursWork, 
             item.statusRecord === 'IMPLICIT_BREAK' ? '00:00' : item.balance,
             getTranslatedStatus(item.statusRecord), 
             item.employeeData.employeeName,
