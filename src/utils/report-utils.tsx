@@ -27,6 +27,8 @@ export interface DetailedReportItem {
     };
     latitude?: number;
     longitude?: number;
+    endLatitude?: number;
+    endLongitude?: number;
 }
 
 export interface ReportDay {
