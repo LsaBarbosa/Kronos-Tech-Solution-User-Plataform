@@ -89,8 +89,10 @@ export const ResultadosRelatorioDetalhado: React.FC<ResultadosDetalhadoProps> = 
     const cardHeaderRef = useRef<HTMLDivElement>(null); // NOVO: Referência para o CardHeader
     const isInitialMount = useRef(true); 
     // --- FIM PAGINAÇÃO E SCROLL CONTROL ---
+// Dentro do componente que exibe um único registro
+   type AddressPair = { entry?: string; exit?: string };
 
-    const [addressMap, setAddressMap] = useState<Record<number, string>>({});
+const [addressMap, setAddressMap] = useState<Record<number, AddressPair>>({});
 
     // --- CÁLCULOS DE PAGINAÇÃO (Memorizados) ---
     const totalElements = reportData.length;
@@ -109,31 +111,68 @@ export const ResultadosRelatorioDetalhado: React.FC<ResultadosDetalhadoProps> = 
         setCurrentPage(0);
     }
 
-  useEffect(() => {
+    useEffect(() => {
         const fetchAddresses = async () => {
-            const newAddresses: Record<number, string> = {};
+            // Agora o objeto armazena pares de endereços
+            const newAddresses: Record<number, AddressPair> = {};
             let hasNewAddress = false;
 
-            // Filtra registros que são CREATED, têm coordenadas e ainda não têm endereço no estado
-            const recordsToFetch = currentRecords.filter(item => 
-                item.statusRecord === 'CREATED' && 
-                item.latitude && 
-                item.longitude && 
-                !addressMap[item.timeRecordId]
-            );
+            // Filtra registros que precisam de atualização (entrada ou saída faltando)
+            const recordsToFetch = currentRecords.filter(item => {
+                // Se não é CREATED ou UPDATED (depende da sua regra), ignora
+                // Ajuste se quiser mostrar local para outros status
+                if (item.statusRecord !== 'CREATED' && 
+                    item.statusRecord !== 'UPDATED' && 
+                    item.statusRecord !== 'PENDING' && 
+                    item.statusRecord !== 'UPDATE_REJECTED' && 
+                    item.statusRecord !== 'PENDING_APPROVAL') return false;
+
+                const current = addressMap[item.timeRecordId] || {};
+                
+                // Precisa buscar se: tem coordenada MAS não tem endereço salvo
+                const needEntry = item.latitude && item.longitude && !current.entry;
+                const needExit = item.endLatitude && item.endLongitude && !current.exit;
+
+                return needEntry || needExit;
+            });
 
             if (recordsToFetch.length === 0) return;
 
             await Promise.all(recordsToFetch.map(async (record) => {
-                if (record.latitude && record.longitude) {
-                    const addr = await getAddressFromCoordinates(record.latitude, record.longitude);
-                    newAddresses[record.timeRecordId] = addr;
+                const current = addressMap[record.timeRecordId] || {};
+                let entryAddr = current.entry;
+                let exitAddr = current.exit;
+
+                // Busca Entrada se necessário
+                if (record.latitude && record.longitude && !entryAddr) {
+                    entryAddr = await getAddressFromCoordinates(record.latitude, record.longitude);
                     hasNewAddress = true;
+                }
+
+                // Busca Saída se necessário
+                if (record.endLatitude && record.endLongitude && !exitAddr) {
+                    exitAddr = await getAddressFromCoordinates(record.endLatitude, record.endLongitude);
+                    hasNewAddress = true;
+                }
+
+                if (hasNewAddress) {
+                    newAddresses[record.timeRecordId] = { 
+                        entry: entryAddr, 
+                        exit: exitAddr 
+                    };
                 }
             }));
 
             if (hasNewAddress) {
-                setAddressMap(prev => ({ ...prev, ...newAddresses }));
+                setAddressMap(prev => ({ 
+                    ...prev, 
+                    // Faz o merge inteligente para não perder dados anteriores
+                    ...Object.keys(newAddresses).reduce((acc, key) => {
+                        const id = Number(key);
+                        acc[id] = { ...prev[id], ...newAddresses[id] };
+                        return acc;
+                    }, {} as Record<number, AddressPair>)
+                }));
             }
         };
 
@@ -446,7 +485,7 @@ export const ResultadosRelatorioDetalhado: React.FC<ResultadosDetalhadoProps> = 
                     {currentRecords.map((item, index) => {
                         const isBreak = item.statusRecord === 'IMPLICIT_BREAK';
                         const isCreated = item.statusRecord === 'CREATED';
-                        const address = addressMap[item.timeRecordId];
+                        const addresses = addressMap[item.timeRecordId] || {};
                         const handleCardClick = () => {
                             // Impedir a edição de registros de Pausa (IMPLICIT_BREAK)
                             if (!isBreak) {
@@ -495,17 +534,33 @@ export const ResultadosRelatorioDetalhado: React.FC<ResultadosDetalhadoProps> = 
                                             </>
                                         )}
                                     </div>
-{isCreated && item.latitude && item.longitude && (
-                                        <div className="flex flex-col pt-3 border-t mt-2">
-                                            <div className="flex items-start gap-2 text-xs text-muted-foreground">
-                                                <MapPin className="h-3 w-3 mt-0.5 text-primary shrink-0" />
-                                                <span className="break-words leading-tight">
-                                                    {address ? address : <span className="animate-pulse">Carregando localização...</span>}
-                                                </span>
-                                            </div>
-                                        </div>
-                                    )}
+{/* Renderização Condicional de Localização */}
+{( (item.latitude && item.longitude) || (item.endLatitude && item.endLongitude) ) && (
+    <div className="flex flex-col pt-3 border-t mt-2 gap-2">
+        
+        {/* Endereço de Entrada */}
+        {item.latitude && item.longitude && (
+            <div className="flex items-start gap-2 text-xs text-muted-foreground">
+                <MapPin className="h-3 w-3 mt-0.5 text-green-600 shrink-0" />
+                <span className="break-words leading-tight">
+                    <strong>Entrada: </strong>
+                    {addresses.entry ? addresses.entry : <span className="animate-pulse">Carregando...</span>}
+                </span>
+            </div>
+        )}
 
+        {/* Endereço de Saída - NOVO */}
+        {item.endLatitude && item.endLongitude && (
+            <div className="flex items-start gap-2 text-xs text-muted-foreground">
+                <MapPin className="h-3 w-3 mt-0.5 text-red-500 shrink-0" />
+                <span className="break-words leading-tight">
+                    <strong>Saída: </strong>
+                    {addresses.exit ? addresses.exit : <span className="animate-pulse">Carregando...</span>}
+                </span>
+            </div>
+        )}
+    </div>
+)}
                                     {/* --- Botão/Status de Documento Anexo --- */}
                                     {item.documentDownloadPath && ( 
                                         <div className="flex justify-between items-center pt-3 border-t mt-4">
