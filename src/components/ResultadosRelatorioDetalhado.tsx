@@ -121,7 +121,7 @@ const [addressMap, setAddressMap] = useState<Record<number, AddressPair>>({});
             const recordsToFetch = currentRecords.filter(item => {
                 // Se não é CREATED ou UPDATED (depende da sua regra), ignora
                 // Ajuste se quiser mostrar local para outros status
-                if (item.statusRecord !== 'CREATED' && item.statusRecord !== 'UPDATED') return false;
+                if (item.statusRecord !== 'CREATED' && item.statusRecord !== 'UPDATED' && item.statusRecord !== 'PENDING') return false;
 
                 const current = addressMap[item.timeRecordId] || {};
                 
