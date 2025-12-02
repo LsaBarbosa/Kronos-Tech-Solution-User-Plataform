@@ -82,7 +82,7 @@ const StatusRegistro = () => {
                 Após buscar os registros, clique na linha para abrir o modal de edição.
             </li>
             <li>
-                O botão **Salvar Status** no modal será habilitado apenas quando um novo valor for selecionado.
+                O botão Salvar Status no modal será habilitado apenas quando um novo valor for selecionado.
             </li>
             <li>
                 Esta tela permite alterar o registro para: FALTA, FOLGA, ABONO.
@@ -461,9 +461,7 @@ const StatusRegistro = () => {
                         isActive={isActive}
                         setIsActive={setIsActive}
                         status={status}
-                        setStatus={setStatus}
-                        reportType={reportType}
-                        setReportType={setFixedReportType} // Força a ser detailed, mas permite o prop
+                        setStatus={setStatus} 
                         employees={employees}
                         isPartner={isPartner}
                         onSearch={handleSearch}

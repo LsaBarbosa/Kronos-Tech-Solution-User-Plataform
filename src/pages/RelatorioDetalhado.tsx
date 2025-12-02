@@ -33,6 +33,7 @@ import { RegistroEdicaoModal } from "@/components/RegistroEdicaoModal";
 import { Card } from "@/components/ui/card";
 import { RelatorioFiltros } from "./RelatorioFiltros";
 import { Info } from "lucide-react";
+import { Link } from "react-router-dom";
 
 // === FUNÇÃO UTILITÁRIA PARA GERAÇÃO DE CSV ===
 const generateCSV = (data: any[], headers: string[], fileName: string) => {
@@ -105,8 +106,27 @@ const RelatorioDetalhado = () => {
                     <li>A solicitação será enviada ao gestor que aprovará ou negará.</li>
                 </ul>
             </div>
+             <div className="pt-2"> 
+                <h4 className="text-sm font-bold text-primary flex items-center gap-2">
+                    <div className="w-2 h-2 rounded-full bg-primary"></div>
+                    <span className="animate-pulse">Falta Injustificada</span>
+                </h4>
+            <ul className="list-disc list-inside text-xs space-y-1 text-muted-foreground ml-2 pt-1">
+                <li>A ausência de marcação de ponto, gera um registro com status FOLGA.</li>
+                <li>Em caso de causa FALTA sem justificativa, altere o status do registro de FOLGA para FALTA.</li>
+                <li>
+                    <Link 
+                        to="/status-do-registro" 
+                        className="animate-pulse font-bold text-primary hover:underline cursor-pointer"
+                    >
+                        Clique aqui
+                    </Link>
+                    {" "}para realizar a alteração!.
+                </li>
+            </ul>
         </div>
-    );
+    </div>
+);
 
     const form = useForm<EditRecordFormData>({
         resolver: zodResolver(editRecordSchema),

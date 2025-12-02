@@ -522,7 +522,7 @@ const [addressMap, setAddressMap] = useState<Record<number, AddressPair>>({});
 
                                         {/* Título de Duração muda se for Pausa */}
                                         <div className="font-medium text-muted-foreground">
-                                            {isBreak ? 'Duração da Pausa' : 'Horas Trabalhadas (Líquidas)'}
+                                            {isBreak ? 'Duração da Pausa' : 'Horas Trabalhadas'}
                                         </div>
                                         <div className="text-right font-bold text-foreground">{item.hoursWork}</div>
 
