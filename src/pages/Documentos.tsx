@@ -226,9 +226,11 @@ const Documentos = () => {
         toast.success(`Documento "${documentName}" excluído com sucesso!`);
 
     } catch (error) {
-        console.error("Erro ao deletar documento:", error);
-        toast.error(`Falha ao excluir o documento ${documentName}. Tente novamente.`);
+   if (error.response?.status === 403) {
+      const serverMessage = error.response.data?.detail;
+    
     }
+  }
 };
 
   // Normalize document date string to 'yyyy-MM-dd'
