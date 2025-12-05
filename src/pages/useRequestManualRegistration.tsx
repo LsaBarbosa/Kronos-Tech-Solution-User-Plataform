@@ -1,7 +1,7 @@
 // src/pages/RequestTimeOff.tsx
 
 import { z } from "zod";
-import { CalendarIcon, Clock, FileUp, User, AlertCircle, X, Loader2, HelpCircle } from "lucide-react";
+import { CalendarIcon, Clock, FileUp, User, AlertCircle, X, Loader2, HelpCircle, Info } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { useForm } from "react-hook-form";
@@ -350,6 +350,7 @@ export function RequestManualRegistration() {
 
                       {/* Horários */}
                       <div className="grid grid-cols-2 gap-4">
+                        
                         <FormField
                           control={form.control}
                           name="startHour"
@@ -392,12 +393,16 @@ export function RequestManualRegistration() {
                                     field.onChange(e);
                                     handleChange("endHour", e.target.value);
                                   }}
-                                />
-                              </FormControl>
+                                /> 
+                              </FormControl> 
+                            
                               <FormMessage className="text-destructive">{errors.endHour}</FormMessage>
+                            
                             </FormItem>
+                            
                           )}
                         />
+                        
                       </div>
 
                       {/* Manager */}
@@ -408,7 +413,7 @@ export function RequestManualRegistration() {
                           <FormItem>
                             <FormLabel className="flex items-center">
                               <User className="w-4 h-4 mr-2 text-primary" />
-                              Gestor Aprovador*
+                              Gestor Aprovador
                             </FormLabel>
                             <Select
                               onValueChange={(value) => {
@@ -437,7 +442,43 @@ export function RequestManualRegistration() {
                           </FormItem>
                         )}
                       />
+                            {/* Dica de Preenchimento de Horas - Tema Dinâmico */}
+<div className="md:col-span-2 mt-2">
+  {/* bg-primary/5: Fundo com 5% da cor do tema
+      border-primary/20: Borda suave com 20% da cor do tema
+  */}
+  <div className="rounded-lg border border-primary/20 bg-primary/5 p-4">
+    <div className="flex items-start gap-3">
+      {/* Ícone usando a cor principal do tema */}
+      <Info className="h-5 w-5 text-primary mt-0.5 shrink-0" />
+      
+      <div className="space-y-2">
+        {/* Título com a cor principal do tema */}
+        <h4 className="text-sm font-semibold text-primary">
+          Como preencher as horas corretamente?
+        </h4>
+        
+        {/* Texto descritivo em muted-foreground para garantir leitura em qualquer cor (ex: amarelo) */}
+        <p className="text-sm text-muted-foreground">
+          Defina as horas efetivamente trabalhadas, <strong>desconsiderando</strong> o tempo de intervalo.
+        </p>
 
+        {/* Bloco de Exemplo: Fundo um pouco mais forte (10%) */}
+        <div className="mt-2 rounded bg-primary/10 p-2 text-xs text-muted-foreground">
+          <p className="font-medium mb-1 text-primary">Exemplo Prático:</p>
+          <ul className="list-disc pl-4 space-y-1">
+            <li>
+              Horário real: 09:00 às 18:00 (com 1h de almoço) = 8h totais.
+            </li>
+            <li>
+              <span className="font-bold text-primary underline decoration-primary/50">Como preencher:</span> 09:00 às 17:00 (Totalizando exatas 8h líquidas).
+            </li>
+          </ul>
+        </div>
+      </div>
+    </div>
+  </div>
+</div>
                       <div className="md:col-span-2">
                         <Separator className="my-4 bg-muted" />
                       </div>
