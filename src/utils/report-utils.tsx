@@ -103,7 +103,7 @@ export const statusOptions = [
     { value: "UPDATE_REJECTED", label: "Atualização Rejeitada Por ADM" },
     { value: "TIME_OFF_REJECTED", label: "Horas Abonadas Rejeitadas" },
     { value: "VACATION_REJECTED", label: "Férias Rejeitadas" },
-    { value: "IMPLICIT_BREAK", label: "Pausa (Automática)" }, 
+    { value: "IMPLICIT_BREAK", label: "Pausa" }, 
 ];
 
 // --- Funções Auxiliares ---

@@ -3,7 +3,7 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { CalendarIcon, Download, Edit, Coffee, FileText, MapPin } from "lucide-react"; // Usando Coffee para Pausa
+import { CalendarIcon, Download, Edit, Coffee, FileText, MapPin, Clock } from "lucide-react";
 import { DetailedReportItem, statusOptions, getStatusColor, getTranslatedStatus, formatDateWithDayOfWeek } from "@/utils/report-utils"; 
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
@@ -17,17 +17,44 @@ import { PaginationComponent } from "./ui/PaginationComponent";
 
 // Define 5 itens por página para a paginação local (Client-Side)
 const ROWS_PER_PAGE = 5; 
+
+// --- FUNÇÕES AUXILIARES DE CÁLCULO DE TEMPO ---
+const parseBalanceToMinutes = (balanceStr: string): number => {
+    if (!balanceStr || balanceStr === "00:00" || balanceStr.length < 5) return 0;
+    
+    // Remove caracteres invisíveis ou espaços
+    const cleanStr = balanceStr.trim();
+    const sign = cleanStr.startsWith("-") ? -1 : 1;
+    
+    // Remove sinal para parsear
+    const timePart = cleanStr.replace(/[+-]/, "");
+    const [hours, minutes] = timePart.split(":").map(Number);
+    
+    if (isNaN(hours) || isNaN(minutes)) return 0;
+    
+    return sign * (hours * 60 + minutes);
+};
+
+const formatMinutesToBalance = (totalMinutes: number): string => {
+    const sign = totalMinutes < 0 ? "-" : "+";
+    const absMinutes = Math.abs(totalMinutes);
+    const hours = Math.floor(absMinutes / 60);
+    const minutes = absMinutes % 60;
+    
+    return `${sign}${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`;
+};
+// --- FIM FUNÇÕES AUXILIARES ---
+
 const getAddressFromCoordinates = async (latitude: number, longitude: number): Promise<string> => {
     if (!latitude || !longitude) return "Localização indisponível";
 
     try {
-        // API OpenStreetMap (Nominatim)
         const url = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`;
         
         const response = await fetch(url, {
             headers: {
                 'User-Agent': 'KronosSystem/1.0',
-                'Accept-Language': 'pt-BR' // Força resposta em português
+                'Accept-Language': 'pt-BR'
             }
         });
 
@@ -35,29 +62,13 @@ const getAddressFromCoordinates = async (latitude: number, longitude: number): P
 
         const data = await response.json();
         
-        // LÓGICA ATUALIZADA:
-        // Verifica se o objeto 'address' existe na resposta
         if (data.address) {
             const { road, village, municipality, state, postcode } = data.address;
-
-            // Cria um array com os campos desejados na ordem que você pediu
-            const addressParts = [
-                road, 
-                village, 
-                municipality, 
-                state, 
-                postcode
-            ];
-
-            // O .filter(Boolean) remove campos que vierem vazios ou nulos (undefined)
-            // O .join(", ") junta tudo com vírgula e espaço
+            const addressParts = [road, village, municipality, state, postcode];
             const formattedAddress = addressParts.filter(Boolean).join(", ");
-
-            // Retorna o endereço formatado. Se ficar vazio (nenhum campo encontrado), usa o display_name como fallback.
             return formattedAddress || data.display_name;
         }
 
-        // Fallback caso o objeto address não venha estruturado
         return data.display_name || "Endereço não encontrado";
 
     } catch (error) {
@@ -86,41 +97,83 @@ export const ResultadosRelatorioDetalhado: React.FC<ResultadosDetalhadoProps> = 
     // --- PAGINAÇÃO E SCROLL CONTROL ---
     const [currentPage, setCurrentPage] = useState(0);
     const resultsRef = useRef<HTMLDivElement>(null); 
-    const cardHeaderRef = useRef<HTMLDivElement>(null); // NOVO: Referência para o CardHeader
+    const cardHeaderRef = useRef<HTMLDivElement>(null);
     const isInitialMount = useRef(true); 
-    // --- FIM PAGINAÇÃO E SCROLL CONTROL ---
-// Dentro do componente que exibe um único registro
-   type AddressPair = { entry?: string; exit?: string };
+    
+    type AddressPair = { entry?: string; exit?: string };
+    const [addressMap, setAddressMap] = useState<Record<number, AddressPair>>({});
 
-const [addressMap, setAddressMap] = useState<Record<number, AddressPair>>({});
+    // --- CÁLCULOS DE SALDO TOTAL (Memoized) ---
+    // Calcula o saldo total baseado em todos os dados filtrados (não apenas na página atual)
+    const totalPeriodBalance = useMemo(() => {
+        const uniqueDays = new Set<string>();
+        let totalMinutes = 0;
 
-    // --- CÁLCULOS DE PAGINAÇÃO (Memorizados) ---
+        reportData.forEach(record => {
+            // Assume que 'startWork' contém a data (ex: "01-12-2025") ou é ISO
+            // Extrai apenas a parte da data para identificar o dia único
+            let dateKey = "";
+            if (record.startWork && record.startWork.includes(' ')) {
+                 // Se vier com hora ("dd-MM-yyyy HH:mm"), pega só a data
+                 dateKey = record.startWork.split(' ')[0]; 
+            } else {
+                 dateKey = record.startWork;
+            }
+
+            // Somamos apenas uma vez por dia, assumindo que o backend envia o saldo diário consolidado em cada registro
+            // Se o dia ainda não foi processado e o registro tem saldo válido
+            if (!uniqueDays.has(dateKey)) {
+                uniqueDays.add(dateKey);
+                // Ignora saldo se for "00:00" de registros como pausa/férias para não somar zeros desnecessários, 
+                // mas a função parse lida com isso.
+                // IMPORTANTE: Estamos confiando que o backend manda o saldo DO DIA neste campo.
+                if (record.balance) {
+                    totalMinutes += parseBalanceToMinutes(record.balance);
+                }
+            }
+        });
+
+        return formatMinutesToBalance(totalMinutes);
+    }, [reportData]);
+
+    // --- CÁLCULOS DE PAGINAÇÃO ---
     const totalElements = reportData.length;
     const totalPages = Math.ceil(totalElements / ROWS_PER_PAGE);
 
-    // Usa useMemo para calcular a fatia de dados a ser exibida na página atual
     const currentRecords = useMemo(() => {
         const startIndex = currentPage * ROWS_PER_PAGE;
         const endIndex = startIndex + ROWS_PER_PAGE;
         return reportData.slice(startIndex, endIndex);
     }, [reportData, currentPage]);
     
-    // Se a página atual não tiver dados (pode acontecer se o filtro esvaziar a última página),
-    // volta para a página 0.
+    // --- AGRUPAMENTO POR DATA (Apenas da página atual para exibição) ---
+    const groupedCurrentRecords = useMemo(() => {
+        const groups: Record<string, DetailedReportItem[]> = {};
+        
+        currentRecords.forEach(record => {
+            // Usa a string exata de data retornada pelo backend para agrupar
+            const dateKey = record.startWork; 
+            if (!groups[dateKey]) {
+                groups[dateKey] = [];
+            }
+            groups[dateKey].push(record);
+        });
+        
+        // Retorna entradas [chave, valor] para facilitar o map
+        return Object.entries(groups);
+    }, [currentRecords]);
+
     if (currentPage > 0 && currentRecords.length === 0 && totalElements > 0) {
         setCurrentPage(0);
     }
 
+    // --- BUSCA DE ENDEREÇOS ---
     useEffect(() => {
         const fetchAddresses = async () => {
-            // Agora o objeto armazena pares de endereços
             const newAddresses: Record<number, AddressPair> = {};
             let hasNewAddress = false;
 
-            // Filtra registros que precisam de atualização (entrada ou saída faltando)
             const recordsToFetch = currentRecords.filter(item => {
-                // Se não é CREATED ou UPDATED (depende da sua regra), ignora
-                // Ajuste se quiser mostrar local para outros status
                 if (item.statusRecord !== 'CREATED' && 
                     item.statusRecord !== 'UPDATED' && 
                     item.statusRecord !== 'PENDING' && 
@@ -128,8 +181,6 @@ const [addressMap, setAddressMap] = useState<Record<number, AddressPair>>({});
                     item.statusRecord !== 'PENDING_APPROVAL') return false;
 
                 const current = addressMap[item.timeRecordId] || {};
-                
-                // Precisa buscar se: tem coordenada MAS não tem endereço salvo
                 const needEntry = item.latitude && item.longitude && !current.entry;
                 const needExit = item.endLatitude && item.endLongitude && !current.exit;
 
@@ -143,30 +194,24 @@ const [addressMap, setAddressMap] = useState<Record<number, AddressPair>>({});
                 let entryAddr = current.entry;
                 let exitAddr = current.exit;
 
-                // Busca Entrada se necessário
                 if (record.latitude && record.longitude && !entryAddr) {
                     entryAddr = await getAddressFromCoordinates(record.latitude, record.longitude);
                     hasNewAddress = true;
                 }
 
-                // Busca Saída se necessário
                 if (record.endLatitude && record.endLongitude && !exitAddr) {
                     exitAddr = await getAddressFromCoordinates(record.endLatitude, record.endLongitude);
                     hasNewAddress = true;
                 }
 
                 if (hasNewAddress) {
-                    newAddresses[record.timeRecordId] = { 
-                        entry: entryAddr, 
-                        exit: exitAddr 
-                    };
+                    newAddresses[record.timeRecordId] = { entry: entryAddr, exit: exitAddr };
                 }
             }));
 
             if (hasNewAddress) {
                 setAddressMap(prev => ({ 
                     ...prev, 
-                    // Faz o merge inteligente para não perder dados anteriores
                     ...Object.keys(newAddresses).reduce((acc, key) => {
                         const id = Number(key);
                         acc[id] = { ...prev[id], ...newAddresses[id] };
@@ -179,7 +224,7 @@ const [addressMap, setAddressMap] = useState<Record<number, AddressPair>>({});
         fetchAddresses();
     }, [currentRecords, addressMap]);
     
-// --- FUNÇÃO DE DOWNLOAD ROBUSTA (MANTIDA) ---
+    // --- DOWNLOAD DE DOCUMENTOS ---
     const handleDocumentDownload = async (documentId: string, employeeId: string, employeeName: string) => {
         if (!documentId || !employeeId) {
             toast({
@@ -201,14 +246,10 @@ const [addressMap, setAddressMap] = useState<Record<number, AddressPair>>({});
                 return;
             }
 
-            // 1. Monta a URL: /documents/{documentId}?employeeId={employeeId}
             const url = `${API_BASE_URL}documents/${documentId}?employeeId=${employeeId}`;
 
-            // 2. Realiza o fetch com o token no header
             const response = await fetch(url, {
-                headers: {
-                    'Authorization': `Bearer ${token}`,
-                },
+                headers: { 'Authorization': `Bearer ${token}` },
             });
 
             if (!response.ok) {
@@ -216,15 +257,12 @@ const [addressMap, setAddressMap] = useState<Record<number, AddressPair>>({});
                 try {
                     const errorData = await response.json();
                     errorMessage = errorData.detail || errorMessage;
-                } catch {
-                    // Ignora se não for JSON, usa a mensagem padrão.
-                }
+                } catch { }
                 throw new Error(errorMessage);
             }
 
-            // 3. Extrai o nome do arquivo do header Content-Disposition
             const contentDisposition = response.headers.get('Content-Disposition');
-            let filename = `${employeeName}_justificativa_de_abono`; 
+            let filename = `${employeeName}_documento`; 
 
             if (contentDisposition) {
                 const filenameMatch = contentDisposition.match(/filename="(.+?)"/);
@@ -233,7 +271,6 @@ const [addressMap, setAddressMap] = useState<Record<number, AddressPair>>({});
                 }
             }
 
-            // 4. Cria o Blob e força o download
             const blob = await response.blob();
             const href = window.URL.createObjectURL(blob);
             const link = window.document.createElement('a');
@@ -258,34 +295,22 @@ const [addressMap, setAddressMap] = useState<Record<number, AddressPair>>({});
             });
         }
     };
-    // --- FIM DA FUNÇÃO DE DOWNLOAD ROBUSTA ---
     
-    // Lógica do PDF Detalhado (MANTIDA)
+    // --- GERAÇÃO DE PDF ---
     const handleDownload = () => {
-        // Usa reportData (todos os registros) para o download do PDF, pois é o relatório completo.
         if (reportData.length === 0) {
-            toast({
-                title: "Erro",
-                description: "Gere o relatório primeiro para poder fazer o download.",
-                variant: "destructive"
-            });
+            toast({ title: "Erro", description: "Gere o relatório primeiro.", variant: "destructive" });
             return;
         }
 
         try {
-            const doc = new jsPDF({
-                orientation: 'landscape',
-                unit: 'mm',
-                format: 'a4'
-            });
+            const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
 
-            // ESTILO: TÍTULO PRINCIPAL
             doc.setTextColor(0, 150, 136); 
             doc.setFont("helvetica", "bold");
             doc.setFontSize(22);
             doc.text('RELATÓRIO DETALHADO DE PONTO', 20, 25);
 
-            // Volta para estilo de texto normal
             doc.setFontSize(12);
             doc.setFont("helvetica", "normal");
             doc.setTextColor(0, 0, 0); 
@@ -298,33 +323,19 @@ const [addressMap, setAddressMap] = useState<Record<number, AddressPair>>({});
                 yPosition += 7;
             }
 
-         if (statusFilter && statusFilter.length > 0) {
-                
-                const statusLabel = statusFilter.map(getTranslatedStatus).join(', '); 
-                doc.text(`Status: ${statusLabel}`, 20, yPosition);
-                yPosition += 7;
-            }
+            // Exibe o Saldo Total no PDF também
+            doc.setFont("helvetica", "bold");
+            doc.text(`Saldo Total do Período: ${totalPeriodBalance}`, 20, yPosition);
+            doc.setFont("helvetica", "normal");
+            yPosition += 7;
 
             doc.text(`Carga horária diária: ${referenceTime}`, 20, yPosition);
             yPosition += 7;
 
-            if (selectedDates.length > 0) {
-                const validDates = selectedDates.filter(date => date && !isNaN(date.getTime()));
-                const datesList = validDates
-                    .map(date => format(date, "dd/MM/yyyy", { locale: ptBR }))
-                    .join(", ");
-                doc.text(`Datas: ${datesList}`, 20, yPosition);
-                yPosition += 10;
-            }
-            doc.setFont("helvetica", "bold");
-            yPosition += 5;
-
-            // ESTILOS DE CORES PARA LINHAS
             const COLOR_MAIN_RECORD = [240, 255, 240]; 
             const COLOR_BREAK_RECORD = [230, 230, 250]; 
             const COLOR_SEPARATOR = [200, 200, 200];       
 
-            // Prepara os dados da tabela
             const tableBody: any[] = [];
 
             reportData.forEach(item => { 
@@ -344,273 +355,230 @@ const [addressMap, setAddressMap] = useState<Record<number, AddressPair>>({});
                     { content: formattedStart, styles: { fillColor: fillColor } },
                     { content: formattedEnd, styles: { fillColor: fillColor } },
                     { content: item.hoursWork, styles: { fillColor: fillColor } },
+                    // Mantém saldo no PDF para registro histórico, ou mude para vazio se preferir
                     { content: isBreak ? '00:00' : item.balance, styles: { fillColor: fillColor } },
                     { content: statusLabel, styles: { fillColor: fillColor } }
                 ];
                 
                 tableBody.push(rowCells.map(cell => ({
                     ...cell,
-                    styles: {
-                        ...cell.styles,
-                        halign: 'center',
-                        cellPadding: isBreak ? 2 : 4, 
-                        fontSize: isBreak ? 8 : 9,
-                        fontStyle: fontStyle
-                    }
+                    styles: { ...cell.styles, halign: 'center', cellPadding: isBreak ? 2 : 4, fontSize: isBreak ? 8 : 9, fontStyle: fontStyle }
                 })));
 
-                // Linha separadora
-                tableBody.push([
-                   { content: '', colSpan: 5, styles: { fillColor: COLOR_SEPARATOR, cellPadding: 0.2 } }
-                ]);
+                tableBody.push([ { content: '', colSpan: 5, styles: { fillColor: COLOR_SEPARATOR, cellPadding: 0.2 } } ]);
             });
 
-
-            yPosition += 10;
-
-            // Remove a última linha separadora extra
-            if (tableBody.length > 0) {
-                tableBody.pop();
-            }
+            if (tableBody.length > 0) tableBody.pop();
 
             autoTable(doc, {
-                head: [['Início (Data/Dia da Semana/Hora)', 'Fim (Data/Dia da Semana/Hora)', 'Duração', 'Saldo', 'Status']], 
+                head: [['Início', 'Fim', 'Duração', 'Saldo Diário', 'Status']], 
                 body: tableBody,
-                startY: yPosition,
+                startY: yPosition + 5,
                 margin: { left: 20, right: 20 },
-                styles: {
-                    fontSize: 9,
-                    cellPadding: 3,
-                    halign: 'center',
-                    lineColor: [220, 220, 220], 
-                    lineWidth: 0.1, 
-                },
-                headStyles: {
-                    fillColor: [0, 150, 136], 
-                    textColor: [255, 255, 255],
-                    fontSize: 11, 
-                    fontStyle: 'bold'
-                },
-                columnStyles: {
-                    3: { // Coluna do Saldo
-                        cellWidth: 20,
-                        halign: 'center'
-                    }
-                },
-                didParseCell: function (data) {
-                    if (data.column.index === 3 && data.section === 'body') {
-                        const balance = data.cell.text[0];
-                        const status = data.row.raw[4].content;
-                        
-                        if (status === getTranslatedStatus('IMPLICIT_BREAK') || balance === '00:00') {
-                            data.cell.styles.textColor = [0, 0, 0]; 
-                            data.cell.styles.fontStyle = 'italic';
-                        } else if (balance) {
-                            if (balance.toString().startsWith('-')) {
-                                data.cell.styles.textColor = [220, 53, 69]; 
-                                data.cell.styles.fontStyle = 'bold';
-                            } else if (!balance.toString().startsWith('-') && balance !== '00:00') {
-                                data.cell.styles.textColor = [40, 167, 69]; 
-                                data.cell.styles.fontStyle = 'bold';
-                            }
-                        }
-                    }
-                }
+                styles: { fontSize: 9, cellPadding: 3, halign: 'center' },
+                headStyles: { fillColor: [0, 150, 136] },
             });
-
-            const pageCount = doc.getNumberOfPages();
-            for (let i = 1; i <= pageCount; i++) {
-                doc.setPage(i);
-                doc.setFontSize(8);
-                doc.setTextColor(100, 149, 237); 
-                doc.text(`Página ${i} de ${pageCount}`, doc.internal.pageSize.width - 30, doc.internal.pageSize.height - 10);
-                doc.text(`Gerado em: ${format(new Date(), "dd/MM/yyyy 'às' HH:mm", { locale: ptBR })}`, 20, doc.internal.pageSize.height - 10);
-            }
-            doc.setTextColor(0, 0, 0); 
-
 
             const fileName = `relatorio_detalhado_${format(new Date(), "yyyyMMdd_HHmmss")}.pdf`;
             doc.save(fileName);
-
-            toast({
-                title: "PDF Gerado",
-                description: "Relatório detalhado baixado com sucesso!",
-            });
+            toast({ title: "PDF Gerado", description: "Relatório baixado com sucesso!" });
 
         } catch (error) {
-            console.error("Erro ao gerar PDF:", error);
-            toast({
-                title: "Erro",
-                description: (error as Error).message || "Não foi possível gerar o PDF. Tente novamente.",
-                variant: "destructive",
-            });
+            toast({ title: "Erro", description: "Erro ao gerar PDF.", variant: "destructive" });
         }
     };
 
-    // --- EFEITO DE CORREÇÃO DE SCROLL (Aprimorado para a Paginação) ---
+    // --- SCROLL CONTROL ---
     useEffect(() => {
-        // 1. Na montagem inicial, apenas marca a flag e retorna.
         if (isInitialMount.current) {
             isInitialMount.current = false;
             return;
         }
-
-        // 2. Em qualquer mudança de página subsequente:
-        if (cardHeaderRef.current) { // ALTERADO: Usa cardHeaderRef
-            // Rola até o topo do Card Header. O block: 'start' garante que o título fique visível.
-            cardHeaderRef.current.scrollIntoView({ 
-                behavior: 'smooth', 
-                block: 'start'      
-            });
+        if (cardHeaderRef.current) { 
+            cardHeaderRef.current.scrollIntoView({ behavior: 'smooth', block: 'start' });
         }
     }, [currentPage]);
-    // --- FIM EFEITO DE CORREÇÃO DE SCROLL ---
+
+    if (!reportData || reportData.length === 0) {
+        return (
+            <Card className="shadow-card border-t-4 border-t-muted mb-8">
+                <CardContent className="py-8 text-center text-muted-foreground">
+                    Nenhum registro encontrado para o período.
+                </CardContent>
+            </Card>
+        );
+    }
 
     return (
-       // O componente Card continua com a ref principal, mas o scroll mira no CardHeader
-       <Card className="shadow-card border-t-4 border-t-primary mb-8" ref={resultsRef}>
-            <CardHeader 
-                className="flex flex-row justify-between items-center" 
-                ref={cardHeaderRef} // ADICIONADO: Ref no CardHeader para mira do scroll
-            >
-                <div>
-                    <CardTitle>Resultados do Relatório Detalhado</CardTitle>
-                    {/* A descrição agora reflete a página e o total de registros */}
-                    <CardDescription>{totalElements} registro(s) detalhado(s) encontrado(s). (Página {currentPage + 1} de {totalPages})</CardDescription> 
-                </div>
-            </CardHeader>
-            <CardContent className="p-4">
-                {/* O loop agora utiliza currentRecords, que contém apenas os 5 itens da página atual */}
-                <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
-                    {currentRecords.map((item, index) => {
-                        const isBreak = item.statusRecord === 'IMPLICIT_BREAK';
-                        const isCreated = item.statusRecord === 'CREATED';
-                        const addresses = addressMap[item.timeRecordId] || {};
-                        const handleCardClick = () => {
-                            // Impedir a edição de registros de Pausa (IMPLICIT_BREAK)
-                            if (!isBreak) {
-                                onEditRecord(item);
-                            }
-                        };
-                        
+       <div className="space-y-6">
+            {/* CARD DE RESUMO DO SALDO TOTAL */}
+            <Card className="bg-primary/5 border-primary/20 shadow-sm">
+                <CardContent className="flex flex-row items-center justify-between p-6">
+                    <div className="space-y-1">
+                        <p className="text-sm font-medium text-muted-foreground">Saldo Total do Período Selecionado</p>
+                        <div className="flex items-baseline gap-2">
+                            <span className={`text-3xl font-bold ${totalPeriodBalance.startsWith('-') ? 'text-destructive' : 'text-green-600'}`}>
+                                {totalPeriodBalance}
+                            </span>
+                            <span className="text-sm text-muted-foreground">horas</span>
+                        </div>
+                    </div>
+                    <div className="bg-background p-3 rounded-full shadow-sm">
+                        <Clock className="h-6 w-6 text-primary" />
+                    </div>
+                </CardContent>
+            </Card>
+
+            {/* LISTA PRINCIPAL */}
+            <Card className="shadow-card border-t-4 border-t-primary mb-8" ref={resultsRef}>
+                <CardHeader className="flex flex-row justify-between items-center" ref={cardHeaderRef}>
+                    <div>
+                        <CardTitle>Resultados do Relatório</CardTitle>
+                        <CardDescription>
+                            {totalElements} registro(s) encontrados. (Página {currentPage + 1} de {totalPages})
+                        </CardDescription> 
+                    </div>
+                    <Button variant="outline" size="sm" onClick={handleDownload} className="gap-2">
+                        <Download className="h-4 w-4" />
+                        Exportar PDF
+                    </Button>
+                </CardHeader>
+                
+                <CardContent className="p-4 space-y-6">
+                    {/* Renderiza Grupos por Dia */}
+                    {groupedCurrentRecords.map(([dateKey, dayRecords]) => {
+                        // Pega o saldo do primeiro registro do dia (Backend envia saldo diário consolidado)
+                        const dailyBalance = dayRecords[0]?.balance || "00:00";
+                        const isNegativeBalance = dailyBalance.startsWith('-');
+
                         return (
-                            <Card
-                                key={item.timeRecordId || index}
-                                // Estilos para Pausa vs Trabalho
-                                className={`
-                                    border-l-4 shadow-md transition-all duration-300
-                                    ${isBreak ? 'border-l-gray-500 bg-gray-500/10 cursor-default' : 'border-l-primary bg-card/80 cursor-pointer hover:shadow-lg hover:border-primary/80 group'}
-                                `}
-                                onClick={handleCardClick}
-                            >
-                                <CardContent className="p-4 space-y-3">
-                                    <div className="flex justify-between items-center pb-2 border-b">
-                                        <div className="flex items-center gap-2">
-                                            {isBreak ? <Coffee className="h-4 w-4 text-gray-500" /> : <CalendarIcon className="h-4 w-4 text-primary" />}
-                                            <span className="font-bold text-lg text-foreground">{item.startWork}</span>
-                                        </div>
-                                        <Badge className={`${getStatusColor(item.statusRecord)}`}>
-                                            {statusOptions.find(opt => opt.value === item.statusRecord)?.label || item.statusRecord}
-                                        </Badge>
+                            <div key={dateKey} className="border rounded-lg bg-slate-50/50 dark:bg-slate-900/20 overflow-hidden">
+                                {/* Cabeçalho do Dia */}
+                                <div className="bg-muted/30 p-3 border-b flex flex-wrap justify-between items-center gap-2">
+                                    <div className="flex items-center gap-2">
+                                        <CalendarIcon className="h-5 w-5 text-primary" />
+                                        <h3 className="font-semibold text-lg capitalize text-foreground">
+                                            {dateKey} {/* Exibe a data (ex: 01-12-2025) */}
+                                        </h3>
                                     </div>
-                                    <div className="grid grid-cols-2 gap-x-4 gap-y-2 text-sm">
-                                        <div className="font-medium text-muted-foreground">Início:</div>
-                                        <div className="text-right font-semibold text-foreground">{item.startHour}</div>
-
-                                        <div className="font-medium text-muted-foreground">Fim:</div>
-                                        <div className="text-right font-semibold text-foreground">{item.endHour}</div>
-
-                                        {/* Título de Duração muda se for Pausa */}
-                                        <div className="font-medium text-muted-foreground">
-                                            {isBreak ? 'Duração da Pausa' : 'Horas Trabalhadas'}
-                                        </div>
-                                        <div className="text-right font-bold text-foreground">{item.hoursWork}</div>
-
-                                        {/* Saldo é apenas para registros de Trabalho */}
-                                        {!isBreak && (
-                                            <>
-                                                <div className="font-medium text-muted-foreground">Saldo:</div>
-                                                <div className={`text-right font-bold ${item.balance.startsWith('-') ? 'text-destructive' : 'text-green-600'}`}>{item.balance}</div>
-                                            </>
-                                        )}
+                                    <div className="flex items-center gap-2 bg-background px-3 py-1 rounded-md shadow-sm border">
+                                        <span className="text-sm font-medium text-muted-foreground">Saldo do Dia:</span>
+                                        <span className={`font-bold ${isNegativeBalance ? 'text-destructive' : 'text-green-600'}`}>
+                                            {dailyBalance}
+                                        </span>
                                     </div>
-{/* Renderização Condicional de Localização */}
-{( (item.latitude && item.longitude) || (item.endLatitude && item.endLongitude) ) && (
-    <div className="flex flex-col pt-3 border-t mt-2 gap-2">
-        
-        {/* Endereço de Entrada */}
-        {item.latitude && item.longitude && (
-            <div className="flex items-start gap-2 text-xs text-muted-foreground">
-                <MapPin className="h-3 w-3 mt-0.5 text-green-600 shrink-0" />
-                <span className="break-words leading-tight">
-                    <strong>Entrada: </strong>
-                    {addresses.entry ? addresses.entry : <span className="animate-pulse">Carregando...</span>}
-                </span>
-            </div>
-        )}
+                                </div>
 
-        {/* Endereço de Saída - NOVO */}
-        {item.endLatitude && item.endLongitude && (
-            <div className="flex items-start gap-2 text-xs text-muted-foreground">
-                <MapPin className="h-3 w-3 mt-0.5 text-red-500 shrink-0" />
-                <span className="break-words leading-tight">
-                    <strong>Saída: </strong>
-                    {addresses.exit ? addresses.exit : <span className="animate-pulse">Carregando...</span>}
-                </span>
-            </div>
-        )}
-    </div>
-)}
-                                    {/* --- Botão/Status de Documento Anexo --- */}
-                                    {item.documentDownloadPath && ( 
-                                        <div className="flex justify-between items-center pt-3 border-t mt-4">
-                                            <div className="flex items-center gap-2 text-primary text-sm font-medium">
-                                                 <FileText className="h-4 w-4" />
-                                                Documento Anexado
-                                            </div>
-                                            <Button
-                                                variant="ghost"
-                                                size="icon"
-                                                onClick={(e) => {
-                                                    e.stopPropagation(); // Evita que o clique no botão ative o handleCardClick
-                                                    handleDocumentDownload(
-                                                        item.documentDownloadPath!, // ID do Documento
-                                                        item.employeeId, // ID do Colaborador
-                                                        item.employeeData.employeeName // Nome do Colaborador para o nome do arquivo
-                                                    );
-                                                }}
-                                                title="Baixar Comprovante"
+                                {/* Grid de Registros do Dia */}
+                                <div className="p-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
+                                    {dayRecords.map((item, index) => {
+                                        const isBreak = item.statusRecord === 'IMPLICIT_BREAK';
+                                        const addresses = addressMap[item.timeRecordId] || {};
+                                        
+                                        return (
+                                            <Card
+                                                key={item.timeRecordId || index}
+                                                className={`
+                                                    border-l-4 shadow-sm transition-all duration-200
+                                                    ${isBreak 
+                                                        ? 'border-l-gray-400 bg-gray-100/50 dark:bg-gray-800/50 cursor-default' 
+                                                        : 'border-l-primary bg-card hover:shadow-md cursor-pointer group'}
+                                                `}
+                                                onClick={() => !isBreak && onEditRecord(item)}
                                             >
-                                                <Download className="h-4 w-4 text-foreground   " />
-                                            </Button>
-                                        </div>
-                                    )}
-                                    {/* --- FIM Botão/Status de Documento Anexo --- */}
-                                    
-                                    {/* Ícone de Edição só aparece se não for pausa */}
-                                    {!isBreak && (
-                                        <div className="flex justify-end pt-2 text-primary opacity-0 group-hover:opacity-100 transition-opacity">
-                                            <Edit className="h-4 w-4" />
-                                        </div>
-                                    )}
-                                </CardContent>
-                            </Card>
+                                                <CardContent className="p-4 space-y-3">
+                                                    {/* Topo do Card: Horário e Status */}
+                                                    <div className="flex justify-between items-start pb-2 border-b border-border/50">
+                                                        <div className="flex flex-col">
+                                                            <div className="flex items-center gap-1.5">
+                                                                {isBreak ? <Coffee className="h-4 w-4 text-gray-500" /> : <Clock className="h-4 w-4 text-primary" />}
+                                                                <span className="font-bold text-lg">{item.startHour}</span>
+                                                                <span className="text-muted-foreground text-xs mx-1">até</span>
+                                                                <span className="font-bold text-lg">{item.endHour || '--:--'}</span>
+                                                            </div>
+                                                        </div>
+                                                        <Badge className={`${getStatusColor(item.statusRecord)} text-[10px] px-2 py-0.5 h-5`}>
+                                                            {statusOptions.find(opt => opt.value === item.statusRecord)?.label || item.statusRecord}
+                                                        </Badge>
+                                                    </div>
+
+                                                    {/* Detalhes de Duração (Sem Saldo Individual) */}
+                                                    <div className="flex justify-between items-center text-sm">
+                                                        <span className="text-muted-foreground">
+                                                            {isBreak ? 'Tempo de Pausa:' : 'Horas Trabalhadas:'}
+                                                        </span>
+                                                        <span className="font-bold font-mono text-base">
+                                                            {item.hoursWork}
+                                                        </span>
+                                                    </div>
+
+                                                    {/* Endereços */}
+                                                    {((item.latitude && item.longitude) || (item.endLatitude && item.endLongitude)) && (
+                                                        <div className="flex flex-col pt-2 border-t border-border/50 gap-1.5 mt-2 bg-muted/20 p-2 rounded text-xs">
+                                                            {item.latitude && (
+                                                                <div className="flex items-start gap-1.5">
+                                                                    <MapPin className="h-3 w-3 mt-0.5 text-green-600 shrink-0" />
+                                                                    <span className="text-muted-foreground line-clamp-2" title={addresses.entry}>
+                                                                        {addresses.entry || "Carregando..."}
+                                                                    </span>
+                                                                </div>
+                                                            )}
+                                                            {item.endLatitude && (
+                                                                <div className="flex items-start gap-1.5">
+                                                                    <MapPin className="h-3 w-3 mt-0.5 text-red-500 shrink-0" />
+                                                                    <span className="text-muted-foreground line-clamp-2" title={addresses.exit}>
+                                                                        {addresses.exit || "Carregando..."}
+                                                                    </span>
+                                                                </div>
+                                                            )}
+                                                        </div>
+                                                    )}
+
+                                                    {/* Botão de Documento e Edição */}
+                                                    <div className="flex justify-between items-center pt-2 mt-1">
+                                                        {item.documentDownloadPath ? (
+                                                            <Button
+                                                                variant="ghost"
+                                                                size="sm"
+                                                                className="h-7 px-2 text-xs gap-1.5 text-primary hover:text-primary hover:bg-primary/10"
+                                                                onClick={(e) => {
+                                                                    e.stopPropagation();
+                                                                    handleDocumentDownload(item.documentDownloadPath!, item.employeeId, item.employeeData.employeeName);
+                                                                }}
+                                                            >
+                                                                <FileText className="h-3.5 w-3.5" />
+                                                                Ver Anexo
+                                                            </Button>
+                                                        ) : <div />}
+                                                        
+                                                        {!isBreak && (
+                                                            <div className="text-primary/50 group-hover:text-primary transition-colors">
+                                                                <Edit className="h-4 w-4" />
+                                                            </div>
+                                                        )}
+                                                    </div>
+                                                </CardContent>
+                                            </Card>
+                                        );
+                                    })}
+                                </div>
+                            </div>
                         );
                     })}
-                </div>
-                {/* --- COMPONENTE DE PAGINAÇÃO (Renderizado se houver mais de 1 página) --- */}
-                {totalPages > 1 && (
-                    <div className="mt-6 flex justify-center">
-                        <PaginationComponent
-                            totalPages={totalPages}
-                            currentPage={currentPage}
-                            onPageChange={setCurrentPage} // Função para mudar a página
-                            totalElements={totalElements}
-                        />
-                    </div>
-                )}
-                {/* --- FIM COMPONENTE DE PAGINAÇÃO --- */}
-            </CardContent>
-        </Card>
+
+                    {/* Paginação */}
+                    {totalPages > 1 && (
+                        <div className="mt-6 flex justify-center">
+                            <PaginationComponent
+                                totalPages={totalPages}
+                                currentPage={currentPage}
+                                onPageChange={setCurrentPage}
+                                totalElements={totalElements}
+                            />
+                        </div>
+                    )}
+                </CardContent>
+            </Card>
+       </div>
     );
 };
