@@ -3,7 +3,7 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { CalendarIcon, Download, Edit, Coffee, FileText, MapPin, Clock } from "lucide-react";
+import { CalendarIcon, Download, Edit, Coffee, FileText, MapPin, Clock, Briefcase } from "lucide-react";
 import { DetailedReportItem, statusOptions, getStatusColor, getTranslatedStatus, formatDateWithDayOfWeek } from "@/utils/report-utils"; 
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
@@ -22,17 +22,23 @@ const ROWS_PER_PAGE = 5;
 const parseBalanceToMinutes = (balanceStr: string): number => {
     if (!balanceStr || balanceStr === "00:00" || balanceStr.length < 5) return 0;
     
-    // Remove caracteres invisíveis ou espaços
     const cleanStr = balanceStr.trim();
     const sign = cleanStr.startsWith("-") ? -1 : 1;
     
-    // Remove sinal para parsear
     const timePart = cleanStr.replace(/[+-]/, "");
     const [hours, minutes] = timePart.split(":").map(Number);
     
     if (isNaN(hours) || isNaN(minutes)) return 0;
     
     return sign * (hours * 60 + minutes);
+};
+
+// Nova função específica para parsear horas trabalhadas (sem sinal negativo)
+const parseTimeToMinutes = (timeStr: string): number => {
+    if (!timeStr || timeStr === "00:00" || timeStr.length < 5) return 0;
+    const [hours, minutes] = timeStr.split(":").map(Number);
+    if (isNaN(hours) || isNaN(minutes)) return 0;
+    return hours * 60 + minutes;
 };
 
 const formatMinutesToBalance = (totalMinutes: number): string => {
@@ -42,6 +48,12 @@ const formatMinutesToBalance = (totalMinutes: number): string => {
     const minutes = absMinutes % 60;
     
     return `${sign}${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`;
+};
+
+const formatMinutesToTime = (totalMinutes: number): string => {
+    const hours = Math.floor(totalMinutes / 60);
+    const minutes = totalMinutes % 60;
+    return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`;
 };
 // --- FIM FUNÇÕES AUXILIARES ---
 
@@ -103,37 +115,39 @@ export const ResultadosRelatorioDetalhado: React.FC<ResultadosDetalhadoProps> = 
     type AddressPair = { entry?: string; exit?: string };
     const [addressMap, setAddressMap] = useState<Record<number, AddressPair>>({});
 
-    // --- CÁLCULOS DE SALDO TOTAL (Memoized) ---
-    // Calcula o saldo total baseado em todos os dados filtrados (não apenas na página atual)
-    const totalPeriodBalance = useMemo(() => {
+    // --- CÁLCULOS DE TOTAIS DO PERÍODO (Memoized) ---
+    const { totalPeriodBalance, totalPeriodHours } = useMemo(() => {
         const uniqueDays = new Set<string>();
-        let totalMinutes = 0;
+        let totalBalanceMinutes = 0;
+        let totalWorkedMinutes = 0;
 
         reportData.forEach(record => {
-            // Assume que 'startWork' contém a data (ex: "01-12-2025") ou é ISO
-            // Extrai apenas a parte da data para identificar o dia único
+            // Lógica de Data
             let dateKey = "";
             if (record.startWork && record.startWork.includes(' ')) {
-                 // Se vier com hora ("dd-MM-yyyy HH:mm"), pega só a data
                  dateKey = record.startWork.split(' ')[0]; 
             } else {
                  dateKey = record.startWork;
             }
 
-            // Somamos apenas uma vez por dia, assumindo que o backend envia o saldo diário consolidado em cada registro
-            // Se o dia ainda não foi processado e o registro tem saldo válido
+            // 1. Saldo: Somamos apenas uma vez por dia (pois o backend envia o saldo diário repetido)
             if (!uniqueDays.has(dateKey)) {
                 uniqueDays.add(dateKey);
-                // Ignora saldo se for "00:00" de registros como pausa/férias para não somar zeros desnecessários, 
-                // mas a função parse lida com isso.
-                // IMPORTANTE: Estamos confiando que o backend manda o saldo DO DIA neste campo.
                 if (record.balance) {
-                    totalMinutes += parseBalanceToMinutes(record.balance);
+                    totalBalanceMinutes += parseBalanceToMinutes(record.balance);
                 }
+            }
+
+            // 2. Horas Trabalhadas: Somamos todos os registros que NÃO são pausa
+            if (record.statusRecord !== 'IMPLICIT_BREAK' && record.hoursWork) {
+                totalWorkedMinutes += parseTimeToMinutes(record.hoursWork);
             }
         });
 
-        return formatMinutesToBalance(totalMinutes);
+        return {
+            totalPeriodBalance: formatMinutesToBalance(totalBalanceMinutes),
+            totalPeriodHours: formatMinutesToTime(totalWorkedMinutes)
+        };
     }, [reportData]);
 
     // --- CÁLCULOS DE PAGINAÇÃO ---
@@ -151,7 +165,6 @@ export const ResultadosRelatorioDetalhado: React.FC<ResultadosDetalhadoProps> = 
         const groups: Record<string, DetailedReportItem[]> = {};
         
         currentRecords.forEach(record => {
-            // Usa a string exata de data retornada pelo backend para agrupar
             const dateKey = record.startWork; 
             if (!groups[dateKey]) {
                 groups[dateKey] = [];
@@ -159,7 +172,6 @@ export const ResultadosRelatorioDetalhado: React.FC<ResultadosDetalhadoProps> = 
             groups[dateKey].push(record);
         });
         
-        // Retorna entradas [chave, valor] para facilitar o map
         return Object.entries(groups);
     }, [currentRecords]);
 
@@ -295,6 +307,73 @@ export const ResultadosRelatorioDetalhado: React.FC<ResultadosDetalhadoProps> = 
             });
         }
     };
+
+    // --- EXPORTAR CSV ---
+    const handleCsvDownload = () => {
+        if (reportData.length === 0) {
+            toast({
+                title: "Erro",
+                description: "Gere o relatório primeiro para poder exportar.",
+                variant: "destructive"
+            });
+            return;
+        }
+
+        try {
+            const headers = [
+                "Funcionário",
+                "Empresa",
+                "Data Início",
+                "Hora Início",
+                "Data Fim",
+                "Hora Fim",
+                "Duração",
+                "Saldo Diário",
+                "Status"
+            ];
+
+            const rows = reportData.map(item => {
+                const isBreak = item.statusRecord === 'IMPLICIT_BREAK';
+                const clean = (str: string | null | undefined) => `"${(str || '').replace(/"/g, '""')}"`;
+
+                return [
+                    clean(item.employeeData?.employeeName),
+                    clean(item.employeeData?.companyName),
+                    clean(item.startWork),
+                    clean(item.startHour),
+                    clean(item.endWork),
+                    clean(item.endHour),
+                    clean(item.hoursWork),
+                    clean(isBreak ? '00:00' : item.balance),
+                    clean(getTranslatedStatus(item.statusRecord))
+                ].join(",");
+            });
+
+            const csvContent = [headers.join(","), ...rows].join("\n");
+            const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
+            const url = URL.createObjectURL(blob);
+            const link = document.createElement("a");
+            link.setAttribute("href", url);
+            link.setAttribute("download", `relatorio_${format(new Date(), "yyyyMMdd_HHmmss")}.csv`);
+            link.style.visibility = "hidden";
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+
+            toast({
+                title: "CSV Gerado",
+                description: "Arquivo CSV baixado com sucesso!",
+            });
+
+        } catch (error) {
+            console.error("Erro ao gerar CSV:", error);
+            toast({
+                title: "Erro",
+                description: "Não foi possível gerar o CSV.",
+                variant: "destructive",
+            });
+        }
+    };
     
     // --- GERAÇÃO DE PDF ---
     const handleDownload = () => {
@@ -323,9 +402,12 @@ export const ResultadosRelatorioDetalhado: React.FC<ResultadosDetalhadoProps> = 
                 yPosition += 7;
             }
 
-            // Exibe o Saldo Total no PDF também
+            // Exibe Totais no PDF
             doc.setFont("helvetica", "bold");
             doc.text(`Saldo Total do Período: ${totalPeriodBalance}`, 20, yPosition);
+            yPosition += 6;
+            doc.text(`Total Horas Trabalhadas: ${totalPeriodHours}`, 20, yPosition);
+            
             doc.setFont("helvetica", "normal");
             yPosition += 7;
 
@@ -355,7 +437,6 @@ export const ResultadosRelatorioDetalhado: React.FC<ResultadosDetalhadoProps> = 
                     { content: formattedStart, styles: { fillColor: fillColor } },
                     { content: formattedEnd, styles: { fillColor: fillColor } },
                     { content: item.hoursWork, styles: { fillColor: fillColor } },
-                    // Mantém saldo no PDF para registro histórico, ou mude para vazio se preferir
                     { content: isBreak ? '00:00' : item.balance, styles: { fillColor: fillColor } },
                     { content: statusLabel, styles: { fillColor: fillColor } }
                 ];
@@ -411,45 +492,80 @@ export const ResultadosRelatorioDetalhado: React.FC<ResultadosDetalhadoProps> = 
 
     return (
        <div className="space-y-6">
-            {/* CARD DE RESUMO DO SALDO TOTAL */}
+            {/* CARD DE RESUMO GERAL */}
             <Card className="bg-primary/5 border-primary/20 shadow-sm">
                 <CardContent className="flex flex-row items-center justify-between p-6">
-                    <div className="space-y-1">
-                        <p className="text-sm font-medium text-muted-foreground">Saldo Total do Período Selecionado</p>
-                        <div className="flex items-baseline gap-2">
-                            <span className={`text-3xl font-bold ${totalPeriodBalance.startsWith('-') ? 'text-destructive' : 'text-green-600'}`}>
-                                {totalPeriodBalance}
-                            </span>
-                            <span className="text-sm text-muted-foreground">horas</span>
+                    <div className="space-y-3 w-full">
+                        {/* Saldo Total */}
+                        <div>
+                            <p className="text-sm font-medium text-muted-foreground">Saldo Total do Período Selecionado</p>
+                            <div className="flex items-baseline gap-2">
+                                <span className={`text-3xl font-bold ${totalPeriodBalance.startsWith('-') ? 'text-destructive' : 'text-green-600'}`}>
+                                    {totalPeriodBalance}
+                                </span>
+                                <span className="text-sm text-muted-foreground">horas</span>
+                            </div>
+                        </div>
+                        
+                        {/* Divisória sutil */}
+                        <div className="h-px bg-border/50 w-1/2" />
+
+                        {/* Total Horas Trabalhadas */}
+                        <div>
+                            <p className="text-sm font-medium text-muted-foreground">Total de horas trabalhadas</p>
+                            <div className="flex items-baseline gap-2">
+                                <span className="text-2xl font-bold text-foreground">
+                                    {totalPeriodHours}
+                                </span>
+                                <span className="text-sm text-muted-foreground">horas</span>
+                            </div>
                         </div>
                     </div>
-                    <div className="bg-background p-3 rounded-full shadow-sm">
-                        <Clock className="h-6 w-6 text-primary" />
+                    
+                    <div className="bg-background p-4 rounded-full shadow-sm self-start mt-2">
+                        <Clock className="h-8 w-8 text-primary" />
                     </div>
                 </CardContent>
             </Card>
 
             {/* LISTA PRINCIPAL */}
             <Card className="shadow-card border-t-4 border-t-primary mb-8" ref={resultsRef}>
-                <CardHeader className="flex flex-row justify-between items-center" ref={cardHeaderRef}>
+                <CardHeader className="flex flex-row justify-between items-start" ref={cardHeaderRef}>
                     <div>
                         <CardTitle>Resultados do Relatório</CardTitle>
                         <CardDescription>
                             {totalElements} registro(s) encontrados. (Página {currentPage + 1} de {totalPages})
                         </CardDescription> 
                     </div>
-                    <Button variant="outline" size="sm" onClick={handleDownload} className="gap-2">
-                        <Download className="h-4 w-4" />
-                        Exportar PDF
-                    </Button>
+                    
+                    {/* BOTÕES DE EXPORTAÇÃO */}
+                    <div className="flex flex-col gap-2">
+                        <Button variant="outline" size="sm" onClick={handleDownload} className="gap-2 w-full justify-start">
+                            <Download className="h-4 w-4" />
+                            Exportar PDF
+                        </Button>
+                        <Button variant="outline" size="sm" onClick={handleCsvDownload} className="gap-2 w-full justify-start">
+                            <FileText className="h-4 w-4" />
+                            Exportar CSV
+                        </Button>
+                    </div>
                 </CardHeader>
                 
                 <CardContent className="p-4 space-y-6">
                     {/* Renderiza Grupos por Dia */}
                     {groupedCurrentRecords.map(([dateKey, dayRecords]) => {
-                        // Pega o saldo do primeiro registro do dia (Backend envia saldo diário consolidado)
+                        // Pega o saldo do primeiro registro do dia
                         const dailyBalance = dayRecords[0]?.balance || "00:00";
                         const isNegativeBalance = dailyBalance.startsWith('-');
+
+                        // Calcula total de horas trabalhadas no DIA (excluindo pausas)
+                        const dailyWorkedMinutes = dayRecords.reduce((acc, item) => {
+                            if (item.statusRecord !== 'IMPLICIT_BREAK' && item.hoursWork) {
+                                return acc + parseTimeToMinutes(item.hoursWork);
+                            }
+                            return acc;
+                        }, 0);
+                        const dailyWorkedHours = formatMinutesToTime(dailyWorkedMinutes);
 
                         return (
                             <div key={dateKey} className="border rounded-lg bg-slate-50/50 dark:bg-slate-900/20 overflow-hidden">
@@ -458,14 +574,25 @@ export const ResultadosRelatorioDetalhado: React.FC<ResultadosDetalhadoProps> = 
                                     <div className="flex items-center gap-2">
                                         <CalendarIcon className="h-5 w-5 text-primary" />
                                         <h3 className="font-semibold text-lg capitalize text-foreground">
-                                            {dateKey} {/* Exibe a data (ex: 01-12-2025) */}
+                                            {dateKey} 
                                         </h3>
                                     </div>
-                                    <div className="flex items-center gap-2 bg-background px-3 py-1 rounded-md shadow-sm border">
-                                        <span className="text-sm font-medium text-muted-foreground">Saldo do Dia:</span>
-                                        <span className={`font-bold ${isNegativeBalance ? 'text-destructive' : 'text-green-600'}`}>
-                                            {dailyBalance}
-                                        </span>
+                                    
+                                    {/* Infos do Dia: Saldo e Horas Trabalhadas */}
+                                    <div className="flex flex-col items-end gap-1 sm:flex-row sm:gap-4 sm:items-center">
+                                        <div className="flex items-center gap-2 bg-background px-3 py-1 rounded-md shadow-sm border border-transparent">
+                                            <span className="text-xs font-medium text-muted-foreground">Horas trabalhadas:</span>
+                                            <span className="font-bold text-foreground">
+                                                {dailyWorkedHours}
+                                            </span>
+                                        </div>
+
+                                        <div className="flex items-center gap-2 bg-background px-3 py-1 rounded-md shadow-sm border">
+                                            <span className="text-xs font-medium text-muted-foreground">Saldo do Dia:</span>
+                                            <span className={`font-bold ${isNegativeBalance ? 'text-destructive' : 'text-green-600'}`}>
+                                                {dailyBalance}
+                                            </span>
+                                        </div>
                                     </div>
                                 </div>
 
@@ -487,7 +614,6 @@ export const ResultadosRelatorioDetalhado: React.FC<ResultadosDetalhadoProps> = 
                                                 onClick={() => !isBreak && onEditRecord(item)}
                                             >
                                                 <CardContent className="p-4 space-y-3">
-                                                    {/* Topo do Card: Horário e Status */}
                                                     <div className="flex justify-between items-start pb-2 border-b border-border/50">
                                                         <div className="flex flex-col">
                                                             <div className="flex items-center gap-1.5">
@@ -502,7 +628,6 @@ export const ResultadosRelatorioDetalhado: React.FC<ResultadosDetalhadoProps> = 
                                                         </Badge>
                                                     </div>
 
-                                                    {/* Detalhes de Duração (Sem Saldo Individual) */}
                                                     <div className="flex justify-between items-center text-sm">
                                                         <span className="text-muted-foreground">
                                                             {isBreak ? 'Tempo de Pausa:' : 'Horas Trabalhadas:'}
@@ -512,7 +637,6 @@ export const ResultadosRelatorioDetalhado: React.FC<ResultadosDetalhadoProps> = 
                                                         </span>
                                                     </div>
 
-                                                    {/* Endereços */}
                                                     {((item.latitude && item.longitude) || (item.endLatitude && item.endLongitude)) && (
                                                         <div className="flex flex-col pt-2 border-t border-border/50 gap-1.5 mt-2 bg-muted/20 p-2 rounded text-xs">
                                                             {item.latitude && (
@@ -534,7 +658,6 @@ export const ResultadosRelatorioDetalhado: React.FC<ResultadosDetalhadoProps> = 
                                                         </div>
                                                     )}
 
-                                                    {/* Botão de Documento e Edição */}
                                                     <div className="flex justify-between items-center pt-2 mt-1">
                                                         {item.documentDownloadPath ? (
                                                             <Button
@@ -566,7 +689,6 @@ export const ResultadosRelatorioDetalhado: React.FC<ResultadosDetalhadoProps> = 
                         );
                     })}
 
-                    {/* Paginação */}
                     {totalPages > 1 && (
                         <div className="mt-6 flex justify-center">
                             <PaginationComponent
