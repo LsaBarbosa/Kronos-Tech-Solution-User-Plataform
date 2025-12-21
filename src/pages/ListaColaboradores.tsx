@@ -23,6 +23,9 @@ import {
   UserCircle,
   Sparkles,
   Camera,
+  Clock,
+  FileText,
+  ArrowRight,
 } from "lucide-react";
 import {
   AlertDialog,
@@ -56,6 +59,7 @@ interface Employee {
   employeeId: string;
   fullName: string;
   maskedCpf: string;
+  pis: string;
   jobPosition: string;
   email: string;
   salary: number;
@@ -64,6 +68,11 @@ interface Employee {
   companyId: string;
   active: boolean;
   homeOffice: boolean;
+  workStartTime?: string;   
+  workEndTime?: string;     
+  breakStartTime?: string;  
+  breakEndTime?: string;
+
 }
 
  interface UserData {
@@ -276,7 +285,8 @@ const ListaColaboradores = () => {
     setEditingId(colaborador.employeeId);
     setEditedData({
       fullName: colaborador.fullName,
-      maskedCpf: "",
+      maskedCpf: colaborador.maskedCpf,
+      pis: colaborador.pis,
       jobPosition: colaborador.jobPosition,
       email: colaborador.email,
       salary: colaborador.salary,
@@ -287,7 +297,11 @@ const ListaColaboradores = () => {
       role: colaborador.role,
       enabled: colaborador.enabled,
       homeOffice: colaborador.homeOffice,
-    });
+      workStartTime: colaborador.workStartTime,
+      workEndTime:  colaborador.workEndTime,
+      breakStartTime:  colaborador.breakStartTime,
+      breakEndTime: colaborador.breakEndTime
+});
     setFaceImageFile(null);
   };
 
@@ -361,6 +375,9 @@ const ListaColaboradores = () => {
       if (editedCpf && editedCpf !== originalColaborador.maskedCpf.replace(/\D/g, "")) {
         bodyDataEmployee.cpf = editedCpf;
       }
+       if (editedData.pis && editedData.pis !== originalColaborador.pis.replace(/\D/g, "")) {
+        bodyDataEmployee.cpf = editedCpf;
+      }
       if (editedData.jobPosition && editedData.jobPosition !== originalColaborador.jobPosition) {
         bodyDataEmployee.jobPosition = editedData.jobPosition;
       }
@@ -375,6 +392,18 @@ const ListaColaboradores = () => {
       }
       if (editedData.homeOffice !== undefined && editedData.homeOffice !== originalColaborador.homeOffice) {
         bodyDataEmployee.homeOffice = editedData.homeOffice;
+      }
+      if (editedData.workStartTime && editedData.workStartTime !== originalColaborador.workStartTime) {
+        bodyDataEmployee.workStartTime = editedData.workStartTime;
+      }
+      if (editedData.workEndTime && editedData.workEndTime !== originalColaborador.workEndTime) {
+        bodyDataEmployee.workEndTime = editedData.workEndTime;
+      }
+      if (editedData.breakStartTime && editedData.breakStartTime !== originalColaborador.breakStartTime) {
+        bodyDataEmployee.breakStartTime = editedData.breakStartTime;
+      }
+      if (editedData.breakEndTime && editedData.breakEndTime !== originalColaborador.breakEndTime) {
+        bodyDataEmployee.breakEndTime = editedData.breakEndTime;
       }
 
       if (faceImageFile) {
@@ -829,7 +858,7 @@ const ListaColaboradores = () => {
                     </CardHeader>
                     {/* Conteúdo do Card (Mantido igual) */}
                     <CardContent className="space-y-4">
-                      {/* ... (Conteúdo de exibição/edição mantido do código original) ... */}
+                      {/* ... (Conteúdo de exibição) ... */}
                       {editingId === colaborador.employeeId ? (
                         <>
                           <div className="flex items-center gap-3 text-sm">
@@ -966,78 +995,192 @@ const ListaColaboradores = () => {
                               />
                             </div>
                           </div>
+                          </div>
+                          {/* --- NOVA SEÇÃO: JORNADA DE TRABALHO --- */}
+                        <div className="pt-4 pb-2 border-t border-dashed">
+                          <Label className="text-muted-foreground flex items-center gap-2 mb-3 text-xs font-semibold uppercase tracking-wider">
+                            <Clock className="w-4 h-4" /> Jornada de Trabalho (Contratual)
+                          </Label>
+                          
+                          <div className="grid grid-cols-2 gap-3">
+                            {/* Entrada */}
+                            <div className="space-y-1">
+                              <span className="text-[10px] text-muted-foreground uppercase font-bold">Entrada</span>
+                              <Input
+                                type="time"
+                                value={editedData.workStartTime || "08:00"}
+                                onChange={(e) => handleEditedDataChange("workStartTime", e.target.value)}
+                                className="h-8 text-sm focus:border-primary"
+                              />
+                            </div>
+
+                            {/* Saída para Almoço */}
+                            <div className="space-y-1">
+                              <span className="text-[10px] text-muted-foreground uppercase font-bold">Saída Almoço</span>
+                              <Input
+                                type="time"
+                                value={editedData.breakStartTime || "12:00"}
+                                onChange={(e) => handleEditedDataChange("breakStartTime", e.target.value)}
+                                className="h-8 text-sm focus:border-primary"
+                              />
+                            </div>
+
+                            {/* Volta do Almoço */}
+                            <div className="space-y-1">
+                              <span className="text-[10px] text-muted-foreground uppercase font-bold">Volta Almoço</span>
+                              <Input
+                                type="time"
+                                value={editedData.breakEndTime || "13:00"}
+                                onChange={(e) => handleEditedDataChange("breakEndTime", e.target.value)}
+                                className="h-8 text-sm focus:border-primary"
+                              />
+                            </div>
+
+                            {/* Saída Final */}
+                            <div className="space-y-1">
+                              <span className="text-[10px] text-muted-foreground uppercase font-bold">Saída</span>
+                              <Input
+                                type="time"
+                                value={editedData.workEndTime || "17:00"}
+                                onChange={(e) => handleEditedDataChange("workEndTime", e.target.value)}
+                                className="h-8 text-sm focus:border-primary"
+                              />
+                            </div>
+                          </div>
                         </div>
+                        
 
                         </>
                       ) : (
-                        <>
-                          {/* Visualização (Mantida) */}
-                          <div className="flex items-center gap-3 text-sm">
-                            <UserCircle className="w-4 h-4 text-muted-foreground flex-shrink-0" />
-                            <span className="text-muted-foreground">Usuário:</span>
-                            <span className="font-medium">{colaborador.username}</span>
-                          </div>
-                          <div className="flex items-center gap-3 text-sm">
-                            <Sparkles className="w-4 h-4 text-muted-foreground flex-shrink-0" />
-                            <span className="text-muted-foreground">Perfil:</span>
-                            <span className="font-medium">
-                              {colaborador.role === 'MANAGER' ? 'Administrador' : colaborador.role === 'PARTNER' ? 'Colaborador' : colaborador.role}
-                            </span>
-                          </div>
-                           <div className="flex items-center gap-3 text-sm">
-                          <Camera className="w-4 h-4 text-muted-foreground flex-shrink-0" />
-                          <span className="text-muted-foreground">Foto de Face:</span>
-                          <Badge 
-                            variant="secondary"
-                            className="bg-primary/10 text-primary border-primary/20"
-                          >
-                           Editável
-                          </Badge>
-                        </div>
-                        <div className="flex items-center gap-3 text-sm">
-                          <MapPin className="w-4 h-4 text-muted-foreground flex-shrink-0" />
-                          <span className="text-muted-foreground">Local de Trabalho:</span>
-                          <Badge 
-                            variant="secondary"
-                            className={colaborador.homeOffice 
-                              ? "bg-green-500/10 text-green-600 border-green-500/20" 
-                              : "bg-red-500/10 text-red-600 border-red-500/20"}
-                          >
-                            {colaborador.homeOffice ? 'Remoto (Sem Geolocalização)' : 'Físico (Exige Geolocalização)'}
-                          </Badge>
-                        </div>
-                          <div className="flex items-center gap-3 text-sm">
-                            <IdCard className="w-4 h-4 text-muted-foreground flex-shrink-0" />
-                            <span className="text-muted-foreground">CPF:</span>
-                            <span className="font-medium">{colaborador.maskedCpf}</span>
-                          </div>
-                          <div className="flex items-center gap-3 text-sm">
-                            <Mail className="w-4 h-4 text-muted-foreground flex-shrink-0" />
-                            <span className="text-muted-foreground">Email:</span>
-                            <span className="font-medium truncate">{colaborador.email}</span>
-                          </div>
-                          <div className="flex items-center gap-3 text-sm">
-                            <Phone className="w-4 h-4 text-muted-foreground flex-shrink-0" />
-                            <span className="text-muted-foreground">Telefone:</span>
-                            <span className="font-medium">{formatPhone(colaborador.phone)}</span>
-                          </div>
-                          <div className="flex items-center gap-3 text-sm">
-                            <DollarSign className="w-4 h-4 text-muted-foreground flex-shrink-0" />
-                            <span className="text-muted-foreground">Salário:</span>
-                            <span className="font-bold text-primary">
-                              {formatCurrency(colaborador.salary)}
-                            </span>
-                          </div>
-                          <div className="flex items-start gap-3 text-sm">
-                            <MapPin className="w-4 h-4 text-muted-foreground flex-shrink-0 mt-0.5" />
-                            <div>
-                              <span className="text-muted-foreground">Endereço:</span>
-                              <p className="font-medium text-xs mt-1 leading-relaxed">
-                                {formatAddress(colaborador.address)}
-                              </p>
-                            </div>
-                          </div>
-                        </>
+                      <>
+  {/* --- 1. CABEÇALHO: Identificação e Badges --- */}
+  <div className="flex justify-between items-start mb-4">
+    <div className="space-y-1">
+      <div className="flex items-center gap-2">
+        <UserCircle className="w-5 h-5 text-primary" />
+        <span className="font-bold text-base text-foreground tracking-tight">
+          {colaborador.username}
+        </span>
+      </div>
+      <div className="flex items-center gap-2 text-xs text-muted-foreground">
+        <Sparkles className="w-3 h-3" />
+        <span className="uppercase font-medium tracking-wide">
+          {colaborador.role === 'MANAGER' ? 'Administrador' : colaborador.role === 'PARTNER' ? 'Colaborador' : colaborador.role}
+        </span>
+      </div>
+    </div>
+    
+    <div className="flex flex-col items-end gap-1.5">
+       {/* Badge Home Office */}
+       <Badge variant="outline" className={colaborador.homeOffice 
+          ? "bg-emerald-500/10 text-emerald-600 border-emerald-500/20 text-[10px] px-2 h-5 font-semibold" 
+          : "bg-slate-100 dark:bg-slate-800 text-slate-600 dark:text-slate-400 border-slate-200 dark:border-slate-700 text-[10px] px-2 h-5 font-semibold"}>
+          {colaborador.homeOffice ? 'Remoto' : 'Presencial'}
+       </Badge>
+       
+       {/* Badge Face ID */}
+       <Badge variant="secondary" className="text-[10px] px-2 h-5 gap-1 bg-primary/5 text-primary border border-primary/10 font-medium">
+          <Camera className="w-3 h-3" /> Face ID
+       </Badge>
+    </div>
+  </div>
+
+  {/* --- 2. DADOS PROFISSIONAIS (Grid) --- */}
+  <div className="grid grid-cols-2 gap-3 p-3 bg-muted/40 rounded-lg border border-border/50 mb-4">
+    {/* CPF */}
+    <div className="space-y-0.5">
+      <span className="text-[10px] uppercase tracking-wider text-muted-foreground font-bold flex items-center gap-1.5">
+        <IdCard className="w-3 h-3" /> CPF
+      </span>
+      <p className="font-mono text-xs font-medium text-foreground">{colaborador.maskedCpf}</p>
+    </div>
+
+    {/* PIS (Novo Campo) */}
+    <div className="space-y-0.5">
+      <span className="text-[10px] uppercase tracking-wider text-muted-foreground font-bold flex items-center gap-1.5">
+        <FileText className="w-3 h-3" /> PIS
+      </span>
+      <p className="font-mono text-xs font-medium text-muted-foreground">
+        {colaborador.pis || "—"}
+      </p>
+    </div>
+
+    {/* Salário */}
+    <div className="col-span-2 pt-2 mt-1 border-t border-border/50 flex justify-between items-center">
+      <span className="text-[10px] uppercase tracking-wider text-muted-foreground font-bold flex items-center gap-1.5">
+        <DollarSign className="w-3 h-3" /> Salário Base
+      </span>
+      <span className="font-bold text-primary text-sm">
+        {formatCurrency(colaborador.salary)}
+      </span>
+    </div>
+  </div>
+
+  {/* --- 3. JORNADA DE TRABALHO (Ticket Style) --- */}
+  <div className="mb-4">
+    <div className="flex items-center gap-2 mb-2">
+      <Clock className="w-3.5 h-3.5 text-muted-foreground" />
+      <span className="text-xs font-semibold text-muted-foreground uppercase tracking-wider">Jornada Contratual</span>
+    </div>
+    
+    <div className="flex items-stretch text-xs border rounded-md overflow-hidden shadow-sm bg-background">
+      {/* Entrada */}
+      <div className="flex-1 bg-emerald-500/5 p-2 border-r flex flex-col items-center justify-center gap-0.5">
+        <span className="text-[9px] text-muted-foreground uppercase font-bold">Entrada</span>
+        <span className="font-bold text-emerald-700 dark:text-emerald-400 text-sm">
+          {colaborador.workStartTime || "--:--"}
+        </span>
+      </div>
+      
+      {/* Intervalo */}
+      <div className="flex-[1.4] bg-muted/30 p-2 border-r flex flex-col items-center justify-center gap-0.5">
+        <span className="text-[9px] text-muted-foreground uppercase font-bold">Intervalo</span>
+        <span className="font-medium text-muted-foreground flex items-center gap-1.5">
+          {colaborador.breakStartTime || "--:--"} 
+          <ArrowRight className="w-3 h-3 opacity-40" /> 
+          {colaborador.breakEndTime || "--:--"}
+        </span>
+      </div>
+
+      {/* Saída */}
+      <div className="flex-1 bg-red-500/5 p-2 flex flex-col items-center justify-center gap-0.5">
+        <span className="text-[9px] text-muted-foreground uppercase font-bold">Saída</span>
+        <span className="font-bold text-red-700 dark:text-red-400 text-sm">
+          {colaborador.workEndTime || "--:--"}
+        </span>
+      </div>
+    </div>
+  </div>
+
+  {/* --- 4. CONTATO E ENDEREÇO (Lista Compacta) --- */}
+  <div className="space-y-2.5">
+    {/* Email */}
+    <div className="flex items-center gap-3 text-sm group">
+      <div className="w-7 h-7 rounded-full bg-background border flex items-center justify-center text-muted-foreground group-hover:text-primary group-hover:border-primary/30 transition-colors">
+        <Mail className="w-3.5 h-3.5" />
+      </div>
+      <span className="font-medium truncate text-foreground/80 text-xs sm:text-sm">{colaborador.email}</span>
+    </div>
+
+    {/* Telefone */}
+    <div className="flex items-center gap-3 text-sm group">
+      <div className="w-7 h-7 rounded-full bg-background border flex items-center justify-center text-muted-foreground group-hover:text-primary group-hover:border-primary/30 transition-colors">
+        <Phone className="w-3.5 h-3.5" />
+      </div>
+      <span className="font-medium text-foreground/80 text-xs sm:text-sm">{formatPhone(colaborador.phone)}</span>
+    </div>
+
+    {/* Endereço */}
+    <div className="flex items-start gap-3 text-sm group pt-1">
+      <div className="w-7 h-7 rounded-full bg-background border flex items-center justify-center text-muted-foreground group-hover:text-primary group-hover:border-primary/30 transition-colors flex-shrink-0">
+        <MapPin className="w-3.5 h-3.5" />
+      </div>
+      <p className="font-medium text-xs text-muted-foreground leading-relaxed py-1">
+        {formatAddress(colaborador.address)}
+      </p>
+    </div>
+  </div>
+</>
                       )}
                     </CardContent>
                   </Card>

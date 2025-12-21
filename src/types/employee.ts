@@ -38,6 +38,10 @@ export interface EmployeeData {
     role: 'PARTNER' | 'MANAGER' | 'ADMIN' | 'CTO';
     active: boolean;
     homeOffice: boolean; 
+    workStartTime: string;  
+    workEndTime: string;    
+    breakStartTime: string; 
+    breakEndTime: string;
 }
 
 /**
@@ -70,13 +74,21 @@ export const employeeSchema = z.object({
     phoneNumber: z.string().min(10, "Telefone inválido"),
     salary: z.coerce.number().min(0, "Salário deve ser maior ou igual a zero"),
     jobTitle: z.string().min(2, "Cargo é obrigatório"),
-    pis: z.string().length(11, "PIS deve ter 11 dígitos"),
+   pis: z.string()
+        .transform((val) => val.replace(/\D/g, '')) // Remove formatação antes de validar
+        .refine((val) => val === '' || val.length === 11, {
+            message: "PIS deve ter 11 dígitos ou ficar vazio"
+        })
+        .optional(),
     
     // Selects exigem string, convertemos depois
     companyId: z.string().min(1, "Empresa é obrigatória"),
     // O valor do campo no formulário DEVE ser string ('true'/'false') para o Select
     homeOffice: z.string(), 
-    
+    workStartTime: z.string().regex(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/, "Hora inválida"),
+    workEndTime: z.string().regex(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/, "Hora inválida"),
+    breakStartTime: z.string().regex(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/, "Hora inválida"),
+    breakEndTime: z.string().regex(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/, "Hora inválida"),
     // Campos para o Passo 2: Acesso
     username: z.string().min(5, "Username deve ter pelo menos 5 caracteres"),
     password: z.string().min(6, "Senha deve ter pelo menos 6 caracteres"),

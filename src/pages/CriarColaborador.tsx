@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { toast } from "@/hooks/use-toast";
-import { ArrowLeft, User, Shield, Loader2, MapPin, CheckCircle } from "lucide-react";
+import { ArrowLeft, User, Shield, Loader2, MapPin, CheckCircle, Clock } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import Header from "@/components/Header";
 import Sidebar from "@/components/Sidebar";
@@ -38,6 +38,10 @@ const employeeSchema = z.object({
     homeOffice: z.enum(["true", "false"], { // NOVO CAMPO
         required_error: "O status Home Office é obrigatório.",
     }),
+    workStartTime: z.string().min(1, "Início da jornada obrigatório"),
+    workEndTime: z.string().min(1, "Fim da jornada obrigatório"),
+    breakStartTime: z.string().min(1, "Início do intervalo obrigatório"),
+    breakEndTime: z.string().min(1, "Fim do intervalo obrigatório"),
 });
 
 // Esquema para validação rigorosa dos campos do Passo 2 (User)
@@ -107,9 +111,14 @@ const [faceImageBase64, setFaceImageBase64] = useState<string | undefined>(undef
             cep: "",
             numero: "",
             homeOffice: "false", // NOVO VALOR PADRÃO
+            workStartTime: "08:00",
+            workEndTime: "17:00",
+            breakStartTime: "12:00",
+            breakEndTime: "13:00",
             username: "",
             password: "",
             role: "PARTNER",
+            
         },
     });
 
@@ -235,11 +244,16 @@ const [faceImageBase64, setFaceImageBase64] = useState<string | undefined>(undef
                 salary: parseFloat(data.salario.replace(/[R$\s.]/g, "").replace(",", ".")), 
                 phone: data.telefone.replace(/\D/g, ""),
                 homeOffice: data.homeOffice === "true", // NOVO CAMPO: Converte string para boolean
+
                 faceImageBase64: faceImageBase64,
                 address: {
                     postalCode: data.cep.replace(/\D/g, ""),
                     number: data.numero,
                 },
+                workStartTime: data.workStartTime, 
+                workEndTime: data.workEndTime,
+                breakStartTime: data.breakStartTime,
+                breakEndTime: data.breakEndTime,
             };
 
             const employeeResponse = await fetch(`${API_BASE_URL}employee`, {
@@ -541,6 +555,56 @@ const [faceImageBase64, setFaceImageBase64] = useState<string | undefined>(undef
                                         )}/>
                                         {/* FIM NOVO CAMPO */}
                                     </div>
+
+                                    <div className="md:col-span-2 mt-4 mb-2">
+                                    <h3 className="text-lg font-semibold flex items-center gap-2 text-primary">
+                                        <Clock className="h-5 w-5" /> Jornada de Trabalho
+                                    </h3>
+                                    <p className="text-sm text-muted-foreground">Defina o horário contratual para o cálculo do ponto.</p>
+                                </div>
+
+                                <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
+                                    <FormField control={form.control} name="workStartTime" render={({ field }) => (
+                                        <FormItem>
+                                            <FormLabel>Entrada</FormLabel>
+                                            <FormControl>
+                                                <Input type="time" className="h-12 text-base" {...field} />
+                                            </FormControl>
+                                            <FormMessage />
+                                        </FormItem>
+                                    )}/>
+
+                                    <FormField control={form.control} name="breakStartTime" render={({ field }) => (
+                                        <FormItem>
+                                            <FormLabel>Saída Intervalo</FormLabel>
+                                            <FormControl>
+                                                <Input type="time" className="h-12 text-base" {...field} />
+                                            </FormControl>
+                                            <FormMessage />
+                                        </FormItem>
+                                    )}/>
+
+                                    <FormField control={form.control} name="breakEndTime" render={({ field }) => (
+                                        <FormItem>
+                                            <FormLabel>Volta Intervalo</FormLabel>
+                                            <FormControl>
+                                                <Input type="time" className="h-12 text-base" {...field} />
+                                            </FormControl>
+                                            <FormMessage />
+                                        </FormItem>
+                                    )}/>
+
+                                    <FormField control={form.control} name="workEndTime" render={({ field }) => (
+                                        <FormItem>
+                                            <FormLabel>Saída</FormLabel>
+                                            <FormControl>
+                                                <Input type="time" className="h-12 text-base" {...field} />
+                                            </FormControl>
+                                            <FormMessage />
+                                        </FormItem>
+                                    )}/>
+                                </div>
+
                                     <div className="space-y-2">
                                         <Label htmlFor="faceImage">Imagem Facial (Opcional)</Label>
                                         <div className="flex items-center space-x-2">

@@ -94,7 +94,7 @@ const Empresa = () => {
               </Card>
 
               {/* CARD 2: ADICIONAR COLABORADOR */}
-              <Card className="hover:shadow-lg transition-shadow cursor-pointer" onClick={() => navigate("/criar-colaborador")}>
+              <Card className="hover:shadow-lg transition-shadow cursor-pointer" onClick={() => navigate("/criar-administrador")}>
                 <CardHeader>
                   <div className="flex items-center gap-3">
                     <User className="h-8 w-8 text-indigo-600" />
