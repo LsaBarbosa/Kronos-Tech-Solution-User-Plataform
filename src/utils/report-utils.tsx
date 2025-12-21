@@ -6,6 +6,22 @@ import { format, parse, isValid } from "date-fns"; // Adicionado 'parse' e 'isVa
 import { ptBR } from 'date-fns/locale'; //
 // --- Interfaces ---
 
+export const statusMap: Record<string, string> = {
+    CREATED: "Criado",
+    UPDATED: "Atualizado por ADM",
+    DAY_OFF: "Folga",
+    ABSENCE: "Falta",
+    PENDING: "Saída Pendente",
+    TIME_OFF: "Horas Abonadas",
+    VACATION: "Férias",
+    PENDING_APPROVAL: "Aguardando Aprovação",
+    REQUEST_VACATION: "Férias Solicitadas",
+    TIME_OFF_REQUEST: "Horas Abonadas Solicitadas",
+    UPDATE_REJECTED: "Atualização Rejeitada Por ADM",
+    TIME_OFF_REJECTED: "Horas Abonadas Rejeitadas",
+    VACATION_REJECTED: "Férias Rejeitadas",
+    IMPLICIT_BREAK: "Pausa",
+};
 // Interface DetailedReportItem simplificada (sem a lista 'breaks')
 export interface DetailedReportItem {
     documentDownloadPath: string;

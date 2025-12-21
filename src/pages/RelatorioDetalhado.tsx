@@ -620,6 +620,9 @@ const RelatorioDetalhado = () => {
                             referenceTime={referenceTime}
                             selectedDates={selectedDates}
                             onEditRecord={handleEditRecord}
+                            // --- ALTERAÇÃO AQUI: Passando as funções de download ---
+                            onDownloadPDF={handleDownloadPDFDetailed}
+                            onDownloadCSV={handleDownloadCSVDetailed}
                         />
                     )}
 

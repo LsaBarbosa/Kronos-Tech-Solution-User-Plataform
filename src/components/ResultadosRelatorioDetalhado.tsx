@@ -3,13 +3,8 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { CalendarIcon, Download, Edit, Coffee, FileText, MapPin, Clock, Briefcase } from "lucide-react";
-import { DetailedReportItem, statusOptions, getStatusColor, getTranslatedStatus, formatDateWithDayOfWeek } from "@/utils/report-utils"; 
-import jsPDF from 'jspdf';
-import 'jspdf-autotable';
-import autoTable from "jspdf-autotable";
-import { format } from "date-fns";
-import { ptBR } from "date-fns/locale";
+import { CalendarIcon, Download, Edit, Coffee, FileText, MapPin, Clock } from "lucide-react";
+import { DetailedReportItem, statusOptions, getStatusColor, statusMap } from "@/utils/report-utils"; 
 import { useToast } from "@/hooks/use-toast";
 import { API_BASE_URL } from "@/config/api";
 import { Button } from "./ui/button";
@@ -95,6 +90,9 @@ interface ResultadosDetalhadoProps {
     referenceTime: string;
     selectedDates: Date[];
     onEditRecord: (record: DetailedReportItem) => void;
+    // Novas props para receber as funções do pai
+    onDownloadPDF: () => void;
+    onDownloadCSV: () => void;
 }
 
 export const ResultadosRelatorioDetalhado: React.FC<ResultadosDetalhadoProps> = ({
@@ -102,7 +100,9 @@ export const ResultadosRelatorioDetalhado: React.FC<ResultadosDetalhadoProps> = 
     statusFilter,
     referenceTime,
     selectedDates,
-    onEditRecord
+    onEditRecord,
+    onDownloadPDF, // Recebendo via prop
+    onDownloadCSV  // Recebendo via prop
 }) => {
     const { toast } = useToast();
 
@@ -308,167 +308,6 @@ export const ResultadosRelatorioDetalhado: React.FC<ResultadosDetalhadoProps> = 
         }
     };
 
-    // --- EXPORTAR CSV ---
-    const handleCsvDownload = () => {
-        if (reportData.length === 0) {
-            toast({
-                title: "Erro",
-                description: "Gere o relatório primeiro para poder exportar.",
-                variant: "destructive"
-            });
-            return;
-        }
-
-        try {
-            const headers = [
-                "Funcionário",
-                "Empresa",
-                "Data Início",
-                "Hora Início",
-                "Data Fim",
-                "Hora Fim",
-                "Duração",
-                "Saldo Diário",
-                "Status"
-            ];
-
-            const rows = reportData.map(item => {
-                const isBreak = item.statusRecord === 'IMPLICIT_BREAK';
-                const clean = (str: string | null | undefined) => `"${(str || '').replace(/"/g, '""')}"`;
-
-                return [
-                    clean(item.employeeData?.employeeName),
-                    clean(item.employeeData?.companyName),
-                    clean(item.startWork),
-                    clean(item.startHour),
-                    clean(item.endWork),
-                    clean(item.endHour),
-                    clean(item.hoursWork),
-                    clean(isBreak ? '00:00' : item.balance),
-                    clean(getTranslatedStatus(item.statusRecord))
-                ].join(",");
-            });
-
-            const csvContent = [headers.join(","), ...rows].join("\n");
-            const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
-            const url = URL.createObjectURL(blob);
-            const link = document.createElement("a");
-            link.setAttribute("href", url);
-            link.setAttribute("download", `relatorio_${format(new Date(), "yyyyMMdd_HHmmss")}.csv`);
-            link.style.visibility = "hidden";
-            document.body.appendChild(link);
-            link.click();
-            document.body.removeChild(link);
-
-            toast({
-                title: "CSV Gerado",
-                description: "Arquivo CSV baixado com sucesso!",
-            });
-
-        } catch (error) {
-            console.error("Erro ao gerar CSV:", error);
-            toast({
-                title: "Erro",
-                description: "Não foi possível gerar o CSV.",
-                variant: "destructive",
-            });
-        }
-    };
-    
-    // --- GERAÇÃO DE PDF ---
-    const handleDownload = () => {
-        if (reportData.length === 0) {
-            toast({ title: "Erro", description: "Gere o relatório primeiro.", variant: "destructive" });
-            return;
-        }
-
-        try {
-            const doc = new jsPDF({ orientation: 'landscape', unit: 'mm', format: 'a4' });
-
-            doc.setTextColor(0, 150, 136); 
-            doc.setFont("helvetica", "bold");
-            doc.setFontSize(22);
-            doc.text('RELATÓRIO DETALHADO DE PONTO', 20, 25);
-
-            doc.setFontSize(12);
-            doc.setFont("helvetica", "normal");
-            doc.setTextColor(0, 0, 0); 
-            let yPosition = 40;
-
-            if (reportData.length > 0 && reportData[0].employeeData) {
-                doc.text(`Funcionário: ${reportData[0].employeeData.employeeName}`, 20, yPosition);
-                yPosition += 7;
-                doc.text(`Empresa: ${reportData[0].employeeData.companyName}`, 20, yPosition);
-                yPosition += 7;
-            }
-
-            // Exibe Totais no PDF
-            doc.setFont("helvetica", "bold");
-            doc.text(`Saldo Total do Período: ${totalPeriodBalance}`, 20, yPosition);
-            yPosition += 6;
-            doc.text(`Total Horas Trabalhadas: ${totalPeriodHours}`, 20, yPosition);
-            
-            doc.setFont("helvetica", "normal");
-            yPosition += 7;
-
-            doc.text(`Carga horária diária: ${referenceTime}`, 20, yPosition);
-            yPosition += 7;
-
-            const COLOR_MAIN_RECORD = [240, 255, 240]; 
-            const COLOR_BREAK_RECORD = [230, 230, 250]; 
-            const COLOR_SEPARATOR = [200, 200, 200];       
-
-            const tableBody: any[] = [];
-
-            reportData.forEach(item => { 
-                const isBreak = item.statusRecord === 'IMPLICIT_BREAK';
-                
-                const formattedDateStart = formatDateWithDayOfWeek(item.startWork); 
-                const formattedDateEnd = formatDateWithDayOfWeek(item.endWork);   
-
-                const formattedStart = `${formattedDateStart}\n${item.startHour}`; 
-                const formattedEnd = `${formattedDateEnd}\n${item.endHour}`;       
-
-                const statusLabel = getTranslatedStatus(item.statusRecord);
-                const fillColor = isBreak ? COLOR_BREAK_RECORD : COLOR_MAIN_RECORD;
-                const fontStyle = isBreak ? 'italic' : 'normal';
-
-                const rowCells = [
-                    { content: formattedStart, styles: { fillColor: fillColor } },
-                    { content: formattedEnd, styles: { fillColor: fillColor } },
-                    { content: item.hoursWork, styles: { fillColor: fillColor } },
-                    { content: isBreak ? '00:00' : item.balance, styles: { fillColor: fillColor } },
-                    { content: statusLabel, styles: { fillColor: fillColor } }
-                ];
-                
-                tableBody.push(rowCells.map(cell => ({
-                    ...cell,
-                    styles: { ...cell.styles, halign: 'center', cellPadding: isBreak ? 2 : 4, fontSize: isBreak ? 8 : 9, fontStyle: fontStyle }
-                })));
-
-                tableBody.push([ { content: '', colSpan: 5, styles: { fillColor: COLOR_SEPARATOR, cellPadding: 0.2 } } ]);
-            });
-
-            if (tableBody.length > 0) tableBody.pop();
-
-            autoTable(doc, {
-                head: [['Início', 'Fim', 'Duração', 'Saldo Diário', 'Status']], 
-                body: tableBody,
-                startY: yPosition + 5,
-                margin: { left: 20, right: 20 },
-                styles: { fontSize: 9, cellPadding: 3, halign: 'center' },
-                headStyles: { fillColor: [0, 150, 136] },
-            });
-
-            const fileName = `relatorio_detalhado_${format(new Date(), "yyyyMMdd_HHmmss")}.pdf`;
-            doc.save(fileName);
-            toast({ title: "PDF Gerado", description: "Relatório baixado com sucesso!" });
-
-        } catch (error) {
-            toast({ title: "Erro", description: "Erro ao gerar PDF.", variant: "destructive" });
-        }
-    };
-
     // --- SCROLL CONTROL ---
     useEffect(() => {
         if (isInitialMount.current) {
@@ -538,13 +377,13 @@ export const ResultadosRelatorioDetalhado: React.FC<ResultadosDetalhadoProps> = 
                         </CardDescription> 
                     </div>
                     
-                    {/* BOTÕES DE EXPORTAÇÃO */}
+                    {/* BOTÕES DE EXPORTAÇÃO - Agora usam as props passadas pelo pai */}
                     <div className="flex flex-col gap-2">
-                        <Button variant="outline" size="sm" onClick={handleDownload} className="gap-2 w-full justify-start">
+                        <Button variant="outline" size="sm" onClick={onDownloadPDF} className="gap-2 w-full justify-start">
                             <Download className="h-4 w-4" />
                             Exportar PDF
                         </Button>
-                        <Button variant="outline" size="sm" onClick={handleCsvDownload} className="gap-2 w-full justify-start">
+                        <Button variant="outline" size="sm" onClick={onDownloadCSV} className="gap-2 w-full justify-start">
                             <FileText className="h-4 w-4" />
                             Exportar CSV
                         </Button>
@@ -624,7 +463,7 @@ export const ResultadosRelatorioDetalhado: React.FC<ResultadosDetalhadoProps> = 
                                                             </div>
                                                         </div>
                                                         <Badge className={`${getStatusColor(item.statusRecord)} text-[10px] px-2 py-0.5 h-5`}>
-                                                            {statusOptions.find(opt => opt.value === item.statusRecord)?.label || item.statusRecord}
+                                                            {statusMap[item.statusRecord] || item.statusRecord}
                                                         </Badge>
                                                     </div>
 
