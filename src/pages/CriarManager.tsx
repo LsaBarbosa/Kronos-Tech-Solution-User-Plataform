@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { toast } from "@/hooks/use-toast";
-import { ArrowLeft, User, Shield, Loader2, MapPin, CheckCircle, Building2 } from "lucide-react";
+import { ArrowLeft, User, Shield, Loader2, MapPin, CheckCircle, Building2, CalendarDays } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import Header from "@/components/Header";
 import Sidebar from "@/components/Sidebar";
@@ -19,6 +19,26 @@ import {
     SelectValue,
 } from "@/components/ui/select";
 import { API_BASE_URL } from "@/config/api";
+import { Checkbox } from "@/components/ui/checkbox";
+
+const SCHEDULE_TYPES = [
+    { value: "TRADITIONAL_5X2", label: "Tradicional 5x2 (Seg-Sex)" },
+    { value: "SIX_BY_ONE_FIXED", label: "6x1 com Folga Fixa" },
+    { value: "ROTATING_12X36", label: "Plantão 12x36" },
+    { value: "ROTATING_24X72", label: "Plantão 24x72" },
+    { value: "SIX_BY_ONE_TWO_WEEKENDS", label: "6x1 + 2 Finais de Semana" },
+    { value: "SIX_BY_ONE_ONE_WEEKEND", label: "6x1 + 1 Final de Semana" }
+];
+
+const DAYS_OF_WEEK = [
+    { value: "MONDAY", label: "Segunda-feira" },
+    { value: "TUESDAY", label: "Terça-feira" },
+    { value: "WEDNESDAY", label: "Quarta-feira" },
+    { value: "THURSDAY", label: "Quinta-feira" },
+    { value: "FRIDAY", label: "Sexta-feira" },
+    { value: "SATURDAY", label: "Sábado" },
+    { value: "SUNDAY", label: "Domingo" }
+];
 
 // --- NOVAS INTERFACES ---
 interface Company {
@@ -39,6 +59,11 @@ const employeeSchema = z.object({
     telefone: z.string().length(15, "Telefone deve ter 11 dígitos"),
     cep: z.string().length(9, "CEP deve ter 8 dígitos"),
     numero: z.string().min(1, "Número é obrigatório"),
+    scheduleType: z.string().min(1, "Tipo de escala é obrigatório"),
+    scaleStartDate: z.string().optional(),
+    preferredDayOff: z.string().optional(),
+    weekendOffIndex: z.string().optional(),
+    fixedWorkDays: z.array(z.string()).optional()
 });
 
 // Esquema para validação rigorosa dos campos do Passo 2 (User)
@@ -58,7 +83,7 @@ const formSchema = employeeSchema.extend({
 // Tipagem unificada para o formulário
 type FormData = z.infer<typeof employeeSchema> & z.infer<typeof userSchema>;
 
-const CriarColaborador = () => {
+const CriarManager = () => {
     const navigate = useNavigate();
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -93,6 +118,8 @@ const CriarColaborador = () => {
             telefone: "",
             cep: "",
             numero: "",
+            scheduleType: "TRADITIONAL_5X2",
+            fixedWorkDays: ["MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY"],
             username: "",
             password: "",
             role: "PARTNER",
@@ -133,7 +160,7 @@ const CriarColaborador = () => {
         fetchCompanies();
     }, [fetchCompanies]);
     // -----------------------------------
-
+const selectedScheduleType = form.watch("scheduleType");
 
     // --- Mask functions (Mantidas) ---
     const maskCPF = (value: string) => {
@@ -319,7 +346,13 @@ const CriarColaborador = () => {
                     postalCode: data.cep.replace(/\D/g, ""),
                     number: data.numero,
                 },
+                scheduleType: data.scheduleType,
+                scaleStartDate: data.scaleStartDate || null,
+                preferredDayOff: data.preferredDayOff || null,
+                weekendOffIndex: data.weekendOffIndex ? parseInt(data.weekendOffIndex) : null,
+                fixedWorkDays: data.fixedWorkDays || []
             };
+            
 
             const employeeResponse = await fetch(`${API_BASE_URL}employee`, {
                 method: "POST",
@@ -647,7 +680,86 @@ const CriarColaborador = () => {
                                             </FormItem>
                                         )} />
                                     </div>
+<div className="md:col-span-2 mt-6 mb-4 border-t pt-4">
+                                            <h3 className="text-lg font-semibold flex items-center gap-2 text-primary mb-4">
+                                                <CalendarDays className="h-5 w-5" /> Configuração de Escala
+                                            </h3>
+                                            
+                                            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                                <FormField control={form.control} name="scheduleType" render={({ field }) => (
+                                                    <FormItem className="md:col-span-2">
+                                                        <FormLabel>Tipo de Escala</FormLabel>
+                                                        <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                                            <FormControl><SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger></FormControl>
+                                                            <SelectContent>
+                                                                {SCHEDULE_TYPES.map(t => <SelectItem key={t.value} value={t.value}>{t.label}</SelectItem>)}
+                                                            </SelectContent>
+                                                        </Select>
+                                                        <FormMessage />
+                                                    </FormItem>
+                                                )}/>
 
+                                                {(selectedScheduleType === "ROTATING_12X36" || selectedScheduleType === "ROTATING_24X72" || selectedScheduleType?.includes("SIX_BY_ONE")) && (
+                                                    <FormField control={form.control} name="scaleStartDate" render={({ field }) => (
+                                                        <FormItem><FormLabel>Início Ciclo</FormLabel><FormControl><Input type="date" {...field} /></FormControl><FormMessage /></FormItem>
+                                                    )}/>
+                                                )}
+
+                                                {selectedScheduleType?.includes("SIX_BY_ONE") && (
+                                                    <FormField control={form.control} name="preferredDayOff" render={({ field }) => (
+                                                        <FormItem>
+                                                            <FormLabel>Folga Fixa</FormLabel>
+                                                            <Select onValueChange={field.onChange} value={field.value}>
+                                                                <FormControl><SelectTrigger><SelectValue placeholder="Dia" /></SelectTrigger></FormControl>
+                                                                <SelectContent>{DAYS_OF_WEEK.map(d => <SelectItem key={d.value} value={d.value}>{d.label}</SelectItem>)}</SelectContent>
+                                                            </Select>
+                                                            <FormMessage />
+                                                        </FormItem>
+                                                    )}/>
+                                                )}
+
+                                                {selectedScheduleType === "SIX_BY_ONE_ONE_WEEKEND" && (
+                                                    <FormField control={form.control} name="weekendOffIndex" render={({ field }) => (
+                                                        <FormItem>
+                                                            <FormLabel>Índice FDS</FormLabel>
+                                                            <Select onValueChange={field.onChange} value={field.value}>
+                                                                <FormControl><SelectTrigger><SelectValue placeholder="Qual?" /></SelectTrigger></FormControl>
+                                                                <SelectContent>
+                                                                    <SelectItem value="1">1º FDS</SelectItem>
+                                                                    <SelectItem value="2">2º FDS</SelectItem>
+                                                                    <SelectItem value="3">3º FDS</SelectItem>
+                                                                    <SelectItem value="4">4º FDS</SelectItem>
+                                                                </SelectContent>
+                                                            </Select>
+                                                            <FormMessage />
+                                                        </FormItem>
+                                                    )}/>
+                                                )}
+                                            </div>
+
+                                            {selectedScheduleType === "TRADITIONAL_5X2" && (
+                                                <FormField control={form.control} name="fixedWorkDays" render={() => (
+                                                    <FormItem className="mt-4">
+                                                        <FormLabel className="mb-2 block">Dias de Trabalho</FormLabel>
+                                                        <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+                                                            {DAYS_OF_WEEK.map((day) => (
+                                                                <FormField key={day.value} control={form.control} name="fixedWorkDays" render={({ field }) => (
+                                                                    <FormItem key={day.value} className="flex items-center space-x-2 space-y-0">
+                                                                        <FormControl>
+                                                                            <Checkbox
+                                                                                checked={field.value?.includes(day.value)}
+                                                                                onCheckedChange={(checked) => checked ? field.onChange([...(field.value || []), day.value]) : field.onChange(field.value?.filter((v) => v !== day.value))}
+                                                                            />
+                                                                        </FormControl>
+                                                                        <FormLabel className="font-normal cursor-pointer text-sm">{day.label.substring(0, 3)}</FormLabel>
+                                                                    </FormItem>
+                                                                )} />
+                                                            ))}
+                                                        </div>
+                                                    </FormItem>
+                                                )}/>
+                                            )}
+                                        </div>
                                     {/* Botão de Submissão do Passo 1 */}
                                     {!stepCompleted && (
                                         <Button
@@ -754,14 +866,13 @@ const CriarColaborador = () => {
                                 </CardContent>
                             </Card>
 
-                        </form>
-                    </Form>
-
-</div>
+                            </form>
+                        </Form>
+                    </div>
                 </div>
             </div>
         </div>
     );
 };
 
-export default CriarColaborador;
+export default CriarManager;

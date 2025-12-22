@@ -26,6 +26,7 @@ import {
   Clock,
   FileText,
   ArrowRight,
+  CalendarDays,
 } from "lucide-react";
 import {
   AlertDialog,
@@ -46,6 +47,25 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Checkbox } from "@/components/ui/checkbox";
 import { API_BASE_URL } from "@/config/api";
 import { Switch } from "@/components/ui/switch";
+
+const SCHEDULE_TYPES = [
+    { value: "TRADITIONAL_5X2", label: "Tradicional 5x2" },
+    { value: "SIX_BY_ONE_FIXED", label: "6x1 com Folga Fixa" },
+    { value: "ROTATING_12X36", label: "Plantão 12x36" },
+    { value: "ROTATING_24X72", label: "Plantão 24x72" },
+    { value: "SIX_BY_ONE_TWO_WEEKENDS", label: "6x1 + 2 FDS" },
+    { value: "SIX_BY_ONE_ONE_WEEKEND", label: "6x1 + 1 FDS" }
+];
+
+const DAYS_OF_WEEK = [
+    { value: "MONDAY", label: "Seg" },
+    { value: "TUESDAY", label: "Ter" },
+    { value: "WEDNESDAY", label: "Qua" },
+    { value: "THURSDAY", label: "Qui" },
+    { value: "FRIDAY", label: "Sex" },
+    { value: "SATURDAY", label: "Sáb" },
+    { value: "SUNDAY", label: "Dom" }
+];
 
 interface Address {
   street: string;
@@ -72,6 +92,11 @@ interface Employee {
   workEndTime?: string;     
   breakStartTime?: string;  
   breakEndTime?: string;
+  scheduleType?: string;
+  scaleStartDate?: string;
+  preferredDayOff?: string;
+  weekendOffIndex?: number;
+  fixedWorkDays?: string[];
 
 }
 
@@ -300,7 +325,12 @@ const ListaColaboradores = () => {
       workStartTime: colaborador.workStartTime,
       workEndTime:  colaborador.workEndTime,
       breakStartTime:  colaborador.breakStartTime,
-      breakEndTime: colaborador.breakEndTime
+      breakEndTime: colaborador.breakEndTime,
+      scheduleType: colaborador.scheduleType,
+      scaleStartDate: colaborador.scaleStartDate,
+      preferredDayOff: colaborador.preferredDayOff,
+      weekendOffIndex: colaborador.weekendOffIndex,
+      fixedWorkDays: colaborador.fixedWorkDays || []
 });
     setFaceImageFile(null);
   };
@@ -405,7 +435,11 @@ const ListaColaboradores = () => {
       if (editedData.breakEndTime && editedData.breakEndTime !== originalColaborador.breakEndTime) {
         bodyDataEmployee.breakEndTime = editedData.breakEndTime;
       }
-
+      if (editedData.scheduleType !== originalColaborador.scheduleType) bodyDataEmployee.scheduleType = editedData.scheduleType;
+      if (editedData.scaleStartDate !== originalColaborador.scaleStartDate) bodyDataEmployee.scaleStartDate = editedData.scaleStartDate;
+      if (editedData.preferredDayOff !== originalColaborador.preferredDayOff) bodyDataEmployee.preferredDayOff = editedData.preferredDayOff;
+      if (editedData.weekendOffIndex !== originalColaborador.weekendOffIndex) bodyDataEmployee.weekendOffIndex = editedData.weekendOffIndex ? parseInt(editedData.weekendOffIndex) : null;
+      if (JSON.stringify(editedData.fixedWorkDays) !== JSON.stringify(originalColaborador.fixedWorkDays)) bodyDataEmployee.fixedWorkDays = editedData.fixedWorkDays;
       if (faceImageFile) {
         try {
           const base64Image = await fileToBase64(faceImageFile);
@@ -900,6 +934,57 @@ const ListaColaboradores = () => {
                               />
                             </div>
                           </div>
+
+                          <div className="pt-2 border-t border-dashed">
+                                <Label className="text-xs font-bold text-muted-foreground uppercase flex gap-1 items-center mb-2"><CalendarDays className="w-3 h-3"/> Escala de Trabalho</Label>
+                                
+                                <div className="space-y-2">
+                                    <Select value={editedData.scheduleType} onValueChange={(val) => handleEditedDataChange("scheduleType", val)}>
+                                        <SelectTrigger className="h-8 text-xs"><SelectValue placeholder="Tipo de Escala" /></SelectTrigger>
+                                        <SelectContent>
+                                            {SCHEDULE_TYPES.map(t => <SelectItem key={t.value} value={t.value}>{t.label}</SelectItem>)}
+                                        </SelectContent>
+                                    </Select>
+
+                                    {/* Condicionais de Escala */}
+                                 {(editedData.scheduleType === "ROTATING_12X36" || editedData.scheduleType === "ROTATING_24X72") && (
+                                                <div className="space-y-1">
+                                                    <Label className="text-[10px]">Data Início Ciclo</Label>
+                                                    <Input type="date" value={editedData.scaleStartDate || ""} onChange={(e) => handleEditedDataChange("scaleStartDate", e.target.value)} className="h-8 text-xs" />
+                                                </div>
+                                            )}
+
+                                            {/* Select de Folga Fixa para 6x1 */}
+                                            {editedData.scheduleType?.includes("SIX_BY_ONE") && (
+                                                <div className="space-y-1">
+                                                    <Label className="text-[10px]">Dia da folga fixa</Label>
+                                                    <Select value={editedData.preferredDayOff} onValueChange={(val) => handleEditedDataChange("preferredDayOff", val)}>
+                                                        <SelectTrigger className="h-8 text-xs"><SelectValue placeholder="Selecione o dia" /></SelectTrigger>
+                                                        <SelectContent>{DAYS_OF_WEEK.map(d => <SelectItem key={d.value} value={d.value}>{d.label}</SelectItem>)}</SelectContent>
+                                                    </Select>
+                                                </div>
+                                            )}
+                                    {editedData.scheduleType === "TRADITIONAL_5X2" && (
+                                        <div className="flex flex-wrap gap-2 pt-1">
+                                            {DAYS_OF_WEEK.map((day) => (
+                                                <div key={day.value} className="flex items-center space-x-1">
+                                                    <Checkbox 
+                                                        id={`day-${day.value}`}
+                                                        checked={editedData.fixedWorkDays?.includes(day.value)}
+                                                        onCheckedChange={(checked) => {
+                                                            const current = editedData.fixedWorkDays || [];
+                                                            const updated = checked ? [...current, day.value] : current.filter((d: string) => d !== day.value);
+                                                            handleEditedDataChange("fixedWorkDays", updated);
+                                                        }}
+                                                    />
+                                                    <label htmlFor={`day-${day.value}`} className="text-[10px] cursor-pointer">{day.label.substring(0, 3)}</label>
+                                                </div>
+                                            ))}
+                                        </div>
+                                    )}
+                                </div>
+                            </div>
+
                            {/* Home Office */}
                         <div className="flex items-center gap-3 text-sm">
                           <Label htmlFor="home-office-toggle" className="text-muted-foreground w-16">Home Office:</Label>
@@ -1069,6 +1154,7 @@ const ListaColaboradores = () => {
         </span>
       </div>
     </div>
+
     
     <div className="flex flex-col items-end gap-1.5">
        {/* Badge Home Office */}
@@ -1084,6 +1170,18 @@ const ListaColaboradores = () => {
        </Badge>
     </div>
   </div>
+  {/* Badge da Escala */}
+                            <div className="flex justify-between items-center bg-muted/40 p-2 rounded text-xs">
+                                <span className="font-semibold text-muted-foreground flex items-center gap-1"><CalendarDays className="w-3 h-3"/> Escala:</span>
+                                <span className="font-medium text-primary">
+                                    {SCHEDULE_TYPES.find(t => t.value === colaborador.scheduleType)?.label || "Padrão"}
+                                </span>
+                            </div>
+                            
+                            {/* Detalhes da Escala (Resumo) */}
+                            {colaborador.preferredDayOff && (
+                                <div className="text-xs flex gap-2"><span className="text-muted-foreground">Folga:</span> <span>{DAYS_OF_WEEK.find(d => d.value === colaborador.preferredDayOff)?.label}</span></div>
+                            )}
 
   {/* --- 2. DADOS PROFISSIONAIS (Grid) --- */}
   <div className="grid grid-cols-2 gap-3 p-3 bg-muted/40 rounded-lg border border-border/50 mb-4">

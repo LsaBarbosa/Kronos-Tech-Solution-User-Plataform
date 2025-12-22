@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { toast } from "@/hooks/use-toast";
-import { ArrowLeft, User, Shield, Loader2, MapPin, CheckCircle, Clock } from "lucide-react";
+import { ArrowLeft, User, Shield, Loader2, MapPin, CheckCircle, Clock, CalendarDays } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import Header from "@/components/Header";
 import Sidebar from "@/components/Sidebar";
@@ -20,6 +20,26 @@ import {
 } from "@/components/ui/select";
 import { API_BASE_URL } from "@/config/api";
 import { Label } from "@/components/ui/label";
+import { Checkbox } from "@/components/ui/checkbox";
+
+const SCHEDULE_TYPES = [
+    { value: "TRADITIONAL_5X2", label: "Tradicional 5x2 (Seg-Sex)" },
+    { value: "SIX_BY_ONE_FIXED", label: "6x1 com Folga Fixa" },
+    { value: "ROTATING_12X36", label: "Plantão 12x36" },
+    { value: "ROTATING_24X72", label: "Plantão 24x72" },
+    { value: "SIX_BY_ONE_TWO_WEEKENDS", label: "6x1 + 2 Finais de Semana" },
+    { value: "SIX_BY_ONE_ONE_WEEKEND", label: "6x1 + 1 Final de Semana" }
+];
+
+const DAYS_OF_WEEK = [
+    { value: "MONDAY", label: "Segunda-feira" },
+    { value: "TUESDAY", label: "Terça-feira" },
+    { value: "WEDNESDAY", label: "Quarta-feira" },
+    { value: "THURSDAY", label: "Quinta-feira" },
+    { value: "FRIDAY", label: "Sexta-feira" },
+    { value: "SATURDAY", label: "Sábado" },
+    { value: "SUNDAY", label: "Domingo" }
+];
 
 // --- ESQUEMAS DE VALIDAÇÃO REVISADOS ---
 
@@ -42,6 +62,12 @@ const employeeSchema = z.object({
     workEndTime: z.string().min(1, "Fim da jornada obrigatório"),
     breakStartTime: z.string().min(1, "Início do intervalo obrigatório"),
     breakEndTime: z.string().min(1, "Fim do intervalo obrigatório"),
+    scheduleType: z.string().min(1, "Tipo de escala é obrigatório"),
+
+    scaleStartDate: z.string().optional(), // Data YYYY-MM-DD
+    preferredDayOff: z.string().optional(),
+    weekendOffIndex: z.string().optional(), // Vem como string do Select, converteremos para number no submit
+    fixedWorkDays: z.array(z.string()).optional()
 });
 
 // Esquema para validação rigorosa dos campos do Passo 2 (User)
@@ -115,13 +141,15 @@ const [faceImageBase64, setFaceImageBase64] = useState<string | undefined>(undef
             workEndTime: "17:00",
             breakStartTime: "12:00",
             breakEndTime: "13:00",
+            scheduleType: "TRADITIONAL_5X2",
+            fixedWorkDays: ["MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY"],
             username: "",
             password: "",
             role: "PARTNER",
             
         },
     });
-
+         const selectedScheduleType = form.watch("scheduleType")
     // --- Mask functions (Mantidas) ---
     const maskCPF = (value: string) => {
         return value
@@ -254,6 +282,12 @@ const [faceImageBase64, setFaceImageBase64] = useState<string | undefined>(undef
                 workEndTime: data.workEndTime,
                 breakStartTime: data.breakStartTime,
                 breakEndTime: data.breakEndTime,
+
+                scheduleType: data.scheduleType,
+                scaleStartDate: data.scaleStartDate || null,
+                preferredDayOff: data.preferredDayOff || null,
+                weekendOffIndex: data.weekendOffIndex ? parseInt(data.weekendOffIndex) : null,
+                fixedWorkDays: data.fixedWorkDays || []
             };
 
             const employeeResponse = await fetch(`${API_BASE_URL}employee`, {
@@ -556,6 +590,111 @@ const [faceImageBase64, setFaceImageBase64] = useState<string | undefined>(undef
                                         {/* FIM NOVO CAMPO */}
                                     </div>
 
+{/* --- NOVA SEÇÃO: CONFIGURAÇÃO DE ESCALA --- */}
+                                    <div className="md:col-span-2 mt-6 mb-4 border-t pt-4">
+                                        <h3 className="text-lg font-semibold flex items-center gap-2 text-primary mb-4">
+                                            <CalendarDays className="h-5 w-5" /> Configuração de Escala
+                                        </h3>
+                                        
+                                        <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                                            {/* Tipo de Escala */}
+                                            <FormField control={form.control} name="scheduleType" render={({ field }) => (
+                                                <FormItem className="md:col-span-2">
+                                                    <FormLabel>Tipo de Escala</FormLabel>
+                                                    <Select onValueChange={field.onChange} defaultValue={field.value}>
+                                                        <FormControl>
+                                                            <SelectTrigger>
+                                                                <SelectValue placeholder="Selecione a escala" />
+                                                            </SelectTrigger>
+                                                        </FormControl>
+                                                        <SelectContent>
+                                                            {SCHEDULE_TYPES.map(type => (
+                                                                <SelectItem key={type.value} value={type.value}>{type.label}</SelectItem>
+                                                            ))}
+                                                        </SelectContent>
+                                                    </Select>
+                                                    <FormMessage />
+                                                </FormItem>
+                                            )}/>
+
+                                            {/* Datas e Folgas Condicionais */}
+                                            {(selectedScheduleType === "ROTATING_12X36" || selectedScheduleType === "ROTATING_24X72" || selectedScheduleType?.includes("SIX_BY_ONE")) && (
+                                                <FormField control={form.control} name="scaleStartDate" render={({ field }) => (
+                                                    <FormItem>
+                                                        <FormLabel>Data Início Ciclo</FormLabel>
+                                                        <FormControl><Input type="date" {...field} /></FormControl>
+                                                        <FormMessage />
+                                                    </FormItem>
+                                                )}/>
+                                            )}
+
+                                            {selectedScheduleType?.includes("SIX_BY_ONE") && (
+                                                <FormField control={form.control} name="preferredDayOff" render={({ field }) => (
+                                                    <FormItem>
+                                                        <FormLabel>Folga Fixa na Semana</FormLabel>
+                                                        <Select onValueChange={field.onChange} value={field.value}>
+                                                            <FormControl><SelectTrigger><SelectValue placeholder="Selecione o dia" /></SelectTrigger></FormControl>
+                                                            <SelectContent>
+                                                                {DAYS_OF_WEEK.map(day => (
+                                                                    <SelectItem key={day.value} value={day.value}>{day.label}</SelectItem>
+                                                                ))}
+                                                            </SelectContent>
+                                                        </Select>
+                                                        <FormMessage />
+                                                    </FormItem>
+                                                )}/>
+                                            )}
+
+                                            {selectedScheduleType === "SIX_BY_ONE_ONE_WEEKEND" && (
+                                                <FormField control={form.control} name="weekendOffIndex" render={({ field }) => (
+                                                    <FormItem>
+                                                        <FormLabel>Índice do Fim de Semana</FormLabel>
+                                                        <Select onValueChange={field.onChange} value={field.value}>
+                                                            <FormControl><SelectTrigger><SelectValue placeholder="Qual semana?" /></SelectTrigger></FormControl>
+                                                            <SelectContent>
+                                                                <SelectItem value="1">1º Final de Semana</SelectItem>
+                                                                <SelectItem value="2">2º Final de Semana</SelectItem>
+                                                                <SelectItem value="3">3º Final de Semana</SelectItem>
+                                                                <SelectItem value="4">4º Final de Semana</SelectItem>
+                                                            </SelectContent>
+                                                        </Select>
+                                                        <FormMessage />
+                                                    </FormItem>
+                                                )}/>
+                                            )}
+                                        </div>
+
+                                        {/* Dias Fixos (Tradicional) */}
+                                        {selectedScheduleType === "TRADITIONAL_5X2" && (
+                                            <FormField control={form.control} name="fixedWorkDays" render={() => (
+                                                <FormItem className="mt-4">
+                                                    <FormLabel className="mb-2 block">Dias de Trabalho (Fixo)</FormLabel>
+                                                    <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
+                                                        {DAYS_OF_WEEK.map((day) => (
+                                                            <FormField key={day.value} control={form.control} name="fixedWorkDays" render={({ field }) => {
+                                                                return (
+                                                                    <FormItem key={day.value} className="flex items-center space-x-2 space-y-0">
+                                                                        <FormControl>
+                                                                            <Checkbox
+                                                                                checked={field.value?.includes(day.value)}
+                                                                                onCheckedChange={(checked) => {
+                                                                                    return checked
+                                                                                        ? field.onChange([...(field.value || []), day.value])
+                                                                                        : field.onChange(field.value?.filter((value) => value !== day.value));
+                                                                                }}
+                                                                            />
+                                                                        </FormControl>
+                                                                        <FormLabel className="font-normal cursor-pointer text-sm">{day.label}</FormLabel>
+                                                                    </FormItem>
+                                                                );
+                                                            }} />
+                                                        ))}
+                                                    </div>
+                                                </FormItem>
+                                            )}/>
+                                        )}
+                                    </div>
+                                    
                                     <div className="md:col-span-2 mt-4 mb-2">
                                     <h3 className="text-lg font-semibold flex items-center gap-2 text-primary">
                                         <Clock className="h-5 w-5" /> Jornada de Trabalho
