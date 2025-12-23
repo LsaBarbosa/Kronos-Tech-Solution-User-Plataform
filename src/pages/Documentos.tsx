@@ -461,6 +461,8 @@ const Documentos = () => {
                       <SelectItem value="PAYSLIP">Contracheque</SelectItem>
                       <SelectItem value="TIME_OFF">Abono de Horas</SelectItem>
                       <SelectItem value="EMPLOYEE_DOCUMENTS">Documentos Pessoais</SelectItem>
+                      <SelectItem value="POINT_RECORD_RECEIPT">Comprovante de Ponto</SelectItem>
+                      <SelectItem value="BIOMETRIC_CONSENT_TERM">Termo Consentimento</SelectItem>
                     </SelectContent>
                   </Select>
                 </div>
