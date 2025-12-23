@@ -117,7 +117,7 @@ export const createManager = async (formData: EmployeeCreationPayload): Promise<
  */
 export const fetchEmployeeList = async (): Promise<EmployeeData[]> => {
     const headers = getAuthHeaders('json');
-    const response = await fetch(`${API_BASE_URL}employees/list-all`, { headers });
+    const response = await fetch(`${API_BASE_URL}employee`, { headers });
     const data = await handleResponse(response);
     return data.employees as EmployeeData[]; 
 };

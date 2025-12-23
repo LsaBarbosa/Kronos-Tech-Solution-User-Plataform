@@ -34,6 +34,7 @@ import RequestVacation from "./pages/RequestVacation";
 import TimeOffApprovals from "./pages/ManualRegisterApprovals";
 import RequestTimeOff, { RequestManualRegistration } from "./pages/useRequestManualRegistration";
 import ManualRegisterApprovals from "./pages/ManualRegisterApprovals";
+import EspelhoPonto from "./pages/EspelhoPonto";
   
 const queryClient = new QueryClient();
 
@@ -62,6 +63,7 @@ const App = () => (
               <Route path="/empresa/buscar" element={<BuscarEmpresa />} />
               <Route path="/empresa/atualizar" element={<AtualizarEmpresa />} />
               <Route path="/relatorio-detalhado" element={<RelatorioDetalhado />} />
+              <Route path="/espelho-ponto" element={<EspelhoPonto />} />
               <Route path="/documentos" element={<Documentos />} />
               <Route path="/enviar-documentos" element={<EnviarDocumentos />} />
               <Route path="/enviar-documento-colaborador" element={<DocumentoColaborador />} />

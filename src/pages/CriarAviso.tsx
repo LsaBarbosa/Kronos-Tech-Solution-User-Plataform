@@ -98,7 +98,7 @@ const CriarAviso = () => {
                 <MessageSquarePlus className="h-6 w-6 text-primary" />
               </div>
               <div>
-                <h1 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-foreground to-primary bg-clip-text text-transparent page-title">
+                <h1 className="text-2xl sm:text-3xl mt-8 font-bold bg-gradient-to-r from-foreground to-primary bg-clip-text text-transparent page-title">
                   Criar Aviso</h1>
                 <p className="text-muted-foreground">Comunique-se de forma clara e objetiva com a equipe.</p>
               </div>

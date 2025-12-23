@@ -5,7 +5,8 @@ import {
   Clock, FilePlus, LogOut, UserCheck, UserPlus, Folder, FolderOpen, 
   Calculator, ClipboardCheck, Building2, BellMinus, TreePalm, TimerReset, Activity,
   // Novos ícones importados:
-  FileText, Scale, FileCode, FileSignature, BadgeCheck
+  FileText, Scale, FileCode, FileSignature, BadgeCheck,
+  CalendarRange
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
@@ -165,6 +166,16 @@ const Sidebar = ({ isOpen, toggleSidebar }: SidebarProps) => {
               <BarChart3 className="mr-3 sidebar-icon-sm text-primary group-hover:text-primary transition-colors" />
               <span className="font-medium sidebar-text-sm">Relatório de Horas</span>
             </Button>
+
+            <Button
+              variant="ghost"
+              className="w-full justify-start sidebar-fixed-height px-4 text-left hover:bg-primary/10 hover:text-foreground transition-colors group"
+              onClick={() => { navigate("/espelho-ponto"); toggleSidebar(); }}
+            >
+              <CalendarRange className="mr-3 sidebar-icon-sm text-primary group-hover:text-primary transition-colors" />
+              <span className="font-medium sidebar-text-sm">Espelho de Ponto</span>
+            </Button>
+       
        
             {/* Usuário */}
             <Button
