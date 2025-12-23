@@ -205,16 +205,16 @@ export default function AuditoriaFiscal() {
               </div>
               <div>
                 <h1 className="text-2xl sm:text-3xl mt-4 font-bold bg-gradient-to-r from-foreground to-primary bg-clip-text text-transparent page-title">
-                  Espelho de Ponto</h1>
+                  Auditoria Fiscal</h1>
                 <p className="text-muted-foreground">Comunique-se de forma clara e objetiva com a equipe.</p>
               </div>
             </div>
           </div>
       <div className="mx-auto max-w-3xl mt-10">
-        <Card className="shadow-lg border-t-4 border-t-amber-500">
+        <Card className="shadow-lg border-t-4 border-primary">
           <CardHeader>
             <CardTitle className="flex items-center gap-2 text-xl">
-              <Scale className="h-6 w-6 text-amber-500" />
+              <Scale className="h-6 w-6 text-primary" />
               Arquivos Legais (Portaria 671)
             </CardTitle>
             <CardDescription>
@@ -238,9 +238,9 @@ export default function AuditoriaFiscal() {
                   <RadioGroupItem value="AEJ" id="aej" className="peer sr-only" />
                   <Label
                     htmlFor="aej"
-                    className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-amber-500 [&:has([data-state=checked])]:border-amber-500 cursor-pointer transition-all h-full"
+                    className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary cursor-pointer transition-all h-full"
                   >
-                    <FileSignature className="mb-3 h-6 w-6 text-muted-foreground peer-data-[state=checked]:text-amber-500" />
+                    <FileSignature className="mb-3 h-6 w-6 text-muted-foreground peer-data-[state=checked]:text-primary" />
                     <span className="font-semibold text-sm">AEJ</span>
                     <span className="text-xs text-muted-foreground text-center mt-1">Arquivo Eletrônico de Jornada</span>
                   </Label>
@@ -251,9 +251,9 @@ export default function AuditoriaFiscal() {
                   <RadioGroupItem value="AFD" id="afd" className="peer sr-only" />
                   <Label
                     htmlFor="afd"
-                    className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-amber-500 [&:has([data-state=checked])]:border-amber-500 cursor-pointer transition-all h-full"
+                    className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary cursor-pointer transition-all h-full"
                   >
-                    <FileCode className="mb-3 h-6 w-6 text-muted-foreground peer-data-[state=checked]:text-amber-500" />
+                    <FileCode className="mb-3 h-6 w-6 text-muted-foreground peer-data-[state=checked]:text-primary" />
                     <span className="font-semibold text-sm">AFD</span>
                     <span className="text-xs text-muted-foreground text-center mt-1">Arquivo Fonte de Dados</span>
                   </Label>
@@ -264,9 +264,9 @@ export default function AuditoriaFiscal() {
                   <RadioGroupItem value="ATESTADO" id="atestado" className="peer sr-only" />
                   <Label
                     htmlFor="atestado"
-                    className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-amber-500 [&:has([data-state=checked])]:border-amber-500 cursor-pointer transition-all h-full"
+                    className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary cursor-pointer transition-all h-full"
                   >
-                    <BadgeCheck className="mb-3 h-6 w-6 text-muted-foreground peer-data-[state=checked]:text-amber-500" />
+                    <BadgeCheck className="mb-3 h-6 w-6 text-muted-foreground peer-data-[state=checked]:text-primary" />
                     <span className="font-semibold text-sm">Atestado</span>
                     <span className="text-xs text-muted-foreground text-center mt-1">Certificado Técnico</span>
                   </Label>
@@ -356,7 +356,7 @@ export default function AuditoriaFiscal() {
               size="lg" 
               onClick={handleDownload} 
               disabled={isLoading || (reportType !== "ATESTADO" && !date)}
-              className="w-full sm:w-auto gap-2 bg-amber-600 hover:bg-amber-700 text-white"
+              className="w-full sm:w-auto gap-2 bg-primary hover:bg-primary/70 text-white"
             >
               {isLoading ? (
                 "Gerando..."
