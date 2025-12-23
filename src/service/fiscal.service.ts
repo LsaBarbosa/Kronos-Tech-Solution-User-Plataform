@@ -35,24 +35,26 @@ export const FiscalService = {
     downloadBlob(new Blob([response.data]), `Espelho_${startDate}_${endDate}.pdf`);
   },
 
-  // Atestado Técnico (P7S)
   downloadTechnicalCertificate: async () => {
     const response = await api.get('/legal/technical-certificate', { responseType: 'blob' });
     downloadBlob(new Blob([response.data]), `Atestado_Tecnico.p7s`);
   },
 
   // AFD (TXT)
-  downloadAfd: async () => {
-    const response = await api.get('/legal/afd', { responseType: 'blob' });
+  downloadAfd: async (targetEmployeeId?: string) => {
+    const params: any = {};
+    if (targetEmployeeId) params.targetEmployeeId = targetEmployeeId;
+    
+    const response = await api.get('/legal/afd', { params, responseType: 'blob' });
     downloadBlob(new Blob([response.data]), 'AFD.txt');
   },
 
   // AEJ (P7S)
-  downloadAej: async (startDate: string, endDate: string) => {
-    const response = await api.get('/legal/aej', { 
-      params: { startDate, endDate }, 
-      responseType: 'blob' 
-    });
+  downloadAej: async (startDate: string, endDate: string, targetEmployeeId?: string) => {
+    const params: any = { startDate, endDate };
+    if (targetEmployeeId) params.targetEmployeeId = targetEmployeeId;
+
+    const response = await api.get('/legal/aej', { params, responseType: 'blob' });
     downloadBlob(new Blob([response.data]), `AEJ_${startDate}_${endDate}.p7s`);
   }
 };

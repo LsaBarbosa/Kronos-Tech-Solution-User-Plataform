@@ -6,7 +6,9 @@ import {
   Calculator, ClipboardCheck, Building2, BellMinus, TreePalm, TimerReset, Activity,
   // Novos ícones importados:
   FileText, Scale, FileCode, FileSignature, BadgeCheck,
-  CalendarRange
+  CalendarRange,
+  Scale3d,
+  ScaleIcon
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
@@ -263,15 +265,6 @@ const Sidebar = ({ isOpen, toggleSidebar }: SidebarProps) => {
               </CollapsibleContent>
             </Collapsible>
 
-            {/* 🆕 ESPELHO DE PONTO (Disponível para todos, acima de Admin) */}
-            <Button
-              variant="ghost"
-              className="w-full justify-start sidebar-fixed-height px-4 text-left hover:bg-primary/10 hover:text-foreground transition-colors group"
-              onClick={handleDownloadMirror}
-            >
-              <FileText className="mr-3 sidebar-icon-sm text-primary group-hover:text-primary transition-colors" />
-              <span className="font-medium sidebar-text-sm">Espelho de Ponto</span>
-            </Button>
 
             {/* Administrador (Somente visível para MANAGER) */}
             {isManager && (
@@ -437,37 +430,14 @@ const Sidebar = ({ isOpen, toggleSidebar }: SidebarProps) => {
                       </Button>
                     </CollapsibleTrigger>
                     <CollapsibleContent className="space-y-1">
-                      
-                      {/* Botão AFD */}
-                      <Button
+                       <Button
                         variant="ghost"
                         className="w-full justify-start sidebar-fixed-height-xs px-4 pl-20 text-left sidebar-text-xs hover:bg-primary/10 hover:text-foreground transition-colors"
-                        onClick={handleDownloadAfd}
+                        onClick={() => { navigate("/auditoria"); toggleSidebar(); }}
                       >
-                        <FileCode className="mr-2 sidebar-icon-xxs" />
-                        <span>Baixar AFD (Fonte)</span>
+                        <ScaleIcon className="mr-2 sidebar-icon-xxs" />
+                        <span>Auditoria</span>
                       </Button>
-
-                      {/* Botão AEJ */}
-                      <Button
-                        variant="ghost"
-                        className="w-full justify-start sidebar-fixed-height-xs px-4 pl-20 text-left sidebar-text-xs hover:bg-primary/10 hover:text-foreground transition-colors"
-                        onClick={handleDownloadAej}
-                      >
-                        <FileSignature className="mr-2 sidebar-icon-xxs" />
-                        <span>Baixar AEJ (Jornada)</span>
-                      </Button>
-
-                      {/* Botão Atestado Técnico */}
-                      <Button
-                        variant="ghost"
-                        className="w-full justify-start sidebar-fixed-height-xs px-4 pl-20 text-left sidebar-text-xs hover:bg-primary/10 hover:text-foreground transition-colors"
-                        onClick={handleDownloadCertificate}
-                      >
-                        <BadgeCheck className="mr-2 sidebar-icon-xxs" />
-                        <span>Atestado Técnico</span>
-                      </Button>
-
                     </CollapsibleContent>
                   </Collapsible>
         
