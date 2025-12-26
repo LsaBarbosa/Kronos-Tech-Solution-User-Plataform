@@ -49,7 +49,7 @@ const formatBackendDate = (dateString: string): string => {
 // --- ATUALIZADO: Mapeamento de Status e Cores ---
 const statusMap: Record<StatusRecord | string, string> = {
     TIME_OFF_REQUEST: 'Abono Pendente',
-    FORGOTTEN_REGISTRATION: 'Esq. Ponto Pendente', // 💡 Novo
+    WORK_TIME_REQUEST: 'Esq. Ponto Pendente', // 💡 Novo
     TIME_OFF: 'Abono Aprovado',
     TIME_OFF_REJECTED: 'Abono Rejeitado',
     UPDATED: 'Aprovado (Ajuste)', // 💡 Novo (Esquecimento Aprovado)
@@ -128,8 +128,8 @@ const ManualRegisterApprovalItem: React.FC<ITimeOffRecord & {
     const isDesktop = useIsDesktop();
     
     // 💡 ATUALIZADO: Considera ambos os tipos como pendentes para mostrar botões
-    const isPending = statusRecord === 'TIME_OFF_REQUEST' || statusRecord === 'FORGOTTEN_REGISTRATION';
-    
+ 
+    const isPending = statusRecord === 'TIME_OFF_REQUEST' || statusRecord === 'WORK_TIME_REQUEST';
     const formattedStartWork = React.useMemo(() => formatBackendDate(startWork), [startWork]);
     const formattedEndWork = React.useMemo(() => formatBackendDate(endWork), [endWork]);
     const employeeName = employeeData.employeeName;

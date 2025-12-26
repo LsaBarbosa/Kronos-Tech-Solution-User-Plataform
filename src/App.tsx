@@ -32,7 +32,7 @@ import PendingApprovals from "./pages/PendingApprovals";
 import VacationApprovals from "./pages/VacationApprovals";
 import RequestVacation from "./pages/RequestVacation";
 import TimeOffApprovals from "./pages/ManualRegisterApprovals";
-import RequestTimeOff, { RequestManualRegistration } from "./pages/useRequestManualRegistration";
+import RequestTimeOff, { RequestManualRegistration } from "./pages/RequestManualRegistration";
 import ManualRegisterApprovals from "./pages/ManualRegisterApprovals";
 import EspelhoPonto from "./pages/EspelhoPonto";
 import AuditoriaFiscal from "./pages/AuditoriaFiscal";

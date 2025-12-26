@@ -73,7 +73,6 @@ const employeeSchema = z.object({
 // Esquema para validação rigorosa dos campos do Passo 2 (User)
 const userSchema = z.object({
     username: z.string().min(4, "Usuário deve ter pelo menos 4 caracteres"),
-    password: z.string().min(6, "Senha deve ter pelo menos 6 caracteres"),
     role: z.enum(["MANAGER", "PARTNER"]),
 });
 
@@ -81,7 +80,6 @@ const userSchema = z.object({
 // Tornamos os campos do Passo 2 opcionais/default para que o form.handleSubmit não falhe no Passo 1
 const formSchema = employeeSchema.extend({
     username: z.string().optional(),
-    password: z.string().optional(),
     role: z.enum(["MANAGER", "PARTNER"]).optional(),
 });
 
@@ -144,7 +142,6 @@ const [faceImageBase64, setFaceImageBase64] = useState<string | undefined>(undef
             scheduleType: "TRADITIONAL_5X2",
             fixedWorkDays: ["MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY"],
             username: "",
-            password: "",
             role: "PARTNER",
             
         },
@@ -368,7 +365,6 @@ const [faceImageBase64, setFaceImageBase64] = useState<string | undefined>(undef
             // Aqui, usamos data.username, data.password e data.role que foram validados pelo userSchema
             const userPayload = {
                 username: data.username,
-                password: data.password,
                 role: data.role,
                 employeeId: savedEmployeeId, // Usa o ID salvo do Passo 1
             };
@@ -827,13 +823,8 @@ const [faceImageBase64, setFaceImageBase64] = useState<string | undefined>(undef
                                             </FormItem>
                                         )}/>
                                         
-                                        <FormField control={form.control} name="password" render={({ field }) => (
-                                            <FormItem>
-                                                <FormLabel className="text-base font-semibold">Senha</FormLabel>
-                                                <FormControl><Input type="password" placeholder="Digite a senha" className="h-12 text-base" {...field} /></FormControl>
-                                                <FormMessage />
-                                            </FormItem>
-                                        )}/>
+                                      
+                            
 
                                         <FormField control={form.control} name="role" render={({ field }) => (
                                             <FormItem className="md:col-span-2">

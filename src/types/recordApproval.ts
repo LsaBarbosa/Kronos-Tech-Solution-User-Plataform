@@ -9,6 +9,7 @@ export type StatusRecord =
   | 'ABSENCE'
   | 'PENDING_APPROVAL'
   | 'TIME_OFF'
+  | 'WORK_TIME_REQUEST'
   | 'IMPLICIT_BREAK'
   | 'REQUEST_VACATION'
   | 'VACATION'

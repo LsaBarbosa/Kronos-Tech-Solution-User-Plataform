@@ -15,9 +15,19 @@ export interface RequestTimeOffRequestPayload {
     startHour: string; // HH:mm
     endHour: string;   // HH:mm
     managerId: string; // UUID
-    requestType?: StatusRecord; // 'TIME_OFF_REQUEST' | 'FORGOTTEN_REGISTRATION'
+    type:'TIME_OFF_REQUEST' | 'FORGOTTEN_REGISTRATION'
 }
-
+export interface TimeOffFormState {
+  startDate: Date | undefined;
+  endDate: Date | undefined;
+  startHour: string;
+  endHour: string;
+  managerId: string;
+  document: File | null;
+  // No formulário local (state) você pode manter o nome que quiser, 
+  // mas o valor deve ser compatível ou convertido no submit.
+  requestType: 'TIME_OFF_REQUEST' | 'FORGOTTEN_REGISTRATION'
+}
 export interface VacationRequestResponse {
     employeeId: string;
     employeeName: string;

@@ -21,7 +21,7 @@ const defaultFormState: TimeOffFormState = {
   endHour: "18:00",
   managerId: "",
   document: null,
-  requestType: "TIME_OFF_REQUEST", // Padrão é Abono
+  requestType: "FORGOTTEN_REGISTRATION", // Padrão é Abono
 };
 
 export const useRequestManualRegistration = () => {
@@ -96,15 +96,20 @@ export const useRequestManualRegistration = () => {
 
     setIsLoading(true);
 
-    try {
-      // ATUALIZADO: Inclui requestType no payload
-      const payload: RequestTimeOffRequestPayload = {
+   try {
+      // CORREÇÃO AQUI:
+      // O Java espera "FORGOTTEN_REGISTRATION" ou "TIME_OFF_REQUEST"
+      const backendType = formState.requestType === 'FORGOTTEN_REGISTRATION' 
+                          ? 'FORGOTTEN_REGISTRATION'  // Envia a chave exata do Enum Java
+                          : 'TIME_OFF_REQUEST';       // Envia a chave exata do Enum Java
+
+      const payload: any = { 
         startDate: format(formState.startDate!, "dd-MM-yyyy"),
         endDate: format(formState.endDate!, "dd-MM-yyyy"),
         startHour: formState.startHour,
         endHour: formState.endHour,
         managerId: formState.managerId,
-        requestType: formState.requestType, 
+        type: backendType, // Agora envia o valor que o Java entende
       };
 
       await requestTimeOff(payload, formState.document);

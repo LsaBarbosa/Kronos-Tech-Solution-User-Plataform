@@ -446,7 +446,11 @@ const StatusRegistro = () => {
                             referenceTime={referenceTime}
                             selectedDates={selectedDates}
                             onEditRecord={handleEditRecord} // Passa a função de abrir o modal
-                        />
+                            onDownloadPDF={function (): void {
+                                throw new Error("Function not implemented.");
+                            } } onDownloadCSV={function (): void {
+                                throw new Error("Function not implemented.");
+                            } }                        />
                     )}
                     
                     {/* 💡 INTEGRAÇÃO: Utiliza o componente de filtros modular (BAIXO) */}

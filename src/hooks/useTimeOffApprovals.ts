@@ -67,10 +67,10 @@ export const useTimeOffApprovals = (): UseTimeOffApprovalsReturn => {
         try {
             if (action === 'approve') {
                 await PendingApprovalService.approveTimeOff(timeRecordId);
-                toast({ title: 'Sucesso', description: 'Abono aprovado com sucesso!' });
+                toast({ title: 'Sucesso', description: 'Solicitação aprovada com sucesso!' });
             } else {
                 await PendingApprovalService.rejectTimeOff(timeRecordId);
-                toast({ title: 'Sucesso', description: 'Abono rejeitado com sucesso!' });
+                toast({ title: 'Sucesso', description: 'Solicitação rejeitada com sucesso!' });
             }
             await fetchApprovals(); // Recarrega a lista após a ação
         } catch (error) {
