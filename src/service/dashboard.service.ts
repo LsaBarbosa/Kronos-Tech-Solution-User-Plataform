@@ -22,10 +22,29 @@ const getAuthHeaders = () => {
 
 const handleResponse = async (response: Response): Promise<any> => {
     if (!response.ok) {
-        const errorData = await response.json();
+        // 1. Tenta ler o JSON de erro do backend
+        let errorData;
+        try {
+            errorData = await response.json();
+        } catch (e) {
+            errorData = { message: `Erro de API (${response.status})` };
+        }
+
         const errorMessage = errorData.detail || errorData.message || `Erro de API (${response.status})`;
-        throw new Error(errorMessage);
+        
+        // 2. Cria o objeto de erro
+        const error: any = new Error(errorMessage);
+        
+        // 3. ANEXA OS DADOS DO BACKEND AO ERRO
+        // Isso permite que o hook useDashboardData leia 'error.response.data.type'
+        error.response = {
+            status: response.status,
+            data: errorData
+        };
+        
+        throw error;
     }
+
     const contentType = response.headers.get("content-type");
     if (contentType && contentType.includes("application/json")) {
         return response.json();
