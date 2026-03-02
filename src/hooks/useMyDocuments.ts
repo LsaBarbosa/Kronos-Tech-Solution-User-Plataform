@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { Document } from "@/types/document";
-import { fetchUserDocuments, deleteDocument, generateDownloadUrl } from "@/service/document.Service";
+import { fetchUserDocuments, deleteDocument } from "@/service/document.Service";
 
 interface UseMyDocumentsReturn {
     documents: Document[];
@@ -12,7 +12,6 @@ interface UseMyDocumentsReturn {
     isDeleting: boolean;
     error: string | null;
     handleDeleteDocument: (documentId: string, documentName: string) => Promise<void>;
-    generateDownloadUrl: (documentId: string) => string;
     refetchDocuments: () => void;
 }
 
@@ -77,7 +76,6 @@ export const useMyDocuments = (): UseMyDocumentsReturn => {
         isDeleting,
         error,
         handleDeleteDocument,
-        generateDownloadUrl, // 💡 Exporta a função pura do service
         refetchDocuments: loadDocuments,
     };
 };

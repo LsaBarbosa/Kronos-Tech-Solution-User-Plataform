@@ -3,16 +3,13 @@
 import { API_BASE_URL } from "@/config/api"; 
 import { Document, EmployeeListItem, MAX_UPLOAD_SIZE_BYTES } from "@/types/document";
 import { getAuthToken } from "./company.Service";
+import { getBearerToken } from "@/lib/auth";
 
 // --- Funções Auxiliares de Requisição ---
 
 const getAuthHeaders = (contentType: 'json' | 'multipart' = 'json') => {
-    const token = localStorage.getItem('token');
-    if (!token) {
-        throw new Error("Token de autenticação não encontrado."); 
-    }
     const headers: HeadersInit = {
-        "Authorization": `Bearer ${token}`,
+        "Authorization": getBearerToken(),
     };
     if (contentType === 'json') {
         headers["Content-Type"] = "application/json";
@@ -57,16 +54,6 @@ export const deleteDocument = async (documentId: string): Promise<void> => {
     });
     await handleResponse(response);
 };
-
-/**
- * Gera a URL de download para um documento específico.
- */
-export const generateDownloadUrl = (documentId: string): string => {
-    const token = getAuthHeaders('json').Authorization;
-    // URL simulada que precisa de autenticação (usado no href do Documentos.tsx)
-    return `${API_BASE_URL}documents/${documentId}/download?token=${token}`; 
-};
-
 
 // --- Serviços para Gestores (DocumentoColaborador.tsx) ---
 
