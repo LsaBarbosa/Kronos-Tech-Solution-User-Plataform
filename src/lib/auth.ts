@@ -1,6 +1,6 @@
 const SESSION_MARKER_KEY = "has-session";
 const LEGACY_TOKEN_KEY = "token";
-export const COOKIE_SESSION_PLACEHOLDER = "e30.e30.session";
+const COOKIE_SESSION_PLACEHOLDER = "e30.e30.session";
 
 export const getStoredToken = (): string | null => {
   const token = localStorage.getItem(LEGACY_TOKEN_KEY);
