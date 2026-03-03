@@ -1,113 +1,55 @@
 // src/services/documentService.ts
 
-import { API_BASE_URL } from "@/config/api"; 
+import { api } from "@/config/api";
 import { Document, EmployeeListItem, MAX_UPLOAD_SIZE_BYTES } from "@/types/document";
 import { getAuthToken } from "./company.Service";
-import { getBearerToken } from "@/lib/auth";
 
-// --- Funções Auxiliares de Requisição ---
+interface EmployeeApiResponse {
+  id: string;
+  name: string;
+}
 
-const getAuthHeaders = (contentType: 'json' | 'multipart' = 'json') => {
-    const headers: HeadersInit = {
-        "Authorization": getBearerToken(),
-    };
-    if (contentType === 'json') {
-        headers["Content-Type"] = "application/json";
-    }
-    // Para 'multipart', o navegador define o Content-Type (boundary)
-    return headers;
-};
+interface EmployeesResponse {
+  employees: EmployeeApiResponse[];
+}
 
-const handleResponse = async (response: Response): Promise<any> => {
-    if (!response.ok) {
-        const errorData = await response.json();
-        const errorMessage = errorData.detail || errorData.message || `Erro de API (${response.status})`;
-        throw new Error(errorMessage);
-    }
-    const contentType = response.headers.get("content-type");
-    if (contentType && contentType.includes("application/json")) {
-        return response.json();
-    }
-    return {};
-};
-
-// --- Serviços de Documentos do Usuário Logado (Documentos.tsx) ---
-
-/**
- * Busca a lista de documentos do usuário logado.
- */
 export const fetchUserDocuments = async (): Promise<Document[]> => {
-    const headers = getAuthHeaders('json');
-    const response = await fetch(`${API_BASE_URL}documents/me`, { headers });
-    const data = await handleResponse(response);
-    return data; // Assumindo que a API retorna o array de documentos
+  const { data } = await api.get<Document[]>("documents/me");
+  return data;
 };
 
-/**
- * Deleta um documento pelo ID.
- */
 export const deleteDocument = async (documentId: string): Promise<void> => {
-    const headers = getAuthHeaders('json');
-    const response = await fetch(`${API_BASE_URL}documents/${documentId}`, {
-        method: "DELETE",
-        headers: headers,
-    });
-    await handleResponse(response);
+  await api.delete(`documents/${documentId}`);
 };
 
-// --- Serviços para Gestores (DocumentoColaborador.tsx) ---
-
-/**
- * Busca a lista de colaboradores ativos (compartilhado com EnviarDocumentos).
- */
 export const fetchEmployeesForSelection = async (): Promise<EmployeeListItem[]> => {
-    const headers = getAuthHeaders('json');
-    const response = await fetch(`${API_BASE_URL}employees?active=true`, { headers });
-    const data = await handleResponse(response);
-    // Adapte o mapeamento conforme sua API retorna a lista
-    return data.employees.map((emp: any) => ({
-        employeeId: emp.id,
-        fullName: emp.name,
-    })) as EmployeeListItem[]; 
+  const { data } = await api.get<EmployeesResponse>("employees?active=true");
+
+  return data.employees.map((emp) => ({
+    employeeId: emp.id,
+    fullName: emp.name,
+  }));
 };
 
-/**
- * Busca documentos de um colaborador específico (para DocumentoColaborador).
- */
 export const fetchEmployeeDocuments = async (employeeId: string): Promise<Document[]> => {
-    const headers = getAuthHeaders('json');
-    const response = await fetch(`${API_BASE_URL}documents/employee/${employeeId}`, { headers });
-    const data = await handleResponse(response);
-    return data; 
+  const { data } = await api.get<Document[]>(`documents/employee/${employeeId}`);
+  return data;
 };
 
-// --- Serviços de Upload (EnviarDocumentos.tsx) ---
-
-/**
- * Realiza o upload do arquivo para o colaborador selecionado (pode ser o próprio usuário logado).
- * @param file O arquivo a ser enviado.
- * @param employeeId O ID do colaborador destinatário.
- */
 export const uploadDocument = async (file: File, employeeId: string): Promise<void> => {
-    if (file.size > MAX_UPLOAD_SIZE_BYTES) {
-        throw new Error("O arquivo excede o limite de 5MB.");
-    }
-    
-    // Configuração do FormData para envio de arquivo
-    const formData = new FormData();
-    formData.append('file', file);
-    formData.append('employeeId', employeeId);
-    
-    const token = getAuthToken();
+  if (file.size > MAX_UPLOAD_SIZE_BYTES) {
+    throw new Error("O arquivo excede o limite de 5MB.");
+  }
 
-    const response = await fetch(`${API_BASE_URL}documents/upload`, {
-        method: 'POST',
-        headers: {
-            "Authorization": `Bearer ${token}`,
-            // Não defina Content-Type; o navegador o fará para FormData, incluindo o boundary
-        },
-        body: formData,
-    });
-    
-    await handleResponse(response);
+  const formData = new FormData();
+  formData.append("file", file);
+  formData.append("employeeId", employeeId);
+
+  const token = getAuthToken();
+
+  await api.post("documents/upload", formData, {
+    headers: {
+      Authorization: `Bearer ${token}`,
+    },
+  });
 };

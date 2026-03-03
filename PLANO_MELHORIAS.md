@@ -103,19 +103,19 @@ Foi realizada uma varredura técnica no frontend (React + Vite + TypeScript) com
 ## 4) Backlog técnico recomendado (prioridade objetiva)
 
 ## P0 (imediato)
-- [ ] Remover token em query string no download.
+- [x] Remover token em query string no download.
 - [ ] Definir estratégia de sessão segura (cookie HttpOnly).
 - [ ] Corrigir regras de lint críticas (`any`, `no-empty`, `hooks`).
 
 ## P1 (curto prazo)
-- [ ] Centralizar autenticação/token utils.
-- [ ] Adotar code splitting nas rotas pesadas.
-- [ ] Unificar cliente HTTP com tratamento de erro comum.
+- [x] Centralizar autenticação/token utils.
+- [x] Adotar code splitting nas rotas pesadas.
+- [x] Unificar cliente HTTP com tratamento de erro comum (documentos migrados para `api` com interceptors).
 
 ## P2 (médio prazo)
-- [ ] Implantar performance budget e monitoramento de bundle.
-- [ ] Implantar auditoria de dependências no pipeline.
-- [ ] Fortalecer observabilidade e rastreamento de erros.
+- [x] Implantar performance budget e monitoramento de bundle.
+- [x] Implantar auditoria de dependências no pipeline.
+- [x] Fortalecer observabilidade e rastreamento de erros.
 
 ---
 
