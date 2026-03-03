@@ -316,18 +316,11 @@ const ManualRegisterApprovals = () => {
         }
         
         try {
-            const token = localStorage.getItem('token');
-            if (!token) {
-                alert('Token de autenticação ausente.');
-                return;
-            }
-
             const url = `${API_BASE_URL}documents/${documentId}?employeeId=${employeeId}`;
 
             const response = await fetch(url, {
                 headers: {
-                    'Authorization': `Bearer ${token}`,
-                },
+                                    },
             });
 
             if (!response.ok) {

@@ -33,6 +33,25 @@ export const useDashboardData = (): UseDashboardDataReturn => {
     const userRole = userData?.role || '';
     const canApprove = useMemo(() => hasApprovalPermission(userRole), [userRole]);
 
+    const normalizeWarnings = useCallback((payload: unknown): WarningMessage[] => {
+        if (Array.isArray(payload)) {
+            return payload as WarningMessage[];
+        }
+
+        if (payload && typeof payload === "object") {
+            const candidateKeys = ["content", "messages", "data", "items", "results"] as const;
+
+            for (const key of candidateKeys) {
+                const value = (payload as Record<string, unknown>)[key];
+                if (Array.isArray(value)) {
+                    return value as WarningMessage[];
+                }
+            }
+        }
+
+        return [];
+    }, []);
+
     const fetchApprovalsCount = useCallback(async (role: string) => {
         if (!hasApprovalPermission(role)) {
              return { count: 0 };
@@ -59,7 +78,7 @@ export const useDashboardData = (): UseDashboardDataReturn => {
             ]);
 
             setPendingApprovalsCount(approvals.count);
-            setAllWarnings(warnings);
+            setAllWarnings(normalizeWarnings(warnings));
 
         } catch (err: any) { 
             
@@ -95,14 +114,14 @@ export const useDashboardData = (): UseDashboardDataReturn => {
         } finally {
             setIsLoading(false);
         }
-    }, [toast, navigate, fetchApprovalsCount]);
+    }, [toast, navigate, fetchApprovalsCount, normalizeWarnings]);
 
     useEffect(() => {
         fetchProfile();
     }, [fetchProfile]);
     
     const newWarnings = useMemo(() => {
-        if (!userData || allWarnings.length === 0) return [];
+        if (!userData || !Array.isArray(allWarnings) || allWarnings.length === 0) return [];
         const lastSeenTimestamp = new Date(userData.lastSeenMessageTimestamp || 0).getTime();
         return allWarnings.filter(warning => 
             new Date(warning.createdAt).getTime() > lastSeenTimestamp

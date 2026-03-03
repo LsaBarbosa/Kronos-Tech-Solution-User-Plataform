@@ -11,6 +11,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Upload, FileText, X, UserCheck, UserX, Info, MessageSquareWarningIcon, LucideFileWarning, FileWarning } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { API_BASE_URL } from "@/config/api";
+import { fetchAccountData } from "@/service/user.Service";
 
 interface Employee {
   id: string;
@@ -25,32 +26,9 @@ const ALLOWED_ACCEPT_STRING = ALLOWED_MIME_TYPES.join(', ');
 
 
 // Auxiliary function to get authentication headers
-const getAuthHeaders = () => {
-  const token = localStorage.getItem('token');
-  if (!token) {
-    console.error("Token não encontrado.");
-    return {};
-  }
-  return {
-    'Authorization': `Bearer ${token}`,
-    'Content-Type': 'application/json',
-  };
-};
-
-// Nova função para decodificar o token JWT
-const decodeToken = (token: string) => {
-  try {
-    const base64Url = token.split('.')[1];
-    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-    const payload = decodeURIComponent(atob(base64).split('').map(function (c) {
-      return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
-    }).join(''));
-    return JSON.parse(payload);
-  } catch (error) {
-    console.error("Falha ao decodificar o token", error);
-    return null;
-  }
-};
+const getAuthHeaders = () => ({
+  'Content-Type': 'application/json',
+});
 
 // NOVO: Função para compressão de imagem (Target 3MB)
 const compressImage = (file: File, maxSizeMB: number = MAX_COMPRESS_SIZE_MB): Promise<File> => {
@@ -129,22 +107,18 @@ export default function EnviarDocumentos() {
   const handleToggleSidebar = useCallback(() => setSidebarOpen((prev) => !prev), []);
 
   useEffect(() => {
-    const token = localStorage.getItem('token');
-    if (!token) {
-      return;
-    }
+    const bootstrap = async () => {
+      const account = await fetchAccountData();
+      const userRole = account?.role;
+      const userId = account?.employeeId;
+      const userName = account?.username;
 
-    const decoded = decodeToken(token);
-    const userRole = decoded?.role; 
-    const userId = decoded?.employeeId;
-    const userName = decoded?.fullName;
-
-    const isManager = userRole === 'MANAGER'; 
-    
-    setIsPartner(userRole === 'PARTNER');
-    setCurrentUserId(userId || "");
-    setCurrentUserName(userName || "");
-    setUserRole(userRole || "");
+      const isManager = userRole === 'MANAGER'; 
+      
+      setIsPartner(userRole === 'PARTNER');
+      setCurrentUserId(userId || "");
+      setCurrentUserName(userName || "");
+      setUserRole((userRole as string) || "");
 
     // AJUSTE CRÍTICO: Definir selectedEmployeeId automaticamente para NÃO-MANAGERS
     if (!isManager) {
@@ -199,6 +173,12 @@ export default function EnviarDocumentos() {
 
         fetchEmployees();
     }
+  };
+
+  bootstrap().catch(() => {
+    setIsFetchingEmployees(false);
+    toast({ title: "Erro", description: "Não foi possível carregar sessão do usuário.", variant: "destructive" });
+  });
   }, [activeEmployeeFilter]);
 
   const handleDragOver = (e: React.DragEvent) => {

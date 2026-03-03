@@ -3,11 +3,6 @@
 import { API_BASE_URL } from "@/config/api"; 
 import { UserAccountData, UserData, ChangePasswordData, cleanNumberString } from "@/types/user";
 
-// Função utilitária para obter o token (Adaptada)
-const getAuthToken = (): string => {
-  return localStorage.getItem("token") || "";
-};
-
 const getAuthHeaders = (contentType: 'json' | 'form' = 'json') => {
     const headers: HeadersInit = {};
     if (contentType === 'json') {

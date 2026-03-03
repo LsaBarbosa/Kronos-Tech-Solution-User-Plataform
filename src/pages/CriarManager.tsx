@@ -130,14 +130,8 @@ const CriarManager = () => {
     const fetchCompanies = useCallback(async () => {
         setIsFetchingCompanies(true);
         try {
-            const token = localStorage.getItem("token");
-            if (!token) {
-                toast({ title: "Erro", description: "Token não encontrado.", variant: "destructive" });
-                return;
-            }
-
             const response = await fetch(`${API_BASE_URL}companies`, {
-                headers: { "Authorization": `Bearer ${token}` },
+                headers: { "Content-Type": "application/json" },
             });
 
             if (!response.ok) {
@@ -217,12 +211,9 @@ const selectedScheduleType = form.watch("scheduleType");
         setCpfAvailability('checking');
 
         try {
-            const token = localStorage.getItem("token");
-            if (!token) throw new Error("Token de autenticação não encontrado.");
-
             // Chamada à API para verificação de CPF
             const response = await fetch(`${API_BASE_URL}employee/check-cpf?cpf=${cpf}`, {
-                headers: { "Authorization": `Bearer ${token}` },
+                headers: { "Content-Type": "application/json" },
             });
 
             if (response.ok) {
@@ -277,11 +268,8 @@ const selectedScheduleType = form.watch("scheduleType");
         setUsernameAvailability('checking');
 
         try {
-            const token = localStorage.getItem("token");
-            if (!token) throw new Error("Token de autenticação não encontrado.");
-
             const response = await fetch(`${API_BASE_URL}users/check-username?username=${username}`, {
-                headers: { "Authorization": `Bearer ${token}` },
+                headers: { "Content-Type": "application/json" },
             });
 
             if (response.ok) {
@@ -330,9 +318,6 @@ const selectedScheduleType = form.watch("scheduleType");
         // -----------------------------------------
 
         try {
-            const token = localStorage.getItem("token");
-            if (!token) throw new Error("Token de autenticação não encontrado.");
-
             // Removendo máscaras para envio ao backend
             const employeePayload = {
                 companyId: data.companyId, 
@@ -356,7 +341,7 @@ const selectedScheduleType = form.watch("scheduleType");
 
             const employeeResponse = await fetch(`${API_BASE_URL}employee`, {
                 method: "POST",
-                headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` },
+                headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(employeePayload),
             });
 
@@ -425,9 +410,6 @@ const selectedScheduleType = form.watch("scheduleType");
         }
 
         try {
-            const token = localStorage.getItem("token");
-            if (!token) throw new Error("Token de autenticação não encontrado.");
-
             const userPayload = {
                 username: data.username,
                 password: data.password,
@@ -437,7 +419,7 @@ const selectedScheduleType = form.watch("scheduleType");
 
             const userResponse = await fetch(`${API_BASE_URL}users`, {
                 method: "POST",
-                headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` },
+                headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(userPayload),
             });
 
