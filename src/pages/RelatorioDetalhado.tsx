@@ -58,6 +58,28 @@ const generateCSV = (data: any[], headers: string[], fileName: string) => {
     URL.revokeObjectURL(url);
 };
 
+
+
+const parseJsonSafe = async <T,>(response: Response): Promise<T | null> => {
+    const rawBody = await response.text();
+    if (!rawBody) return null;
+
+    try {
+        return JSON.parse(rawBody) as T;
+    } catch {
+        return null;
+    }
+};
+
+const getApiErrorMessage = (payload: unknown, fallback: string): string => {
+    if (payload && typeof payload === "object") {
+        const possible = payload as Record<string, unknown>;
+        const message = possible.detail || possible.message || possible.title;
+        if (typeof message === "string" && message.trim()) return message;
+    }
+    return fallback;
+};
+
 const RelatorioDetalhado = () => {
     const [sidebarOpen, setSidebarOpen] = useState(false);
     const [selectedDates, setSelectedDates] = useState<Date[]>([]);
@@ -181,8 +203,8 @@ const RelatorioDetalhado = () => {
             });
 
             if (response.ok) {
-                const data = await response.json();
-                setEmployees(data.employees || []);
+                const data = await parseJsonSafe<{ employees?: Employee[] }>(response);
+                setEmployees(Array.isArray(data?.employees) ? data.employees : []);
                 if (!selectedEmployee) setSelectedEmployee("");
             }
         } catch (error) {
@@ -201,12 +223,13 @@ const RelatorioDetalhado = () => {
             });
 
             if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.detail || "Erro ao buscar usuários.");
+                const errorData = await parseJsonSafe<Record<string, unknown>>(response);
+                throw new Error(getApiErrorMessage(errorData, "Erro ao buscar usuários."));
             }
 
-            const data = await response.json();
-            const filteredManagers: Manager[] = data.users
+            const data = await parseJsonSafe<{ users?: any[] }>(response);
+            const users = Array.isArray(data?.users) ? data.users : [];
+            const filteredManagers: Manager[] = users
                 .filter((user: any) => user.role === "MANAGER")
                 .map((user: any) => ({ id: user.userId, name: user.username }));
             setManagers(filteredManagers);
@@ -248,18 +271,19 @@ const RelatorioDetalhado = () => {
             });
 
             if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.detail || "Erro ao buscar o relatório.");
+                const errorData = await parseJsonSafe<Record<string, unknown>>(response);
+                throw new Error(getApiErrorMessage(errorData, "Erro ao buscar o relatório."));
             }
 
-            const data: DetailedReportItem[] = await response.json();
+            const data = await parseJsonSafe<DetailedReportItem[]>(response);
+            const reportItems = Array.isArray(data) ? data : [];
 
-            if (data.length === 0) {
+            if (reportItems.length === 0) {
                 toast({ title: "Aviso", description: "Não há registros para os filtros selecionados", variant: "default" });
                 return;
             }
 
-            setReportData(data);
+            setReportData(reportItems);
             toast({ title: "Busca realizada", description: `Relatório gerado com sucesso.` });
             window.scrollTo({ top: 0, behavior: 'smooth' });
 
@@ -574,8 +598,8 @@ const RelatorioDetalhado = () => {
             });
 
             if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.detail || "Erro ao solicitar a aprovação.");
+                const errorData = await parseJsonSafe<Record<string, unknown>>(response);
+                throw new Error(getApiErrorMessage(errorData, "Erro ao solicitar a aprovação."));
             }
 
             toast({ title: "Sucesso", description: "Solicitação enviada para aprovação." });
