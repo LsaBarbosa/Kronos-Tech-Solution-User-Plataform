@@ -91,6 +91,19 @@ const Usuario = () => {
     }
     return phone;
   };
+
+  const formatAddressDisplay = () => {
+    const address = userData?.address;
+
+    if (!address) {
+      return "Endereço não informado";
+    }
+
+    const streetAndNumber = [address.street, address.number].filter(Boolean).join(", ");
+    const cityAndState = [address.city, address.state].filter(Boolean).join("/");
+
+    return [streetAndNumber, cityAndState].filter(Boolean).join(" - ") || "Endereço não informado";
+  };
   
   // Validação local para desabilitar o botão de senha
   const isPasswordChangeDisabled = (
@@ -493,8 +506,7 @@ const Usuario = () => {
                         <div className="mt-1 p-3 bg-muted rounded-lg">
                           <p className="text-foreground flex items-center gap-2">
                             <MapPin className="h-4 w-4 text-primary flex-shrink-0" />
-                            {/* Assumindo que userData.address.street/number/city/state existem */}
-                            {userData?.address.street}, {userData?.address.number} - {userData?.address.city}/{userData?.address.state}
+                            {formatAddressDisplay()}
                           </p>
                         </div>
                       </div>

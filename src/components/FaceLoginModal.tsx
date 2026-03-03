@@ -5,7 +5,6 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { Card, CardContent } from "@/components/ui/card";
 import { toast } from "sonner";
 import { API_BASE_URL } from "@/config/api";
-import { setStoredToken } from "@/lib/auth";
 
 interface FaceLoginModalProps {
     isOpen: boolean;
@@ -136,8 +135,7 @@ const FaceLoginModal = ({ isOpen, onOpenChange }: FaceLoginModalProps) => {
             }
 
             // Login bem-sucedido
-            setStoredToken();
-            
+
             toast.success("Identidade confirmada! Acessando plataforma...", {
                 duration: 2000,
             });

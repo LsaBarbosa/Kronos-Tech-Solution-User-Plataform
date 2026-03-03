@@ -9,7 +9,6 @@ import { toast } from "sonner"; // Ajustado import para sonner padrão se necess
 import { API_BASE_URL } from "@/config/api";
 import FaceLoginModal from "@/components/FaceLoginModal"; // Import do novo modal
 import { useNavigate } from "react-router-dom";
-import { setStoredToken } from "@/lib/auth";
 
 const API_URL = `${API_BASE_URL}auth/login`;
 
@@ -41,7 +40,6 @@ const LoginForm = () => {
         throw new Error(errorData.detail || "Usuário ou senha inválidos.");
       }
 
-      setStoredToken();
 
       toast.success("Login realizado com sucesso!");
 
