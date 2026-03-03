@@ -1,12 +1,14 @@
 // src/types/user.ts
 
+export type UserRole = 'PARTNER' | 'MANAGER' | 'ADMIN' | 'CTO' | 'USER';
+
 /**
  * Interface para os dados básicos da conta do usuário (geralmente do token ou endpoint de conta).
  */
 export interface UserAccountData {
   userId: string;
   username: string;
-  role: string;
+  role: UserRole | string;
   active: boolean;
   employeeId: string;
 }
@@ -35,7 +37,7 @@ export interface UserData {
   homeOffice: boolean;
   
   // A role é injetada a partir do token no hook para conveniência
-  role?: 'PARTNER' | 'MANAGER' | 'ADMIN' | 'CTO' | 'USER' | string; 
+  role?: UserRole | string;
   lastLogin?: string; // Mantido
 }
 

@@ -1,43 +1,33 @@
 // src/types/dashboard.ts
 
-// import { UserData } from "@/types/user"; // Não é mais necessário importar UserData aqui
+import type { UserRole } from '@/types/user';
 
-// 💡 REMOVIDO: UserProfile (agora consolidado em UserData no src/types/user.ts)
-
-/**
- * Interface para o contador de aprovações pendentes.
- */
 export interface ApprovalStats {
   count: number;
 }
 
-
-/**
- * Interface para os avisos (simplificada para notificação).
- */
 export interface WarningMessage {
   messageId: string;
   createdAt: string;
   title: string;
   priority: string;
-  // Outros campos relevantes para exibir no dashboard
-  [key: string]: any;
+  [key: string]: unknown;
 }
 
-// Utilitários de role
-// 💡 CORRIGIDO: Tipagem ajustada para aceitar string
-export const getRoleDisplayName = (role: string): string => {
-    switch (role) {
-        case 'MANAGER': return 'Gestor';
-        case 'CTO': return 'CTO';
-        case 'PARTNER': return 'Colaborador';
-        default: return 'Colaborador';
-    }
+const ROLE_DISPLAY_NAME_MAP: Partial<Record<UserRole, string>> = {
+  MANAGER: 'Gestor',
+  CTO: 'CTO',
+  PARTNER: 'Colaborador',
 };
 
-/**
- * Verifica se o usuário tem permissão de Manager/Admin.
- */
+export const getRoleDisplayName = (role: string): string => {
+  const normalizedRole = role.toUpperCase() as UserRole;
+  return ROLE_DISPLAY_NAME_MAP[normalizedRole] ?? 'Colaborador';
+};
+
+const APPROVAL_ALLOWED_ROLES: ReadonlySet<UserRole> = new Set(['MANAGER']);
+
 export const hasApprovalPermission = (role: string): boolean => {
-  return ['MANAGER'].includes(role);
+  const normalizedRole = role.toUpperCase() as UserRole;
+  return APPROVAL_ALLOWED_ROLES.has(normalizedRole);
 };
