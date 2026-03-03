@@ -9,6 +9,7 @@ import { toast } from "sonner"; // Ajustado import para sonner padrão se necess
 import { API_BASE_URL } from "@/config/api";
 import FaceLoginModal from "@/components/FaceLoginModal"; // Import do novo modal
 import { useNavigate } from "react-router-dom";
+import { setStoredToken } from "@/lib/auth";
 
 const API_URL = `${API_BASE_URL}auth/login`;
 
@@ -41,7 +42,7 @@ const LoginForm = () => {
 
       const data = await response.json();
 
-      localStorage.setItem("token", data.token);
+      setStoredToken(data.token);
 
       toast.success("Login realizado com sucesso!");
 

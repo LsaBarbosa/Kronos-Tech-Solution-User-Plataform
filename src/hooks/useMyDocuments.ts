@@ -30,10 +30,10 @@ export const useMyDocuments = (): UseMyDocumentsReturn => {
         try {
             const data = await fetchUserDocuments(); // 💡 Chama o Serviço
             setDocuments(data);
-        } catch (err: any) {
-            setError(err.message);
-            if (err.message.includes("Token")) navigate("/login");
-            toast({ title: "Erro", description: err.message, variant: "destructive" });
+        } catch (err: unknown) {
+            setError(err instanceof Error ? err.message : "Erro inesperado");
+            if (err instanceof Error && err.message.includes("Token")) navigate("/login");
+            toast({ title: "Erro", description: err instanceof Error ? err.message : "Erro inesperado", variant: "destructive" });
         } finally {
             setIsLoading(false);
         }
@@ -62,9 +62,9 @@ export const useMyDocuments = (): UseMyDocumentsReturn => {
             setDocuments(prev => prev.filter(doc => doc.id !== documentId));
 
             toast({ title: "Sucesso", description: `Documento "${documentName}" excluído.` });
-        } catch (err: any) {
+        } catch (err: unknown) {
             console.error("Erro ao deletar:", err);
-            toast({ title: "Erro", description: err.message || "Falha ao excluir o documento.", variant: "destructive" });
+            toast({ title: "Erro", description: err instanceof Error ? err.message : "Falha ao excluir o documento.", variant: "destructive" });
         } finally {
             setIsDeleting(false);
         }

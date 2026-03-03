@@ -38,10 +38,10 @@ export const useEmployeeDocuments = (): UseEmployeeDocumentsReturn => {
                 if (data.length > 0) {
                      // Não seleciona automaticamente o primeiro, mantém o padrão do Select
                 }
-            } catch (err: any) {
-                setError(err.message);
-                if (err.message.includes("Token")) navigate("/login");
-                toast({ title: "Erro", description: err.message, variant: "destructive" });
+            } catch (err: unknown) {
+                setError(err instanceof Error ? err.message : "Erro inesperado");
+                if (err instanceof Error && err.message.includes("Token")) navigate("/login");
+                toast({ title: "Erro", description: err instanceof Error ? err.message : "Erro inesperado", variant: "destructive" });
             } finally {
                 setIsFetchingEmployees(false);
             }
@@ -65,9 +65,9 @@ export const useEmployeeDocuments = (): UseEmployeeDocumentsReturn => {
                 title: "Sucesso",
                 description: `${data.length} documentos encontrados para o colaborador.`,
             });
-        } catch (err: any) {
-            setError(err.message);
-            toast({ title: "Erro", description: err.message || "Falha ao carregar documentos.", variant: "destructive" });
+        } catch (err: unknown) {
+            setError(err instanceof Error ? err.message : "Erro inesperado");
+            toast({ title: "Erro", description: err instanceof Error ? err.message : "Falha ao carregar documentos.", variant: "destructive" });
         } finally {
             setIsLoading(false);
         }

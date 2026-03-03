@@ -105,7 +105,9 @@ Foi realizada uma varredura técnica no frontend (React + Vite + TypeScript) com
 ## P0 (imediato)
 - [x] Remover token em query string no download.
 - [ ] Definir estratégia de sessão segura (cookie HttpOnly).
+  - Em progresso no frontend: `withCredentials` habilitado no cliente HTTP e abstração de sessão centralizada em `src/lib/auth.ts` para suportar transição assistida por backend.
 - [ ] Corrigir regras de lint críticas (`any`, `no-empty`, `hooks`).
+  - Progresso: erros reduzidos de 91 para 82 nesta etapa.
 
 ## P1 (curto prazo)
 - [x] Centralizar autenticação/token utils.

@@ -1,8 +1,8 @@
 // src/components/ProtectedRoute.tsx
 import { Navigate, Outlet } from 'react-router-dom';
-import { getStoredToken } from '@/lib/auth';
+import { hasClientSession } from '@/lib/auth';
 
-const isAuthenticated = () => getStoredToken() !== null;
+const isAuthenticated = () => hasClientSession();
 
 const ProtectedRoute = () => {
   if (!isAuthenticated()) {
