@@ -8,13 +8,7 @@ import { string } from "zod";
 // --- Funções Auxiliares de Requisição ---
 
 const getAuthHeaders = (contentType: 'json' | 'form' = 'json') => {
-    const token = localStorage.getItem('token');
-    if (!token) {
-        throw new Error("Token de autenticação não encontrado. Redirecionando para login.");
-    }
-    const headers: HeadersInit = {
-        "Authorization": `Bearer ${token}`,
-    };
+    const headers: HeadersInit = {};
     if (contentType === 'json') {
         headers["Content-Type"] = "application/json";
     }

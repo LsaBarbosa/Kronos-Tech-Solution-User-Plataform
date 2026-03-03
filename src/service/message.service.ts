@@ -6,30 +6,9 @@ import { EmployeeData } from "@/types/employee";
 
 // --- Funções Auxiliares (Puras) ---
 
-const decodeToken = (token: string) => {
-    try {
-        const base64Url = token.split('.')[1];
-        const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-        const payload = decodeURIComponent(atob(base64).split('').map(function (c) {
-            return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
-        }).join(''));
-        return JSON.parse(payload);
-    } catch (error) {
-        console.error("Falha ao decodificar o token", error);
-        return null;
-    }
-};
-
-const getAuthHeaders = () => {
-    const token = localStorage.getItem('token');
-    if (!token) {
-        throw new Error("Token de autenticação não encontrado.");
-    }
-    return {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${token}`,
-    };
-};
+const getAuthHeaders = () => ({
+    "Content-Type": "application/json",
+});
 
 const handleResponse = async (response: Response) => {
     if (!response.ok) {
@@ -107,15 +86,14 @@ export const fetchActiveEmployees = async (): Promise<EmployeeData[]> => {
 /**
  * Obtém o papel do usuário (role) do token para lógica de permissões.
  */
-export const getUserRoleFromToken = (): 'MANAGER' | 'PARTNER' | 'CTO' | '' => {
-    const token = localStorage.getItem("token");
-    if (!token) return '';
-    
-    const decoded = decodeToken(token);
-    const role = decoded?.role;
-
-    if (role === 'MANAGER' || role === 'PARTNER' || role === 'CTO') {
-        return role;
+export const getUserRoleFromToken = async (): Promise<'MANAGER' | 'PARTNER' | 'CTO' | ''> => {
+    try {
+        const response = await fetch(`${API_BASE_URL}users/own-profile`, { headers: getAuthHeaders() });
+        const data = await handleResponse(response);
+        const role = data?.role;
+        if (role === 'MANAGER' || role === 'PARTNER' || role === 'CTO') return role;
+        return '';
+    } catch {
+        return '';
     }
-    return '';
 };

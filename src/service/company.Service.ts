@@ -8,17 +8,7 @@ const HERE_API_KEY = "4BOpnro1zHzBBh9olurKhD4aWIw9I-gcY6VRox9wSXU";
 
 // --- Funções Auxiliares de Requisição ---
 
-const getAuthHeaders = (): HeadersInit => {
-    const token = getAuthToken();
-    if (!token) {
-        // Lançar erro que será capturado pelo hook
-        throw new Error("Token de autenticação não encontrado."); 
-    }
-    return { 
-        "Content-Type": "application/json", 
-        "Authorization": `Bearer ${token}` 
-    };
-};
+const getAuthHeaders = (): HeadersInit => ({ "Content-Type": "application/json" });
 
 const handleResponse = async (response: Response): Promise<any> => {
     if (!response.ok) {

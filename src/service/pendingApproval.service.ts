@@ -8,15 +8,7 @@ import { ITimeRecordApprovalPageResponse, IPendingApprovalQueryParams, TimeRecor
   IRequestTimeOffData} from "@/types/recordApproval";
 
 
-const getAuthHeaders = () => {
-    const token = localStorage.getItem('token');
-    if (!token) {
-        throw new Error("Token de autenticação não encontrado.");
-    }
-    return {
-        "Authorization": `Bearer ${token}`,
-    };
-};
+const getAuthHeaders = () => ({});
 
 const getAuthHeadersWithJson = () => {
     return {

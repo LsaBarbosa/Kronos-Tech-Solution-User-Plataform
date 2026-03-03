@@ -127,6 +127,7 @@ const FaceLoginModal = ({ isOpen, onOpenChange }: FaceLoginModalProps) => {
                     "Content-Type": "application/json",
                 },
                 body: JSON.stringify({ faceImageBase64: base64Data }),
+                credentials: "include",
             });
 
             if (!response.ok) {
@@ -134,10 +135,8 @@ const FaceLoginModal = ({ isOpen, onOpenChange }: FaceLoginModalProps) => {
                 throw new Error(errorData.detail || "Falha no reconhecimento facial.");
             }
 
-            const data = await response.json();
-
             // Login bem-sucedido
-            setStoredToken(data.token);
+            setStoredToken();
             
             toast.success("Identidade confirmada! Acessando plataforma...", {
                 duration: 2000,

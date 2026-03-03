@@ -20,14 +20,14 @@ const ROLE_DISPLAY_NAME_MAP: Partial<Record<UserRole, string>> = {
   PARTNER: 'Colaborador',
 };
 
-export const getRoleDisplayName = (role: string): string => {
-  const normalizedRole = role.toUpperCase() as UserRole;
+export const getRoleDisplayName = (role?: string): string => {
+  const normalizedRole = (role ?? "").toUpperCase() as UserRole;
   return ROLE_DISPLAY_NAME_MAP[normalizedRole] ?? 'Colaborador';
 };
 
 const APPROVAL_ALLOWED_ROLES: ReadonlySet<UserRole> = new Set(['MANAGER']);
 
-export const hasApprovalPermission = (role: string): boolean => {
-  const normalizedRole = role.toUpperCase() as UserRole;
+export const hasApprovalPermission = (role?: string): boolean => {
+  const normalizedRole = (role ?? "").toUpperCase() as UserRole;
   return APPROVAL_ALLOWED_ROLES.has(normalizedRole);
 };

@@ -33,6 +33,7 @@ const LoginForm = () => {
           "Content-Type": "application/json",
         },
         body: JSON.stringify({ username, password }),
+        credentials: "include",
       });
 
       if (!response.ok) {
@@ -40,9 +41,7 @@ const LoginForm = () => {
         throw new Error(errorData.detail || "Usuário ou senha inválidos.");
       }
 
-      const data = await response.json();
-
-      setStoredToken(data.token);
+      setStoredToken();
 
       toast.success("Login realizado com sucesso!");
 

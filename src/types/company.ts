@@ -47,10 +47,7 @@ const NON_DIGIT_REGEX = /\D/g;
 const CNPJ_REGEX = /^(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})$/;
 const CEP_REGEX = /^(\d{5})(\d{3})$/;
 
-export const getAuthToken = (): string => {
-  if (typeof window === 'undefined') return '';
-  return window.localStorage.getItem('token') ?? '';
-};
+export const getAuthToken = (): string => ''; // JWT não é mais utilizado no frontend (cookie HttpOnly).
 
 export const formatCNPJ = (cnpj: string): string => cnpj.replace(CNPJ_REGEX, '$1.$2.$3/$4-$5');
 

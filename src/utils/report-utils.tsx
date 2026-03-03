@@ -124,9 +124,12 @@ export const statusOptions = [
 
 // --- Funções Auxiliares ---
 
-export const decodeToken = (token: string) => {
+export const decodeToken = (token?: string | null) => {
     try {
-        const base64Url = token.split('.')[1];
+        if (!token || typeof token !== 'string') return null;
+        const parts = token.split('.');
+        if (parts.length < 2 || !parts[1]) return null;
+        const base64Url = parts[1];
         const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
         const payload = decodeURIComponent(atob(base64).split('').map(function (c) {
             return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
