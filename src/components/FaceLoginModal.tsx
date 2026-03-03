@@ -5,6 +5,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { Card, CardContent } from "@/components/ui/card";
 import { toast } from "sonner";
 import { API_BASE_URL } from "@/config/api";
+import { setStoredToken } from "@/lib/auth";
 
 interface FaceLoginModalProps {
     isOpen: boolean;
@@ -58,9 +59,10 @@ const FaceLoginModal = ({ isOpen, onOpenChange }: FaceLoginModalProps) => {
                 videoRef.current?.play().catch(e => console.error("Erro ao reproduzir vídeo:", e));
             };
 
-        } catch (error: any) {
-            if (error.name !== 'AbortError') { 
-                 console.error("Erro ao acessar a webcam:", error); 
+        } catch (error: unknown) {
+            const isAbortError = error instanceof DOMException && error.name === 'AbortError';
+            if (!isAbortError) {
+                 console.error("Erro ao acessar a webcam:", error);
                  toast.error("Erro ao acessar a webcam. Verifique as permissões.");
             }
             setIsCapturing(false);
@@ -135,7 +137,7 @@ const FaceLoginModal = ({ isOpen, onOpenChange }: FaceLoginModalProps) => {
             const data = await response.json();
 
             // Login bem-sucedido
-            localStorage.setItem("token", data.token);
+            setStoredToken(data.token);
             
             toast.success("Identidade confirmada! Acessando plataforma...", {
                 duration: 2000,
@@ -146,9 +148,10 @@ const FaceLoginModal = ({ isOpen, onOpenChange }: FaceLoginModalProps) => {
                 window.location.href = "/dashboard";
             }, 1000);
 
-        } catch (error: any) {
+        } catch (error: unknown) {
             console.error(error);
-            toast.error(error.message || "Rosto não reconhecido ou não cadastrado.");
+            const message = error instanceof Error ? error.message : "Rosto não reconhecido ou não cadastrado.";
+            toast.error(message);
             setImageSrc(null);
             setIsSubmitting(false);
             startWebcam(); // Reinicia câmera automaticamente em caso de erro

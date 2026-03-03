@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { Document, EmployeeListItem } from "@/types/document";
-import { fetchEmployeeDocuments, fetchEmployeesForSelection, generateDownloadUrl } from "@/service/document.Service";
+import { fetchEmployeeDocuments, fetchEmployeesForSelection } from "@/service/document.Service";
 
 interface UseEmployeeDocumentsReturn {
     employees: EmployeeListItem[];
@@ -15,7 +15,6 @@ interface UseEmployeeDocumentsReturn {
     error: string | null;
     setSelectedEmployeeId: (id: string) => void;
     handleFetchDocuments: (employeeId: string) => Promise<void>;
-    generateDownloadUrl: (documentId: string) => string;
 }
 
 export const useEmployeeDocuments = (): UseEmployeeDocumentsReturn => {
@@ -39,10 +38,10 @@ export const useEmployeeDocuments = (): UseEmployeeDocumentsReturn => {
                 if (data.length > 0) {
                      // Não seleciona automaticamente o primeiro, mantém o padrão do Select
                 }
-            } catch (err: any) {
-                setError(err.message);
-                if (err.message.includes("Token")) navigate("/login");
-                toast({ title: "Erro", description: err.message, variant: "destructive" });
+            } catch (err: unknown) {
+                setError(err instanceof Error ? err.message : "Erro inesperado");
+                if (err instanceof Error && err.message.includes("Token")) navigate("/login");
+                toast({ title: "Erro", description: err instanceof Error ? err.message : "Erro inesperado", variant: "destructive" });
             } finally {
                 setIsFetchingEmployees(false);
             }
@@ -66,9 +65,9 @@ export const useEmployeeDocuments = (): UseEmployeeDocumentsReturn => {
                 title: "Sucesso",
                 description: `${data.length} documentos encontrados para o colaborador.`,
             });
-        } catch (err: any) {
-            setError(err.message);
-            toast({ title: "Erro", description: err.message || "Falha ao carregar documentos.", variant: "destructive" });
+        } catch (err: unknown) {
+            setError(err instanceof Error ? err.message : "Erro inesperado");
+            toast({ title: "Erro", description: err instanceof Error ? err.message : "Falha ao carregar documentos.", variant: "destructive" });
         } finally {
             setIsLoading(false);
         }
@@ -92,6 +91,5 @@ export const useEmployeeDocuments = (): UseEmployeeDocumentsReturn => {
         error,
         setSelectedEmployeeId,
         handleFetchDocuments,
-        generateDownloadUrl, // 💡 Exporta a função pura do service
     };
 };

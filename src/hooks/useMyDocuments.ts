@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { Document } from "@/types/document";
-import { fetchUserDocuments, deleteDocument, generateDownloadUrl } from "@/service/document.Service";
+import { fetchUserDocuments, deleteDocument } from "@/service/document.Service";
 
 interface UseMyDocumentsReturn {
     documents: Document[];
@@ -12,7 +12,6 @@ interface UseMyDocumentsReturn {
     isDeleting: boolean;
     error: string | null;
     handleDeleteDocument: (documentId: string, documentName: string) => Promise<void>;
-    generateDownloadUrl: (documentId: string) => string;
     refetchDocuments: () => void;
 }
 
@@ -31,10 +30,10 @@ export const useMyDocuments = (): UseMyDocumentsReturn => {
         try {
             const data = await fetchUserDocuments(); // 💡 Chama o Serviço
             setDocuments(data);
-        } catch (err: any) {
-            setError(err.message);
-            if (err.message.includes("Token")) navigate("/login");
-            toast({ title: "Erro", description: err.message, variant: "destructive" });
+        } catch (err: unknown) {
+            setError(err instanceof Error ? err.message : "Erro inesperado");
+            if (err instanceof Error && err.message.includes("Token")) navigate("/login");
+            toast({ title: "Erro", description: err instanceof Error ? err.message : "Erro inesperado", variant: "destructive" });
         } finally {
             setIsLoading(false);
         }
@@ -63,9 +62,9 @@ export const useMyDocuments = (): UseMyDocumentsReturn => {
             setDocuments(prev => prev.filter(doc => doc.id !== documentId));
 
             toast({ title: "Sucesso", description: `Documento "${documentName}" excluído.` });
-        } catch (err: any) {
+        } catch (err: unknown) {
             console.error("Erro ao deletar:", err);
-            toast({ title: "Erro", description: err.message || "Falha ao excluir o documento.", variant: "destructive" });
+            toast({ title: "Erro", description: err instanceof Error ? err.message : "Falha ao excluir o documento.", variant: "destructive" });
         } finally {
             setIsDeleting(false);
         }
@@ -77,7 +76,6 @@ export const useMyDocuments = (): UseMyDocumentsReturn => {
         isDeleting,
         error,
         handleDeleteDocument,
-        generateDownloadUrl, // 💡 Exporta a função pura do service
         refetchDocuments: loadDocuments,
     };
 };
