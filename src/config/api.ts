@@ -11,6 +11,21 @@ export const api = axios.create({
   withCredentials: true,
 });
 
+api.interceptors.request.use((config) => {
+  config.withCredentials = true;
+
+  if (config.headers) {
+    const authorization = config.headers.Authorization ?? config.headers.authorization;
+
+    if (typeof authorization === 'string' && authorization.trim().toLowerCase().startsWith('bearer')) {
+      delete config.headers.Authorization;
+      delete config.headers.authorization;
+    }
+  }
+
+  return config;
+});
+
 api.interceptors.response.use(
   (response) => response,
   (error) => {
