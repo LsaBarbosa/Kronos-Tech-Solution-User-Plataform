@@ -1,5 +1,4 @@
 import axios from 'axios';
-import { getStoredToken } from '@/lib/auth';
 import { reportError } from '@/lib/observability';
 
 export const API_BASE_URL = import.meta.env.VITE_API_URL;
@@ -11,20 +10,6 @@ export const api = axios.create({
   },
   withCredentials: true,
 });
-
-api.interceptors.request.use(
-  (config) => {
-    const token = getStoredToken();
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
-    }
-    return config;
-  },
-  (error) => {
-    reportError(error, { feature: 'http', action: 'request-interceptor' });
-    return Promise.reject(error);
-  }
-);
 
 api.interceptors.response.use(
   (response) => response,

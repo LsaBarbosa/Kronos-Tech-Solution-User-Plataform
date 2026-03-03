@@ -36,6 +36,7 @@ export const recoverPasswordRequest = async (payload: RecoverPasswordPayload): P
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
+        credentials: 'include',
     });
     // Se a API retornar sucesso (200/204), a função passa.
     await handleResponse(response);
@@ -49,6 +50,7 @@ export const resetPassword = async (payload: ResetPasswordPayload): Promise<void
         method: 'POST',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(payload),
+        credentials: 'include',
     });
     // Se a API retornar sucesso (200/204), a função passa.
     await handleResponse(response);
