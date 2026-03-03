@@ -1,10 +1,6 @@
 const SESSION_MARKER_KEY = "has-session";
 const LEGACY_TOKEN_KEY = "token";
-<<<<<<< junior/refactor-front-end-for-httponly-tokens-ze4dtf
-const COOKIE_SESSION_PLACEHOLDER = "e30.e30.session";
-=======
-const COOKIE_SESSION_PLACEHOLDER = "http-only-session";
->>>>>>> DEVELOPMENT
+export const COOKIE_SESSION_PLACEHOLDER = "e30.e30.session";
 
 export const getStoredToken = (): string | null => {
   const token = localStorage.getItem(LEGACY_TOKEN_KEY);
@@ -15,7 +11,7 @@ export const getStoredToken = (): string | null => {
     : null;
 };
 
-export const setStoredToken = (_token?: string): void => {
+export const setStoredToken = (): void => {
   localStorage.setItem(SESSION_MARKER_KEY, "1");
   // Compatibilidade temporária para fluxos legados que ainda verificam `token` no localStorage.
   localStorage.setItem(LEGACY_TOKEN_KEY, COOKIE_SESSION_PLACEHOLDER);

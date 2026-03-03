@@ -18,12 +18,12 @@ import {
     Manager,
     EditRecordFormData,
     editRecordSchema,
-    decodeToken,
     isHoliday,
     getTranslatedStatus,
     formatDateWithDayOfWeek,
 } from "@/utils/report-utils";
 import { API_BASE_URL } from "@/config/api";
+import { fetchAccountData } from "@/service/user.Service";
 
 // Sub-componentes
 import { ResultadosRelatorioDetalhado } from "@/components/ResultadosRelatorioDetalhado";
@@ -56,6 +56,28 @@ const generateCSV = (data: any[], headers: string[], fileName: string) => {
     link.click();
     document.body.removeChild(link);
     URL.revokeObjectURL(url);
+};
+
+
+
+const parseJsonSafe = async <T,>(response: Response): Promise<T | null> => {
+    const rawBody = await response.text();
+    if (!rawBody) return null;
+
+    try {
+        return JSON.parse(rawBody) as T;
+    } catch {
+        return null;
+    }
+};
+
+const getApiErrorMessage = (payload: unknown, fallback: string): string => {
+    if (payload && typeof payload === "object") {
+        const possible = payload as Record<string, unknown>;
+        const message = possible.detail || possible.message || possible.title;
+        if (typeof message === "string" && message.trim()) return message;
+    }
+    return fallback;
 };
 
 const RelatorioDetalhado = () => {
@@ -155,34 +177,30 @@ const RelatorioDetalhado = () => {
 
     const fetchEmployees = useCallback(async () => {
         try {
-            const token = localStorage.getItem("token");
-            if (!token) return;
+            const account = await fetchAccountData();
+            const userRole = account?.role;
+            const userId = account?.employeeId;
 
-            const decoded = decodeToken(token);
-            const userRole = decoded?.role;
-            const userId = decoded?.employeeId;
-            const userName = decoded?.fullName;
-
-            if (userRole === "PARTNER") {
+            if (userRole === "PARTNER" && userId) {
                 setIsPartner(true);
-                setEmployees([{ employeeId: userId, fullName: userName }]);
+                setEmployees((prev) => prev.length > 0 ? prev : [{ employeeId: userId, fullName: "Meu registro" }]);
                 setSelectedEmployee(userId);
                 return;
-            } else {
-                setIsPartner(false);
             }
+
+            setIsPartner(false);
 
             const activeStatus = employeeActive === "active";
             const url = employeeActive ? `${API_BASE_URL}employee?active=${activeStatus}` : `${API_BASE_URL}employee`;
 
             const response = await fetch(url, {
                 method: "GET",
-                headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+                headers: { "Content-Type": "application/json" },
             });
 
             if (response.ok) {
-                const data = await response.json();
-                setEmployees(data.employees || []);
+                const data = await parseJsonSafe<{ employees?: Employee[] }>(response);
+                setEmployees(Array.isArray(data?.employees) ? data.employees : []);
                 if (!selectedEmployee) setSelectedEmployee("");
             }
         } catch (error) {
@@ -192,21 +210,19 @@ const RelatorioDetalhado = () => {
 
     const fetchManagers = async () => {
         try {
-            const token = localStorage.getItem("token");
-            if (!token) throw new Error("Token de autenticação não encontrado.");
-
             const response = await fetch(`${API_BASE_URL}users/search`, {
                 method: "GET",
-                headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+                headers: { "Content-Type": "application/json" },
             });
 
             if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.detail || "Erro ao buscar usuários.");
+                const errorData = await parseJsonSafe<Record<string, unknown>>(response);
+                throw new Error(getApiErrorMessage(errorData, "Erro ao buscar usuários."));
             }
 
-            const data = await response.json();
-            const filteredManagers: Manager[] = data.users
+            const data = await parseJsonSafe<{ users?: any[] }>(response);
+            const users = Array.isArray(data?.users) ? data.users : [];
+            const filteredManagers: Manager[] = users
                 .filter((user: any) => user.role === "MANAGER")
                 .map((user: any) => ({ id: user.userId, name: user.username }));
             setManagers(filteredManagers);
@@ -227,9 +243,6 @@ const RelatorioDetalhado = () => {
         setIsLoading(true);
 
         try {
-            const token = localStorage.getItem("token");
-            if (!token) throw new Error("Token não encontrado.");
-
             const formattedDates = selectedDates.map(date => format(date, "dd-MM-yyyy"));
             const requestBody = {
                 reference: referenceTime,
@@ -243,23 +256,24 @@ const RelatorioDetalhado = () => {
 
             const response = await fetch(apiUrl.toString(), {
                 method: "POST",
-                headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+                headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(requestBody),
             });
 
             if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.detail || "Erro ao buscar o relatório.");
+                const errorData = await parseJsonSafe<Record<string, unknown>>(response);
+                throw new Error(getApiErrorMessage(errorData, "Erro ao buscar o relatório."));
             }
 
-            const data: DetailedReportItem[] = await response.json();
+            const data = await parseJsonSafe<DetailedReportItem[]>(response);
+            const reportItems = Array.isArray(data) ? data : [];
 
-            if (data.length === 0) {
+            if (reportItems.length === 0) {
                 toast({ title: "Aviso", description: "Não há registros para os filtros selecionados", variant: "default" });
                 return;
             }
 
-            setReportData(data);
+            setReportData(reportItems);
             toast({ title: "Busca realizada", description: `Relatório gerado com sucesso.` });
             window.scrollTo({ top: 0, behavior: 'smooth' });
 
@@ -549,8 +563,6 @@ const RelatorioDetalhado = () => {
 
     const handleSaveRecord = async (data: EditRecordFormData) => {
         try {
-            const token = localStorage.getItem("token");
-            if (!token) throw new Error("Token de autenticação não encontrado.");
             if (!selectedRecord || !selectedRecord.timeRecordId) throw new Error("Registro não encontrado.");
 
             const formatDate = (dateString: string) => {
@@ -569,13 +581,13 @@ const RelatorioDetalhado = () => {
             const endpoint = `${API_BASE_URL}records/update/time-record/${selectedRecord.timeRecordId}`;
             const response = await fetch(endpoint, {
                 method: "PUT",
-                headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+                headers: { "Content-Type": "application/json" },
                 body: JSON.stringify(requestBody),
             });
 
             if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.detail || "Erro ao solicitar a aprovação.");
+                const errorData = await parseJsonSafe<Record<string, unknown>>(response);
+                throw new Error(getApiErrorMessage(errorData, "Erro ao solicitar a aprovação."));
             }
 
             toast({ title: "Sucesso", description: "Solicitação enviada para aprovação." });
