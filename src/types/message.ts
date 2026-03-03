@@ -1,10 +1,14 @@
 // src/types/message.ts
 
-export type MessagePriority = 'NORMAL' | 'ALERT' | 'CRITICAL';
+export const MESSAGE_PRIORITY = {
+  NORMAL: 'NORMAL',
+  ALERT: 'ALERT',
+  CRITICAL: 'CRITICAL',
+} as const;
 
-/**
- * Interface para os dados da mensagem lida/buscada.
- */
+export type MessagePriority = (typeof MESSAGE_PRIORITY)[keyof typeof MESSAGE_PRIORITY];
+export type MessagePriorityInput = Lowercase<MessagePriority>;
+
 export interface Message {
   messageId: string;
   title: string;
@@ -12,69 +16,71 @@ export interface Message {
   priority: MessagePriority;
   createdAt: string;
   senderEmployeeId: string;
-  recipientEmployeeId?: string; // Se nulo, visível apenas para o remetente (Manager/CTO)
+  recipientEmployeeId?: string;
 }
 
-/**
- * Interface para o payload de envio de uma nova mensagem (para CriarAviso.tsx).
- */
 export interface MessagePayload {
-    title: string;
-    messageText: string;
-    priority: MessagePriority;
-    recipientEmployeeIds: string[]; // Pode ser vazia
+  title: string;
+  messageText: string;
+  priority: MessagePriority;
+  recipientEmployeeIds: string[];
 }
 
-// --- Funções Utilitárias Puras de Exibição ---
+const PRIORITY_TITLE_MAP: Record<MessagePriority, string> = {
+  NORMAL: 'Aviso Informativo',
+  ALERT: 'Aviso de Alerta',
+  CRITICAL: 'Aviso Crítico',
+};
 
-/**
- * Retorna o título formatado com base na prioridade.
- */
+const TIPO_LABEL_MAP: Record<MessagePriorityInput, string> = {
+  normal: 'Normal',
+  alert: 'Alerta',
+  critical: 'Crítico',
+};
+
+const TIPO_COLOR_MAP: Record<MessagePriorityInput, string> = {
+  normal: 'text-muted-foreground',
+  alert: 'text-yellow-600',
+  critical: 'text-destructive',
+};
+
+const normalizePriority = (value: string): MessagePriority | null => {
+  const normalized = value.toUpperCase() as MessagePriority;
+  return normalized in PRIORITY_TITLE_MAP ? normalized : null;
+};
+
+const normalizeTipo = (value: string): MessagePriorityInput | null => {
+  const normalized = value.toLowerCase() as MessagePriorityInput;
+  return normalized in TIPO_LABEL_MAP ? normalized : null;
+};
+
+
+export const toMessagePriority = (value: string): MessagePriority => {
+  const normalized = normalizePriority(value);
+  return normalized ?? MESSAGE_PRIORITY.NORMAL;
+};
+
 export const getMessagePriorityTitle = (priority: string): string => {
-    const p = priority.toUpperCase();
-    switch (p) {
-      case 'NORMAL':
-        return "Aviso Informativo";
-      case 'ALERT':
-        return "Aviso de Alerta";
-      case 'CRITICAL':
-        return "Aviso Crítico";
-      default:
-        return "Aviso";
-    }
+  const normalized = normalizePriority(priority);
+  return normalized ? PRIORITY_TITLE_MAP[normalized] : 'Aviso';
 };
 
-/**
- * Retorna o rótulo formatado (para o Select).
- */
 export const getTipoLabel = (tipo: string): string => {
-    switch (tipo) {
-      case "normal": return "Normal";
-      case "alert": return "Alerta";
-      case "critical": return "Crítico";
-      default: return "Selecione o tipo";
-    }
+  const normalized = normalizeTipo(tipo);
+  return normalized ? TIPO_LABEL_MAP[normalized] : 'Selecione o tipo';
 };
 
-/**
- * Retorna a cor do texto formatada com base na prioridade (para estilização).
- */
-export const getTipoColor = (tipo: string): string => { 
-    switch (tipo) {
-      case "normal": return "text-muted-foreground";
-      case "alert": return "text-yellow-600";
-      case "critical": return "text-destructive";
-      default: return "text-muted-foreground";
-    }
+export const getTipoColor = (tipo: string): string => {
+  const normalized = normalizeTipo(tipo);
+  return normalized ? TIPO_COLOR_MAP[normalized] : 'text-muted-foreground';
 };
 
-/**
- * Retorna o texto do indicador de destinatário e se a mensagem é só para o remetente.
- */
-export const getRecipientIndicatorText = (message: Message): { text: string; isSenderOnly: boolean } => {
-    const isSenderOnly = !message.recipientEmployeeId;
-    return {
-        text: isSenderOnly ? "Visível Apenas para o Remetente" : "Mensagem Direcionada",
-        isSenderOnly: isSenderOnly
-    };
+export const getRecipientIndicatorText = (
+  message: Message,
+): { text: string; isSenderOnly: boolean } => {
+  const isSenderOnly = !message.recipientEmployeeId;
+  return {
+    text: isSenderOnly ? 'Visível Apenas para o Remetente' : 'Mensagem Direcionada',
+    isSenderOnly,
+  };
 };

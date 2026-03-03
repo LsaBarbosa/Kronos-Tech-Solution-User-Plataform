@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { ToastAction } from "@/components/ui/toast"; // Importado como componente
-import { MessagePayload, MessagePriority } from "@/types/message";
+import { MessagePayload, toMessagePriority } from "@/types/message";
 import { EmployeeListItem } from "@/types/employee";
 import { fetchActiveEmployees, postMessage } from "@/service/message.service"
 
@@ -150,7 +150,7 @@ export const useCreateAvisoForm = (): UseCreateAvisoFormReturn => { // 💡 CORR
             const payload: MessagePayload = {
                 title: title.trim(),
                 messageText: mensagem.trim(),
-                priority: tipo.toUpperCase() as MessagePriority,
+                priority: toMessagePriority(tipo),
                 recipientEmployeeIds: selectedEmployeeIds.filter(Boolean),
             };
 

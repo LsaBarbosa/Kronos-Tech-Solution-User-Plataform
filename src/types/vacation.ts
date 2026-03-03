@@ -1,22 +1,24 @@
 // src/types/vacation.ts
 
-import { StatusRecord } from "./recordApproval";
+import { StatusRecord } from './recordApproval';
+
+export type TimeOffRequestType = 'TIME_OFF_REQUEST' | 'FORGOTTEN_REGISTRATION';
 
 export interface RequestVacationRequest {
-    startDate: string; // dd-MM-yyyy
-    endDate: string;   // dd-MM-yyyy
-    managerId: string; // UUID
+  startDate: string; // dd-MM-yyyy
+  endDate: string; // dd-MM-yyyy
+  managerId: string; // UUID
 }
 
-// ATUALIZADO: Adicionado requestType opcional
 export interface RequestTimeOffRequestPayload {
-    startDate: string; // dd-MM-yyyy
-    endDate: string;   // dd-MM-yyyy
-    startHour: string; // HH:mm
-    endHour: string;   // HH:mm
-    managerId: string; // UUID
-    type:'TIME_OFF_REQUEST' | 'FORGOTTEN_REGISTRATION'
+  startDate: string; // dd-MM-yyyy
+  endDate: string; // dd-MM-yyyy
+  startHour: string; // HH:mm
+  endHour: string; // HH:mm
+  managerId: string; // UUID
+  type: TimeOffRequestType;
 }
+
 export interface TimeOffFormState {
   startDate: Date | undefined;
   endDate: Date | undefined;
@@ -24,30 +26,34 @@ export interface TimeOffFormState {
   endHour: string;
   managerId: string;
   document: File | null;
-  // No formulário local (state) você pode manter o nome que quiser, 
-  // mas o valor deve ser compatível ou convertido no submit.
-  requestType: 'TIME_OFF_REQUEST' | 'FORGOTTEN_REGISTRATION'
+  requestType: TimeOffRequestType;
 }
+
 export interface VacationRequestResponse {
-    employeeId: string;
-    employeeName: string;
-    startDate: string;
-    endDate: string;
-    status: string; // REQUEST_VACATION, VACATION, VACATION_REJECTED
-    timeRecordIdsForApproval: number[];
+  employeeId: string;
+  employeeName: string;
+  startDate: string;
+  endDate: string;
+  status: StatusRecord;
+  timeRecordIdsForApproval: number[];
 }
 
 export interface VacationApprovalRequest {
-    timeRecordIds: number[];
+  timeRecordIds: number[];
 }
 
-// ATUALIZADO: Adicionado requestType ao estado do formulário
-export interface TimeOffFormState {
-    startDate: Date | undefined;
-    endDate: Date | undefined;
-    startHour: string;
-    endHour: string;
-    managerId: string;
-    document: File | null;
-    requestType: 'TIME_OFF_REQUEST' | 'FORGOTTEN_REGISTRATION'; // Default
+export type IRequestVacationRequest = RequestVacationRequest;
+export type IVacationApprovalRequest = VacationApprovalRequest;
+export type IVacationRequestResponse = VacationRequestResponse;
+
+export interface IVacationQueryParams {
+  page: number;
+  size: number;
+  employeeName?: string;
+  status?: StatusRecord | 'ALL';
+}
+
+export interface IManagerOption {
+  userId: string;
+  username: string;
 }
