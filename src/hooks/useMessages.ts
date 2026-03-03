@@ -46,7 +46,7 @@ export const useMessages = (): UseMessagesReturn => {
         setIsLoading(true);
         setError(null);
         
-        const role = getUserRoleFromToken();
+        const role = await getUserRoleFromToken();
         setUserRole(role);
         
         try {

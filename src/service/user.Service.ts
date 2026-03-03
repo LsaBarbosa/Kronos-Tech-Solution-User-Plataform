@@ -9,13 +9,7 @@ const getAuthToken = (): string => {
 };
 
 const getAuthHeaders = (contentType: 'json' | 'form' = 'json') => {
-    const token = getAuthToken();
-    if (!token) {
-        throw new Error("Token de autenticação não encontrado."); 
-    }
-    const headers: HeadersInit = {
-        "Authorization": `Bearer ${token}`,
-    };
+    const headers: HeadersInit = {};
     if (contentType === 'json') {
         headers["Content-Type"] = "application/json";
     }

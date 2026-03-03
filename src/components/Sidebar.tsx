@@ -12,12 +12,13 @@ import {
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
-import { cn, decodeToken } from "@/lib/utils";
+import { cn } from "@/lib/utils";
 import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { FiscalService } from "@/service/fiscal.service"; // Ajuste o caminho conforme criou o arquivo acima
 import { useToast } from "@/components/ui/use-toast"; // Assumindo que você tem um toast (opcional)
-import { clearStoredToken, getStoredToken } from "@/lib/auth";
+import { clearStoredToken } from "@/lib/auth";
+import { API_BASE_URL } from "@/config/api";
 
 interface SidebarProps {
   isOpen: boolean;
@@ -39,11 +40,18 @@ const Sidebar = ({ isOpen, toggleSidebar }: SidebarProps) => {
   const { toast } = useToast(); // Opcional, apenas para feedback visual
 
   useEffect(() => {
-    const token = getStoredToken();
-    if (token) {
-      const decoded = decodeToken(token);
-      setUserRole(decoded?.role || "");
-    }
+    const loadRole = async () => {
+      try {
+        const response = await fetch(`${API_BASE_URL}users/own-profile`, { credentials: "include" });
+        if (!response.ok) return;
+        const data = await response.json();
+        setUserRole(data?.role || "");
+      } catch {
+        setUserRole("");
+      }
+    };
+
+    loadRole();
   }, []);
 
   const handleLogout = () => {

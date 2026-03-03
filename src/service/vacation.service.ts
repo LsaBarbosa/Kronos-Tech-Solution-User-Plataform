@@ -4,15 +4,9 @@ import { API_BASE_URL } from "@/config/api";
 import { IVacationRequestResponse, IVacationQueryParams, RequestTimeOffRequestPayload, IVacationApprovalRequest, IRequestVacationRequest, IManagerOption } from "@/types/vacation";
  import { format } from "date-fns"; 
 
-const getAuthHeaders = () => {
-    const token = localStorage.getItem('token');
-    if (!token) {
-        throw new Error("Token de autenticação não encontrado.");
-    }
-    return {
-        "Authorization": `Bearer ${token}`,
-    };
-};
+const getAuthHeaders = () => ({
+    "Content-Type": "application/json",
+});
 
 const getAuthHeadersWithJson = () => {
     return {
@@ -176,15 +170,14 @@ export const requestTimeOff = async (
   }
 
   // 3. Configura o fetch
-  const token = localStorage.getItem('token');
-  const url = `${API_BASE_URL}records/time-off/request`; 
+    const url = `${API_BASE_URL}records/time-off/request`; 
   
   const response = await fetch(url, {
     method: 'POST',
     // IMPORTANTE: NÃO defina 'Content-Type' como 'multipart/form-data'. 
     // O navegador faz isso automaticamente ao usar FormData, incluindo a boundary correta.
     headers: {
-        'Authorization': `Bearer ${token}`, 
+        
     },
     body: formData,
   });

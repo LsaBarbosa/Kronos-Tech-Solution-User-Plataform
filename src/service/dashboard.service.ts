@@ -8,17 +8,9 @@ import { UserData } from "@/types/user";
 
 // --- Funções Auxiliares de Requisição ---
 
-const getAuthHeaders = () => {
-    const token = localStorage.getItem('token');
-    if (!token) {
-        // Redirecionamento é tratado no hook, aqui lançamos o erro
-        throw new Error("Token de autenticação não encontrado."); 
-    }
-    return {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${token}`,
-    };
-};
+const getAuthHeaders = () => ({
+    "Content-Type": "application/json",
+});
 
 const handleResponse = async (response: Response): Promise<any> => {
     if (!response.ok) {
