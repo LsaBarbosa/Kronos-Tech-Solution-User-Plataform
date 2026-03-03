@@ -36,22 +36,13 @@ import { FiscalService } from "@/service/fiscal.service";
 import { fetchEmployeeList } from "@/service/employee.Service"; // Certifique-se que o caminho está correto
 import Sidebar from "@/components/Sidebar";
 import Header from "@/components/Header";
+import { fetchAccountData } from "@/service/user.Service";
 
 // Interfaces
 interface EmployeeOption {
   employeeId: string;
   fullName: string;
 }
-
-// Função auxiliar para decodificar token (mesma usada na Sidebar)
-const decodeToken = (token: string) => {
-  try {
-    const base64Url = token.split('.')[1];
-    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-    const payload = decodeURIComponent(atob(base64).split('').map(c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)).join(''));
-    return JSON.parse(payload);
-  } catch (error) { return null; }
-};
 
 export default function EspelhoPonto() {
   const [date, setDate] = useState<Date | undefined>(new Date());
@@ -67,16 +58,17 @@ export default function EspelhoPonto() {
 
   // 1. Verifica Permissões e Carrega Lista
   useEffect(() => {
-    const token = localStorage.getItem("token");
-    if (token) {
-      const decoded = decodeToken(token);
-      const role = decoded?.role || "";
-      
+    const bootstrap = async () => {
+      const account = await fetchAccountData();
+      const role = account?.role || "";
+
       if (role === "MANAGER" || role === "ADMIN") {
         setIsManager(true);
         loadEmployees();
       }
-    }
+    };
+
+    bootstrap().catch(() => setIsManager(false));
   }, []);
 
   const loadEmployees = async () => {

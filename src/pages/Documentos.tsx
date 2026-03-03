@@ -16,6 +16,7 @@ import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { es } from 'date-fns/locale';
 import { API_BASE_URL } from "@/config/api";
+import { fetchAccountData } from "@/service/user.Service";
 
 interface Employee {
   id: string;
@@ -30,32 +31,9 @@ interface Document {
 }
 
 // Auxiliary function to get authentication headers
-const getAuthHeaders = () => {
-  const token = localStorage.getItem('token');
-  if (!token) {
-    toast.error("Você não está autenticado. Redirecionando para o login...");
-    return {};
-  }
-  return {
-    'Authorization': `Bearer ${token}`,
-    'Content-Type': 'application/json',
-  };
-};
-
-// New function to decode the JWT token
-const decodeToken = (token: string) => {
-  try {
-    const base64Url = token.split('.')[1];
-    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-    const payload = decodeURIComponent(atob(base64).split('').map(function (c) {
-      return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
-    }).join(''));
-    return JSON.parse(payload);
-  } catch (error) {
-    console.error("Falha ao decodificar o token", error);
-    return null;
-  }
-};
+const getAuthHeaders = () => ({
+  'Content-Type': 'application/json',
+});
 
 // --- NOVA FUNÇÃO PARA TRATAR ERROS DE API ---
 const handleApiError = async (response: Response) => {
@@ -88,27 +66,22 @@ const Documentos = () => {
   const [currentUserName, setCurrentUserName] = useState("");
 
   useEffect(() => {
-    const token = localStorage.getItem('token');
-    if (!token) {
-      return;
-    }
+    const bootstrap = async () => {
+      const account = await fetchAccountData();
+      const userRole = account?.role;
+      const userId = account?.employeeId;
 
-    const decoded = decodeToken(token);
-    const userRole = decoded?.role;
-    const userId = decoded?.employeeId;
-    const userName = decoded?.fullName;
+      setIsPartner(userRole === 'PARTNER');
+      setCurrentUserId(userId || "");
+      setCurrentUserName(account?.username || "");
 
-    setIsPartner(userRole === 'PARTNER');
-    setCurrentUserId(userId || "");
-    setCurrentUserName(userName || "");
+      if (userRole === 'PARTNER' && userId) {
+        setEmployees([{ id: userId, name: account?.username || "Meu registro" }]);
+        setSelectedEmployeeId(userId);
+        return;
+      }
 
-    if (userRole === 'PARTNER') {
-      setEmployees([{ id: userId, name: userName }]);
-      setSelectedEmployeeId(userId);
-      return;
-    }
-
-    const fetchEmployees = async () => {
+      const fetchEmployees = async () => {
       setIsFetchingEmployees(true);
       try {
         const headers = getAuthHeaders();
@@ -136,7 +109,13 @@ const Documentos = () => {
       }
     };
 
-    fetchEmployees();
+      fetchEmployees();
+    };
+
+    bootstrap().catch(() => {
+      setIsFetchingEmployees(false);
+      toast.error("Não foi possível carregar a sessão do usuário.");
+    });
   }, [activeEmployeeFilter]);
 
   const handleSearch = async () => {

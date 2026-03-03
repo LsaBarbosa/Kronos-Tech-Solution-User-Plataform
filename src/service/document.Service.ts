@@ -2,7 +2,6 @@
 
 import { api } from "@/config/api";
 import { Document, EmployeeListItem, MAX_UPLOAD_SIZE_BYTES } from "@/types/document";
-import { getAuthToken } from "./company.Service";
 
 interface EmployeeApiResponse {
   id: string;
@@ -45,11 +44,5 @@ export const uploadDocument = async (file: File, employeeId: string): Promise<vo
   formData.append("file", file);
   formData.append("employeeId", employeeId);
 
-  const token = getAuthToken();
-
-  await api.post("documents/upload", formData, {
-    headers: {
-      Authorization: `Bearer ${token}`,
-    },
-  });
+  await api.post("documents/upload", formData);
 };

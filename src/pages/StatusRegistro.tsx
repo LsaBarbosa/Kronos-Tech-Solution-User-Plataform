@@ -11,6 +11,7 @@ import Sidebar from "@/components/Sidebar";
 // 🚀 ADICIONADO Loader2 para o spinner
 import { Info, Save, ZapOff, Loader2 } from "lucide-react"; 
 import { API_BASE_URL } from "@/config/api";
+import { fetchAccountData } from "@/service/user.Service";
 
 // 💡 NOVO: Componente de Filtros Modular
 import { RelatorioFiltros } from "@/pages/RelatorioFiltros"; 
@@ -19,7 +20,6 @@ import { ResultadosRelatorioDetalhado } from "@/components/ResultadosRelatorioDe
 
 // 💡 NOVO: Importando utilitários centralizados
 import { 
-    decodeToken, 
     statusOptions, 
     getStatusColor, 
     getTranslatedStatus,
@@ -95,22 +95,19 @@ const StatusRegistro = () => {
     // 1. Busca de Funcionários (Mantida e reutilizada)
     const fetchEmployees = useCallback(async () => {
         try {
-            const token = localStorage.getItem("token");
-            if (!token) return;
+                        
+            const account = await fetchAccountData();
+            const userRole = account?.role;
+            const userId = account?.employeeId;
 
-            const decoded = decodeToken(token);
-            const userRole = decoded?.role;
-            const userId = decoded?.employeeId;
-            const userName = decoded?.fullName;
-
-            if (userRole === "PARTNER") {
+            if (userRole === "PARTNER" && userId) {
                 setIsPartner(true);
-                setEmployees([{ employeeId: userId, fullName: userName }]);
+                setEmployees([{ employeeId: userId, fullName: "Meu registro" }]);
                 setSelectedEmployee(userId);
                 return;
-            } else {
-                setIsPartner(false);
             }
+
+            setIsPartner(false);
 
             const activeStatus = employeeActive === "active";
             const url = `${API_BASE_URL}employee?active=${activeStatus}`;
@@ -119,7 +116,6 @@ const StatusRegistro = () => {
                 method: "GET",
                 headers: {
                     "Content-Type": "application/json",
-                    Authorization: `Bearer ${token}`,
                 },
             });
 
@@ -154,11 +150,7 @@ const StatusRegistro = () => {
         setIsLoading(true); // 🚀 ATIVA O LOADING NO INÍCIO DA BUSCA
 
         try {
-            const token = localStorage.getItem("token");
-            if (!token) {
-                throw new Error("Token de autenticação não encontrado.");
-            }
-
+                        
             // A conversão de data é feita aqui. O RelatorioFiltros lida com a seleção.
             const formattedDates = selectedDates.map(date => {
                 const day = String(date.getDate()).padStart(2, '0');
@@ -184,7 +176,6 @@ const StatusRegistro = () => {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
-                    Authorization: `Bearer ${token}`,
                 },
                 body: JSON.stringify(requestBody),
             });
@@ -254,18 +245,13 @@ const StatusRegistro = () => {
         setIsSavingStatus(true); // 🚀 ATIVA O LOADING DO BOTÃO SALVAR
         
         try {
-            const token = localStorage.getItem("token");
-            if (!token) {
-                throw new Error("Token de autenticação não encontrado.");
-            }
-
+                        
             const endpoint = `${API_BASE_URL}records/update/status/${employeeId}/${timeRecordId}`;
 
             const response = await fetch(endpoint, {
                 method: "PUT",
                 headers: {
                     "Content-Type": "application/json",
-                    Authorization: `Bearer ${token}`,
                 },
                 body: JSON.stringify({ statusRecord: statusRecord }),
             });
@@ -317,11 +303,7 @@ const StatusRegistro = () => {
         setIsTogglingActivate(true); // 🚀 ATIVA O LOADING DO BOTÃO TOGGLE
 
         try {
-            const token = localStorage.getItem("token");
-            if (!token) {
-                throw new Error("Token de autenticação não encontrado.");
-            }
-
+                        
             // Endpoint conforme informação do backend: PATCH records/toggle-activate/{employeeId}/{timeRecordId}
             const endpoint = `${API_BASE_URL}records/toggle-activate/${employeeId}/${timeRecordId}`;
 
@@ -329,7 +311,6 @@ const StatusRegistro = () => {
                 method: "PUT", 
                 headers: {
                     "Content-Type": "application/json",
-                    Authorization: `Bearer ${token}`,
                 },
             });
 

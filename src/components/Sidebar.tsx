@@ -54,10 +54,19 @@ const Sidebar = ({ isOpen, toggleSidebar }: SidebarProps) => {
     loadRole();
   }, []);
 
-  const handleLogout = () => {
-    clearStoredToken();
-    navigate("/");
-    toggleSidebar();
+  const handleLogout = async () => {
+    try {
+      await fetch(`${API_BASE_URL}auth/logout`, {
+        method: "POST",
+        credentials: "include",
+      });
+    } catch (error) {
+      console.error("Falha ao encerrar sessão no servidor:", error);
+    } finally {
+      clearStoredToken();
+      navigate("/");
+      toggleSidebar();
+    }
   };
 
   const isManager = userRole === "MANAGER";
