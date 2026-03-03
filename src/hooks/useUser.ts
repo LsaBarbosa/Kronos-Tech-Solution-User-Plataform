@@ -109,6 +109,7 @@ export const useUser = (): UseUserReturn => {
         variant: "destructive",
       });
       // Em caso de falha crítica (ex: token inválido), força o logout
+      localStorage.removeItem("has-session");
       localStorage.removeItem("token");
       navigate("/login");
     }
