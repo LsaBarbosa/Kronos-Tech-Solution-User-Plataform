@@ -178,7 +178,7 @@ const FaceLoginModal = ({
       if (!isCheckinMode) {
         const flowResult = await executeFaceLoginFlow(base64Data);
 
-        if (flowResult.status !== "success") {
+        if (flowResult.status === "face_login_failure") {
           throw new Error(flowResult.message || "Falha na autenticação facial.");
         }
 

@@ -17,13 +17,13 @@ export interface FaceCheckinRetryContext {
 }
 
 /**
- * Status oficial do fluxo facial para consumo dos componentes.
+ * Contrato oficial e único de retorno da orquestração facial.
+ *
+ * Qualquer consumo interno deve se basear apenas em `status`, com estes valores:
  * - `success`: etapa concluída sem erros.
  * - `face_login_failure`: falha no login facial (`auth/login-face`).
  * - `partial_checkin_failure`: login facial concluído, mas check-in falhou.
  */
-export type FaceFlowStatus = "success" | "face_login_failure" | "partial_checkin_failure";
-
 export type FaceFlowResult =
   | { status: "success" }
   | { status: "face_login_failure"; message: string }
@@ -41,6 +41,9 @@ export type FaceFlowResult =
  * - `success`
  * - `face_login_failure`
  * - `partial_checkin_failure`
+ *
+ * Evite consumir endpoints faciais diretamente nos componentes;
+ * este serviço é a única API interna para orquestração facial.
  */
 
 const parseErrorMessage = async (response: Response, fallback: string) => {
