@@ -5,6 +5,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { Card, CardContent } from "@/components/ui/card";
 import { toast } from "sonner";
 import { API_BASE_URL } from "@/config/api";
+import type { LoginResponse } from "@/types/auth";
 
 interface FaceLoginModalProps {
     isOpen: boolean;
@@ -124,6 +125,7 @@ const FaceLoginModal = ({ isOpen, onOpenChange }: FaceLoginModalProps) => {
                 headers: {
                     "Content-Type": "application/json",
                 },
+                credentials: "include",
                 body: JSON.stringify({ faceImageBase64: base64Data }),
             });
 
@@ -132,11 +134,9 @@ const FaceLoginModal = ({ isOpen, onOpenChange }: FaceLoginModalProps) => {
                 throw new Error(errorData.detail || "Falha no reconhecimento facial.");
             }
 
-            const data = await response.json();
+            // Backend pode retornar payload adicional; autenticação depende do cookie de sessão.
+            await response.json().catch((): LoginResponse | null => null);
 
-            // Login bem-sucedido
-            localStorage.setItem("token", data.token);
-            
             toast.success("Identidade confirmada! Acessando plataforma...", {
                 duration: 2000,
             });

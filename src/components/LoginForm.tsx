@@ -9,6 +9,7 @@ import { toast } from "sonner"; // Ajustado import para sonner padrão se necess
 import { API_BASE_URL } from "@/config/api";
 import FaceLoginModal from "@/components/FaceLoginModal"; // Import do novo modal
 import { useNavigate } from "react-router-dom";
+import type { LoginResponse } from "@/types/auth";
 
 const API_URL = `${API_BASE_URL}auth/login`;
 
@@ -31,6 +32,7 @@ const LoginForm = () => {
         headers: {
           "Content-Type": "application/json",
         },
+        credentials: "include",
         body: JSON.stringify({ username, password }),
       });
 
@@ -39,9 +41,8 @@ const LoginForm = () => {
         throw new Error(errorData.detail || "Usuário ou senha inválidos.");
       }
 
-      const data = await response.json();
-
-      localStorage.setItem("token", data.token);
+      // Backend pode retornar payload adicional; autenticação depende do cookie de sessão.
+      await response.json().catch((): LoginResponse | null => null);
 
       toast.success("Login realizado com sucesso!");
 
