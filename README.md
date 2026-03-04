@@ -84,3 +84,8 @@ Read more here: [Setting up a custom domain](https://docs.lovable.dev/tips-trick
   - persistido em `localStorage`/`sessionStorage`;
   - reaproveitado em headers `Authorization`;
   - reutilizado por utilitários de autenticação/sessão.
+
+## Fluxo facial
+
+- Contrato oficial do serviço canônico: `docs/face-orchestration-contract.md`.
+

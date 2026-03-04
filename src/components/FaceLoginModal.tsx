@@ -7,7 +7,7 @@ import { useAuth } from "@/context/AuthContext";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
 import {
-  authenticateWithFace,
+  executeFaceLoginFlow,
   executeFaceCheckinFlow,
   FaceCheckinRetryContext,
   retryFaceCheckinFlow,
@@ -171,7 +171,12 @@ const FaceLoginModal = ({
 
     try {
       if (!isCheckinMode) {
-        await authenticateWithFace(base64Data);
+        const flowResult = await executeFaceLoginFlow(base64Data);
+
+        if (flowResult.status !== "success") {
+          throw new Error(flowResult.message || "Falha na autenticação facial.");
+        }
+
         await bootstrapSession();
         toast.success("Login realizado com sucesso!");
         onOpenChange(false);
@@ -186,14 +191,14 @@ const FaceLoginModal = ({
         requireShortSession,
       });
 
-      if (!flowResult.success) {
-        if (flowResult.partialFailure && flowResult.retryContext) {
-          setRetryContext(flowResult.retryContext);
-          toast.error(flowResult.message || "Falha no registro do ponto após autenticação. Tente novamente.");
-          return;
-        }
-        
-          throw new Error(flowResult.message || "Falha na autenticação facial.");
+      if (flowResult.status === "partial_checkin_failure") {
+        setRetryContext(flowResult.retryContext);
+        toast.error(flowResult.message || "Falha no registro do ponto após autenticação. Tente novamente.");
+        return;
+      }
+
+      if (flowResult.status === "face_login_failure") {
+        throw new Error(flowResult.message || "Falha na autenticação facial.");
       }
 
       toast.success("Ponto registrado com sucesso!");
@@ -217,7 +222,7 @@ const FaceLoginModal = ({
     const result = await retryFaceCheckinFlow(retryContext);
     setIsSubmitting(false);
 
-    if (result.success) {
+    if (result.status === "success") {
       toast.success("Ponto registrado com sucesso na nova tentativa!");
       onOpenChange(false);
       return;
