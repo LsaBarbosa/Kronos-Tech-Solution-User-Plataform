@@ -1,23 +1,30 @@
 import { useEffect } from "react";
-import { useSearchParams, useNavigate, Navigate } from "react-router-dom";
-import { PUBLIC_ROUTES } from "@/config/routes";
+import { useSearchParams, useNavigate, useLocation } from "react-router-dom";
+import Login from "./Login";
+import { LOGIN_ROUTE, PUBLIC_ROUTES } from "@/config/routes";
 
 const TokenRedirect = () => {
   const [searchParams] = useSearchParams();
   const token = searchParams.get("token");
   const navigate = useNavigate();
+  const location = useLocation();
 
   useEffect(() => {
     if (token) {
-      navigate(`/resetar-senha?token=${token}`, { replace: true });
+      navigate(`${PUBLIC_ROUTES.RESET_PASSWORD}?token=${token}`, { replace: true });
+      return;
     }
-  }, [token, navigate]);
+
+    if (location.pathname !== LOGIN_ROUTE) {
+      navigate(LOGIN_ROUTE, { replace: true });
+    }
+  }, [token, navigate, location.pathname]);
 
   if (token) {
     return <div className="min-h-screen bg-background flex items-center justify-center">Carregando...</div>;
   }
 
-  return <Navigate to={PUBLIC_ROUTES.LOGIN} replace />;
+  return <Login />;
 };
 
 export default TokenRedirect;
