@@ -134,7 +134,7 @@ const FaceLoginModal = ({ isOpen, onOpenChange }: FaceLoginModalProps) => {
                 throw new Error(errorData.detail || "Falha no reconhecimento facial.");
             }
 
-            // Backend pode retornar payload adicional; autenticação depende do cookie de sessão.
+            // Backend pode retornar payload auxiliar; autenticação depende exclusivamente de cookie httpOnly de sessão.
             await response.json().catch((): LoginResponse | null => null);
 
             toast.success("Identidade confirmada! Acessando plataforma...", {
