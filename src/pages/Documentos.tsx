@@ -15,9 +15,9 @@ import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { es } from 'date-fns/locale';
-import { API_BASE_URL } from "@/config/api";
 import { downloadDocumentFile } from "@/service/document.Service";
 import { useAuth } from "@/context/AuthContext";
+import { fetchEmployeesForDocuments, removeEmployeeDocument, searchDocuments } from "@/service/documentPortal.service";
 
 interface Employee {
   id: string;
@@ -30,24 +30,6 @@ interface Document {
   createdAt: string;
   type: string;
 }
-
-const getAuthHeaders = () => ({
-  'Content-Type': 'application/json',
-});
-
-// --- NOVA FUNÇÃO PARA TRATAR ERROS DE API ---
-const handleApiError = async (response: Response) => {
-  try {
-    const errorData = await response.json();
-    if (errorData.message) {
-      toast.error(errorData.message);
-    } else {
-      toast.error(`Erro ${response.status}: ${errorData.error || 'Ocorreu um erro.'}`);
-    }
-  } catch {
-    toast.error(`Erro ${response.status}: Ocorreu um erro inesperado.`);
-  }
-};
 
 const Documentos = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -84,17 +66,7 @@ const Documentos = () => {
     const fetchEmployees = async () => {
       setIsFetchingEmployees(true);
       try {
-        const headers = getAuthHeaders();
-        if (Object.keys(headers).length === 0) {
-          return;
-        }
-
-        const response = await fetch(`${API_BASE_URL}employee?active=${activeEmployeeFilter}`, { headers });
-        if (!response.ok) {
-          await handleApiError(response);
-          return;
-        }
-        const data = await response.json();
+        const data = { employees: await fetchEmployeesForDocuments(activeEmployeeFilter) };
         const formattedEmployees: Employee[] = data.employees.map((emp: any) => ({
           id: emp.employeeId,
           name: emp.fullName,
@@ -122,26 +94,7 @@ const Documentos = () => {
     setHasSearched(true);
 
     try {
-      const headers = getAuthHeaders();
-      if (Object.keys(headers).length === 0) return;
-
-      const searchParams = new URLSearchParams({
-        employeeId: selectedEmployeeId,
-        type: selectedDocumentType,
-      });
-
-      const response = await fetch(`${API_BASE_URL}documents?${searchParams.toString()}`, {
-        headers: headers,
-      });
-
-      if (!response.ok) {
-        await handleApiError(response);
-        setDocuments([]);
-        setFilteredDocuments([]);
-        return;
-      }
-
-      const data = await response.json();
+      const data = { documents: await searchDocuments(selectedEmployeeId, selectedDocumentType) };
 
       const formattedDocuments = data.documents.map((doc: any) => ({
         id: doc.id,
@@ -176,21 +129,7 @@ const Documentos = () => {
     }
 
     try {
-        const headers = getAuthHeaders();
-        if (Object.keys(headers).length === 0) return;
-
-        // Constrói a URL do DELETE: /documents/{documentId}?employeeId={employeeId}
-        const url = `${API_BASE_URL}documents/${documentId}?employeeId=${selectedEmployeeId}`;
-
-        const response = await fetch(url, {
-            method: "DELETE",
-            headers: headers,
-        });
-
-        if (!response.ok) {
-            await handleApiError(response);
-            return;
-        }
+        await removeEmployeeDocument(documentId, selectedEmployeeId);
 
         // Se o DELETE foi um sucesso (status 204 No Content ou 200 OK), atualiza o estado local
         setDocuments(prev => prev.filter(doc => doc.id !== documentId));

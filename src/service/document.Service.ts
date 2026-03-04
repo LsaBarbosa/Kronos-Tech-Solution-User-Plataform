@@ -1,4 +1,4 @@
-import { API_BASE_URL, api } from "@/config/api";
+import { api } from "@/config/api";
 import { Document, EmployeeListItem, MAX_UPLOAD_SIZE_BYTES } from "@/types/document";
 
 export const fetchUserDocuments = async (): Promise<Document[]> => {
@@ -35,21 +35,18 @@ export const downloadDocumentFile = async (
   documentId: string,
   { employeeId, fallbackFileName = "documento" }: DownloadDocumentParams = {},
 ): Promise<void> => {
-  const query = employeeId ? `?employeeId=${encodeURIComponent(employeeId)}` : "";
-  const response = await fetch(`${API_BASE_URL}documents/${documentId}${query}`, {
-    credentials: "include",
+  const params = employeeId ? { employeeId } : undefined;
+  const response = await api.get(`documents/${documentId}`, {
+    params,
+    responseType: "blob",
   });
 
-  if (!response.ok) {
-    const errorData = await response.json().catch(() => ({}));
-    throw new Error(errorData.detail || "Não foi possível realizar o download.");
-  }
-
-  const blob = await response.blob();
+  const blob = response.data as Blob;
   const href = window.URL.createObjectURL(blob);
   const link = window.document.createElement("a");
   link.href = href;
-  link.download = resolveFileName(response.headers.get("Content-Disposition"), fallbackFileName);
+  const contentDisposition = (response.headers?.["content-disposition"] as string | undefined) || null;
+  link.download = resolveFileName(contentDisposition, fallbackFileName);
 
   window.document.body.appendChild(link);
   link.click();

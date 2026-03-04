@@ -6,12 +6,10 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import Clock from "@/components/Clock";
 import { Eye, EyeOff, ScanFace } from "lucide-react"; // Adicionado ScanFace
 import { toast } from "sonner"; // Ajustado import para sonner padrão se necessário, ou "@/components/ui/sonner"
-import { API_BASE_URL } from "@/config/api";
 import FaceLoginModal from "@/components/FaceLoginModal"; // Import do novo modal
 import { useNavigate } from "react-router-dom";
-import type { LoginResponse } from "@/types/auth";
-
-const API_URL = `${API_BASE_URL}auth/login`;
+import { useAuth } from "@/context/AuthContext";
+import { loginWithPassword } from "@/service/auth.Service";
 
 const LoginForm = () => {
   const [showPassword, setShowPassword] = useState(false);
@@ -28,22 +26,8 @@ const LoginForm = () => {
     setIsSubmitting(true);
 
     try {
-      const response = await fetch(API_URL, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        credentials: "include",
-        body: JSON.stringify({ username, password }),
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.detail || "Usuário ou senha inválidos.");
-      }
-
-      // Backend pode retornar payload adicional; autenticação depende do cookie de sessão.
-      await response.json().catch((): LoginResponse | null => null);
+      await loginWithPassword(username, password);
+      await checkSession();
 
       toast.success("Login realizado com sucesso!");
 

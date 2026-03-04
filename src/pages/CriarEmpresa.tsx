@@ -26,6 +26,7 @@ import { ArrowLeft, Building2, Save, MapPin, Loader2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { API_BASE_URL } from "@/config/api";
+import { checkCnpjExists, createCompany } from "@/service/adminPortal.service";
 
 // NOVO: Variável de ambiente para o HERE API Key
 const HERE_API_KEY = "4BOpnro1zHzBBh9olurKhD4aWIw9I-gcY6VRox9wSXU";
@@ -192,22 +193,16 @@ const CriarEmpresa = () => {
         try {
 
             // Chamada à API para verificação de CNPJ
-            const response = await fetch(`${API_BASE_URL}companies/check-cnpj?cnpj=${cnpj}`, {
-                headers: {  },
-            });
+            const exists = await checkCnpjExists(cnpj);
 
-            if (response.ok) {
+            if (exists) {
                 // Status 200/OK: CNPJ existe (indisponível)
                 toast({ title: "CNPJ indisponível", description: "Este CNPJ já está cadastrado no sistema.", variant: "destructive" });
                 setCnpjAvailability('unavailable');
-            } else if (response.status === 404) {
+            } else {
                 // Status 404: CNPJ não existe (disponível)
                 toast({ title: "CNPJ disponível!", description: "Você pode usar este CNPJ para o registro." });
                 setCnpjAvailability('available');
-            } else {
-                // Outros erros
-                toast({ title: "Erro na verificação", description: "Ocorreu um erro ao verificar o CNPJ.", variant: "destructive" });
-                setCnpjAvailability(null);
             }
         } catch (error) {
             console.error("Erro na comunicação com a API:", error);
@@ -263,26 +258,7 @@ const CriarEmpresa = () => {
             };
 
             // 3. Chamada da API para CRIAR A EMPRESA
-            const companyResponse = await fetch(`${API_BASE_URL}companies`, { 
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify(companyPayload),
-            });
-
-          
-        if (!companyResponse.ok) {
-            // Se houver erro (4xx ou 5xx), tenta ler o JSON para a mensagem de erro
-            const contentType = companyResponse.headers.get("content-type");
-            let errorMessage = "Erro ao criar empresa.";
-
-            if (contentType && contentType.includes("application/json")) {
-                const errorData = await companyResponse.json();
-                errorMessage = errorData.detail || errorData.title || errorMessage;
-            }
-            throw new Error(errorMessage);
-        }
+            await createCompany(companyPayload);
 
         // *****************************************************************
         // CORREÇÃO: Sucesso com status 2xx (e corpo vazio). 

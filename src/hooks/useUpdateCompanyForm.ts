@@ -54,6 +54,7 @@ export const useUpdateCompanyForm = (): UseUpdateCompanyFormReturn => {
     const [originalCompany, setOriginalCompany] = useState<CompanyData | null>(null);
     const navigate = useNavigate();
     const { toast } = useToast();
+    const isSessionError = (error: any) => error?.response?.status === 401 || error?.response?.status === 403;
 
     const form = useForm<FormData>({
         resolver: zodResolver(formSchema),
@@ -85,7 +86,7 @@ export const useUpdateCompanyForm = (): UseUpdateCompanyFormReturn => {
             setCompanies(data);
         } catch (error: any) {
             console.error("Erro ao buscar empresas:", error);
-            if (error.message.includes("Token")) navigate("/");
+            if (isSessionError(error)) navigate("/login");
             
             toast({ 
                 title: "Erro", 
