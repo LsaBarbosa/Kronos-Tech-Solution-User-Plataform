@@ -33,13 +33,34 @@ export const api = axios.create({
   },
 });
 
+/**
+ * Cooldown defensivo para respostas 401 em cascata.
+ *
+ * Cenários alvo:
+ * - múltiplas requisições concorrentes falhando com 401 no mesmo momento;
+ * - retries automáticos de libs/clientes disparando vários 401 em sequência;
+ * - fluxos que validam sessão em paralelo (axios + fetch) durante expiração do token.
+ *
+ * Estratégia: permitir somente 1 redirecionamento por pathname dentro da janela.
+ * Isso evita loops e navegações redundantes para /login, mantendo novos ciclos
+ * possíveis após relogin/retorno para telas protegidas.
+ */
 const UNAUTHORIZED_REDIRECT_COOLDOWN_MS = 1500;
 let lastUnauthorizedRedirect = {
   pathname: '',
   timestamp: 0,
 };
 
+export const resetUnauthorizedRedirectCooldownForTests = (): void => {
+  lastUnauthorizedRedirect = {
+    pathname: '',
+    timestamp: 0,
+  };
+};
+
 export const handleUnauthorized = (): void => {
+  // Mantemos o clear sempre no início para limpar cache sensível
+  // mesmo quando o redirect for suprimido por cooldown ou já estivermos em /login.
   queryClient.clear();
 
   const currentPathname = window.location.pathname;
