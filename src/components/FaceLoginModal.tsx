@@ -4,9 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Card, CardContent } from "@/components/ui/card";
 import { toast } from "sonner";
-import { API_BASE_URL } from "@/config/api";
-import { useAuth } from "@/context/AuthContext";
-import { useNavigate } from "react-router-dom";
+import { registerPointWithFace, retryCheckin } from "@/service/faceCheckinOrchestrator.service";
 
 interface FaceLoginModalProps {
     isOpen: boolean;
@@ -20,6 +18,8 @@ const FaceLoginModal = ({ isOpen, onOpenChange }: FaceLoginModalProps) => {
     const [isCapturing, setIsCapturing] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [isStreamReady, setIsStreamReady] = useState(false);
+    const [isRetryingCheckin, setIsRetryingCheckin] = useState(false);
+    const [partialFailureMessage, setPartialFailureMessage] = useState<string | null>(null);
     
     const videoRef = useRef<HTMLVideoElement>(null);
     const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -62,7 +62,7 @@ const FaceLoginModal = ({ isOpen, onOpenChange }: FaceLoginModalProps) => {
                 videoRef.current?.play().catch(e => console.error("Erro ao reproduzir vídeo:", e));
             };
 
-        } catch (error: any) {
+        } catch (error: unknown) {
             if (error.name !== 'AbortError') { 
                  console.error("Erro ao acessar a webcam:", error); 
                  toast.error("Erro ao acessar a webcam. Verifique as permissões.");
@@ -79,6 +79,8 @@ const FaceLoginModal = ({ isOpen, onOpenChange }: FaceLoginModalProps) => {
             setImageSrc(null);
             setIsSubmitting(false);
             setIsCapturing(false); 
+            setIsRetryingCheckin(false);
+            setPartialFailureMessage(null);
         }
     }, [isOpen, startWebcam, stopWebcam]);
 
@@ -111,6 +113,7 @@ const FaceLoginModal = ({ isOpen, onOpenChange }: FaceLoginModalProps) => {
     const handleRetake = () => {
         setImageSrc(null);
         setIsCapturing(false);
+        setPartialFailureMessage(null);
         setTimeout(() => {
             startWebcam();
         }, 50);
@@ -121,23 +124,17 @@ const FaceLoginModal = ({ isOpen, onOpenChange }: FaceLoginModalProps) => {
         
         setIsSubmitting(true);
         const base64Data = imageSrc.split(',')[1]; 
+        const shouldLogoutAfterFlow = String(import.meta.env.VITE_FACE_CHECKIN_SHORT_SESSION).toLowerCase() === "true";
 
         try {
-            const response = await apiFetch(`${API_BASE_URL}auth/login-face`, {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                credentials: "include",
-                body: JSON.stringify({ faceImageBase64: base64Data }),
-            });
+            const data = await registerPointWithFace(base64Data, { shouldLogoutAfterFlow });
 
-            if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.detail || "Falha no reconhecimento facial.");
+            if (data.token) {
+                localStorage.setItem("token", data.token);
             }
-
-            toast.success("Identidade confirmada! Acessando plataforma...", {
+            setPartialFailureMessage(null);
+            
+            toast.success("Ponto registrado com sucesso! Acessando plataforma...", {
                 duration: 2000,
             });
 
@@ -145,12 +142,48 @@ const FaceLoginModal = ({ isOpen, onOpenChange }: FaceLoginModalProps) => {
             await bootstrapSession();
             navigate("/dashboard", { replace: true });
 
-        } catch (error: any) {
+        } catch (error: unknown) {
             console.error(error);
-            toast.error(error.message || "Rosto não reconhecido ou não cadastrado.");
+            const message = error instanceof Error ? error.message : "Rosto não reconhecido ou não cadastrado.";
+            if (message.includes("Identidade confirmada")) {
+                setPartialFailureMessage(message);
+                toast.error("Falha ao concluir registro de ponto.");
+                setIsSubmitting(false);
+                return;
+            }
+
+            toast.error(message);
             setImageSrc(null);
             setIsSubmitting(false);
             startWebcam(); // Reinicia câmera automaticamente em caso de erro
+        }
+    };
+
+    const handleRetryCheckin = async () => {
+        if (!imageSrc) return;
+
+        setIsRetryingCheckin(true);
+        try {
+            const base64Data = imageSrc.split(',')[1];
+            await retryCheckin(base64Data);
+            setPartialFailureMessage(null);
+
+            toast.success("Ponto registrado com sucesso! Acessando plataforma...", {
+                duration: 2000,
+            });
+
+            setTimeout(() => {
+                window.location.href = "/dashboard";
+            }, 1000);
+        } catch (error: unknown) {
+            console.error(error);
+            setPartialFailureMessage(
+                `Identidade já confirmada, mas o registro de ponto ainda falhou: ${error instanceof Error ? error.message : "tente novamente."}`
+            );
+            toast.error("Não foi possível registrar o ponto. Tente novamente.");
+        } finally {
+            setIsRetryingCheckin(false);
+            setIsSubmitting(false);
         }
     };
 
@@ -191,33 +224,41 @@ const FaceLoginModal = ({ isOpen, onOpenChange }: FaceLoginModalProps) => {
 
                         <div className="flex flex-col gap-3 mt-4">
                             {imageSrc ? (
-                                <div className="flex gap-2">
+                                <div className="flex flex-col gap-2">
+                                    {partialFailureMessage && (
+                                        <p className="text-xs text-destructive bg-destructive/10 border border-destructive/20 rounded-md p-2">
+                                            {partialFailureMessage}
+                                        </p>
+                                    )}
+
+                                    <div className="flex gap-2">
                                     <Button 
                                         onClick={handleRetake} 
                                         variant="outline"
-                                        disabled={isSubmitting}
+                                        disabled={isSubmitting || isRetryingCheckin}
                                         className="flex-1"
                                     >
                                         <RefreshCcw className="h-4 w-4 mr-2" />
                                         Refazer Foto
                                     </Button>
                                     <Button 
-                                        onClick={handleLoginAttempt} 
-                                        disabled={isSubmitting}
+                                        onClick={partialFailureMessage ? handleRetryCheckin : handleLoginAttempt} 
+                                        disabled={isSubmitting || isRetryingCheckin}
                                         className="flex-1"
                                     >
-                                        {isSubmitting ? (
+                                        {isSubmitting || isRetryingCheckin ? (
                                             <>
                                                 <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                                                Validando...
+                                                {partialFailureMessage ? "Reenviando..." : "Validando..."}
                                             </>
                                         ) : (
                                             <>
                                                 <Check className="h-4 w-4 mr-2" />
-                                                Confirmar
+                                                {partialFailureMessage ? "Tentar novamente" : "Confirmar"}
                                             </>
                                         )}
                                     </Button>
+                                </div>
                                 </div>
                             ) : (
                                 <div className="flex flex-col gap-2">
