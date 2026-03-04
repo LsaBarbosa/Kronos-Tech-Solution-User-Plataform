@@ -116,6 +116,7 @@ const isValidEmail = (email: string) => {
 };
 
 const ListaColaboradores = () => {
+    const token = localStorage.getItem("token");
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [colaboradores, setColaboradores] = useState<CombinedColaborator[]>([]);
   const [showInactive, setShowInactive] = useState(false);
@@ -135,8 +136,7 @@ const ListaColaboradores = () => {
   const fetchColaboradores = async () => {
     setIsLoading(true);
     try {
-      const token = localStorage.getItem("token");
-      if (!token) {
+            if (!token) {
         throw new Error("Token de autenticação não encontrado.");
       }
 
@@ -147,14 +147,12 @@ const ListaColaboradores = () => {
           method: "GET",
           headers: {
             "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
           },
         }),
         fetch(`${API_BASE_URL}users/search`, {
           method: "GET",
           headers: {
             "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
           },
         }),
       ]);
@@ -391,8 +389,7 @@ const ListaColaboradores = () => {
 
     setIsLoading(true);
     try {
-      const token = localStorage.getItem("token");
-      if (!token) {
+            if (!token) {
         throw new Error("Token de autenticação não encontrado.");
       }
 
@@ -493,7 +490,7 @@ const ListaColaboradores = () => {
         promises.push(
           fetch(`${API_BASE_URL}employee/manager/update-employee/${colaboradorId}`, {
             method: "PATCH",
-            headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+            headers: { "Content-Type": "application/json",  },
             body: JSON.stringify(bodyDataEmployee),
           })
         );
@@ -503,7 +500,7 @@ const ListaColaboradores = () => {
         promises.push(
           fetch(`${API_BASE_URL}users/search/${originalColaborador.userId}`, {
             method: "PATCH",
-            headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+            headers: { "Content-Type": "application/json",  },
             body: JSON.stringify(bodyDataUser),
           })
         );
@@ -580,8 +577,7 @@ const ListaColaboradores = () => {
     }
 
     try {
-      const token = localStorage.getItem("token");
-      if (!token) {
+            if (!token) {
         throw new Error("Token de autenticação não encontrado.");
       }
 
@@ -590,7 +586,6 @@ const ListaColaboradores = () => {
         method: "PATCH",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
         },
       });
 

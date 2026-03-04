@@ -31,13 +31,11 @@ interface Document {
 
 // Auxiliary function to get authentication headers
 const getAuthHeaders = () => {
-  const token = localStorage.getItem('token');
-  if (!token) {
+    if (!token) {
     toast.error("Você não está autenticado. Redirecionando para o login...");
     return {};
   }
   return {
-    'Authorization': `Bearer ${token}`,
     'Content-Type': 'application/json',
   };
 };
@@ -88,8 +86,7 @@ const Documentos = () => {
   const [currentUserName, setCurrentUserName] = useState("");
 
   useEffect(() => {
-    const token = localStorage.getItem('token');
-    if (!token) {
+        if (!token) {
       return;
     }
 

@@ -101,6 +101,7 @@ const renderStatusBadge = (status: StatusRecord) => {
 // ---------------------------------------------------------------------
 
 const useIsDesktop = () => {
+    const token = localStorage.getItem("token");
   const [isDesktop, setIsDesktop] = React.useState(window.innerWidth > 768); 
   React.useEffect(() => {
     const handleResize = () => setIsDesktop(window.innerWidth > 768);
@@ -316,8 +317,7 @@ const ManualRegisterApprovals = () => {
         }
         
         try {
-            const token = localStorage.getItem('token');
-            if (!token) {
+                        if (!token) {
                 alert('Token de autenticação ausente.');
                 return;
             }
@@ -326,7 +326,6 @@ const ManualRegisterApprovals = () => {
 
             const response = await fetch(url, {
                 headers: {
-                    'Authorization': `Bearer ${token}`,
                 },
             });
 
