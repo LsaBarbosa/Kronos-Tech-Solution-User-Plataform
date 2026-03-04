@@ -1,65 +1,74 @@
 // src/services/messageService.ts
 
-import { apiFetch, parseApiResponse } from '@/config/api';
-import { Message, MessagePayload } from '@/types/message';
-import { EmployeeData } from '@/types/employee';
+import { API_BASE_URL } from "@/config/api";
+import { Message, MessagePayload } from "@/types/message";
+import { EmployeeData } from "@/types/employee";
 
-const decodeToken = (token: string) => {
-  try {
-    const base64Url = token.split('.')[1];
-    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-    const payload = decodeURIComponent(
-      atob(base64)
-        .split('')
-        .map((c) => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2))
-        .join('')
-    );
-    return JSON.parse(payload);
-  } catch (error) {
-    console.error('Falha ao decodificar o token', error);
-    return null;
+const getAuthHeaders = () => {
+  const token = localStorage.getItem("token");
+  if (!token) {
+    throw new Error("Token de autenticação não encontrado.");
   }
+
+  return {
+    "Content-Type": "application/json",
+    Authorization: `Bearer ${token}`,
+  };
+};
+
+const handleResponse = async (response: Response) => {
+  if (!response.ok) {
+    const errorData = await response.json();
+    const errorMessage = errorData.detail || errorData.message || `Erro de API (${response.status})`;
+    throw new Error(errorMessage);
+  }
+
+  const contentType = response.headers.get("content-type");
+  if (contentType && contentType.includes("application/json")) {
+    return response.json();
+  }
+
+  return {};
 };
 
 export const fetchMessages = async (): Promise<Message[]> => {
-  const response = await apiFetch('messages', { method: 'GET' });
-  return parseApiResponse(response);
+  const headers = getAuthHeaders();
+  const response = await fetch(`${API_BASE_URL}messages`, {
+    method: "GET",
+    headers,
+  });
+
+  return handleResponse(response);
 };
 
 export const deleteMessage = async (messageId: string): Promise<void> => {
-  const response = await apiFetch(`messages/${messageId}`, { method: 'DELETE' });
-  await parseApiResponse(response);
+  const headers = getAuthHeaders();
+  const response = await fetch(`${API_BASE_URL}messages/${messageId}`, {
+    method: "DELETE",
+    headers,
+  });
+
+  await handleResponse(response);
 };
 
 export const postMessage = async (payload: MessagePayload): Promise<void> => {
-  const response = await apiFetch('messages', {
-    method: 'POST',
-    headers: { 'Content-Type': 'application/json' },
+  const headers = getAuthHeaders();
+  const response = await fetch(`${API_BASE_URL}messages`, {
+    method: "POST",
+    headers,
     body: JSON.stringify(payload),
   });
 
-  await parseApiResponse(response);
+  await handleResponse(response);
 };
 
 export const fetchActiveEmployees = async (): Promise<EmployeeData[]> => {
-  const response = await apiFetch('employee?active=true');
-  const data = await parseApiResponse<{ employees: any[] }>(response);
+  const headers = getAuthHeaders();
+  const response = await fetch(`${API_BASE_URL}employee?active=true`, { headers });
+  const data = await handleResponse(response);
 
   return data.employees.map((emp: any) => ({
     employeeId: emp.employeeId,
     fullName: emp.fullName,
   })) as EmployeeData[];
-};
-
-export const getUserRoleFromToken = (): 'MANAGER' | 'PARTNER' | 'CTO' | '' => {
-  const token = localStorage.getItem('token');
-  if (!token) return '';
-
-  const decoded = decodeToken(token);
-  const role = decoded?.role;
-
-  if (role === 'MANAGER' || role === 'PARTNER' || role === 'CTO') {
-    return role;
-  }
-  return '';
 };

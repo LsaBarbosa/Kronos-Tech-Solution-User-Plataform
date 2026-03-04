@@ -42,6 +42,7 @@ const queryClient = new QueryClient();
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
+    <SessionUserProvider>
     <ThemeProvider>
       <AuthProvider>
       <TooltipProvider>
@@ -92,6 +93,7 @@ const App = () => (
       </TooltipProvider>
       </AuthProvider>
     </ThemeProvider>
+  </SessionUserProvider>
   </QueryClientProvider>
 );
 export default App;

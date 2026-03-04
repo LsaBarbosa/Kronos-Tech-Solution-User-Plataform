@@ -18,12 +18,12 @@ import {
     Manager,
     EditRecordFormData,
     editRecordSchema,
-    decodeToken,
     isHoliday,
     getTranslatedStatus,
     formatDateWithDayOfWeek,
 } from "@/utils/report-utils";
-import { API_BASE_URL, apiFetch } from "@/config/api";
+import { API_BASE_URL } from "@/config/api";
+import { useSessionUser } from "@/hooks/useSessionUser";
 
 // Sub-componentes
 import { ResultadosRelatorioDetalhado } from "@/components/ResultadosRelatorioDetalhado";
@@ -76,6 +76,7 @@ const RelatorioDetalhado = () => {
     const { toast } = useToast();
     const [managers, setManagers] = useState<Manager[]>([]);
     const [isPartner, setIsPartner] = useState(false);
+    const { sessionUser } = useSessionUser();
     const [isLoading, setIsLoading] = useState(false);
 
     // Verifica se há dados para habilitar botões de download
@@ -158,19 +159,18 @@ const RelatorioDetalhado = () => {
             const token = localStorage.getItem("token");
             if (!token) return;
 
-            const decoded = decodeToken(token);
-            const userRole = decoded?.role;
-            const userId = decoded?.employeeId;
-            const userName = decoded?.fullName;
+            const userRole = sessionUser?.role;
+            const userId = sessionUser?.employeeId;
+            const userName = sessionUser?.fullName;
 
-            if (userRole === "PARTNER") {
+            if (userRole === "PARTNER" && userId) {
                 setIsPartner(true);
-                setEmployees([{ employeeId: userId, fullName: userName }]);
+                setEmployees([{ employeeId: userId, fullName: userName || "" }]);
                 setSelectedEmployee(userId);
                 return;
-            } else {
-                setIsPartner(false);
             }
+
+            setIsPartner(false);
 
             const activeStatus = employeeActive === "active";
             const url = employeeActive ? `${API_BASE_URL}employee?active=${activeStatus}` : `${API_BASE_URL}employee`;
@@ -188,7 +188,7 @@ const RelatorioDetalhado = () => {
         } catch (error) {
             console.error("Erro ao buscar funcionários:", error);
         }
-    }, [employeeActive, selectedEmployee]);
+    }, [employeeActive, selectedEmployee, sessionUser]);
 
     const fetchManagers = async () => {
         try {

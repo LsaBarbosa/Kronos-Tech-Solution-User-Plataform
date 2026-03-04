@@ -15,7 +15,8 @@ import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { es } from 'date-fns/locale';
-import { API_BASE_URL, apiFetch } from "@/config/api";
+import { API_BASE_URL } from "@/config/api";
+import { useSessionUser } from "@/hooks/useSessionUser";
 
 interface Employee {
   id: string;
@@ -42,20 +43,6 @@ const getAuthHeaders = () => {
   };
 };
 
-// New function to decode the JWT token
-const decodeToken = (token: string) => {
-  try {
-    const base64Url = token.split('.')[1];
-    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-    const payload = decodeURIComponent(atob(base64).split('').map(function (c) {
-      return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
-    }).join(''));
-    return JSON.parse(payload);
-  } catch (error) {
-    console.error("Falha ao decodificar o token", error);
-    return null;
-  }
-};
 
 // --- NOVA FUNÇÃO PARA TRATAR ERROS DE API ---
 const handleApiError = async (response: Response) => {
@@ -86,24 +73,19 @@ const Documentos = () => {
   const [isPartner, setIsPartner] = useState(false);
   const [currentUserId, setCurrentUserId] = useState("");
   const [currentUserName, setCurrentUserName] = useState("");
+  const { sessionUser } = useSessionUser();
 
   useEffect(() => {
-    const token = localStorage.getItem('token');
-    if (!token) {
-      return;
-    }
-
-    const decoded = decodeToken(token);
-    const userRole = decoded?.role;
-    const userId = decoded?.employeeId;
-    const userName = decoded?.fullName;
+    const userRole = sessionUser?.role;
+    const userId = sessionUser?.employeeId;
+    const userName = sessionUser?.fullName;
 
     setIsPartner(userRole === 'PARTNER');
     setCurrentUserId(userId || "");
     setCurrentUserName(userName || "");
 
-    if (userRole === 'PARTNER') {
-      setEmployees([{ id: userId, name: userName }]);
+    if (userRole === 'PARTNER' && userId) {
+      setEmployees([{ id: userId, name: userName || "" }]);
       setSelectedEmployeeId(userId);
       return;
     }
@@ -137,7 +119,7 @@ const Documentos = () => {
     };
 
     fetchEmployees();
-  }, [activeEmployeeFilter]);
+  }, [activeEmployeeFilter, sessionUser]);
 
   const handleSearch = async () => {
     if (!selectedEmployeeId || !selectedDocumentType) {
