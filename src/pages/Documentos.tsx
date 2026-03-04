@@ -15,9 +15,14 @@ import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { es } from 'date-fns/locale';
-import { API_BASE_URL } from "@/config/api";
 import { downloadDocumentFile } from "@/service/document.Service";
 import { useAuth } from "@/context/AuthContext";
+import {
+  deleteDocumentByEmployee,
+  fetchDocumentsByEmployeeAndType,
+  fetchEmployeesForDocuments,
+} from "@/service/documents-admin.service";
+import { getServiceErrorMessage } from "@/service/helpers/service-error.helper";
 
 interface Employee {
   id: string;
@@ -30,24 +35,6 @@ interface Document {
   createdAt: string;
   type: string;
 }
-
-const getAuthHeaders = () => ({
-  'Content-Type': 'application/json',
-});
-
-// --- NOVA FUNÇÃO PARA TRATAR ERROS DE API ---
-const handleApiError = async (response: Response) => {
-  try {
-    const errorData = await response.json();
-    if (errorData.message) {
-      toast.error(errorData.message);
-    } else {
-      toast.error(`Erro ${response.status}: ${errorData.error || 'Ocorreu um erro.'}`);
-    }
-  } catch {
-    toast.error(`Erro ${response.status}: Ocorreu um erro inesperado.`);
-  }
-};
 
 const Documentos = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -84,29 +71,12 @@ const Documentos = () => {
     const fetchEmployees = async () => {
       setIsFetchingEmployees(true);
       try {
-        const headers = getAuthHeaders();
-        if (Object.keys(headers).length === 0) {
-          return;
-        }
-
-        const response = await fetch(`${API_BASE_URL}employee?active=${activeEmployeeFilter}`, {
-          credentials: "include",
-          headers,
-        });
-        if (!response.ok) {
-          await handleApiError(response);
-          return;
-        }
-        const data = await response.json();
-        const formattedEmployees: Employee[] = data.employees.map((emp: any) => ({
-          id: emp.employeeId,
-          name: emp.fullName,
-        }));
+        const formattedEmployees: Employee[] = await fetchEmployeesForDocuments(activeEmployeeFilter);
         setEmployees(formattedEmployees);
         setSelectedEmployeeId("");
       } catch (error) {
         console.error("Erro ao buscar funcionários:", error);
-        toast.error("Erro ao buscar a lista de funcionários. Tente novamente.");
+        toast.error(getServiceErrorMessage(error, "Erro ao buscar a lista de funcionários. Tente novamente."));
       } finally {
         setIsFetchingEmployees(false);
       }
@@ -125,34 +95,7 @@ const Documentos = () => {
     setHasSearched(true);
 
     try {
-      const headers = getAuthHeaders();
-      if (Object.keys(headers).length === 0) return;
-
-      const searchParams = new URLSearchParams({
-        employeeId: selectedEmployeeId,
-        type: selectedDocumentType,
-      });
-
-      const response = await fetch(`${API_BASE_URL}documents?${searchParams.toString()}`, {
-        credentials: "include",
-        headers: headers,
-      });
-
-      if (!response.ok) {
-        await handleApiError(response);
-        setDocuments([]);
-        setFilteredDocuments([]);
-        return;
-      }
-
-      const data = await response.json();
-
-      const formattedDocuments = data.documents.map((doc: any) => ({
-        id: doc.id,
-        name: doc.fileName || "Nome Desconhecido",
-        createdAt: doc.createdAt || doc.uploadedAt,
-        type: selectedDocumentType,
-      }));
+      const formattedDocuments = await fetchDocumentsByEmployeeAndType(selectedEmployeeId, selectedDocumentType);
 
       setDocuments(formattedDocuments);
       setFilteredDocuments(formattedDocuments);
@@ -160,7 +103,7 @@ const Documentos = () => {
 
     } catch (error) {
       console.error("Erro ao buscar documentos:", error);
-      toast.error("Erro ao buscar documentos. Tente novamente.");
+      toast.error(getServiceErrorMessage(error, "Erro ao buscar documentos. Tente novamente."));
       setDocuments([]);
       setFilteredDocuments([]);
     } finally {
@@ -180,22 +123,7 @@ const Documentos = () => {
     }
 
     try {
-        const headers = getAuthHeaders();
-        if (Object.keys(headers).length === 0) return;
-
-        // Constrói a URL do DELETE: /documents/{documentId}?employeeId={employeeId}
-        const url = `${API_BASE_URL}documents/${documentId}?employeeId=${selectedEmployeeId}`;
-
-        const response = await fetch(url, {
-            method: "DELETE",
-            credentials: "include",
-            headers: headers,
-        });
-
-        if (!response.ok) {
-            await handleApiError(response);
-            return;
-        }
+        await deleteDocumentByEmployee(documentId, selectedEmployeeId);
 
         // Se o DELETE foi um sucesso (status 204 No Content ou 200 OK), atualiza o estado local
         setDocuments(prev => prev.filter(doc => doc.id !== documentId));
@@ -204,12 +132,9 @@ const Documentos = () => {
         toast.success(`Documento "${documentName}" excluído com sucesso!`);
 
     } catch (error) {
-   if (error.response?.status === 403) {
-      const serverMessage = error.response.data?.detail;
-    
+      toast.error(getServiceErrorMessage(error, "Falha ao excluir o documento."));
     }
-  }
-};
+  };
 
   // Normalize document date string to 'yyyy-MM-dd'
   const toISODate = (dateStr: string): string => {

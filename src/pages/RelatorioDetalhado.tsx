@@ -22,8 +22,14 @@ import {
     getTranslatedStatus,
     formatDateWithDayOfWeek,
 } from "@/utils/report-utils";
-import { API_BASE_URL } from "@/config/api";
 import { useAuth } from "@/context/AuthContext";
+import {
+    fetchDetailedReport,
+    fetchEmployeesByActive,
+    fetchManagers as fetchManagersService,
+    updateTimeRecord,
+} from "@/service/report.service";
+import { getServiceErrorMessage } from "@/service/helpers/service-error.helper";
 
 // Sub-componentes
 import { ResultadosRelatorioDetalhado } from "@/components/ResultadosRelatorioDetalhado";
@@ -169,19 +175,9 @@ const RelatorioDetalhado = () => {
             setIsPartner(false);
 
             const activeStatus = employeeActive === "active";
-            const url = employeeActive ? `${API_BASE_URL}employee?active=${activeStatus}` : `${API_BASE_URL}employee`;
-
-            const response = await fetch(url, {
-                method: "GET",
-                credentials: "include",
-                headers: { "Content-Type": "application/json",  },
-            });
-
-            if (response.ok) {
-                const data = await response.json();
-                setEmployees(data.employees || []);
-                if (!selectedEmployee) setSelectedEmployee("");
-            }
+            const employeeList = await fetchEmployeesByActive(activeStatus);
+            setEmployees(employeeList);
+            if (!selectedEmployee) setSelectedEmployee("");
         } catch (error) {
             console.error("Erro ao buscar funcionários:", error);
         }
@@ -189,25 +185,11 @@ const RelatorioDetalhado = () => {
 
     const fetchManagers = async () => {
         try {
-            const response = await fetch(`${API_BASE_URL}users/search`, {
-                method: "GET",
-                credentials: "include",
-                headers: { "Content-Type": "application/json",  },
-            });
-
-            if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.detail || "Erro ao buscar usuários.");
-            }
-
-            const data = await response.json();
-            const filteredManagers: Manager[] = data.users
-                .filter((user: any) => user.role === "MANAGER")
-                .map((user: any) => ({ id: user.userId, name: user.username }));
-            setManagers(filteredManagers);
+            const managerList = await fetchManagersService();
+            setManagers(managerList);
         } catch (error) {
             console.error("Erro ao buscar gerentes:", error);
-            toast({ title: "Erro", description: (error as Error).message, variant: "destructive" });
+            toast({ title: "Erro", description: getServiceErrorMessage(error, "Erro ao buscar usuários."), variant: "destructive" });
         }
     };
 
@@ -230,22 +212,7 @@ const RelatorioDetalhado = () => {
                 ...(status.length > 0 && { statuses: status }),
             };
 
-            const apiUrl = new URL(`${API_BASE_URL}records/report`, window.location.origin);
-            if (selectedEmployee) apiUrl.searchParams.append("employeeId", selectedEmployee);
-
-            const response = await fetch(apiUrl.toString(), {
-                method: "POST",
-                credentials: "include",
-                headers: { "Content-Type": "application/json",  },
-                body: JSON.stringify(requestBody),
-            });
-
-            if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.detail || "Erro ao buscar o relatório.");
-            }
-
-            const data: DetailedReportItem[] = await response.json();
+            const data = await fetchDetailedReport(requestBody, selectedEmployee || undefined);
 
             if (data.length === 0) {
                 toast({ title: "Aviso", description: "Não há registros para os filtros selecionados", variant: "default" });
@@ -258,7 +225,7 @@ const RelatorioDetalhado = () => {
 
         } catch (error) {
             console.error("Erro na busca:", error);
-            toast({ title: "Erro", description: (error as Error).message, variant: "destructive" });
+            toast({ title: "Erro", description: getServiceErrorMessage(error, "Erro ao buscar o relatório."), variant: "destructive" });
         } finally {
             setIsLoading(false);
         }
@@ -557,18 +524,7 @@ const RelatorioDetalhado = () => {
                 managerId: data.managerId,
             };
 
-            const endpoint = `${API_BASE_URL}records/update/time-record/${selectedRecord.timeRecordId}`;
-            const response = await fetch(endpoint, {
-                method: "PUT",
-                credentials: "include",
-                headers: { "Content-Type": "application/json",  },
-                body: JSON.stringify(requestBody),
-            });
-
-            if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.detail || "Erro ao solicitar a aprovação.");
-            }
+            await updateTimeRecord(selectedRecord.timeRecordId, requestBody);
 
             toast({ title: "Sucesso", description: "Solicitação enviada para aprovação." });
             setEditModalOpen(false);
@@ -577,7 +533,7 @@ const RelatorioDetalhado = () => {
             handleSearch();
         } catch (error) {
             console.error("Erro ao salvar:", error);
-            toast({ title: "Erro", description: (error as Error).message, variant: "destructive" });
+            toast({ title: "Erro", description: getServiceErrorMessage(error, "Erro ao solicitar a aprovação."), variant: "destructive" });
         }
     };
 
