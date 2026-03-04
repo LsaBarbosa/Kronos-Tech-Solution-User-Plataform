@@ -18,6 +18,7 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select";
+import { checkUsernameExists, createEmployee, createUser } from "@/service/adminPortal.service";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 import { checkUsernameExists, createCollaboratorEmployee, createCollaboratorUser } from "@/service/collaborator-management.service";
@@ -214,9 +215,9 @@ const [faceImageBase64, setFaceImageBase64] = useState<string | undefined>(undef
         // Lógica de chamada à API para verificação (Mantida)
         try {
 
-            const userExists = await checkUsernameExists(username);
+            const exists = await checkUsernameExists(username);
 
-            if (userExists) {
+            if (exists) {
                 toast({ title: "Nome de usuário indisponível", description: "Este nome de usuário já está em uso.", variant: "destructive" });
                 setUsernameAvailability('unavailable');
             } else {
@@ -278,7 +279,8 @@ const [faceImageBase64, setFaceImageBase64] = useState<string | undefined>(undef
                 fixedWorkDays: data.fixedWorkDays || []
             };
 
-            const employeeId = await createCollaboratorEmployee(employeePayload);
+            const employeeData = await createEmployee(employeePayload);
+            const employeeId = employeeData.employeeId;
             
             // SUCESSO DO PASSO 1: Salva o ID e avança o passo
             setSavedEmployeeId(employeeId);
@@ -346,7 +348,7 @@ const [faceImageBase64, setFaceImageBase64] = useState<string | undefined>(undef
                 employeeId: savedEmployeeId, // Usa o ID salvo do Passo 1
             };
 
-            await createCollaboratorUser(userPayload);
+            await createUser(userPayload);
 
             // SUCESSO FINAL
             toast({

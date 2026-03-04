@@ -45,6 +45,7 @@ import { useToast } from "@/hooks/use-toast";
 // Importações adicionais
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
+import { fetchEmployeesByActive, fetchUsersSearch, toggleUserActivation, updateManagedEmployee, updateUserById } from "@/service/adminPortal.service";
 import { Switch } from "@/components/ui/switch";
 import {
   fetchEmployeesAdmin,
@@ -116,10 +117,7 @@ const ListaColaboradores = () => {
     try {
       const isActive = !showInactive;
 
-      const [employees, users] = await Promise.all([
-        fetchEmployeesAdmin(isActive),
-        fetchUsersAdmin(),
-      ]);
+      const [employees, users] = await Promise.all([fetchEmployeesByActive(isActive), fetchUsersSearch()]);
 
       const usersMap = new Map<string, UserData>();
       users.forEach((user: UserData) => usersMap.set(user.employeeId, user));
@@ -438,13 +436,13 @@ const ListaColaboradores = () => {
 
       if (Object.keys(bodyDataEmployee).length > 0 || faceImageFile) {
         promises.push(
-          updateEmployeeAdmin(colaboradorId, bodyDataEmployee)
+          updateManagedEmployee(colaboradorId, bodyDataEmployee)
         );
       }
 
       if (Object.keys(bodyDataUser).length > 0) {
         promises.push(
-          updateUserAdmin(originalColaborador.userId, bodyDataUser)
+          updateUserById(originalColaborador.userId, bodyDataUser)
         );
       }
 
@@ -520,7 +518,7 @@ const ListaColaboradores = () => {
 
     try {
       // Chamada à API
-      await toggleUserAdminStatus(userId);
+      await toggleUserActivation(userId);
 
       // --- PONTO DA CORREÇÃO ---
       

@@ -10,6 +10,7 @@ import Header from "@/components/Header";
 import Sidebar from "@/components/Sidebar";
 // 🚀 ADICIONADO Loader2 para o spinner
 import { Info, Save, ZapOff, Loader2 } from "lucide-react"; 
+import { fetchEmployeesForReport, fetchRecordsReport, toggleStatusRecordActivation, updateStatusRecord } from "@/service/reportPortal.service";
 import { useAuth } from "@/context/AuthContext";
 import {
     fetchDetailedReport,
@@ -115,14 +116,15 @@ const StatusRegistro = () => {
             setIsPartner(false);
 
             const activeStatus = employeeActive === "active";
-            const employeeList = await fetchEmployeesByActive(activeStatus);
-            setEmployees(employeeList);
-            if (employeeList) {
+            const employeesData = await fetchEmployeesForReport(activeStatus);
+
+            if (employeesData) {
+                setEmployees(employeesData || []);
                 // 💡 CORREÇÃO: Lógica de verificação de funcionário selecionado
-                if (!employees.some(emp => emp.employeeId === selectedEmployee) && employeeList.length > 0) {
-                    setSelectedEmployee(employeeList[0].employeeId); 
-                } else if (!selectedEmployee && employeeList.length > 0) {
-                    setSelectedEmployee(employeeList[0].employeeId);
+                if (!employees.some(emp => emp.employeeId === selectedEmployee) && employeesData.length > 0) {
+                    setSelectedEmployee(employeesData[0].employeeId); 
+                } else if (!selectedEmployee && employeesData.length > 0) {
+                    setSelectedEmployee(employeesData[0].employeeId);
                 } else if (!selectedEmployee) {
                     setSelectedEmployee("");
                 }
@@ -162,7 +164,7 @@ const StatusRegistro = () => {
                 dates: formattedDates,
             };
 
-            const data = await fetchDetailedReport(requestBody, selectedEmployee || undefined);
+            const data = await fetchRecordsReport(requestBody, selectedEmployee || undefined);
 
             if (data.length === 0) {
                 setReportData([]);
@@ -222,7 +224,7 @@ const StatusRegistro = () => {
         setIsSavingStatus(true); // 🚀 ATIVA O LOADING DO BOTÃO SALVAR
         
         try {
-            await updateRecordStatus(employeeId, timeRecordId, statusRecord);
+            await updateStatusRecord(employeeId, timeRecordId, statusRecord);
 
             toast({
                 title: "Sucesso",
@@ -265,7 +267,7 @@ const StatusRegistro = () => {
         setIsTogglingActivate(true); // 🚀 ATIVA O LOADING DO BOTÃO TOGGLE
 
         try {
-            await toggleRecordActivate(employeeId, timeRecordId);
+            await toggleStatusRecordActivation(employeeId, timeRecordId);
 
             toast({
                 title: "Sucesso",

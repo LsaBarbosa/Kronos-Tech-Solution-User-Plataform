@@ -8,7 +8,7 @@ import { DetailedReportItem, statusOptions, getStatusColor, statusMap } from "@/
 import { useToast } from "@/hooks/use-toast";
 import { Button } from "./ui/button";
 import { PaginationComponent } from "./ui/PaginationComponent";
-import { downloadDocumentFile } from "@/service/document.Service";
+import { downloadEmployeeDocument } from "@/service/documentPortal.service";
 
 // Define 5 itens por página para a paginação local (Client-Side)
 const ROWS_PER_PAGE = 5; 
@@ -248,10 +248,8 @@ export const ResultadosRelatorioDetalhado: React.FC<ResultadosDetalhadoProps> = 
         }
 
         try {
-            await downloadDocumentFile(documentId, {
-                employeeId,
-                fallbackFileName: `${employeeName}_documento`,
-            });
+            const filename = `${employeeName}_documento`;
+            await downloadEmployeeDocument(documentId, employeeId, filename);
 
             toast({
                 title: "Download Iniciado",

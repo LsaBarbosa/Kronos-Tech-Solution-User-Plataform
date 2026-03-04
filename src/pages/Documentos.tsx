@@ -15,8 +15,9 @@ import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { es } from 'date-fns/locale';
-import { deleteDocument, downloadDocument, listDocuments, listEmployeesForDocuments } from "@/service/document.Service";
+import { downloadDocumentFile } from "@/service/document.Service";
 import { useAuth } from "@/context/AuthContext";
+import { fetchEmployeesForDocuments, removeEmployeeDocument, searchDocuments } from "@/service/documentPortal.service";
 
 interface Employee {
   id: string;
@@ -65,7 +66,11 @@ const Documentos = () => {
     const fetchEmployees = async () => {
       setIsFetchingEmployees(true);
       try {
-        const formattedEmployees: Employee[] = await listEmployeesForDocuments(activeEmployeeFilter);
+        const data = { employees: await fetchEmployeesForDocuments(activeEmployeeFilter) };
+        const formattedEmployees: Employee[] = data.employees.map((emp: any) => ({
+          id: emp.employeeId,
+          name: emp.fullName,
+        }));
         setEmployees(formattedEmployees);
         setSelectedEmployeeId("");
       } catch (error) {
@@ -89,7 +94,14 @@ const Documentos = () => {
     setHasSearched(true);
 
     try {
-      const formattedDocuments = await listDocuments({ employeeId: selectedEmployeeId, type: selectedDocumentType });
+      const data = { documents: await searchDocuments(selectedEmployeeId, selectedDocumentType) };
+
+      const formattedDocuments = data.documents.map((doc: any) => ({
+        id: doc.id,
+        name: doc.fileName || "Nome Desconhecido",
+        createdAt: doc.createdAt || doc.uploadedAt,
+        type: selectedDocumentType,
+      }));
 
       setDocuments(formattedDocuments);
       setFilteredDocuments(formattedDocuments);
@@ -117,7 +129,7 @@ const Documentos = () => {
     }
 
     try {
-        await deleteDocument(documentId, { employeeId: selectedEmployeeId });
+        await removeEmployeeDocument(documentId, selectedEmployeeId);
 
         // Se o DELETE foi um sucesso (status 204 No Content ou 200 OK), atualiza o estado local
         setDocuments(prev => prev.filter(doc => doc.id !== documentId));

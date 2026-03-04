@@ -22,6 +22,7 @@ import {
     getTranslatedStatus,
     formatDateWithDayOfWeek,
 } from "@/utils/report-utils";
+import { fetchEmployeesForReport, fetchManagersForReport, fetchRecordsReport, requestTimeRecordUpdate } from "@/service/reportPortal.service";
 import { useAuth } from "@/context/AuthContext";
 import {
     fetchDetailedReport,
@@ -175,8 +176,8 @@ const RelatorioDetalhado = () => {
             setIsPartner(false);
 
             const activeStatus = employeeActive === "active";
-            const employeeList = await fetchEmployeesByActive(activeStatus);
-            setEmployees(employeeList);
+            const employeesData = await fetchEmployeesForReport(activeStatus);
+            setEmployees(employeesData || []);
             if (!selectedEmployee) setSelectedEmployee("");
         } catch (error) {
             console.error("Erro ao buscar funcionários:", error);
@@ -185,8 +186,11 @@ const RelatorioDetalhado = () => {
 
     const fetchManagers = async () => {
         try {
-            const managerList = await fetchManagersService();
-            setManagers(managerList);
+            const users = await fetchManagersForReport();
+            const filteredManagers: Manager[] = users
+                .filter((user: any) => user.role === "MANAGER")
+                .map((user: any) => ({ id: user.userId, name: user.username }));
+            setManagers(filteredManagers);
         } catch (error) {
             console.error("Erro ao buscar gerentes:", error);
             toast({ title: "Erro", description: getServiceErrorMessage(error, "Erro ao buscar usuários."), variant: "destructive" });
@@ -212,7 +216,7 @@ const RelatorioDetalhado = () => {
                 ...(status.length > 0 && { statuses: status }),
             };
 
-            const data = await fetchDetailedReport(requestBody, selectedEmployee || undefined);
+            const data: DetailedReportItem[] = await fetchRecordsReport(requestBody, selectedEmployee || undefined);
 
             if (data.length === 0) {
                 toast({ title: "Aviso", description: "Não há registros para os filtros selecionados", variant: "default" });
@@ -524,7 +528,7 @@ const RelatorioDetalhado = () => {
                 managerId: data.managerId,
             };
 
-            await updateTimeRecord(selectedRecord.timeRecordId, requestBody);
+            await requestTimeRecordUpdate(selectedRecord.timeRecordId, requestBody);
 
             toast({ title: "Sucesso", description: "Solicitação enviada para aprovação." });
             setEditModalOpen(false);

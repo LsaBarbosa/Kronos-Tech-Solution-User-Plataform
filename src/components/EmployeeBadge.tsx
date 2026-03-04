@@ -7,8 +7,8 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
-import { updateOwnEmployeeProfile } from "@/service/collaborator-management.service";
 import { Separator } from "@radix-ui/react-separator";
+import { updateOwnProfile } from "@/service/profile.service";
 
 interface UserProfile {
   fullName: string;
@@ -70,7 +70,7 @@ const EmployeeBadge = ({ userData, isLoading, onUpdateSuccess }: EmployeeBadgePr
           [field]: field === 'phone' ? tempData.phone.replace(/\D/g, '') : tempData[field] 
       };
       
-      await updateOwnEmployeeProfile(payload);
+      await updateOwnProfile(payload);
 
       toast.success(`Dados do perfil atualizados com sucesso.`);
       

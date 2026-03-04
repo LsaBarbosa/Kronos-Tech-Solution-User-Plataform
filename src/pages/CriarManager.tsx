@@ -18,6 +18,13 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select";
+import {
+    checkCpfExists,
+    checkUsernameExists,
+    createEmployee,
+    createUser,
+    fetchCompanies as fetchCompaniesService,
+} from "@/service/adminPortal.service";
 import { Checkbox } from "@/components/ui/checkbox";
 import {
     checkCpfExists,
@@ -133,11 +140,12 @@ const CriarManager = () => {
     });
 
     // --- FUNÇÃO PARA BUSCAR EMPRESAS ---
-    const fetchCompanies = useCallback(async () => {
+    const loadCompanies = useCallback(async () => {
         setIsFetchingCompanies(true);
         try {
-            const companiesData = await fetchCollaboratorCompanies();
-            setCompanies(companiesData);
+            const data = await fetchCompaniesService();
+            // CORREÇÃO: Mapeando 'id' (UUID) da empresa, e não o 'cnpj'.
+            setCompanies(data.map((c: any) => ({ companyId: c.id, name: c.name })));
             
         } catch (error) {
             console.error("Erro ao buscar empresas:", error);
@@ -148,8 +156,8 @@ const CriarManager = () => {
     }, [toast]);
 
     useEffect(() => {
-        fetchCompanies();
-    }, [fetchCompanies]);
+        loadCompanies();
+    }, [loadCompanies]);
     // -----------------------------------
 const selectedScheduleType = form.watch("scheduleType");
 
@@ -210,14 +218,14 @@ const selectedScheduleType = form.watch("scheduleType");
         try {
 
             // Chamada à API para verificação de CPF
-            const cpfExists = await checkCpfExists(cpf);
+            const exists = await checkCpfExists(cpf);
 
-            if (cpfExists) {
-                // Se existe, indisponível
+            if (exists) {
+                // Se o status for 200/OK, o CPF existe (indisponível)
                 toast({ title: "CPF indisponível", description: "Este CPF já está cadastrado no sistema.", variant: "destructive" });
                 setCpfAvailability('unavailable');
             } else {
-                // Se não existe, disponível
+                // Se o status for 404, o CPF não existe (disponível)
                 toast({ title: "CPF disponível!", description: "Você pode usar este CPF para o registro." });
                 setCpfAvailability('available');
             }
@@ -261,9 +269,9 @@ const selectedScheduleType = form.watch("scheduleType");
 
         try {
 
-            const userExists = await checkUsernameExists(username);
+            const exists = await checkUsernameExists(username);
 
-            if (userExists) {
+            if (exists) {
                 toast({ title: "Nome de usuário indisponível", description: "Este nome de usuário já está em uso.", variant: "destructive" });
                 setUsernameAvailability('unavailable');
             } else {
@@ -328,7 +336,8 @@ const selectedScheduleType = form.watch("scheduleType");
             };
             
 
-            const employeeId = await createCollaboratorEmployee(employeePayload);
+            const employeeData = await createEmployee(employeePayload);
+            const employeeId = employeeData.employeeId;
 
             // SUCESSO DO PASSO 1: Salva o ID e avança o passo
             setSavedEmployeeId(employeeId);
@@ -395,7 +404,7 @@ const selectedScheduleType = form.watch("scheduleType");
                 employeeId: savedEmployeeId, // Usa o ID salvo do Passo 1
             };
 
-            await createCollaboratorUser(userPayload);
+            await createUser(userPayload);
 
             // SUCESSO FINAL
             toast({
