@@ -5,6 +5,8 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { Card, CardContent } from "@/components/ui/card";
 import { toast } from "sonner";
 import { API_BASE_URL } from "@/config/api";
+import { useAuth } from "@/context/AuthContext";
+import { useNavigate } from "react-router-dom";
 
 interface FaceLoginModalProps {
     isOpen: boolean;
@@ -12,6 +14,8 @@ interface FaceLoginModalProps {
 }
 
 const FaceLoginModal = ({ isOpen, onOpenChange }: FaceLoginModalProps) => {
+    const navigate = useNavigate();
+    const { bootstrapSession } = useAuth();
     const [imageSrc, setImageSrc] = useState<string | null>(null);
     const [isCapturing, setIsCapturing] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -124,6 +128,7 @@ const FaceLoginModal = ({ isOpen, onOpenChange }: FaceLoginModalProps) => {
                 headers: {
                     "Content-Type": "application/json",
                 },
+                credentials: "include",
                 body: JSON.stringify({ faceImageBase64: base64Data }),
             });
 
@@ -132,19 +137,13 @@ const FaceLoginModal = ({ isOpen, onOpenChange }: FaceLoginModalProps) => {
                 throw new Error(errorData.detail || "Falha no reconhecimento facial.");
             }
 
-            const data = await response.json();
-
-            // Login bem-sucedido
-            localStorage.setItem("token", data.token);
-            
             toast.success("Identidade confirmada! Acessando plataforma...", {
                 duration: 2000,
             });
 
-            setTimeout(() => {
-                // Força refresh para limpar a memória da câmera e garantir estado limpo
-                window.location.href = "/dashboard";
-            }, 1000);
+            onOpenChange(false);
+            await bootstrapSession();
+            navigate("/dashboard", { replace: true });
 
         } catch (error: any) {
             console.error(error);
