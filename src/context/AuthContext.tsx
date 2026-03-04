@@ -1,7 +1,5 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
-import { API_BASE_URL } from "@/config/api";
-
-export type SessionRole = "PARTNER" | "MANAGER" | "CTO" | "ADMIN" | "USER" | string;
+import { fetchSessionProfile, SessionRole } from "@/service/auth/session.service";
 
 export interface SessionUser {
   employeeId: string;
@@ -13,18 +11,6 @@ export interface SessionUser {
 
 type AuthStatus = "loading" | "authenticated" | "unauthenticated";
 
-interface AccountProfileResponse {
-  employeeId: string;
-  role: SessionRole;
-  username?: string;
-}
-
-interface EmployeeProfileResponse {
-  employeeId: string;
-  fullName: string;
-  email?: string;
-}
-
 interface AuthContextValue {
   authStatus: AuthStatus;
   sessionUser: SessionUser | null;
@@ -34,12 +20,6 @@ interface AuthContextValue {
 }
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
-
-const clearSessionAndRedirectToLogin = () => {
-  if (window.location.pathname !== "/login") {
-    window.location.href = "/login";
-  }
-};
 
 export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
   const [authStatus, setAuthStatus] = useState<AuthStatus>("loading");
@@ -51,45 +31,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     setIsLoadingSessionUser(true);
 
     try {
-      const accountResponse = await fetch(`${API_BASE_URL}users/own-profile`, {
-        method: "GET",
-        credentials: "include",
-      });
-
-      if (accountResponse.status === 401) {
-        setSessionUser(null);
-        setAuthStatus("unauthenticated");
-        clearSessionAndRedirectToLogin();
-        return;
-      }
-
-      if (!accountResponse.ok) {
-        setSessionUser(null);
-        setAuthStatus("unauthenticated");
-        return;
-      }
-
-      const account = (await accountResponse.json()) as AccountProfileResponse;
-
-      const employeeResponse = await fetch(`${API_BASE_URL}employee/own-profile`, {
-        method: "GET",
-        credentials: "include",
-      });
-
-      if (employeeResponse.status === 401) {
-        setSessionUser(null);
-        setAuthStatus("unauthenticated");
-        clearSessionAndRedirectToLogin();
-        return;
-      }
-
-      if (!employeeResponse.ok) {
-        setSessionUser(null);
-        setAuthStatus("unauthenticated");
-        return;
-      }
-
-      const employeeProfile = (await employeeResponse.json()) as EmployeeProfileResponse;
+      const { account, employeeProfile } = await fetchSessionProfile();
 
       setSessionUser({
         employeeId: account.employeeId || employeeProfile.employeeId,
