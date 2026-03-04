@@ -1,8 +1,10 @@
 import { useState, useRef, useCallback, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { Camera, RefreshCcw, Loader2, ScanFace, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Card, CardContent } from "@/components/ui/card";
+import { useAuth } from "@/context/AuthContext";
 import { toast } from "sonner";
 import { registerPointWithFace, retryCheckin } from "@/service/faceCheckinOrchestrator.service";
 
@@ -63,7 +65,7 @@ const FaceLoginModal = ({ isOpen, onOpenChange }: FaceLoginModalProps) => {
             };
 
         } catch (error: unknown) {
-            if (error.name !== 'AbortError') { 
+            if (!(error instanceof Error && error.name === 'AbortError')) {
                  console.error("Erro ao acessar a webcam:", error); 
                  toast.error("Erro ao acessar a webcam. Verifique as permissões.");
             }
@@ -113,6 +115,8 @@ const FaceLoginModal = ({ isOpen, onOpenChange }: FaceLoginModalProps) => {
     const handleRetake = () => {
         setImageSrc(null);
         setIsCapturing(false);
+        setIsSubmitting(false);
+        setIsRetryingCheckin(false);
         setPartialFailureMessage(null);
         setTimeout(() => {
             startWebcam();
@@ -148,14 +152,14 @@ const FaceLoginModal = ({ isOpen, onOpenChange }: FaceLoginModalProps) => {
             if (message.includes("Identidade confirmada")) {
                 setPartialFailureMessage(message);
                 toast.error("Falha ao concluir registro de ponto.");
-                setIsSubmitting(false);
                 return;
             }
 
             toast.error(message);
             setImageSrc(null);
-            setIsSubmitting(false);
             startWebcam(); // Reinicia câmera automaticamente em caso de erro
+        } finally {
+            setIsSubmitting(false);
         }
     };
 
