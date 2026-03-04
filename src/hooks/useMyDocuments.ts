@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
+import { isAuthenticationError } from "@/service/helpers/service-error.helper";
 import { Document } from "@/types/document";
 import { fetchUserDocuments, deleteDocument, downloadDocumentFile } from "@/service/document.Service";
 
@@ -33,7 +34,7 @@ export const useMyDocuments = (): UseMyDocumentsReturn => {
             setDocuments(data);
         } catch (err: any) {
             setError(err.message);
-            if (err.message.includes("Token")) navigate("/login");
+            if (isAuthenticationError(err)) navigate("/login");
             toast({ title: "Erro", description: err.message, variant: "destructive" });
         } finally {
             setIsLoading(false);
