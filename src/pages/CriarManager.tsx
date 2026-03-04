@@ -18,8 +18,14 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select";
-import { API_BASE_URL } from "@/config/api";
 import { Checkbox } from "@/components/ui/checkbox";
+import {
+    checkCpfExists,
+    checkUsernameExists,
+    createCollaboratorEmployee,
+    createCollaboratorUser,
+    fetchCollaboratorCompanies,
+} from "@/service/collaborator-management.service";
 
 const SCHEDULE_TYPES = [
     { value: "TRADITIONAL_5X2", label: "Tradicional 5x2 (Seg-Sex)" },
@@ -130,18 +136,8 @@ const CriarManager = () => {
     const fetchCompanies = useCallback(async () => {
         setIsFetchingCompanies(true);
         try {
-            const response = await fetch(`${API_BASE_URL}companies`, {
-                credentials: "include",
-                headers: {  },
-            });
-
-            if (!response.ok) {
-                throw new Error("Falha ao buscar a lista de empresas.");
-            }
-            
-            const data = await response.json();
-            // CORREÇÃO: Mapeando 'id' (UUID) da empresa, e não o 'cnpj'.
-            setCompanies(data.companies.map((c: any) => ({ companyId: c.id, name: c.name })));
+            const companiesData = await fetchCollaboratorCompanies();
+            setCompanies(companiesData);
             
         } catch (error) {
             console.error("Erro ao buscar empresas:", error);
@@ -214,23 +210,16 @@ const selectedScheduleType = form.watch("scheduleType");
         try {
 
             // Chamada à API para verificação de CPF
-            const response = await fetch(`${API_BASE_URL}employee/check-cpf?cpf=${cpf}`, {
-                credentials: "include",
-                headers: {  },
-            });
+            const cpfExists = await checkCpfExists(cpf);
 
-            if (response.ok) {
-                // Se o status for 200/OK, o CPF existe (indisponível)
+            if (cpfExists) {
+                // Se existe, indisponível
                 toast({ title: "CPF indisponível", description: "Este CPF já está cadastrado no sistema.", variant: "destructive" });
                 setCpfAvailability('unavailable');
-            } else if (response.status === 404) {
-                // Se o status for 404, o CPF não existe (disponível)
+            } else {
+                // Se não existe, disponível
                 toast({ title: "CPF disponível!", description: "Você pode usar este CPF para o registro." });
                 setCpfAvailability('available');
-            } else {
-                // Outros erros
-                toast({ title: "Erro na verificação", description: "Ocorreu um erro ao verificar o CPF.", variant: "destructive" });
-                setCpfAvailability(null);
             }
         } catch (error) {
             console.error("Erro na comunicação com a API:", error);
@@ -272,20 +261,14 @@ const selectedScheduleType = form.watch("scheduleType");
 
         try {
 
-            const response = await fetch(`${API_BASE_URL}users/check-username?username=${username}`, {
-                credentials: "include",
-                headers: {  },
-            });
+            const userExists = await checkUsernameExists(username);
 
-            if (response.ok) {
+            if (userExists) {
                 toast({ title: "Nome de usuário indisponível", description: "Este nome de usuário já está em uso.", variant: "destructive" });
                 setUsernameAvailability('unavailable');
-            } else if (response.status === 404) {
+            } else {
                 toast({ title: "Nome de usuário disponível!", description: "Você pode usar este nome de usuário para o registro." });
                 setUsernameAvailability('available');
-            } else {
-                toast({ title: "Erro na verificação", description: "Ocorreu um erro ao verificar o nome de usuário.", variant: "destructive" });
-                setUsernameAvailability(null);
             }
         } catch (error) {
             console.error("Erro na comunicação com a API:", error);
@@ -345,20 +328,7 @@ const selectedScheduleType = form.watch("scheduleType");
             };
             
 
-            const employeeResponse = await fetch(`${API_BASE_URL}employee`, {
-                method: "POST",
-                credentials: "include",
-                headers: { "Content-Type": "application/json",  },
-                body: JSON.stringify(employeePayload),
-            });
-
-            if (!employeeResponse.ok) {
-                const errorData = await employeeResponse.json();
-                throw new Error(errorData.detail || errorData.message || "Falha ao criar o colaborador.");
-            }
-
-            const employeeData = await employeeResponse.json();
-            const employeeId = employeeData.employeeId;
+            const employeeId = await createCollaboratorEmployee(employeePayload);
 
             // SUCESSO DO PASSO 1: Salva o ID e avança o passo
             setSavedEmployeeId(employeeId);
@@ -425,17 +395,7 @@ const selectedScheduleType = form.watch("scheduleType");
                 employeeId: savedEmployeeId, // Usa o ID salvo do Passo 1
             };
 
-            const userResponse = await fetch(`${API_BASE_URL}users`, {
-                method: "POST",
-                credentials: "include",
-                headers: { "Content-Type": "application/json",  },
-                body: JSON.stringify(userPayload),
-            });
-
-            if (!userResponse.ok) {
-                const errorData = await userResponse.json();
-                throw new Error(errorData.detail || errorData.message || "Falha ao criar o usuário.");
-            }
+            await createCollaboratorUser(userPayload);
 
             // SUCESSO FINAL
             toast({
