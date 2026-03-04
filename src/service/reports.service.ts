@@ -33,3 +33,31 @@ export const updateTimeRecord = async (timeRecordId: string, payload: Record<str
 
   await parseApiResponse(response);
 };
+
+export const updateTimeRecordStatus = async (
+  employeeId: string,
+  timeRecordId: string,
+  statusRecord: string,
+): Promise<void> => {
+  const response = await apiFetch(`records/update/status/${employeeId}/${timeRecordId}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    credentials: 'include',
+    body: JSON.stringify({ statusRecord }),
+  });
+
+  await parseApiResponse(response);
+};
+
+export const toggleRecordActivation = async (
+  employeeId: string,
+  timeRecordId: string,
+): Promise<void> => {
+  const response = await apiFetch(`records/toggle-activate/${employeeId}/${timeRecordId}`, {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    credentials: 'include',
+  });
+
+  await parseApiResponse(response);
+};

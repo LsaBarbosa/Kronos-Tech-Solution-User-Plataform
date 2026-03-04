@@ -25,7 +25,11 @@ import { Input } from "@/components/ui/input";
 import { ArrowLeft, Building2, Save, MapPin, Loader2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
-import { API_BASE_URL, apiFetch } from "@/config/api";
+import {
+    checkCnpjAvailability,
+    createCompany,
+    geocodeAddressByPostalCode,
+} from "@/service/companies.service";
 
 // NOVO: Variável de ambiente para o HERE API Key
 const HERE_API_KEY = "4BOpnro1zHzBBh9olurKhD4aWIw9I-gcY6VRox9wSXU";
@@ -110,32 +114,7 @@ const CriarEmpresa = () => {
         form.setValue("location.longitude", undefined);
 
         try {
-            // 1. Busca Endereço completo pelo ViaCEP
-            const cepResponse = await apiFetch(`https://viacep.com.br/ws/${postalCode}/json/`, { credentials: "omit" });
-            const cepData = await cepResponse.json();
-
-            if (cepData.erro) {
-                throw new Error("CEP não encontrado ou inválido.");
-            }
-
-            // Monta o endereço completo
-            const fullAddress = `${cepData.logradouro}, ${number}, ${cepData.localidade}, ${cepData.uf}, Brasil`;
-
-            // 2. Geocodificação pelo HERE Maps API
-            const geocodeResponse = await apiFetch(
-                `https://geocode.search.hereapi.com/v1/geocode?q=${encodeURIComponent(fullAddress)}&apiKey=${HERE_API_KEY}&in=countryCode:BRA`,
-                { credentials: "omit" },
-            );
-
-            const geocodeData = await geocodeResponse.json();
-
-            if (!geocodeResponse.ok || geocodeData.items.length === 0) {
-                throw new Error(`Erro na API HERE: ${geocodeData.error || "Localização não encontrada."}`);
-            }
-            
-            const position = geocodeData.items[0].position;
-            const lat = position.lat;
-            const lon = position.lng;
+            const { latitude: lat, longitude: lon } = await geocodeAddressByPostalCode(postalCode, number, HERE_API_KEY);
 
             // 3. Atualiza os campos do formulário
             form.setValue("location.latitude", lat);
@@ -193,15 +172,13 @@ const CriarEmpresa = () => {
         try {
 
             // Chamada à API para verificação de CNPJ
-            const response = await apiFetch(`${API_BASE_URL}companies/check-cnpj?cnpj=${cnpj}`, {
-                credentials: "include",
-            });
+            const availability = await checkCnpjAvailability(cnpj);
 
-            if (response.ok) {
+            if (availability === 'unavailable') {
                 // Status 200/OK: CNPJ existe (indisponível)
                 toast({ title: "CNPJ indisponível", description: "Este CNPJ já está cadastrado no sistema.", variant: "destructive" });
                 setCnpjAvailability('unavailable');
-            } else if (response.status === 404) {
+            } else if (availability === 'available') {
                 // Status 404: CNPJ não existe (disponível)
                 toast({ title: "CNPJ disponível!", description: "Você pode usar este CNPJ para o registro." });
                 setCnpjAvailability('available');
@@ -264,32 +241,7 @@ const CriarEmpresa = () => {
             };
 
             // 3. Chamada da API para CRIAR A EMPRESA
-            const companyResponse = await apiFetch(`${API_BASE_URL}companies`, { 
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    
-                },
-                body: JSON.stringify(companyPayload),
-            });
-
-          
-        if (!companyResponse.ok) {
-            // Se houver erro (4xx ou 5xx), tenta ler o JSON para a mensagem de erro
-            const contentType = companyResponse.headers.get("content-type");
-            let errorMessage = "Erro ao criar empresa.";
-
-            if (contentType && contentType.includes("application/json")) {
-                const errorData = await companyResponse.json();
-                errorMessage = errorData.detail || errorData.title || errorMessage;
-            }
-            throw new Error(errorMessage);
-        }
-
-        // *****************************************************************
-        // CORREÇÃO: Sucesso com status 2xx (e corpo vazio). 
-        // Removemos a chamada a companyResponse.json().
-        // *****************************************************************
+            await createCompany(companyPayload);
 
         // 4. SUCESSO e REDIRECIONAMENTO para a próxima etapa
         toast({
