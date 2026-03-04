@@ -2,24 +2,30 @@ import { api } from "@/config/api";
 import { LoginResponse, RecoverPasswordPayload, ResetPasswordPayload } from "@/types/auth";
 import type { UserAccountData } from "@/types/user";
 
-const normalizeSession = (data: any): UserAccountData => ({
-  userId: data?.userId || data?.id || "",
-  username: data?.username || data?.fullName || "",
-  role: data?.role || "",
-  active: Boolean(data?.active ?? true),
-  employeeId: data?.employeeId || "",
-  companyId: data?.companyId,
-  claims: data?.claims,
+interface OwnProfileResponse {
+  userId: string;
+  username?: string;
+  fullName?: string;
+  role: string;
+  active?: boolean;
+  employeeId: string;
+  companyId?: string;
+  claims?: Record<string, unknown>;
+}
+
+const normalizeSession = (data: OwnProfileResponse): UserAccountData => ({
+  userId: data.userId,
+  username: data.username ?? data.fullName ?? "",
+  role: data.role,
+  active: data.active ?? true,
+  employeeId: data.employeeId,
+  companyId: data.companyId,
+  claims: data.claims,
 });
 
 export const fetchCurrentSession = async (): Promise<UserAccountData> => {
-  try {
-    const { data } = await api.get("auth/me");
-    return normalizeSession(data);
-  } catch {
-    const { data } = await api.get("users/own-profile");
-    return normalizeSession(data);
-  }
+  const { data } = await api.get<OwnProfileResponse>("users/own-profile");
+  return normalizeSession(data);
 };
 
 export const logoutSession = async (): Promise<void> => {

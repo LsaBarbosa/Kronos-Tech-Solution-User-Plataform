@@ -1,4 +1,5 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
+import { isAxiosError } from "axios";
 import { fetchCurrentSession, logoutSession } from "@/service/auth.Service";
 import type { UserAccountData } from "@/types/user";
 
@@ -30,8 +31,15 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
       const profile = await fetchCurrentSession();
       setSession(profile as UserAccountData);
       setStatus("authenticated");
-    } catch {
-      clearSession();
+    } catch (error) {
+      if (isAxiosError(error) && [401, 403].includes(error.response?.status ?? 0)) {
+        clearSession();
+        return;
+      }
+
+      console.error("Falha ao carregar sessão autenticada.", error);
+      setSession(null);
+      setStatus("unauthenticated");
     }
   }, [clearSession]);
 
