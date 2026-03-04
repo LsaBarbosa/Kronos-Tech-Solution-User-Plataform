@@ -41,6 +41,28 @@ const FaceLoginModal = ({
 
   const isCheckinMode = mode === "checkin";
 
+  const flowChecklistByMode = {
+    login: {
+      successToast: "Login realizado com sucesso!",
+      defaultError: "Rosto não reconhecido ou não cadastrado.",
+      submitLoadingLabel: "Validando...",
+      submitButtonLabel: "Confirmar",
+      redirectsAfterSuccess: true,
+    },
+    checkin: {
+      successToast: "Ponto registrado com sucesso!",
+      partialFailureToast: "Falha no registro do ponto após autenticação. Tente novamente.",
+      retrySuccessToast: "Ponto registrado com sucesso na nova tentativa!",
+      retryFailureToast: "Falha ao registrar o ponto na nova tentativa.",
+      defaultError: "Não foi possível autenticar para registrar o ponto.",
+      submitLoadingLabel: "Registrando...",
+      submitButtonLabel: "Confirmar registro",
+      redirectsAfterSuccess: false,
+    },
+  } as const;
+
+  const activeChecklist = isCheckinMode ? flowChecklistByMode.checkin : flowChecklistByMode.login;
+
   const stopWebcam = useCallback(() => {
     const videoElement = videoRef.current;
     const stream = videoElement?.srcObject as MediaStream;
@@ -183,9 +205,11 @@ const FaceLoginModal = ({
         }
 
         await bootstrapSession();
-        toast.success("Login realizado com sucesso!");
+        toast.success(activeChecklist.successToast);
         onOpenChange(false);
-        navigate("/dashboard", { replace: true });
+        if (activeChecklist.redirectsAfterSuccess) {
+          navigate("/dashboard", { replace: true });
+        }
         return;
       }
 
@@ -198,8 +222,7 @@ const FaceLoginModal = ({
 
       if (flowResult.status === "partial_checkin_failure") {
         setRetryContext(flowResult.retryContext);
-        const partialFailureMessage =
-          flowResult.message || "Falha no registro do ponto após autenticação. Tente novamente.";
+        const partialFailureMessage = flowResult.message || flowChecklistByMode.checkin.partialFailureToast;
         setFlowErrorMessage(partialFailureMessage);
         toast.error(partialFailureMessage);
         return;
@@ -209,11 +232,11 @@ const FaceLoginModal = ({
         throw new Error(flowResult.message || "Falha na autenticação facial.");
       }
 
-      toast.success("Ponto registrado com sucesso!");
+      toast.success(flowChecklistByMode.checkin.successToast);
       onOpenChange(false);
     } catch (error: unknown) {
       console.error(error);
-      const message = error instanceof Error ? error.message : "Rosto não reconhecido ou não cadastrado.";
+      const message = error instanceof Error ? error.message : activeChecklist.defaultError;
       setFlowErrorMessage(message);
       toast.error(message);
       setImageSrc(null);
@@ -229,18 +252,26 @@ const FaceLoginModal = ({
 
     setIsSubmitting(true);
     setFlowErrorMessage(null);
-    const result = await retryFaceCheckinFlow(retryContext);
-    setIsSubmitting(false);
+    try {
+      const result = await retryFaceCheckinFlow(retryContext);
 
-    if (result.status === "success") {
-      toast.success("Ponto registrado com sucesso na nova tentativa!");
-      onOpenChange(false);
-      return;
+      if (result.status === "success") {
+        toast.success(flowChecklistByMode.checkin.retrySuccessToast);
+        onOpenChange(false);
+        return;
+      }
+
+      const retryFailureMessage = result.message || flowChecklistByMode.checkin.retryFailureToast;
+      setFlowErrorMessage(retryFailureMessage);
+      toast.error(retryFailureMessage);
+    } catch (error: unknown) {
+      console.error(error);
+      const message = error instanceof Error ? error.message : flowChecklistByMode.checkin.retryFailureToast;
+      setFlowErrorMessage(message);
+      toast.error(message);
+    } finally {
+      setIsSubmitting(false);
     }
-
-    const retryFailureMessage = result.message || "Falha ao registrar o ponto na nova tentativa.";
-    setFlowErrorMessage(retryFailureMessage);
-    toast.error(retryFailureMessage);
   };
 
   const handleOpenChange = (open: boolean) => {
@@ -327,12 +358,12 @@ const FaceLoginModal = ({
                       {isSubmitting ? (
                         <>
                           <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                          {isCheckinMode ? "Registrando..." : "Validando..."}
+                          {activeChecklist.submitLoadingLabel}
                         </>
                       ) : (
                         <>
                           <Check className="h-4 w-4 mr-2" />
-                          {isCheckinMode ? "Confirmar registro" : "Confirmar"}
+                          {activeChecklist.submitButtonLabel}
                         </>
                       )}
                     </Button>
