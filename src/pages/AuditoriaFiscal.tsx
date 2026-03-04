@@ -40,6 +40,7 @@ import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Label } from "@/components/ui/label";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { useToast } from "@/components/ui/use-toast";
+import { useSessionUser } from "@/hooks/useSessionUser";
 
 // Services
 import { FiscalService } from "@/service/fiscal.service";
@@ -53,14 +54,6 @@ interface EmployeeOption {
   fullName: string;
 }
 
-const decodeToken = (token: string) => {
-  try {
-    const base64Url = token.split('.')[1];
-    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-    const payload = decodeURIComponent(atob(base64).split('').map(c => '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2)).join(''));
-    return JSON.parse(payload);
-  } catch (error) { return null; }
-};
 
 export default function AuditoriaFiscal() {
   const [date, setDate] = useState<Date | undefined>(new Date());
@@ -77,18 +70,15 @@ export default function AuditoriaFiscal() {
   const [selectedEmployeeId, setSelectedEmployeeId] = useState<string>("ME");
 
   const { toast } = useToast();
+  const { sessionUser } = useSessionUser();
 
   useEffect(() => {
-    const token = localStorage.getItem("token");
-    if (token) {
-      const decoded = decodeToken(token);
-      const role = decoded?.role || "";
-      if (role === "MANAGER" || role === "ADMIN") {
-        setIsManager(true);
-        loadEmployees();
-      }
+    const role = sessionUser?.role || "";
+    if (role === "MANAGER" || role === "ADMIN") {
+      setIsManager(true);
+      loadEmployees();
     }
-  }, []);
+  }, [sessionUser]);
 
   const loadEmployees = async () => {
     try {

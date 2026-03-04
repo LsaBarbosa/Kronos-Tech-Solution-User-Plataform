@@ -41,6 +41,9 @@ interface DownloadFileOptions {
 }
 
 export const downloadFile = async (url: string, options: DownloadFileOptions = {}): Promise<void> => {
+  const headers = new Headers(options.headers);
+
+
   const response = await fetch(url, {
     method: options.method || "GET",
     headers: options.headers,

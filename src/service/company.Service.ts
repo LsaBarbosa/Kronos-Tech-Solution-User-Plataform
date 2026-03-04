@@ -32,7 +32,7 @@ export const getGeolocationFromCEP = async (cep: string, number: string): Promis
 
   try {
     const cleanPostalCode = cleanCEP(cep);
-    const cepResponse = await fetch(`https://viacep.com.br/ws/${cleanPostalCode}/json/`);
+    const cepResponse = await fetch(`https://viacep.com.br/ws/${cleanPostalCode}/json/`, { credentials: 'omit' });
     const cepData = await cepResponse.json();
 
     if (cepData.erro) {
@@ -41,7 +41,8 @@ export const getGeolocationFromCEP = async (cep: string, number: string): Promis
 
     const fullAddress = `${cepData.logradouro}, ${number}, ${cepData.localidade}, ${cepData.uf}, Brasil`;
     const geocodeResponse = await fetch(
-      `https://geocode.search.hereapi.com/v1/geocode?q=${encodeURIComponent(fullAddress)}&apiKey=${HERE_API_KEY}&in=countryCode:BRA`
+      `https://geocode.search.hereapi.com/v1/geocode?q=${encodeURIComponent(fullAddress)}&apiKey=${HERE_API_KEY}&in=countryCode:BRA`,
+      { credentials: 'omit' }
     );
     const geocodeData = await geocodeResponse.json();
 
@@ -65,5 +66,3 @@ export const toggleCompanyStatus = async (cnpj: string): Promise<void> => {
 };
 
 export { formatCNPJ };
-
-export const getAuthToken = (): string => localStorage.getItem('token') || '';

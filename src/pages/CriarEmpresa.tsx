@@ -111,7 +111,7 @@ const CriarEmpresa = () => {
 
         try {
             // 1. Busca Endereço completo pelo ViaCEP
-            const cepResponse = await apiFetch(`https://viacep.com.br/ws/${postalCode}/json/`);
+            const cepResponse = await apiFetch(`https://viacep.com.br/ws/${postalCode}/json/`, { credentials: "omit" });
             const cepData = await cepResponse.json();
 
             if (cepData.erro) {
@@ -124,6 +124,7 @@ const CriarEmpresa = () => {
             // 2. Geocodificação pelo HERE Maps API
             const geocodeResponse = await apiFetch(
                 `https://geocode.search.hereapi.com/v1/geocode?q=${encodeURIComponent(fullAddress)}&apiKey=${HERE_API_KEY}&in=countryCode:BRA`,
+                { credentials: "omit" },
             );
 
             const geocodeData = await geocodeResponse.json();
@@ -190,12 +191,10 @@ const CriarEmpresa = () => {
         setCnpjAvailability('checking');
 
         try {
-            const token = localStorage.getItem("token");
-            if (!token) throw new Error("Token de autenticação não encontrado.");
 
             // Chamada à API para verificação de CNPJ
             const response = await apiFetch(`${API_BASE_URL}companies/check-cnpj?cnpj=${cnpj}`, {
-                headers: { "Authorization": `Bearer ${token}` },
+                credentials: "include",
             });
 
             if (response.ok) {
@@ -252,17 +251,6 @@ const CriarEmpresa = () => {
         // ---------------------------------
 
         try {
-            const token = localStorage.getItem("token");
-            if (!token) {
-                toast({
-                    title: "Sessão Expirada",
-                    description: "O token de autenticação não foi encontrado. Faça login novamente.",
-                    variant: "destructive",
-                });
-                navigate("/login");
-                return;
-            }
-
             // 2. Monta o Payload APENAS com os dados da Empresa
             const companyPayload = {
                 name: values.name,
@@ -280,7 +268,7 @@ const CriarEmpresa = () => {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
-                    Authorization: `Bearer ${token}`,
+                    
                 },
                 body: JSON.stringify(companyPayload),
             });

@@ -31,17 +31,9 @@ interface Document {
 }
 
 // Auxiliary function to get authentication headers
-const getAuthHeaders = () => {
-  const token = localStorage.getItem('token');
-  if (!token) {
-    toast.error("Você não está autenticado. Redirecionando para o login...");
-    return {};
-  }
-  return {
-    'Authorization': `Bearer ${token}`,
-    'Content-Type': 'application/json',
-  };
-};
+const getAuthHeaders = () => ({
+  'Content-Type': 'application/json',
+});
 
 
 // --- NOVA FUNÇÃO PARA TRATAR ERROS DE API ---
