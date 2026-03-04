@@ -36,17 +36,19 @@ import RequestTimeOff, { RequestManualRegistration } from "./pages/RequestManual
 import ManualRegisterApprovals from "./pages/ManualRegisterApprovals";
 import EspelhoPonto from "./pages/EspelhoPonto";
 import AuditoriaFiscal from "./pages/AuditoriaFiscal";
+import { AuthProvider } from "./context/AuthContext";
   
 const queryClient = new QueryClient();
 
 const App = () => (
   <QueryClientProvider client={queryClient}>
-    <ThemeProvider>
-      <TooltipProvider>
-        <Toaster />
-        <Sonner />
-        <BrowserRouter>
-          <Routes>
+    <AuthProvider>
+      <ThemeProvider>
+        <TooltipProvider>
+          <Toaster />
+          <Sonner />
+          <BrowserRouter>
+            <Routes>
 
             <Route path="/" element={<TokenRedirect />} />
             <Route path="/login" element={<Login />} />
@@ -85,10 +87,11 @@ const App = () => (
             </Route>
             {/* Rota de Not Found (pública) */}
             <Route path="*" element={<NotFound />} />
-          </Routes>
-        </BrowserRouter>
-      </TooltipProvider>
-    </ThemeProvider>
+            </Routes>
+          </BrowserRouter>
+        </TooltipProvider>
+      </ThemeProvider>
+    </AuthProvider>
   </QueryClientProvider>
 );
 export default App;

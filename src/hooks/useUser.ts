@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "@/context/AuthContext";
 import { UserAccountData, UserData, ChangePasswordData, cleanNumberString } from "@/types/user"; // Assumindo cleanNumberString está em types/user
 import { 
     fetchAccountData, 
@@ -45,6 +46,7 @@ interface UseUserReturn {
 export const useUser = (): UseUserReturn => {
   const { toast } = useToast();
   const navigate = useNavigate();
+  const { clearSession } = useAuth();
 
   // --- ESTADOS PRINCIPAIS ---
   const [userAccountData, setUserAccountData] = useState<UserAccountData | null>(null);
@@ -67,6 +69,17 @@ export const useUser = (): UseUserReturn => {
     confirmPassword: "",
     currentPassword: "",
   });
+
+  const isSessionError = useCallback((error: unknown) => {
+    if (!(error instanceof Error)) return false;
+    return error.message.includes("Status 401") || error.message.includes("Status 403");
+  }, []);
+
+  const handleSessionFailure = useCallback(() => {
+    clearSession();
+    navigate("/login");
+  }, [clearSession, navigate]);
+
   // --- FUNÇÕES DE CARREGAMENTO ---
 
   const loadUserData = useCallback(async (accountData: UserAccountData) => {
@@ -108,11 +121,14 @@ export const useUser = (): UseUserReturn => {
         description: `Sessão expirada ou falha ao buscar dados. Redirecionando para login.`,
         variant: "destructive",
       });
-      // Em caso de falha crítica (ex: token inválido), força o logout
-      localStorage.removeItem("token");
-      navigate("/login");
+      if (isSessionError(error)) {
+        handleSessionFailure();
+        return;
+      }
+
+      handleSessionFailure();
     }
-  }, [loadUserData, toast, navigate]);
+  }, [loadUserData, toast, isSessionError, handleSessionFailure]);
 
   // EFEITO: Carrega dados na montagem
   useEffect(() => {
@@ -187,6 +203,11 @@ const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
       
       toast({ title: "Sucesso", description: "E-mail atualizado.", variant: "default" });
     } catch (error: any) {
+      if (isSessionError(error)) {
+        handleSessionFailure();
+        return;
+      }
+
       toast({ 
           title: "Erro ao salvar e-mail", 
           description: error.message || "Tente novamente mais tarde.", 
@@ -195,7 +216,7 @@ const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     } finally {
       setIsLoading(false);
     }
-  }, [newEmail, userAccountData, toast]);
+  }, [newEmail, userAccountData, toast, isSessionError, handleSessionFailure]);
 
   const handleSavePhone = useCallback(async () => {
     if (!newPhone.trim() || !userAccountData) {
@@ -219,6 +240,11 @@ const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
       
       toast({ title: "Sucesso", description: "Telefone atualizado.", variant: "default" });
     } catch (error: any) {
+      if (isSessionError(error)) {
+        handleSessionFailure();
+        return;
+      }
+
       toast({ 
           title: "Erro ao salvar telefone", 
           description: error.message || "Tente novamente mais tarde.", 
@@ -227,7 +253,7 @@ const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     } finally {
       setIsLoading(false);
     }
-  }, [newPhone, userAccountData, toast]);
+  }, [newPhone, userAccountData, toast, isSessionError, handleSessionFailure]);
 
 
  const handleChangePassword = useCallback(async () => {
@@ -250,11 +276,16 @@ const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
       setShowPasswordFields(false);
       toast({ title: "Sucesso", description: "Senha alterada com sucesso.", variant: "default" });
     } catch (error: any) {
+      if (isSessionError(error)) {
+        handleSessionFailure();
+        return;
+      }
+
       toast({ title: "Erro ao alterar senha", description: error.message, variant: "destructive" });
     } finally {
       setIsSavingPassword(false); // <--- FIM DO LOADING
     }
-  }, [passwordData, toast]);
+  }, [passwordData, toast, isSessionError, handleSessionFailure]);
 
   return {
     userAccountData,

@@ -9,6 +9,7 @@ import { toast } from "sonner"; // Ajustado import para sonner padrão se necess
 import { API_BASE_URL } from "@/config/api";
 import FaceLoginModal from "@/components/FaceLoginModal"; // Import do novo modal
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "@/context/AuthContext";
 
 const API_URL = `${API_BASE_URL}auth/login`;
 
@@ -20,6 +21,7 @@ const LoginForm = () => {
   const [isFaceLoginOpen, setIsFaceLoginOpen] = useState(false); // Estado do modal facial
 
   const navigate = useNavigate(); 
+  const { checkSession } = useAuth();
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -31,6 +33,7 @@ const LoginForm = () => {
         headers: {
           "Content-Type": "application/json",
         },
+        credentials: "include",
         body: JSON.stringify({ username, password }),
       });
 
@@ -41,14 +44,17 @@ const LoginForm = () => {
 
       const data = await response.json();
 
-      localStorage.setItem("token", data.token);
+      if (data?.token) {
+        localStorage.setItem("token", data.token);
+      }
+
+      await checkSession();
 
       toast.success("Login realizado com sucesso!");
 
       // Pequeno delay para o usuário ver o feedback
       setTimeout(() => {
-        // Redirecionamento com refresh para garantir limpeza de memória/cache
-        window.location.href = "/dashboard";
+        navigate("/dashboard", { replace: true });
       }, 800);
 
     } catch (error) {
