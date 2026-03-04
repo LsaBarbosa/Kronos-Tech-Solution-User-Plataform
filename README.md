@@ -71,3 +71,16 @@ Yes, you can!
 To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
 
 Read more here: [Setting up a custom domain](https://docs.lovable.dev/tips-tricks/custom-domain#step-by-step-guide)
+
+
+## Fluxo de token de redefinição de senha (`TokenRedirect`)
+
+- A query string `?token=` processada em `TokenRedirect` é **exclusiva do fluxo de recuperação/redefinição de senha**.
+- Esse valor deve ser tratado como `passwordResetToken` (não como token de login/sessão).
+- O uso permitido desse token no frontend é apenas:
+  - receber na rota `/` (via `TokenRedirect`), e
+  - redirecionar para `/resetar-senha?token=...`, para envio no payload de redefinição.
+- Esse token **não deve** ser:
+  - persistido em `localStorage`/`sessionStorage`;
+  - reaproveitado em headers `Authorization`;
+  - reutilizado por utilitários de autenticação/sessão.

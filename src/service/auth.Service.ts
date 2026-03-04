@@ -6,7 +6,11 @@ export const recoverPasswordRequest = async (payload: RecoverPasswordPayload): P
 };
 
 export const resetPassword = async (payload: ResetPasswordPayload): Promise<void> => {
-  await api.post('/auth/reset-password', payload);
+  await api.post('/auth/reset-password', {
+    token: payload.passwordResetToken,
+    newPassword: payload.newPassword,
+    confirmPassword: payload.confirmPassword,
+  });
 };
 
 /**

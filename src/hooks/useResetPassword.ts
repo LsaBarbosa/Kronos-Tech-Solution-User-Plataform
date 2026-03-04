@@ -11,7 +11,7 @@ import { resetPassword } from "@/service/auth.Service";
 interface UseResetPasswordReturn {
     form: UseFormReturn<ResetPasswordFormType>;
     isSubmitting: boolean;
-    token: string | null;
+    passwordResetToken: string | null;
     isSuccess: boolean;
     onSubmit: (data: ResetPasswordFormType) => Promise<void>;
 }
@@ -22,7 +22,7 @@ export const useResetPassword = (): UseResetPasswordReturn => {
     const { toast } = useToast();
     
     // Extrai o token da URL
-    const token = searchParams.get('token');
+    const passwordResetToken = searchParams.get('token');
 
     const form = useForm<ResetPasswordFormType>({
         resolver: zodResolver(resetPasswordSchema),
@@ -37,7 +37,7 @@ export const useResetPassword = (): UseResetPasswordReturn => {
 
     // Efeito para checar o token e redirecionar se inválido
     useEffect(() => {
-        if (!token) {
+        if (!passwordResetToken) {
             toast({ 
                 title: "Erro de Token", 
                 description: "Token de redefinição não encontrado na URL. Retorne à página de login.", 
@@ -45,18 +45,18 @@ export const useResetPassword = (): UseResetPasswordReturn => {
             });
             navigate("/login");
         }
-    }, [token, navigate, toast]);
+    }, [passwordResetToken, navigate, toast]);
 
     const onSubmit = useCallback(async (data: ResetPasswordFormType) => {
-        if (!token) {
-            toast({ title: "Erro", description: "Token não disponível.", variant: "destructive" });
+        if (!passwordResetToken) {
+            toast({ title: "Erro", description: "Token de redefinição não disponível.", variant: "destructive" });
             return;
         }
 
         setIsSubmitting(true);
         try {
             const payload: ResetPasswordPayload = {
-                token: token,
+                passwordResetToken,
                 newPassword: data.newPassword,
                 confirmPassword: data.confirmPassword,
             };
@@ -82,12 +82,12 @@ export const useResetPassword = (): UseResetPasswordReturn => {
         } finally {
             setIsSubmitting(false);
         }
-    }, [token, toast, navigate]);
+    }, [passwordResetToken, toast, navigate]);
 
     return {
         form,
         isSubmitting,
-        token,
+        passwordResetToken,
         isSuccess,
         onSubmit,
     };

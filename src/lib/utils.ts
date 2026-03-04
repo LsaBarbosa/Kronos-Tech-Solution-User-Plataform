@@ -5,9 +5,13 @@ export function cn(...inputs: ClassValue[]) {
   return twMerge(clsx(inputs))
 }
 
-export const decodeToken = (token: string) => {
+/**
+ * Decodifica APENAS token JWT de autenticação/sessão.
+ * Não usar com token de redefinição de senha (`passwordResetToken`).
+ */
+export const decodeToken = (jwtToken: string) => {
   try {
-    const base64Url = token.split('.')[1];
+    const base64Url = jwtToken.split('.')[1];
     const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
     const payload = decodeURIComponent(atob(base64).split('').map(function(c) {
       return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
