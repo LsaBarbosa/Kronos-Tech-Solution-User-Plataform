@@ -192,8 +192,8 @@ const FaceLoginModal = ({
           toast.error(flowResult.message || "Falha no registro do ponto após autenticação. Tente novamente.");
           return;
         }
-
-        throw new Error(flowResult.message || "Falha na autenticação facial.");
+        
+          throw new Error(flowResult.message || "Falha na autenticação facial.");
       }
 
       toast.success("Ponto registrado com sucesso!");
@@ -335,5 +335,4 @@ const FaceLoginModal = ({
     </Dialog>
   );
 };
-
 export default FaceLoginModal;
