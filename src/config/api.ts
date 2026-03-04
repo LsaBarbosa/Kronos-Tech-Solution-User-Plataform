@@ -33,16 +33,35 @@ export const api = axios.create({
   },
 });
 
-let hasUnauthorizedRedirect = false;
+const UNAUTHORIZED_REDIRECT_COOLDOWN_MS = 1500;
+let lastUnauthorizedRedirect = {
+  pathname: '',
+  timestamp: 0,
+};
 
 export const handleUnauthorized = (): void => {
   queryClient.clear();
 
-  if (hasUnauthorizedRedirect || window.location.pathname === '/login') {
+  const currentPathname = window.location.pathname;
+
+  if (currentPathname === '/login') {
     return;
   }
 
-  hasUnauthorizedRedirect = true;
+  const now = Date.now();
+  const isDuplicateRedirect =
+    lastUnauthorizedRedirect.pathname === currentPathname
+    && now - lastUnauthorizedRedirect.timestamp < UNAUTHORIZED_REDIRECT_COOLDOWN_MS;
+
+  if (isDuplicateRedirect) {
+    return;
+  }
+
+  lastUnauthorizedRedirect = {
+    pathname: currentPathname,
+    timestamp: now,
+  };
+
   window.location.assign('/login');
 };
 
