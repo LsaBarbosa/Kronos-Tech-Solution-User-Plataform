@@ -1,5 +1,5 @@
 import axios, { AxiosError } from 'axios';
-import { PUBLIC_ROUTES } from './routes';
+import { LOGIN_ROUTE } from './routes';
 
 export const API_BASE_URL = import.meta.env.VITE_API_URL;
 
@@ -10,8 +10,8 @@ const redirectToTerms = (redirectBaseUrl: string) => {
 };
 
 const redirectToLogin = () => {
-  if (window.location.pathname !== PUBLIC_ROUTES.LOGIN) {
-    window.location.href = PUBLIC_ROUTES.LOGIN;
+  if (window.location.pathname !== LOGIN_ROUTE) {
+    window.location.href = LOGIN_ROUTE;
   }
 };
 

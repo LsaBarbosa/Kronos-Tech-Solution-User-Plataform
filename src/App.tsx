@@ -7,7 +7,6 @@ import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { ThemeProvider } from "@/hooks/useTheme";
 import Index from "./pages/Index";
 import Dashboard from "./pages/Dashboard";
-import Login from "./pages/Login";
 import NotFound from "./pages/NotFound";
 import Empresa from "./pages/Empresa";
 import CriarEmpresa from "./pages/CriarEmpresa";
@@ -52,9 +51,9 @@ const App = () => (
             <Routes>
 
             <Route path="/" element={<TokenRedirect />} />
-            <Route path={PUBLIC_ROUTES.LOGIN} element={<Login />} />
+            <Route path={PUBLIC_ROUTES.LOGIN} element={<TokenRedirect />} />
             <Route path="/senha-primeiro-acesso" element={<EsqueciSenha />} />
-            <Route path="/resetar-senha" element={<ResetPassword />} />
+            <Route path={PUBLIC_ROUTES.RESET_PASSWORD} element={<ResetPassword />} />
 
             {/* ======================================= */}
             {/* GRUPO DE ROTAS PROTEGIDAS (REQUEREM LOGIN) */}
