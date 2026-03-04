@@ -23,7 +23,7 @@ import {
     getTranslatedStatus,
     formatDateWithDayOfWeek,
 } from "@/utils/report-utils";
-import { API_BASE_URL } from "@/config/api";
+import { API_BASE_URL, apiFetch } from "@/config/api";
 
 // Sub-componentes
 import { ResultadosRelatorioDetalhado } from "@/components/ResultadosRelatorioDetalhado";
@@ -175,7 +175,7 @@ const RelatorioDetalhado = () => {
             const activeStatus = employeeActive === "active";
             const url = employeeActive ? `${API_BASE_URL}employee?active=${activeStatus}` : `${API_BASE_URL}employee`;
 
-            const response = await fetch(url, {
+            const response = await apiFetch(url, {
                 method: "GET",
                 headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
             });
@@ -195,7 +195,7 @@ const RelatorioDetalhado = () => {
             const token = localStorage.getItem("token");
             if (!token) throw new Error("Token de autenticação não encontrado.");
 
-            const response = await fetch(`${API_BASE_URL}users/search`, {
+            const response = await apiFetch(`${API_BASE_URL}users/search`, {
                 method: "GET",
                 headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
             });
@@ -241,7 +241,7 @@ const RelatorioDetalhado = () => {
             const apiUrl = new URL(`${API_BASE_URL}records/report`, window.location.origin);
             if (selectedEmployee) apiUrl.searchParams.append("employeeId", selectedEmployee);
 
-            const response = await fetch(apiUrl.toString(), {
+            const response = await apiFetch(apiUrl.toString(), {
                 method: "POST",
                 headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
                 body: JSON.stringify(requestBody),
@@ -567,7 +567,7 @@ const RelatorioDetalhado = () => {
             };
 
             const endpoint = `${API_BASE_URL}records/update/time-record/${selectedRecord.timeRecordId}`;
-            const response = await fetch(endpoint, {
+            const response = await apiFetch(endpoint, {
                 method: "PUT",
                 headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
                 body: JSON.stringify(requestBody),

@@ -25,7 +25,7 @@ import { Input } from "@/components/ui/input";
 import { ArrowLeft, Building2, Save, MapPin, Loader2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
-import { API_BASE_URL } from "@/config/api";
+import { API_BASE_URL, apiFetch } from "@/config/api";
 
 // NOVO: Variável de ambiente para o HERE API Key
 const HERE_API_KEY = "4BOpnro1zHzBBh9olurKhD4aWIw9I-gcY6VRox9wSXU";
@@ -111,7 +111,7 @@ const CriarEmpresa = () => {
 
         try {
             // 1. Busca Endereço completo pelo ViaCEP
-            const cepResponse = await fetch(`https://viacep.com.br/ws/${postalCode}/json/`);
+            const cepResponse = await apiFetch(`https://viacep.com.br/ws/${postalCode}/json/`);
             const cepData = await cepResponse.json();
 
             if (cepData.erro) {
@@ -122,7 +122,7 @@ const CriarEmpresa = () => {
             const fullAddress = `${cepData.logradouro}, ${number}, ${cepData.localidade}, ${cepData.uf}, Brasil`;
 
             // 2. Geocodificação pelo HERE Maps API
-            const geocodeResponse = await fetch(
+            const geocodeResponse = await apiFetch(
                 `https://geocode.search.hereapi.com/v1/geocode?q=${encodeURIComponent(fullAddress)}&apiKey=${HERE_API_KEY}&in=countryCode:BRA`,
             );
 
@@ -194,7 +194,7 @@ const CriarEmpresa = () => {
             if (!token) throw new Error("Token de autenticação não encontrado.");
 
             // Chamada à API para verificação de CNPJ
-            const response = await fetch(`${API_BASE_URL}companies/check-cnpj?cnpj=${cnpj}`, {
+            const response = await apiFetch(`${API_BASE_URL}companies/check-cnpj?cnpj=${cnpj}`, {
                 headers: { "Authorization": `Bearer ${token}` },
             });
 
@@ -276,7 +276,7 @@ const CriarEmpresa = () => {
             };
 
             // 3. Chamada da API para CRIAR A EMPRESA
-            const companyResponse = await fetch(`${API_BASE_URL}companies`, { 
+            const companyResponse = await apiFetch(`${API_BASE_URL}companies`, { 
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",

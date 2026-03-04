@@ -123,7 +123,7 @@ const FaceLoginModal = ({ isOpen, onOpenChange }: FaceLoginModalProps) => {
         const base64Data = imageSrc.split(',')[1]; 
 
         try {
-            const response = await fetch(`${API_BASE_URL}auth/login-face`, {
+            const response = await apiFetch(`${API_BASE_URL}auth/login-face`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
