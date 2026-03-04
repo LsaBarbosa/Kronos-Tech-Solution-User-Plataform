@@ -127,11 +127,7 @@ const FaceLoginModal = ({ isOpen, onOpenChange }: FaceLoginModalProps) => {
         const shouldLogoutAfterFlow = String(import.meta.env.VITE_FACE_CHECKIN_SHORT_SESSION).toLowerCase() === "true";
 
         try {
-            const data = await registerPointWithFace(base64Data, { shouldLogoutAfterFlow });
-
-            if (data.token) {
-                localStorage.setItem("token", data.token);
-            }
+            await registerPointWithFace(base64Data, { shouldLogoutAfterFlow });
             setPartialFailureMessage(null);
             
             toast.success("Ponto registrado com sucesso! Acessando plataforma...", {
