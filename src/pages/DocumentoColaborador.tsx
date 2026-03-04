@@ -146,7 +146,10 @@ export default function EnviarDocumentos() {
                     return;
                 }
 
-                const response = await fetch(`${API_BASE_URL}employee?active=${activeEmployeeFilter}`, { headers });
+                const response = await fetch(`${API_BASE_URL}employee?active=${activeEmployeeFilter}`, {
+                  credentials: "include",
+                  headers,
+                });
                 if (!response.ok) {
                     const errorData = await response.json();
                     throw new Error(errorData.detail ||"Erro ao buscar funcionários.");
@@ -273,6 +276,7 @@ export default function EnviarDocumentos() {
 
       const response = await fetch(`${API_BASE_URL}documents?${searchParams.toString()}`, {
         method: "POST",
+        credentials: "include",
         headers: headers,
         body: formData,
       });

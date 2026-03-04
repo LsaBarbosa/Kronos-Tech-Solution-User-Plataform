@@ -89,7 +89,10 @@ const Documentos = () => {
           return;
         }
 
-        const response = await fetch(`${API_BASE_URL}employee?active=${activeEmployeeFilter}`, { headers });
+        const response = await fetch(`${API_BASE_URL}employee?active=${activeEmployeeFilter}`, {
+          credentials: "include",
+          headers,
+        });
         if (!response.ok) {
           await handleApiError(response);
           return;
@@ -131,6 +134,7 @@ const Documentos = () => {
       });
 
       const response = await fetch(`${API_BASE_URL}documents?${searchParams.toString()}`, {
+        credentials: "include",
         headers: headers,
       });
 
@@ -184,6 +188,7 @@ const Documentos = () => {
 
         const response = await fetch(url, {
             method: "DELETE",
+            credentials: "include",
             headers: headers,
         });
 

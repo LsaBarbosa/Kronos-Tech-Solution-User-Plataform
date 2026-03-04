@@ -131,6 +131,7 @@ const CriarManager = () => {
         setIsFetchingCompanies(true);
         try {
             const response = await fetch(`${API_BASE_URL}companies`, {
+                credentials: "include",
                 headers: {  },
             });
 
@@ -214,6 +215,7 @@ const selectedScheduleType = form.watch("scheduleType");
 
             // Chamada à API para verificação de CPF
             const response = await fetch(`${API_BASE_URL}employee/check-cpf?cpf=${cpf}`, {
+                credentials: "include",
                 headers: {  },
             });
 
@@ -271,6 +273,7 @@ const selectedScheduleType = form.watch("scheduleType");
         try {
 
             const response = await fetch(`${API_BASE_URL}users/check-username?username=${username}`, {
+                credentials: "include",
                 headers: {  },
             });
 
@@ -344,6 +347,7 @@ const selectedScheduleType = form.watch("scheduleType");
 
             const employeeResponse = await fetch(`${API_BASE_URL}employee`, {
                 method: "POST",
+                credentials: "include",
                 headers: { "Content-Type": "application/json",  },
                 body: JSON.stringify(employeePayload),
             });
@@ -423,6 +427,7 @@ const selectedScheduleType = form.watch("scheduleType");
 
             const userResponse = await fetch(`${API_BASE_URL}users`, {
                 method: "POST",
+                credentials: "include",
                 headers: { "Content-Type": "application/json",  },
                 body: JSON.stringify(userPayload),
             });

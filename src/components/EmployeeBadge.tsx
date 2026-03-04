@@ -72,6 +72,7 @@ const EmployeeBadge = ({ userData, isLoading, onUpdateSuccess }: EmployeeBadgePr
       
       const response = await fetch(`${API_BASE_URL}employee/update-own-profile`, {
         method: "PATCH",
+        credentials: "include",
         headers: {
           "Content-Type": "application/json",
         },
