@@ -39,7 +39,6 @@ api.interceptors.response.use(
     const data = error.response?.data as ApiErrorPayload | undefined;
 
     if (status === HTTP_STATUS.UNAUTHORIZED) {
-      localStorage.removeItem('token');
       localStorage.setItem('session_invalid', 'true');
 
       if (window.location.pathname !== '/login') {
@@ -91,7 +90,6 @@ export const parseApiResponse = async <T>(response: Response): Promise<T> => {
 
   if (!response.ok) {
     if (response.status === HTTP_STATUS.UNAUTHORIZED) {
-      localStorage.removeItem('token');
       localStorage.setItem('session_invalid', 'true');
 
       if (window.location.pathname !== '/login') {
