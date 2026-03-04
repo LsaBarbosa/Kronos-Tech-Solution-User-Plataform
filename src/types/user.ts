@@ -1,21 +1,23 @@
-// src/types/user.ts
+/**
+ * Papéis suportados pela aplicação.
+ */
+export type UserRole = 'PARTNER' | 'MANAGER' | 'ADMIN' | 'CTO' | 'USER' | string;
 
 /**
- * Interface para os dados básicos da conta do usuário (geralmente do token ou endpoint de conta).
+ * Interface para os dados básicos da conta do usuário (sessão).
  */
 export interface UserAccountData {
   userId: string;
   username: string;
-  role: string;
+  role: UserRole;
   active: boolean;
   employeeId: string;
-  companyId?: string;
-  claims?: Record<string, unknown>;
+  companyId: string;
+  claims: Record<string, unknown>;
 }
 
 /**
  * Interface para os dados detalhados do colaborador/usuário.
- * Combina informações do EmployeeProfile (EmployeeResponse) com a role.
  */
 export interface UserData {
   employeeId: string;
@@ -35,10 +37,13 @@ export interface UserData {
   companyName: string;
   lastSeenMessageTimestamp: string | null;
   homeOffice: boolean;
-  
-  // A role é injetada a partir do token no hook para conveniência
-  role?: 'PARTNER' | 'MANAGER' | 'ADMIN' | 'CTO' | 'USER' | string; 
-  lastLogin?: string; // Mantido
+  role: UserRole;
+  lastLogin: string | null;
+}
+
+export interface UserSessionProfile {
+  account: UserAccountData;
+  profile: UserData;
 }
 
 /**
@@ -50,7 +55,4 @@ export interface ChangePasswordData {
   confirmPassword: string;
 }
 
-// --- Funções Utilitárias Puras ---
-
-// Função auxiliar para limpar números
 export const cleanNumberString = (value: string | undefined): string => (value || '').replace(/\D/g, '');

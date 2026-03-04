@@ -3,31 +3,11 @@ import { throwServiceError } from "@/service/helpers/service-error.helper";
 import { mapSession, unwrapObject } from "@/service/helpers/response-normalizer.helper";
 import { LoginResponse, RecoverPasswordPayload, ResetPasswordPayload } from "@/types/auth";
 import type { UserAccountData } from "@/types/user";
-
-interface OwnProfileResponse {
-  userId: string;
-  username?: string;
-  fullName?: string;
-  role: string;
-  active?: boolean;
-  employeeId: string;
-  companyId?: string;
-  claims?: Record<string, unknown>;
-}
-
-const normalizeSession = (data: OwnProfileResponse): UserAccountData => ({
-  userId: data.userId,
-  username: data.username ?? data.fullName ?? "",
-  role: data.role,
-  active: data.active ?? true,
-  employeeId: data.employeeId,
-  companyId: data.companyId,
-  claims: data.claims,
-});
+import { fetchSessionProfile } from "@/service/session-profile.service";
 
 export const fetchCurrentSession = async (): Promise<UserAccountData> => {
-  const { data } = await api.get<OwnProfileResponse>("users/own-profile");
-  return normalizeSession(data);
+  const { account } = await fetchSessionProfile();
+  return account;
 };
 
 export const logoutSession = async (): Promise<void> => {

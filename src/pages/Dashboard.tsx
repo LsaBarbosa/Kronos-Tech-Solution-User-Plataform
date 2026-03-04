@@ -269,8 +269,8 @@ const Dashboard = () => {
                                          <h2 className="text-xl font-bold text-foreground line-clamp-1">{getSecondName(userData?.fullName)}</h2>
                                         
                                         <p className="text-sm font-semibold text-foreground/80">
-                                            {userData?.jobPosition || "N/A"} 
-                                            <span className="text-muted-foreground ml-1 font-normal">({getRoleDisplayName(userData?.role || '')})</span>
+                                            {userData?.jobPosition}
+                                            <span className="text-muted-foreground ml-1 font-normal">({getRoleDisplayName(userData?.role ?? "PARTNER")})</span>
                                         </p>
                                     </div>
                                     
@@ -299,20 +299,20 @@ const Dashboard = () => {
                                             onClick={handleCompanyLinkClick} // Handler com stopPropagation
                                             title={isCto ? "Clique para ir para a Empresa" : undefined}
                                         >
-                                            {userData?.companyName || "N/A"}
+                                            {userData?.companyName}
                                         </span>
                                     </p>
                                     
                                     {/* Email */}
                                     <p className="flex items-center gap-2 text-sm text-muted-foreground">
                                         <Mail className="h-4 w-4 text-primary/80" />
-                                        <span className="text-foreground line-clamp-1">{userData?.email || "N/A"}</span>
+                                        <span className="text-foreground line-clamp-1">{userData?.email}</span>
                                     </p>
                                     
                                     {/* Telefone */}
                                     <p className="flex items-center gap-2 text-sm text-muted-foreground">
                                         <Phone className="h-4 w-4 text-primary/80" />
-                                        <span className="text-foreground">{formatPhone(userData?.phone) || "N/A"}</span>
+                                        <span className="text-foreground">{formatPhone(userData?.phone)}</span>
                                     </p>
                                     
                                     {/* Salário (com Toggle) */}

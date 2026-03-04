@@ -215,8 +215,7 @@ const Usuario = () => {
                           <Home className="h-4 w-4 text-primary flex-shrink-0" />
                           {/* Lógica de exibição Remoto/Escritório */}
                           <p className="text-foreground">
-                            {userData?.homeOffice === true ? 'Remoto' : 
-                             userData?.homeOffice === false ? 'Escritório' : 'N/A'}
+                            {userData?.homeOffice ? 'Remoto' : 'Escritório'}
                           </p>
                         </div>
                       </div>
@@ -228,7 +227,7 @@ const Usuario = () => {
                         <div className="mt-1 p-3 bg-muted rounded-xl flex items-center gap-2 border border-border/50 shadow-inner">
                               <SquareUser className="h-4 w-4 text-primary flex-shrink-0" />
                           <p className="text-foreground font-semibold">
-                            {getRoleDisplayName(userAccountData?.role || 'PARTNER')}
+                            {getRoleDisplayName(userAccountData?.role ?? 'PARTNER')}
                           </p>
                         </div>
                       </div>
