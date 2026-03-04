@@ -1,6 +1,6 @@
 // src/services/messageService.ts
 
-import { API_BASE_URL } from "@/config/api";
+import { apiFetch } from "@/config/api";
 import { Message, MessagePayload } from "@/types/message";
 import { EmployeeData } from "@/types/employee";
 
@@ -25,10 +25,9 @@ const handleResponse = async (response: Response) => {
 
 export const fetchMessages = async (): Promise<Message[]> => {
   const headers = getAuthHeaders();
-  const response = await fetch(`${API_BASE_URL}messages`, {
+  const response = await apiFetch("messages", {
     method: "GET",
     headers,
-    credentials: "include",
   });
 
   return handleResponse(response);
@@ -36,10 +35,9 @@ export const fetchMessages = async (): Promise<Message[]> => {
 
 export const deleteMessage = async (messageId: string): Promise<void> => {
   const headers = getAuthHeaders();
-  const response = await fetch(`${API_BASE_URL}messages/${messageId}`, {
+  const response = await apiFetch(`messages/${messageId}`, {
     method: "DELETE",
     headers,
-    credentials: "include",
   });
 
   await handleResponse(response);
@@ -47,9 +45,10 @@ export const deleteMessage = async (messageId: string): Promise<void> => {
 
 export const postMessage = async (payload: MessagePayload): Promise<void> => {
   const headers = getAuthHeaders();
-  const response = await fetch(`${API_BASE_URL}messages`, {
+  const response = await apiFetch("messages", {
     method: "POST",
     headers,
+    credentials: "include",
     body: JSON.stringify(payload),
   });
 
@@ -58,7 +57,7 @@ export const postMessage = async (payload: MessagePayload): Promise<void> => {
 
 export const fetchActiveEmployees = async (): Promise<EmployeeData[]> => {
   const headers = getAuthHeaders();
-  const response = await fetch(`${API_BASE_URL}employee?active=true`, { headers, credentials: "include" });
+  const response = await apiFetch("employee?active=true", { headers });
   const data = await handleResponse(response);
 
   return data.employees.map((emp: any) => ({
