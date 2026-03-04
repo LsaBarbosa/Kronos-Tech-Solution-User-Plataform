@@ -6,6 +6,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast"; 
+import { isAuthenticationError } from "@/service/helpers/service-error.helper";
 import { 
     CompanyListItem, 
     CompanyData, 
@@ -101,7 +102,7 @@ export const useCompanySearch = (): UseCompanySearchReturn => {
         } catch (err: any) {
             console.error("Falha ao buscar empresas:", err);
             setError(err.message || "Falha ao carregar as empresas. Tente novamente.");
-            if (err.message.includes("Token")) {
+            if (isAuthenticationError(err)) {
                 navigate("/login"); 
             }
         } finally {

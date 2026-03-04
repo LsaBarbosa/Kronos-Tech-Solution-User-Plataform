@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast"; 
+import { isAuthenticationError } from "@/service/helpers/service-error.helper";
 import { Message } from "@/types/message";
 import { fetchMessages, deleteMessage, getSessionRole } from "@/service/message.service";
 import { useAuth } from "@/context/AuthContext";
@@ -56,7 +57,7 @@ export const useMessages = (): UseMessagesReturn => {
             setMessages(data);
         } catch (err: any) {
             setError(err.message);
-            if (err.message.includes("Token")) {
+            if (isAuthenticationError(err)) {
                  navigate("/login"); 
             }
             toast({

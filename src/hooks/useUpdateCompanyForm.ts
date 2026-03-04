@@ -6,6 +6,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast"; //
+import { isAuthenticationError } from "@/service/helpers/service-error.helper";
 import { CompanyListItem, CompanyData, Location, CompanyUpdatePayload, cleanCEP } from "@/types/company";
 import { 
     fetchCompanyList, 
@@ -85,7 +86,7 @@ export const useUpdateCompanyForm = (): UseUpdateCompanyFormReturn => {
             setCompanies(data);
         } catch (error: any) {
             console.error("Erro ao buscar empresas:", error);
-            if (error.message.includes("Token")) navigate("/");
+            if (isAuthenticationError(error)) navigate("/");
             
             toast({ 
                 title: "Erro", 

@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
+import { isAuthenticationError } from "@/service/helpers/service-error.helper";
 import { EmployeeListItem, MAX_UPLOAD_SIZE_BYTES, ALLOWED_MIME_TYPES } from "@/types/document";
 import { fetchEmployeesForSelection, uploadDocument } from "@/service/document.Service";
 
@@ -105,7 +106,7 @@ export const useDocumentUpload = (): UseDocumentUploadReturn => {
                 setEmployees(data);
             } catch (err: any) {
                 setError(err.message);
-                if (err.message.includes("Token")) navigate("/login");
+                if (isAuthenticationError(err)) navigate("/login");
                 toast({ title: "Erro", description: err.message, variant: "destructive" });
             } finally {
                 setIsFetchingEmployees(false);
