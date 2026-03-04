@@ -46,7 +46,7 @@ export const downloadFile = async (url: string, options: DownloadFileOptions = {
 
   const response = await fetch(url, {
     method: options.method || "GET",
-    headers,
+    headers: options.headers,
     body: options.body,
     credentials: "include",
   });
