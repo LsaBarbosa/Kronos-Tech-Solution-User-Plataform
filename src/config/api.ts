@@ -36,7 +36,6 @@ export const api = axios.create({
 let hasUnauthorizedRedirect = false;
 
 export const handleUnauthorized = (): void => {
-  localStorage.setItem('session_invalid', 'true');
   queryClient.clear();
 
   if (hasUnauthorizedRedirect || window.location.pathname === '/login') {
