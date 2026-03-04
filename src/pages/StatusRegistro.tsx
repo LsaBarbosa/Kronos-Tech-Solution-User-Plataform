@@ -10,7 +10,7 @@ import Header from "@/components/Header";
 import Sidebar from "@/components/Sidebar";
 // 🚀 ADICIONADO Loader2 para o spinner
 import { Info, Save, ZapOff, Loader2 } from "lucide-react"; 
-import { API_BASE_URL } from "@/config/api";
+import { API_BASE_URL, apiFetch } from "@/config/api";
 
 // 💡 NOVO: Componente de Filtros Modular
 import { RelatorioFiltros } from "@/pages/RelatorioFiltros"; 
@@ -115,7 +115,7 @@ const StatusRegistro = () => {
             const activeStatus = employeeActive === "active";
             const url = `${API_BASE_URL}employee?active=${activeStatus}`;
 
-            const response = await fetch(url, {
+            const response = await apiFetch(url, {
                 method: "GET",
                 headers: {
                     "Content-Type": "application/json",
@@ -180,7 +180,7 @@ const StatusRegistro = () => {
                 apiUrl.searchParams.append("employeeId", selectedEmployee);
             }
 
-            const response = await fetch(apiUrl.toString(), {
+            const response = await apiFetch(apiUrl.toString(), {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
@@ -261,7 +261,7 @@ const StatusRegistro = () => {
 
             const endpoint = `${API_BASE_URL}records/update/status/${employeeId}/${timeRecordId}`;
 
-            const response = await fetch(endpoint, {
+            const response = await apiFetch(endpoint, {
                 method: "PUT",
                 headers: {
                     "Content-Type": "application/json",
@@ -325,7 +325,7 @@ const StatusRegistro = () => {
             // Endpoint conforme informação do backend: PATCH records/toggle-activate/{employeeId}/{timeRecordId}
             const endpoint = `${API_BASE_URL}records/toggle-activate/${employeeId}/${timeRecordId}`;
 
-            const response = await fetch(endpoint, {
+            const response = await apiFetch(endpoint, {
                 method: "PUT", 
                 headers: {
                     "Content-Type": "application/json",

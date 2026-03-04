@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { CalendarIcon, Download, Edit, Coffee, FileText, MapPin, Clock } from "lucide-react";
 import { DetailedReportItem, statusOptions, getStatusColor, statusMap } from "@/utils/report-utils"; 
 import { useToast } from "@/hooks/use-toast";
-import { API_BASE_URL } from "@/config/api";
+import { API_BASE_URL, apiFetch } from "@/config/api";
 import { Button } from "./ui/button";
 import { PaginationComponent } from "./ui/PaginationComponent";
 
@@ -58,7 +58,7 @@ const getAddressFromCoordinates = async (latitude: number, longitude: number): P
     try {
         const url = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`;
         
-        const response = await fetch(url, {
+        const response = await apiFetch(url, {
             headers: {
                 'User-Agent': 'KronosSystem/1.0',
                 'Accept-Language': 'pt-BR'
@@ -260,7 +260,7 @@ export const ResultadosRelatorioDetalhado: React.FC<ResultadosDetalhadoProps> = 
 
             const url = `${API_BASE_URL}documents/${documentId}?employeeId=${employeeId}`;
 
-            const response = await fetch(url, {
+            const response = await apiFetch(url, {
                 headers: { 'Authorization': `Bearer ${token}` },
             });
 

@@ -98,7 +98,7 @@ const Documentos = () => {
           return;
         }
 
-        const response = await fetch(`${API_BASE_URL}employee?active=${activeEmployeeFilter}`, { headers });
+        const response = await apiFetch(`${API_BASE_URL}employee?active=${activeEmployeeFilter}`, { headers });
         if (!response.ok) {
           await handleApiError(response);
           return;
@@ -139,7 +139,7 @@ const Documentos = () => {
         type: selectedDocumentType,
       });
 
-      const response = await fetch(`${API_BASE_URL}documents?${searchParams.toString()}`, {
+      const response = await apiFetch(`${API_BASE_URL}documents?${searchParams.toString()}`, {
         headers: headers,
       });
 
@@ -191,7 +191,7 @@ const Documentos = () => {
         // Constrói a URL do DELETE: /documents/{documentId}?employeeId={employeeId}
         const url = `${API_BASE_URL}documents/${documentId}?employeeId=${selectedEmployeeId}`;
 
-        const response = await fetch(url, {
+        const response = await apiFetch(url, {
             method: "DELETE",
             headers: headers,
         });
@@ -267,7 +267,7 @@ const Documentos = () => {
 
       const url = `${API_BASE_URL}documents/${document.id}?employeeId=${selectedEmployeeId}`;
 
-      const response = await fetch(url, { headers });
+      const response = await apiFetch(url, { headers });
       if (!response.ok) {
         const errorData = await response.json();
         throw new Error(errorData.detail || "Não foi possível realizar o download")
