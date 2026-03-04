@@ -1,5 +1,5 @@
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from "react";
-import { fetchSessionProfile, SessionRole } from "@/service/auth/session.service";
+import { fetchSessionUser, SessionRole } from "@/service/auth/session.service";
 
 export interface SessionUser {
   employeeId: string;
@@ -31,15 +31,9 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     setIsLoadingSessionUser(true);
 
     try {
-      const { account, employeeProfile } = await fetchSessionProfile();
+      const sessionUserData = await fetchSessionUser();
 
-      setSessionUser({
-        employeeId: account.employeeId || employeeProfile.employeeId,
-        role: account.role,
-        fullName: employeeProfile.fullName || account.username || "",
-        username: account.username,
-        email: employeeProfile.email,
-      });
+      setSessionUser(sessionUserData);
       setAuthStatus("authenticated");
     } catch {
       setSessionUser(null);
