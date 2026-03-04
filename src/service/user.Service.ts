@@ -1,7 +1,10 @@
 import { api } from "@/config/api";
 import { throwServiceError } from "@/service/helpers/service-error.helper";
 import { mapUserAccount, mapUserProfile, unwrapList } from "@/service/helpers/response-normalizer.helper";
+import { fetchSessionProfile } from "@/service/session-profile.service";
 import { UserAccountData, UserData, ChangePasswordData, cleanNumberString } from "@/types/user";
+
+export const fetchCurrentUserData = fetchSessionProfile;
 
 export const fetchAccountData = async (): Promise<UserAccountData> => {
   try {

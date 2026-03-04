@@ -1,4 +1,5 @@
 import { api } from "@/config/api";
+import { throwServiceError } from "@/service/helpers/service-error.helper";
 import { Document, EmployeeListItem, MAX_UPLOAD_SIZE_BYTES } from "@/types/document";
 
 interface EmployeesResponse {
@@ -152,29 +153,6 @@ const resolveFileName = (contentDisposition: string | null, fallbackFileName: st
   }
 
   return fallbackFileName;
-};
-
-export const downloadDocumentFile = async (
-  documentId: string,
-  { employeeId, fallbackFileName = "documento" }: DownloadDocumentParams = {},
-): Promise<void> => {
-  const params = employeeId ? { employeeId } : undefined;
-  const response = await api.get(`documents/${documentId}`, {
-    params,
-    responseType: "blob",
-  });
-
-  const blob = response.data as Blob;
-  const href = window.URL.createObjectURL(blob);
-  const link = window.document.createElement("a");
-  link.href = href;
-  const contentDisposition = (response.headers?.["content-disposition"] as string | undefined) || null;
-  link.download = resolveFileName(contentDisposition, fallbackFileName);
-
-  window.document.body.appendChild(link);
-  link.click();
-  window.document.body.removeChild(link);
-  window.URL.revokeObjectURL(href);
 };
 
 export const downloadDocument = async (
