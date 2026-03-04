@@ -6,9 +6,10 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import Clock from "@/components/Clock";
 import { Eye, EyeOff, ScanFace } from "lucide-react"; // Adicionado ScanFace
 import { toast } from "sonner"; // Ajustado import para sonner padrão se necessário, ou "@/components/ui/sonner"
-import { API_BASE_URL } from "@/config/api";
+import { API_BASE_URL, apiFetch } from "@/config/api";
 import FaceLoginModal from "@/components/FaceLoginModal"; // Import do novo modal
 import { useNavigate } from "react-router-dom";
+import { useAuth } from "@/context/AuthContext";
 
 const API_URL = `${API_BASE_URL}auth/login`;
 
@@ -19,18 +20,20 @@ const LoginForm = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isFaceLoginOpen, setIsFaceLoginOpen] = useState(false); // Estado do modal facial
 
-  const navigate = useNavigate(); 
+  const navigate = useNavigate();
+  const { bootstrapSession } = useAuth(); 
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
 
     try {
-      const response = await fetch(API_URL, {
+      const response = await apiFetch(API_URL, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",
         },
+        credentials: "include",
         body: JSON.stringify({ username, password }),
       });
 
@@ -39,17 +42,9 @@ const LoginForm = () => {
         throw new Error(errorData.detail || "Usuário ou senha inválidos.");
       }
 
-      const data = await response.json();
-
-      localStorage.setItem("token", data.token);
-
       toast.success("Login realizado com sucesso!");
-
-      // Pequeno delay para o usuário ver o feedback
-      setTimeout(() => {
-        // Redirecionamento com refresh para garantir limpeza de memória/cache
-        window.location.href = "/dashboard";
-      }, 800);
+      await bootstrapSession();
+      navigate("/dashboard", { replace: true });
 
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : "Erro desconhecido ao tentar fazer login.";

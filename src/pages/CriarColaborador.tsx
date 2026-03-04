@@ -18,7 +18,7 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select";
-import { API_BASE_URL } from "@/config/api";
+import { API_BASE_URL, apiFetch } from "@/config/api";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 
@@ -216,7 +216,7 @@ const [faceImageBase64, setFaceImageBase64] = useState<string | undefined>(undef
             const token = localStorage.getItem("token");
             if (!token) throw new Error("Token de autenticação não encontrado.");
 
-            const response = await fetch(`${API_BASE_URL}users/check-username?username=${username}`, {
+            const response = await apiFetch(`${API_BASE_URL}users/check-username?username=${username}`, {
                 headers: { "Authorization": `Bearer ${token}` },
             });
 
@@ -287,7 +287,7 @@ const [faceImageBase64, setFaceImageBase64] = useState<string | undefined>(undef
                 fixedWorkDays: data.fixedWorkDays || []
             };
 
-            const employeeResponse = await fetch(`${API_BASE_URL}employee`, {
+            const employeeResponse = await apiFetch(`${API_BASE_URL}employee`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` },
                 body: JSON.stringify(employeePayload),
@@ -369,7 +369,7 @@ const [faceImageBase64, setFaceImageBase64] = useState<string | undefined>(undef
                 employeeId: savedEmployeeId, // Usa o ID salvo do Passo 1
             };
 
-            const userResponse = await fetch(`${API_BASE_URL}users`, {
+            const userResponse = await apiFetch(`${API_BASE_URL}users`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` },
                 body: JSON.stringify(userPayload),

@@ -10,7 +10,7 @@ import Header from "@/components/Header";
 import Sidebar from "@/components/Sidebar";
 // 🚀 ADICIONADO Loader2 para o spinner
 import { Info, Save, ZapOff, Loader2 } from "lucide-react"; 
-import { API_BASE_URL } from "@/config/api";
+import { API_BASE_URL, apiFetch } from "@/config/api";
 
 // 💡 NOVO: Componente de Filtros Modular
 import { RelatorioFiltros } from "@/pages/RelatorioFiltros"; 
@@ -19,13 +19,13 @@ import { ResultadosRelatorioDetalhado } from "@/components/ResultadosRelatorioDe
 
 // 💡 NOVO: Importando utilitários centralizados
 import { 
-    decodeToken, 
     statusOptions, 
     getStatusColor, 
     getTranslatedStatus,
     DetailedReportItem,
     Employee
 } from "@/utils/report-utils"; 
+import { useSessionUser } from "@/hooks/useSessionUser";
 
 // O nome do componente foi mantido como StatusRegistro.
 const StatusRegistro = () => {
@@ -50,6 +50,7 @@ const StatusRegistro = () => {
     const [isTogglingActivate, setIsTogglingActivate] = useState(false); // Para o botão Inativar/Ativar
 
     const { toast } = useToast();
+    const { sessionUser } = useSessionUser();
 
     // ESTADOS DO MODAL DE EDIÇÃO DE STATUS (Ação Principal da Página)
     const [editModalOpen, setEditModalOpen] = useState(false);
@@ -98,24 +99,23 @@ const StatusRegistro = () => {
             const token = localStorage.getItem("token");
             if (!token) return;
 
-            const decoded = decodeToken(token);
-            const userRole = decoded?.role;
-            const userId = decoded?.employeeId;
-            const userName = decoded?.fullName;
+            const userRole = sessionUser?.role;
+            const userId = sessionUser?.employeeId;
+            const userName = sessionUser?.fullName;
 
-            if (userRole === "PARTNER") {
+            if (userRole === "PARTNER" && userId) {
                 setIsPartner(true);
-                setEmployees([{ employeeId: userId, fullName: userName }]);
+                setEmployees([{ employeeId: userId, fullName: userName || "" }]);
                 setSelectedEmployee(userId);
                 return;
-            } else {
-                setIsPartner(false);
             }
+
+            setIsPartner(false);
 
             const activeStatus = employeeActive === "active";
             const url = `${API_BASE_URL}employee?active=${activeStatus}`;
 
-            const response = await fetch(url, {
+            const response = await apiFetch(url, {
                 method: "GET",
                 headers: {
                     "Content-Type": "application/json",
@@ -138,7 +138,7 @@ const StatusRegistro = () => {
         } catch (error) {
             console.error("Erro ao buscar funcionários:", error);
         }
-    }, [employeeActive, selectedEmployee, employees]);
+    }, [employeeActive, selectedEmployee, employees, sessionUser]);
 
     // 2. Busca de Registros (Lógica de Search Original)
     const handleSearch = async () => {
@@ -180,7 +180,7 @@ const StatusRegistro = () => {
                 apiUrl.searchParams.append("employeeId", selectedEmployee);
             }
 
-            const response = await fetch(apiUrl.toString(), {
+            const response = await apiFetch(apiUrl.toString(), {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
@@ -261,7 +261,7 @@ const StatusRegistro = () => {
 
             const endpoint = `${API_BASE_URL}records/update/status/${employeeId}/${timeRecordId}`;
 
-            const response = await fetch(endpoint, {
+            const response = await apiFetch(endpoint, {
                 method: "PUT",
                 headers: {
                     "Content-Type": "application/json",
@@ -325,7 +325,7 @@ const StatusRegistro = () => {
             // Endpoint conforme informação do backend: PATCH records/toggle-activate/{employeeId}/{timeRecordId}
             const endpoint = `${API_BASE_URL}records/toggle-activate/${employeeId}/${timeRecordId}`;
 
-            const response = await fetch(endpoint, {
+            const response = await apiFetch(endpoint, {
                 method: "PUT", 
                 headers: {
                     "Content-Type": "application/json",

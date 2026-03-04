@@ -18,7 +18,7 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select";
-import { API_BASE_URL } from "@/config/api";
+import { API_BASE_URL, apiFetch } from "@/config/api";
 import { Checkbox } from "@/components/ui/checkbox";
 
 const SCHEDULE_TYPES = [
@@ -136,7 +136,7 @@ const CriarManager = () => {
                 return;
             }
 
-            const response = await fetch(`${API_BASE_URL}companies`, {
+            const response = await apiFetch(`${API_BASE_URL}companies`, {
                 headers: { "Authorization": `Bearer ${token}` },
             });
 
@@ -221,7 +221,7 @@ const selectedScheduleType = form.watch("scheduleType");
             if (!token) throw new Error("Token de autenticação não encontrado.");
 
             // Chamada à API para verificação de CPF
-            const response = await fetch(`${API_BASE_URL}employee/check-cpf?cpf=${cpf}`, {
+            const response = await apiFetch(`${API_BASE_URL}employee/check-cpf?cpf=${cpf}`, {
                 headers: { "Authorization": `Bearer ${token}` },
             });
 
@@ -280,7 +280,7 @@ const selectedScheduleType = form.watch("scheduleType");
             const token = localStorage.getItem("token");
             if (!token) throw new Error("Token de autenticação não encontrado.");
 
-            const response = await fetch(`${API_BASE_URL}users/check-username?username=${username}`, {
+            const response = await apiFetch(`${API_BASE_URL}users/check-username?username=${username}`, {
                 headers: { "Authorization": `Bearer ${token}` },
             });
 
@@ -354,7 +354,7 @@ const selectedScheduleType = form.watch("scheduleType");
             };
             
 
-            const employeeResponse = await fetch(`${API_BASE_URL}employee`, {
+            const employeeResponse = await apiFetch(`${API_BASE_URL}employee`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` },
                 body: JSON.stringify(employeePayload),
@@ -435,7 +435,7 @@ const selectedScheduleType = form.watch("scheduleType");
                 employeeId: savedEmployeeId, // Usa o ID salvo do Passo 1
             };
 
-            const userResponse = await fetch(`${API_BASE_URL}users`, {
+            const userResponse = await apiFetch(`${API_BASE_URL}users`, {
                 method: "POST",
                 headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` },
                 body: JSON.stringify(userPayload),

@@ -18,12 +18,12 @@ import {
     Manager,
     EditRecordFormData,
     editRecordSchema,
-    decodeToken,
     isHoliday,
     getTranslatedStatus,
     formatDateWithDayOfWeek,
 } from "@/utils/report-utils";
 import { API_BASE_URL } from "@/config/api";
+import { useSessionUser } from "@/hooks/useSessionUser";
 
 // Sub-componentes
 import { ResultadosRelatorioDetalhado } from "@/components/ResultadosRelatorioDetalhado";
@@ -76,6 +76,7 @@ const RelatorioDetalhado = () => {
     const { toast } = useToast();
     const [managers, setManagers] = useState<Manager[]>([]);
     const [isPartner, setIsPartner] = useState(false);
+    const { sessionUser } = useSessionUser();
     const [isLoading, setIsLoading] = useState(false);
 
     // Verifica se há dados para habilitar botões de download
@@ -158,24 +159,23 @@ const RelatorioDetalhado = () => {
             const token = localStorage.getItem("token");
             if (!token) return;
 
-            const decoded = decodeToken(token);
-            const userRole = decoded?.role;
-            const userId = decoded?.employeeId;
-            const userName = decoded?.fullName;
+            const userRole = sessionUser?.role;
+            const userId = sessionUser?.employeeId;
+            const userName = sessionUser?.fullName;
 
-            if (userRole === "PARTNER") {
+            if (userRole === "PARTNER" && userId) {
                 setIsPartner(true);
-                setEmployees([{ employeeId: userId, fullName: userName }]);
+                setEmployees([{ employeeId: userId, fullName: userName || "" }]);
                 setSelectedEmployee(userId);
                 return;
-            } else {
-                setIsPartner(false);
             }
+
+            setIsPartner(false);
 
             const activeStatus = employeeActive === "active";
             const url = employeeActive ? `${API_BASE_URL}employee?active=${activeStatus}` : `${API_BASE_URL}employee`;
 
-            const response = await fetch(url, {
+            const response = await apiFetch(url, {
                 method: "GET",
                 headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
             });
@@ -188,14 +188,14 @@ const RelatorioDetalhado = () => {
         } catch (error) {
             console.error("Erro ao buscar funcionários:", error);
         }
-    }, [employeeActive, selectedEmployee]);
+    }, [employeeActive, selectedEmployee, sessionUser]);
 
     const fetchManagers = async () => {
         try {
             const token = localStorage.getItem("token");
             if (!token) throw new Error("Token de autenticação não encontrado.");
 
-            const response = await fetch(`${API_BASE_URL}users/search`, {
+            const response = await apiFetch(`${API_BASE_URL}users/search`, {
                 method: "GET",
                 headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
             });
@@ -241,7 +241,7 @@ const RelatorioDetalhado = () => {
             const apiUrl = new URL(`${API_BASE_URL}records/report`, window.location.origin);
             if (selectedEmployee) apiUrl.searchParams.append("employeeId", selectedEmployee);
 
-            const response = await fetch(apiUrl.toString(), {
+            const response = await apiFetch(apiUrl.toString(), {
                 method: "POST",
                 headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
                 body: JSON.stringify(requestBody),
@@ -567,7 +567,7 @@ const RelatorioDetalhado = () => {
             };
 
             const endpoint = `${API_BASE_URL}records/update/time-record/${selectedRecord.timeRecordId}`;
-            const response = await fetch(endpoint, {
+            const response = await apiFetch(endpoint, {
                 method: "PUT",
                 headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
                 body: JSON.stringify(requestBody),
