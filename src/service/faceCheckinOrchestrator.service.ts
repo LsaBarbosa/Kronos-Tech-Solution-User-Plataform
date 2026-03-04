@@ -61,7 +61,10 @@ const loginFace = async (faceImageBase64: string): Promise<FaceLoginResponse> =>
   });
 
   if (!response.ok) {
-    throw new Error(await parseErrorResponse(response, "Falha no reconhecimento facial."));
+    throw new FaceCheckinFlowError(
+      FACE_CHECKIN_ERROR_CODE.FACE_LOGIN_FAILURE,
+      await parseErrorResponse(response, "Falha no reconhecimento facial.")
+    );
   }
 
   return response.json();
@@ -97,12 +100,20 @@ export const registerPointWithFace = async (
   faceImageBase64: string,
   options: RegisterPointOptions = {}
 ): Promise<RegisterPointResult> => {
-  const loginData = await loginFace(faceImageBase64);
+  /**
+   * Cenários suportados neste fluxo:
+   * 1) Falha no login facial -> lança FaceCheckinFlowError com code FACE_LOGIN_FAILURE.
+   * 2) Falha parcial no check-in (identidade confirmada, ponto não registrado) ->
+   *    lança FaceCheckinFlowError com code PARTIAL_CHECKIN_FAILURE.
+   * 3) Sucesso completo (login facial + check-in) -> retorna { checkinRegistered: true }.
+   */
+  await loginFace(faceImageBase64);
 
   try {
     await retryCheckin(faceImageBase64);
   } catch (error) {
-    throw new Error(
+    throw new FaceCheckinFlowError(
+      FACE_CHECKIN_ERROR_CODE.PARTIAL_CHECKIN_FAILURE,
       error instanceof Error
         ? `Identidade confirmada, mas não foi possível registrar o ponto: ${error.message}`
         : "Identidade confirmada, mas não foi possível registrar o ponto."

@@ -184,13 +184,13 @@ const FaceLoginModal = ({
             onOpenChange(false);
         } catch (error: any) {
             console.error(error);
-            const message = error instanceof Error ? error.message : "Rosto não reconhecido ou não cadastrado.";
-            if (message.includes("Identidade confirmada")) {
-                setPartialFailureMessage(message);
+            if (error instanceof FaceCheckinFlowError && error.code === FACE_CHECKIN_ERROR_CODE.PARTIAL_CHECKIN_FAILURE) {
+                setPartialFailureMessage(error.message);
                 toast.error("Falha ao concluir registro de ponto.");
                 return;
             }
 
+            const message = error instanceof Error ? error.message : "Rosto não reconhecido ou não cadastrado.";
             toast.error(message);
             setImageSrc(null);
             startWebcam();
