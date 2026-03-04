@@ -4,18 +4,30 @@ import { mapSession, unwrapObject } from "@/service/helpers/response-normalizer.
 import { LoginResponse, RecoverPasswordPayload, ResetPasswordPayload } from "@/types/auth";
 import type { UserAccountData } from "@/types/user";
 
+interface OwnProfileResponse {
+  userId: string;
+  username?: string;
+  fullName?: string;
+  role: string;
+  active?: boolean;
+  employeeId: string;
+  companyId?: string;
+  claims?: Record<string, unknown>;
+}
+
+const normalizeSession = (data: OwnProfileResponse): UserAccountData => ({
+  userId: data.userId,
+  username: data.username ?? data.fullName ?? "",
+  role: data.role,
+  active: data.active ?? true,
+  employeeId: data.employeeId,
+  companyId: data.companyId,
+  claims: data.claims,
+});
+
 export const fetchCurrentSession = async (): Promise<UserAccountData> => {
-  try {
-    const { data } = await api.get("auth/me");
-    return mapSession(data);
-  } catch {
-    try {
-      const { data } = await api.get("users/own-profile");
-      return mapSession(data);
-    } catch (fallbackError) {
-      throwServiceError(fallbackError, "Não foi possível carregar a sessão do usuário.");
-    }
-  }
+  const { data } = await api.get<OwnProfileResponse>("users/own-profile");
+  return normalizeSession(data);
 };
 
 export const logoutSession = async (): Promise<void> => {
