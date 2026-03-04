@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback, useMemo } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
 import { EmployeeData, formatCPF } from "@/types/employee";
-import { fetchEmployeeList, toggleEmployeeStatus, deleteEmployee } from "@/service/employee.Service";
+import { fetchEmployeeList, toggleEmployeeStatus, deleteEmployee } from "@/service/employee.service";
 
 interface EmployeeListState {
     colaboradores: EmployeeData[];

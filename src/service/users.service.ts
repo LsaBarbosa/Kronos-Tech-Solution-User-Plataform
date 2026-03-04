@@ -1,4 +1,5 @@
 import { apiFetch, parseApiResponse } from '@/config/api';
+import { ChangePasswordData, UserAccountData, UserData, cleanNumberString } from '@/types/user';
 
 export interface UserSummary {
   userId: string;
@@ -63,6 +64,69 @@ export const toggleUserActive = async (userId: string): Promise<void> => {
   const response = await apiFetch(`users/toggle-activate/${userId}`, {
     method: 'PATCH',
     headers: { 'Content-Type': 'application/json' },
+  });
+
+  await parseApiResponse(response);
+};
+
+
+
+export const listUsersByActive = async (active: boolean | null): Promise<UserAccountData[]> => {
+  let path = 'users/search';
+
+  if (active !== null) {
+    path = `${path}?active=${active ? 'true' : 'false'}`;
+  }
+
+  const response = await apiFetch(path);
+  const data = await parseApiResponse<{ users: UserAccountData[] }>(response);
+  return data.users;
+};
+
+// Legacy compatibility: consolidated from user.Service.ts
+export const fetchAccountData = async (): Promise<UserAccountData> => {
+  const response = await apiFetch('users/own-profile');
+  return parseApiResponse(response);
+};
+
+export const fetchUserData = async (_employeeId: string): Promise<UserData> => {
+  const response = await apiFetch('employee/own-profile');
+  return parseApiResponse(response);
+};
+
+export const updateEmail = async (_employeeId: string, newEmail: string): Promise<void> => {
+  const response = await apiFetch('employee/update-own-profile', {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ email: newEmail }),
+  });
+
+  await parseApiResponse(response);
+};
+
+export const updatePhone = async (_employeeId: string, newPhone: string): Promise<void> => {
+  const response = await apiFetch('employee/update-own-profile', {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({ phone: cleanNumberString(newPhone) }),
+  });
+
+  await parseApiResponse(response);
+};
+
+export const changePassword = async (data: ChangePasswordData): Promise<void> => {
+  if (data.newPassword !== data.confirmPassword) {
+    throw new Error('As novas senhas não coincidem.');
+  }
+
+  const response = await apiFetch('users/password', {
+    method: 'PUT',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify({
+      currentPassword: data.currentPassword,
+      newPassword: data.newPassword,
+      confirmPassword: data.confirmPassword,
+    }),
   });
 
   await parseApiResponse(response);

@@ -8,7 +8,7 @@ import { useToast } from "@/hooks/use-toast";
 import { ToastAction } from "@/components/ui/toast";
 // 💡 CORREÇÃO 4: Importa EmployeeCreationPayload do types
 import { CompanyListItem, EmployeeFormType, employeeSchema, cleanNumberString, EmployeeCreationPayload } from "@/types/employee";
-import { checkUsernameAvailability, fetchCompanyList, createPartner, createManager } from "@/service/employee.Service";
+import { checkUsernameAvailability, fetchCompanyList, createPartner, createManager } from "@/service/employee.service";
 
 type RoleType = 'PARTNER' | 'MANAGER';
 type UsernameStatus = 'checking' | 'available' | 'unavailable' | 'idle';

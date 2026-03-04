@@ -10,7 +10,7 @@ import {
     updateEmail, 
     updatePhone, 
     changePassword 
-} from "@/service/user.Service";
+} from "@/service/users.service";
 import { clearLocalAuthSession } from "@/lib/auth-session";
 
 /**

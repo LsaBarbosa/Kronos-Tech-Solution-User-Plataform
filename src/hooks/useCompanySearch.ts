@@ -19,7 +19,7 @@ import {
     updateCompany, 
     toggleCompanyStatus, 
     getAuthToken
-} from "@/service/company.Service";
+} from "@/service/companies.service";
 
 // --- SCHEMAS DE VALIDAÇÃO ---
 const editEmpresaSchema = z.object({

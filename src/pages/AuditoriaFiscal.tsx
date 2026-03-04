@@ -44,7 +44,7 @@ import { useSessionUser } from "@/hooks/useSessionUser";
 
 // Services
 import { FiscalService } from "@/service/fiscal.service";
-import { fetchEmployeeList } from "@/service/employee.Service";
+import { fetchEmployeeList } from "@/service/employee.service";
 import Sidebar from "@/components/Sidebar";
 import Header from "@/components/Header";
 

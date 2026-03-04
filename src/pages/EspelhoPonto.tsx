@@ -33,7 +33,7 @@ import { useToast } from "@/components/ui/use-toast";
 
 // Serviços
 import { FiscalService } from "@/service/fiscal.service";
-import { fetchEmployeeList } from "@/service/employee.Service"; // Certifique-se que o caminho está correto
+import { fetchEmployeeList } from "@/service/employee.service"; // Certifique-se que o caminho está correto
 import Sidebar from "@/components/Sidebar";
 import Header from "@/components/Header";
 import { useSessionUser } from "@/hooks/useSessionUser";

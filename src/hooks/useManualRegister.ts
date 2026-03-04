@@ -8,7 +8,7 @@ import {
   RequestTimeOffRequestPayload,
   TimeOffFormState,
 } from "../types/vacation";
-import { listUsers } from "../service/user.Service"; 
+import { listUsersByActive } from "../service/users.service"; 
 import { requestTimeOff } from "../service/vacation.service";
 
 type TimeOffFormErrors = Partial<Record<keyof TimeOffFormState, string>>;
@@ -36,7 +36,7 @@ export const useRequestManualRegistration = () => {
   useEffect(() => {
     const fetchManagers = async () => {
       try {
-        const allUsers = await listUsers(true); 
+        const allUsers = await listUsersByActive(true); 
         setManagers(allUsers.filter((user) => user.role === "MANAGER"));
       } catch (error) {
         console.error("Erro ao carregar managers:", error);

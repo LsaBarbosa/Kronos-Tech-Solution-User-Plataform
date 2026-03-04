@@ -1,4 +1,5 @@
 import { apiFetch, parseApiResponse } from '@/config/api';
+import { CompanyData, CompanyListItem, CompanyUpdatePayload, Location, cleanCEP, formatCNPJ } from '@/types/company';
 
 interface CompanyApiItem {
   id: string;
@@ -101,3 +102,58 @@ export const geocodeAddressByPostalCode = async (
     longitude: geocodeData.items[0].position.lng,
   };
 };
+
+
+export const fetchCompanyList = async (): Promise<CompanyListItem[]> => {
+  const response = await apiFetch('companies');
+  const data = await parseApiResponse<{ companies: CompanyListItem[] }>(response);
+  return data.companies;
+};
+
+export const fetchCompanyDetails = async (cnpj: string): Promise<CompanyData> => {
+  const response = await apiFetch(`companies/${cnpj}`);
+  return parseApiResponse(response);
+};
+
+export const updateCompany = async (cnpj: string, payload: CompanyUpdatePayload): Promise<void> => {
+  const response = await apiFetch(`companies/${cnpj}`, {
+    method: 'PATCH',
+    headers: { 'Content-Type': 'application/json' },
+    body: JSON.stringify(payload),
+  });
+  await parseApiResponse(response);
+};
+
+export const getGeolocationFromCEP = async (cep: string, number: string): Promise<Location> => {
+  const cleanPostalCode = cleanCEP(cep);
+  const cepResponse = await fetch(`https://viacep.com.br/ws/${cleanPostalCode}/json/`, { credentials: 'omit' });
+  const cepData = await cepResponse.json();
+
+  if (cepData.erro) {
+    throw new Error('CEP não encontrado ou inválido.');
+  }
+
+  const fullAddress = `${cepData.logradouro}, ${number}, ${cepData.localidade}, ${cepData.uf}, Brasil`;
+  const geocodeResponse = await fetch(
+    `https://geocode.search.hereapi.com/v1/geocode?q=${encodeURIComponent(fullAddress)}&apiKey=4BOpnro1zHzBBh9olurKhD4aWIw9I-gcY6VRox9wSXU&in=countryCode:BRA`,
+    { credentials: 'omit' }
+  );
+  const geocodeData = await geocodeResponse.json();
+
+  if (!geocodeResponse.ok || geocodeData.items.length === 0) {
+    throw new Error(geocodeData.error || 'Localização não encontrada pelo serviço de Geocodificação.');
+  }
+
+  const position = geocodeData.items[0].position;
+  return {
+    latitude: parseFloat(position.lat.toFixed(6)),
+    longitude: parseFloat(position.lng.toFixed(6)),
+  };
+};
+
+export const toggleCompanyStatus = async (cnpj: string): Promise<void> => {
+  const response = await apiFetch(`companies/${cnpj}/toggle-activate`, { method: 'PATCH' });
+  await parseApiResponse(response);
+};
+
+export { formatCNPJ };
