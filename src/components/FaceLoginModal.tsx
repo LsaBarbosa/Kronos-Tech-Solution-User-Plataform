@@ -123,7 +123,10 @@ const FaceLoginModal = ({ isOpen, onOpenChange }: FaceLoginModalProps) => {
     const base64Data = imageSrc.split(",")[1];
 
     try {
-      await loginWithFace({ faceImageBase64: base64Data });
+      // O payload de resposta é tratado como opcional/genérico; a sessão vem exclusivamente do cookie httpOnly.
+      const loginPayload = await loginWithFace({ faceImageBase64: base64Data });
+      const loginMetadata = loginPayload ?? null;
+      void loginMetadata;
 
       toast.success("Identidade confirmada! Acessando plataforma...", {
         duration: 2000,

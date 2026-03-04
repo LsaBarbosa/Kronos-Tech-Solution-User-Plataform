@@ -27,7 +27,10 @@ const LoginForm = () => {
     setIsSubmitting(true);
 
     try {
-      await loginWithPassword({ username, password });
+      // O body de login pode conter metadados opcionais, mas a autenticação é feita apenas via cookie httpOnly.
+      const loginPayload = await loginWithPassword({ username, password });
+      const loginMetadata = loginPayload ?? null;
+      void loginMetadata;
 
       toast.success("Login realizado com sucesso!");
 
