@@ -42,7 +42,7 @@ const LoginForm = () => {
         throw new Error(errorData.detail || "Usuário ou senha inválidos.");
       }
 
-      // Backend pode retornar payload adicional; autenticação depende do cookie de sessão.
+      // Backend pode retornar payload auxiliar; autenticação depende exclusivamente de cookie httpOnly de sessão.
       await response.json().catch((): LoginResponse | null => null);
 
       toast.success("Login realizado com sucesso!");
