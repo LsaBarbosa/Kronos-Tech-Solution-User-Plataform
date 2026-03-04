@@ -2,6 +2,7 @@
   
 
   import axios from 'axios';
+import { redirectToLogin } from '@/utils/authRedirect';
 
 export const API_BASE_URL = import.meta.env.VITE_API_URL;
 
@@ -31,6 +32,11 @@ api.interceptors.response.use(
   (error) => {
     if (error.response) {
       const { status, data } = error.response;
+
+      if (status === 401) {
+        redirectToLogin();
+        return Promise.reject(error);
+      }
 
       // LÓGICA DO REDIRECIONAMENTO DOS TERMOS
       if (status === 403 && data?.type === 'TERMS_NOT_ACCEPTED') {

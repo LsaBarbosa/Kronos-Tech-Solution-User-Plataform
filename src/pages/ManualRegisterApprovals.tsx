@@ -26,7 +26,7 @@ import { Alert, AlertDescription, AlertTitle } from "../components/ui/alert";
 import { PaginationComponent } from "../components/ui/PaginationComponent";
 import { StatusRecord } from '../types/recordApproval';
 import { cn } from '../lib/utils';
-import { API_BASE_URL } from '../config/api';
+import { downloadDocument } from '@/service/document.Service';
 
 // ---------------------------------------------------------------------
 // --- 1. FUNÇÕES DE UTILIDADE E TIPOS
@@ -314,51 +314,9 @@ const ManualRegisterApprovals = () => {
             alert('Dados insuficientes para realizar o download.');
             return;
         }
-        
+
         try {
-            const token = localStorage.getItem('token');
-            if (!token) {
-                alert('Token de autenticação ausente.');
-                return;
-            }
-
-            const url = `${API_BASE_URL}documents/${documentId}?employeeId=${employeeId}`;
-
-            const response = await fetch(url, {
-                headers: {
-                    'Authorization': `Bearer ${token}`,
-                },
-            });
-
-            if (!response.ok) {
-                let errorMessage = "Não foi possível realizar o download.";
-                try {
-                    const errorData = await response.json();
-                    errorMessage = errorData.detail || errorMessage;
-                } catch { }
-                throw new Error(errorMessage);
-            }
-
-            const contentDisposition = response.headers.get('Content-Disposition');
-            let filename = `justificativa_abono_${employeeId}.`;
-
-            if (contentDisposition) {
-                const filenameMatch = contentDisposition.match(/filename="(.+?)"/);
-                if (filenameMatch && filenameMatch[1]) {
-                    filename = decodeURIComponent(filenameMatch[1].replace(/\"/g, ''));
-                }
-            }
-
-            const blob = await response.blob();
-            const href = window.URL.createObjectURL(blob);
-            const link = window.document.createElement('a');
-            link.href = href;
-            link.download = filename;
-            window.document.body.appendChild(link);
-            link.click();
-            window.document.body.removeChild(link);
-            window.URL.revokeObjectURL(href);
-
+            await downloadDocument(documentId, employeeId, `justificativa_abono_${employeeId}`);
         } catch (error) {
             console.error("Erro ao iniciar o download:", error);
             alert(`Falha ao baixar o documento: ${(error as Error).message}.`);

@@ -16,6 +16,7 @@ import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { es } from 'date-fns/locale';
 import { API_BASE_URL } from "@/config/api";
+import { downloadDocument } from "@/service/document.Service";
 
 interface Employee {
   id: string;
@@ -280,29 +281,8 @@ const Documentos = () => {
 
   const handleDownload = async (document: Document) => {
     try {
-      const headers = getAuthHeaders();
-      if (Object.keys(headers).length === 0) return;
-
-      const url = `${API_BASE_URL}documents/${document.id}?employeeId=${selectedEmployeeId}`;
-
-      const response = await fetch(url, { headers });
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.detail || "Não foi possível realizar o download")
-      }
-
-      const blob = await response.blob();
-      const href = window.URL.createObjectURL(blob);
-      const link = window.document.createElement('a'); // Use window.document para ser explícito
-      link.href = href;
-      link.download = document.name;
-      window.document.body.appendChild(link);
-      link.click();
-      window.document.body.removeChild(link);
-      window.URL.revokeObjectURL(href);
-
+      await downloadDocument(document.id, selectedEmployeeId, document.name);
       toast.success(`Download de ${document.name} iniciado`);
-
     } catch (error) {
       console.error("Erro ao iniciar o download:", error);
       toast.error(`Falha ao baixar o documento ${document.name}. Tente novamente.`);

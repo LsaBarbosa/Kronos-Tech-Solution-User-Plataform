@@ -3,6 +3,7 @@
 import { API_BASE_URL } from "@/config/api"; 
 import { Document, EmployeeListItem, MAX_UPLOAD_SIZE_BYTES } from "@/types/document";
 import { getAuthToken } from "./company.Service";
+import { buildApiUrl, downloadFile } from "./fileDownload.service";
 
 // --- Funções Auxiliares de Requisição ---
 
@@ -59,12 +60,11 @@ export const deleteDocument = async (documentId: string): Promise<void> => {
 };
 
 /**
- * Gera a URL de download para um documento específico.
+ * Realiza o download de um documento específico.
  */
-export const generateDownloadUrl = (documentId: string): string => {
-    const token = getAuthHeaders('json').Authorization;
-    // URL simulada que precisa de autenticação (usado no href do Documentos.tsx)
-    return `${API_BASE_URL}documents/${documentId}/download?token=${token}`; 
+export const downloadDocument = async (documentId: string, employeeId?: string, filename?: string): Promise<void> => {
+    const url = buildApiUrl(`documents/${documentId}`, { employeeId });
+    await downloadFile(url, { filename });
 };
 
 
