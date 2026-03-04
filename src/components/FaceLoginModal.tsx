@@ -4,7 +4,12 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Card, CardContent } from "@/components/ui/card";
 import { toast } from "sonner";
-import { registerPointWithFace, retryCheckin } from "@/service/faceCheckinOrchestrator.service";
+import {
+    FACE_CHECKIN_ERROR_CODE,
+    FaceCheckinFlowError,
+    registerPointWithFace,
+    retryCheckin,
+} from "@/service/faceCheckinOrchestrator.service";
 
 interface FaceLoginModalProps {
     isOpen: boolean;
@@ -127,11 +132,7 @@ const FaceLoginModal = ({ isOpen, onOpenChange }: FaceLoginModalProps) => {
         const shouldLogoutAfterFlow = String(import.meta.env.VITE_FACE_CHECKIN_SHORT_SESSION).toLowerCase() === "true";
 
         try {
-            const data = await registerPointWithFace(base64Data, { shouldLogoutAfterFlow });
-
-            if (data.token) {
-                localStorage.setItem("token", data.token);
-            }
+            await registerPointWithFace(base64Data, { shouldLogoutAfterFlow });
             setPartialFailureMessage(null);
             
             toast.success("Ponto registrado com sucesso! Acessando plataforma...", {
@@ -144,14 +145,14 @@ const FaceLoginModal = ({ isOpen, onOpenChange }: FaceLoginModalProps) => {
 
         } catch (error: unknown) {
             console.error(error);
-            const message = error instanceof Error ? error.message : "Rosto não reconhecido ou não cadastrado.";
-            if (message.includes("Identidade confirmada")) {
-                setPartialFailureMessage(message);
+            if (error instanceof FaceCheckinFlowError && error.code === FACE_CHECKIN_ERROR_CODE.PARTIAL_CHECKIN_FAILURE) {
+                setPartialFailureMessage(error.message);
                 toast.error("Falha ao concluir registro de ponto.");
                 setIsSubmitting(false);
                 return;
             }
 
+            const message = error instanceof Error ? error.message : "Rosto não reconhecido ou não cadastrado.";
             toast.error(message);
             setImageSrc(null);
             setIsSubmitting(false);
