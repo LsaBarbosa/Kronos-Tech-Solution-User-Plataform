@@ -5,337 +5,335 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { Card, CardContent } from "@/components/ui/card";
 import { useAuth } from "@/context/AuthContext";
 import { toast } from "sonner";
-import { useAuth } from "@/context/AuthContext";
 import { useNavigate } from "react-router-dom";
 import {
-    authenticateWithFace,
-    executeFaceCheckinFlow,
-    FaceCheckinRetryContext,
-    retryFaceCheckinFlow,
+  authenticateWithFace,
+  executeFaceCheckinFlow,
+  FaceCheckinRetryContext,
+  retryFaceCheckinFlow,
 } from "@/service/faceOrchestration.service";
 
 interface FaceLoginModalProps {
-    isOpen: boolean;
-    onOpenChange: (open: boolean) => void;
-    mode?: "login" | "checkin";
-    requireShortSession?: boolean;
+  isOpen: boolean;
+  onOpenChange: (open: boolean) => void;
+  mode?: "login" | "checkin";
+  requireShortSession?: boolean;
 }
 
 const FaceLoginModal = ({
-    isOpen,
-    onOpenChange,
-    mode = "login",
-    requireShortSession = false,
+  isOpen,
+  onOpenChange,
+  mode = "login",
+  requireShortSession = false,
 }: FaceLoginModalProps) => {
-    const navigate = useNavigate();
-    const { bootstrapSession } = useAuth();
-    const [imageSrc, setImageSrc] = useState<string | null>(null);
-    const [isCapturing, setIsCapturing] = useState(false);
-    const [isSubmitting, setIsSubmitting] = useState(false);
-    const [isStreamReady, setIsStreamReady] = useState(false);
-    const [retryContext, setRetryContext] = useState<FaceCheckinRetryContext | null>(null);
+  const navigate = useNavigate();
+  const { bootstrapSession } = useAuth();
 
-    const videoRef = useRef<HTMLVideoElement>(null);
-    const canvasRef = useRef<HTMLCanvasElement>(null);
+  const [imageSrc, setImageSrc] = useState<string | null>(null);
+  const [isCapturing, setIsCapturing] = useState(false);
+  const [isSubmitting, setIsSubmitting] = useState(false);
+  const [isStreamReady, setIsStreamReady] = useState(false);
+  const [retryContext, setRetryContext] = useState<FaceCheckinRetryContext | null>(null);
 
-    const stopWebcam = useCallback(() => {
-        const videoElement = videoRef.current;
-        const stream = videoElement?.srcObject as MediaStream;
-        if (stream) {
-            stream.getTracks().forEach(track => track.stop());
-        }
-        if (videoElement) {
-            videoElement.srcObject = null;
-        }
-        setIsStreamReady(false);
-    }, []);
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const canvasRef = useRef<HTMLCanvasElement>(null);
 
-    const startWebcam = useCallback(async () => {
-        if (imageSrc) return;
+  const isCheckinMode = mode === "checkin";
 
-        stopWebcam();
-        setIsCapturing(true);
+  const stopWebcam = useCallback(() => {
+    const videoElement = videoRef.current;
+    const stream = videoElement?.srcObject as MediaStream;
 
-        try {
-            const stream = await navigator.mediaDevices.getUserMedia({
-                video: {
-                    facingMode: "user",
-                    width: { ideal: 400 },
-                    height: { ideal: 300 },
-                },
-            });
+    if (stream) {
+      stream.getTracks().forEach((track) => track.stop());
+    }
 
-            if (!videoRef.current) {
-                stream.getTracks().forEach(track => track.stop());
-                return;
-            }
+    if (videoElement) {
+      videoElement.srcObject = null;
+    }
 
-            videoRef.current.srcObject = stream;
-            videoRef.current.onloadedmetadata = () => {
-                setIsStreamReady(true);
-                videoRef.current?.play().catch(e => console.error("Erro ao reproduzir vídeo:", e));
-            };
-        } catch (error: any) {
-            if (error.name !== "AbortError") {
-                console.error("Erro ao acessar a webcam:", error);
-                toast.error("Erro ao acessar a webcam. Verifique as permissões.");
-            }
-            setIsCapturing(false);
-        }
-    }, [imageSrc, stopWebcam]);
+    setIsStreamReady(false);
+  }, []);
 
-    useEffect(() => {
-        if (isOpen) {
-            startWebcam();
-        } else {
-            stopWebcam();
-            setImageSrc(null);
-            setRetryContext(null);
-            setIsSubmitting(false);
-            setIsCapturing(false);
-        }
-    }, [isOpen, startWebcam, stopWebcam]);
+  const startWebcam = useCallback(async () => {
+    if (imageSrc) return;
 
-    const handleCapture = () => {
-        if (!videoRef.current || !canvasRef.current) return;
+    stopWebcam();
+    setIsCapturing(true);
 
-        const video = videoRef.current;
-        const canvas = canvasRef.current;
+    try {
+      const stream = await navigator.mediaDevices.getUserMedia({
+        video: {
+          facingMode: "user",
+          width: { ideal: 400 },
+          height: { ideal: 300 },
+        },
+      });
 
-        const width = video.videoWidth > 0 ? video.videoWidth : 400;
-        const height = video.videoHeight > 0 ? video.videoHeight : 300;
+      if (!videoRef.current) {
+        stream.getTracks().forEach((track) => track.stop());
+        return;
+      }
 
-        canvas.width = width;
-        canvas.height = height;
+      videoRef.current.srcObject = stream;
+      videoRef.current.onloadedmetadata = () => {
+        setIsStreamReady(true);
+        videoRef.current?.play().catch((e) => console.error("Erro ao reproduzir vídeo:", e));
+      };
+    } catch (error: unknown) {
+      if (!(error instanceof DOMException && error.name === "AbortError")) {
+        console.error("Erro ao acessar a webcam:", error);
+        toast.error("Erro ao acessar a webcam. Verifique as permissões.");
+      }
+      setIsCapturing(false);
+    }
+  }, [imageSrc, stopWebcam]);
 
-        const ctx = canvas.getContext("2d");
-        if (ctx) {
-            ctx.drawImage(video, 0, 0, width, height);
-            const dataUrl = canvas.toDataURL("image/jpeg", 0.9);
+  useEffect(() => {
+    if (isOpen) {
+      void startWebcam();
+      return;
+    }
 
-            if (dataUrl.length > 100) {
-                setImageSrc(dataUrl);
-                setRetryContext(null);
-                stopWebcam();
-            } else {
-                toast.error("Falha na captura. Tente novamente.");
-            }
-        }
-    };
+    stopWebcam();
+    setImageSrc(null);
+    setRetryContext(null);
+    setIsSubmitting(false);
+    setIsCapturing(false);
+  }, [isOpen, startWebcam, stopWebcam]);
 
-    const handleRetake = () => {
-        setImageSrc(null);
-        setRetryContext(null);
-        setIsCapturing(false);
-        setIsSubmitting(false);
-        setIsRetryingCheckin(false);
-        setPartialFailureMessage(null);
-        setTimeout(() => {
-            startWebcam();
-        }, 50);
-    };
+  const handleCapture = () => {
+    if (!videoRef.current || !canvasRef.current) return;
 
-    const getGeolocation = (): Promise<{ latitude: number; longitude: number }> =>
-        new Promise((resolve, reject) => {
-            if (!navigator.geolocation) {
-                reject(new Error("Geolocalização não é suportada neste dispositivo."));
-                return;
-            }
+    const video = videoRef.current;
+    const canvas = canvasRef.current;
 
-            navigator.geolocation.getCurrentPosition(
-                (position) => {
-                    resolve({
-                        latitude: position.coords.latitude,
-                        longitude: position.coords.longitude,
-                    });
-                },
-                () => {
-                    reject(new Error("Não foi possível obter a geolocalização para registrar o ponto."));
-                },
-                { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 },
-            );
-        });
+    const width = video.videoWidth > 0 ? video.videoWidth : 400;
+    const height = video.videoHeight > 0 ? video.videoHeight : 300;
 
-    const handleLoginAttempt = async () => {
-        if (!imageSrc) return;
+    canvas.width = width;
+    canvas.height = height;
 
-        setIsSubmitting(true);
-        const base64Data = imageSrc.split(",")[1];
+    const ctx = canvas.getContext("2d");
 
-        try {
-            await registerPointWithFace(base64Data, { shouldLogoutAfterFlow });
-            setPartialFailureMessage(null);
-            
-            toast.success("Ponto registrado com sucesso! Acessando plataforma...", {
-                duration: 2000,
-            });
+    if (!ctx) return;
 
-            if (!flowResult.success) {
-                if (flowResult.partialFailure && flowResult.retryContext) {
-                    setRetryContext(flowResult.retryContext);
-                    toast.error(flowResult.message || "Falha no registro do ponto após autenticação. Tente novamente.");
-                    return;
-                }
+    ctx.drawImage(video, 0, 0, width, height);
+    const dataUrl = canvas.toDataURL("image/jpeg", 0.9);
 
-                throw new Error(flowResult.message || "Falha na autenticação facial.");
-            }
+    if (dataUrl.length <= 100) {
+      toast.error("Falha na captura. Tente novamente.");
+      return;
+    }
 
-            toast.success("Ponto registrado com sucesso!");
-            onOpenChange(false);
-        } catch (error: any) {
-            console.error(error);
-            if (error instanceof FaceCheckinFlowError && error.code === FACE_CHECKIN_ERROR_CODE.PARTIAL_CHECKIN_FAILURE) {
-                setPartialFailureMessage(error.message);
-                toast.error("Falha ao concluir registro de ponto.");
-                return;
-            }
+    setImageSrc(dataUrl);
+    setRetryContext(null);
+    stopWebcam();
+  };
 
-            const message = error instanceof Error ? error.message : "Rosto não reconhecido ou não cadastrado.";
-            toast.error(message);
-            setImageSrc(null);
-            startWebcam();
-        } finally {
-            setIsSubmitting(false);
-        }
-    };
+  const handleRetake = () => {
+    setImageSrc(null);
+    setRetryContext(null);
+    setIsCapturing(false);
+    setIsSubmitting(false);
 
-    const handleRetryCheckin = async () => {
-        if (!retryContext) return;
+    setTimeout(() => {
+      void startWebcam();
+    }, 50);
+  };
 
-        setIsSubmitting(true);
-        const result = await retryFaceCheckinFlow(retryContext);
-        setIsSubmitting(false);
+  const getGeolocation = (): Promise<{ latitude: number; longitude: number }> =>
+    new Promise((resolve, reject) => {
+      if (!navigator.geolocation) {
+        reject(new Error("Geolocalização não é suportada neste dispositivo."));
+        return;
+      }
 
-        if (result.success) {
-            toast.success("Ponto registrado com sucesso na nova tentativa!");
-            onOpenChange(false);
-            return;
+      navigator.geolocation.getCurrentPosition(
+        (position) => {
+          resolve({
+            latitude: position.coords.latitude,
+            longitude: position.coords.longitude,
+          });
+        },
+        () => {
+          reject(new Error("Não foi possível obter a geolocalização para registrar o ponto."));
+        },
+        { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 },
+      );
+    });
+
+  const handleLoginAttempt = async () => {
+    if (!imageSrc) return;
+
+    setIsSubmitting(true);
+    const base64Data = imageSrc.split(",")[1];
+
+    try {
+      if (!isCheckinMode) {
+        await authenticateWithFace(base64Data);
+        await bootstrapSession();
+        toast.success("Login realizado com sucesso!");
+        onOpenChange(false);
+        navigate("/dashboard", { replace: true });
+        return;
+      }
+
+      const location = await getGeolocation();
+      const flowResult = await executeFaceCheckinFlow({
+        faceImageBase64: base64Data,
+        location,
+        requireShortSession,
+      });
+
+      if (!flowResult.success) {
+        if (flowResult.partialFailure && flowResult.retryContext) {
+          setRetryContext(flowResult.retryContext);
+          toast.error(flowResult.message || "Falha no registro do ponto após autenticação. Tente novamente.");
+          return;
         }
 
-        toast.error(result.message || "Falha ao registrar o ponto na nova tentativa.");
-    };
+        throw new Error(flowResult.message || "Falha na autenticação facial.");
+      }
 
-    const isCheckinMode = mode === "checkin";
+      toast.success("Ponto registrado com sucesso!");
+      onOpenChange(false);
+    } catch (error: unknown) {
+      console.error(error);
+      const message = error instanceof Error ? error.message : "Rosto não reconhecido ou não cadastrado.";
+      toast.error(message);
+      setImageSrc(null);
+      setRetryContext(null);
+      void startWebcam();
+    } finally {
+      setIsSubmitting(false);
+    }
+  };
 
-    return (
-        <Dialog open={isOpen} onOpenChange={onOpenChange}>
-            <DialogContent className="sm:max-w-[425px]">
-                <DialogHeader>
-                    <DialogTitle className="flex items-center gap-2">
-                        <ScanFace className="w-5 h-5 text-primary" />
-                        {isCheckinMode ? "Registrar Ponto Facial" : "Acesso Biométrico"}
-                    </DialogTitle>
-                    <DialogDescription>
-                        {isCheckinMode
-                            ? "Capture seu rosto para autenticar e registrar seu ponto com geolocalização."
-                            : "Posicione seu rosto na câmera para realizar o login seguro."}
-                    </DialogDescription>
-                </DialogHeader>
-                <Card className="border-2 border-primary/20 shadow-lg">
-                    <CardContent className="pt-6">
-                        <div className="relative w-full aspect-video rounded-lg overflow-hidden bg-black flex items-center justify-center border border-border">
-                            {isCapturing && !imageSrc && (
-                                <video
-                                    ref={videoRef}
-                                    className="w-full h-full object-cover transform scale-x-[-1]"
-                                    playsInline
-                                    muted
-                                />
-                            )}
+  const handleRetryCheckin = async () => {
+    if (!retryContext) return;
 
-                            {imageSrc && (
-                                <img src={imageSrc} alt="Captured Face" className="w-full h-full object-cover transform scale-x-[-1]" />
-                            )}
+    setIsSubmitting(true);
+    const result = await retryFaceCheckinFlow(retryContext);
+    setIsSubmitting(false);
 
-                            <canvas ref={canvasRef} className="hidden" />
+    if (result.success) {
+      toast.success("Ponto registrado com sucesso na nova tentativa!");
+      onOpenChange(false);
+      return;
+    }
 
-                            {!isCapturing && !imageSrc && (
-                                <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />
-                            )}
-                        </div>
+    toast.error(result.message || "Falha ao registrar o ponto na nova tentativa.");
+  };
 
-                        <div className="flex flex-col gap-3 mt-4">
-                            {retryContext && isCheckinMode && (
-                                <div className="rounded-md border border-amber-500/40 bg-amber-50 p-3 text-xs text-amber-700">
-                                    Login facial confirmado, mas o check-in falhou. Você pode tentar novamente sem recapturar o rosto.
-                                </div>
-                            )}
+  return (
+    <Dialog open={isOpen} onOpenChange={onOpenChange}>
+      <DialogContent className="sm:max-w-[425px]">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2">
+            <ScanFace className="w-5 h-5 text-primary" />
+            {isCheckinMode ? "Registrar Ponto Facial" : "Acesso Biométrico"}
+          </DialogTitle>
+          <DialogDescription>
+            {isCheckinMode
+              ? "Capture seu rosto para autenticar e registrar seu ponto com geolocalização."
+              : "Posicione seu rosto na câmera para realizar o login seguro."}
+          </DialogDescription>
+        </DialogHeader>
 
-                            {imageSrc ? (
-                                <div className="flex gap-2">
-                                    <Button
-                                        onClick={handleRetake}
-                                        variant="outline"
-                                        disabled={isSubmitting || isRetryingCheckin}
-                                        className="flex-1"
-                                    >
-                                        <RefreshCcw className="h-4 w-4 mr-2" />
-                                        Refazer Foto
-                                    </Button>
-                                    {retryContext && isCheckinMode ? (
-                                        <Button onClick={handleRetryCheckin} disabled={isSubmitting} className="flex-1">
-                                            {isSubmitting ? (
-                                                <>
-                                                    <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                                                    Tentando...
-                                                </>
-                                            ) : (
-                                                <>
-                                                    <MapPin className="h-4 w-4 mr-2" />
-                                                    Tentar check-in
-                                                </>
-                                            )}
-                                        </Button>
-                                    ) : (
-                                        <Button
-                                            onClick={handleLoginAttempt}
-                                            disabled={isSubmitting}
-                                            className="flex-1"
-                                        >
-                                            {isSubmitting ? (
-                                                <>
-                                                    <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                                                    {isCheckinMode ? "Registrando..." : "Validando..."}
-                                                </>
-                                            ) : (
-                                                <>
-                                                    <Check className="h-4 w-4 mr-2" />
-                                                    {isCheckinMode ? "Confirmar registro" : "Confirmar"}
-                                                </>
-                                            )}
-                                        </Button>
-                                    )}
-                                </div>
-                                </div>
-                            ) : (
-                                <div className="flex flex-col gap-2">
-                                    <Button
-                                        onClick={handleCapture}
-                                        disabled={!isStreamReady || isSubmitting}
-                                        className="w-full"
-                                        variant="default"
-                                    >
-                                        <Camera className="h-4 w-4 mr-2" />
-                                        Capturar Rosto
-                                    </Button>
+        <Card className="border-2 border-primary/20 shadow-lg">
+          <CardContent className="pt-6">
+            <div className="relative w-full aspect-video rounded-lg overflow-hidden bg-black flex items-center justify-center border border-border">
+              {isCapturing && !imageSrc && (
+                <video
+                  ref={videoRef}
+                  className="w-full h-full object-cover transform scale-x-[-1]"
+                  playsInline
+                  muted
+                />
+              )}
 
-                                    <Button
-                                        onClick={handleRetake}
-                                        variant="outline"
-                                        disabled={isSubmitting}
-                                        className="w-full"
-                                    >
-                                        <RefreshCcw className="h-4 w-4 mr-2" />
-                                        Reiniciar Câmera
-                                    </Button>
-                                </div>
-                            )}
-                        </div>
-                    </CardContent>
-                </Card>
-            </DialogContent>
-        </Dialog>
-    );
+              {imageSrc && (
+                <img
+                  src={imageSrc}
+                  alt="Captured Face"
+                  className="w-full h-full object-cover transform scale-x-[-1]"
+                />
+              )}
+
+              <canvas ref={canvasRef} className="hidden" />
+
+              {!isCapturing && !imageSrc && <Loader2 className="w-8 h-8 animate-spin text-muted-foreground" />}
+            </div>
+
+            <div className="flex flex-col gap-3 mt-4">
+              {retryContext && isCheckinMode && (
+                <div className="rounded-md border border-amber-500/40 bg-amber-50 p-3 text-xs text-amber-700">
+                  Login facial confirmado, mas o check-in falhou. Você pode tentar novamente sem recapturar o rosto.
+                </div>
+              )}
+
+              {imageSrc ? (
+                <div className="flex gap-2">
+                  <Button onClick={handleRetake} variant="outline" disabled={isSubmitting} className="flex-1">
+                    <RefreshCcw className="h-4 w-4 mr-2" />
+                    Refazer Foto
+                  </Button>
+
+                  {retryContext && isCheckinMode ? (
+                    <Button onClick={handleRetryCheckin} disabled={isSubmitting} className="flex-1">
+                      {isSubmitting ? (
+                        <>
+                          <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                          Tentando...
+                        </>
+                      ) : (
+                        <>
+                          <MapPin className="h-4 w-4 mr-2" />
+                          Tentar check-in
+                        </>
+                      )}
+                    </Button>
+                  ) : (
+                    <Button onClick={handleLoginAttempt} disabled={isSubmitting} className="flex-1">
+                      {isSubmitting ? (
+                        <>
+                          <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                          {isCheckinMode ? "Registrando..." : "Validando..."}
+                        </>
+                      ) : (
+                        <>
+                          <Check className="h-4 w-4 mr-2" />
+                          {isCheckinMode ? "Confirmar registro" : "Confirmar"}
+                        </>
+                      )}
+                    </Button>
+                  )}
+                </div>
+              ) : (
+                <div className="flex flex-col gap-2">
+                  <Button
+                    onClick={handleCapture}
+                    disabled={!isStreamReady || isSubmitting}
+                    className="w-full"
+                    variant="default"
+                  >
+                    <Camera className="h-4 w-4 mr-2" />
+                    Capturar Rosto
+                  </Button>
+
+                  <Button onClick={handleRetake} variant="outline" disabled={isSubmitting} className="w-full">
+                    <RefreshCcw className="h-4 w-4 mr-2" />
+                    Reiniciar Câmera
+                  </Button>
+                </div>
+              )}
+            </div>
+          </CardContent>
+        </Card>
+      </DialogContent>
+    </Dialog>
+  );
 };
 
 export default FaceLoginModal;
