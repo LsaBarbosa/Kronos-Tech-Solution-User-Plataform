@@ -11,7 +11,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Upload, FileText, X, UserCheck, UserX, Info, MessageSquareWarningIcon, LucideFileWarning, FileWarning } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/context/AuthContext";
-import { fetchEmployeesForDocuments, uploadEmployeeDocument } from "@/service/documents-admin.service";
+import { listEmployeesForDocuments, uploadDocument } from "@/service/document.Service";
 import { getServiceErrorMessage } from "@/service/helpers/service-error.helper";
 
 interface Employee {
@@ -138,7 +138,7 @@ export default function EnviarDocumentos() {
         const fetchEmployees = async () => {
             setIsFetchingEmployees(true);
             try {
-                const formattedEmployees: Employee[] = await fetchEmployeesForDocuments(activeEmployeeFilter);
+                const formattedEmployees: Employee[] = await listEmployeesForDocuments(activeEmployeeFilter);
                 setEmployees(formattedEmployees);
             } catch (error) {
                 console.error("Erro ao buscar funcionários:", error);
@@ -242,7 +242,7 @@ export default function EnviarDocumentos() {
     try {
       // 1. Aplica a compressão de imagem (se for imagem e for > 3MB)
       const finalFile = await compressImage(selectedFile, MAX_COMPRESS_SIZE_MB);
-      await uploadEmployeeDocument(finalFile, selectedEmployeeId, selectedDocumentType);
+      await uploadDocument(finalFile, { employeeId: selectedEmployeeId, type: selectedDocumentType });
 
       toast({
         title: "Sucesso",
