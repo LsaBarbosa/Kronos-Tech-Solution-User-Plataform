@@ -9,7 +9,6 @@ import { useToast } from "@/hooks/use-toast";
 import { Button } from "./ui/button";
 import { PaginationComponent } from "./ui/PaginationComponent";
 import { downloadDocumentFile } from "@/service/document.Service";
-import { getServiceErrorMessage } from "@/service/helpers/service-error.helper";
 
 // Define 5 itens por página para a paginação local (Client-Side)
 const ROWS_PER_PAGE = 5; 
@@ -263,7 +262,7 @@ export const ResultadosRelatorioDetalhado: React.FC<ResultadosDetalhadoProps> = 
             console.error("Erro ao iniciar o download:", error);
             toast({
                 title: "Falha no Download",
-                description: `Erro: ${getServiceErrorMessage(error, "Não foi possível realizar o download.")}`,
+                description: `Erro: ${(error as Error).message || "Não foi possível realizar o download."}`,
                 variant: "destructive",
             });
         }
