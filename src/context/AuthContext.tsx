@@ -29,7 +29,7 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     setStatus("checking");
     try {
       const profile = await fetchCurrentSession();
-      setSession(profile as UserAccountData);
+      setSession(profile);
       setStatus("authenticated");
     } catch (error) {
       if (isAxiosError(error) && [401, 403].includes(error.response?.status ?? 0)) {

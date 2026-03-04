@@ -1,12 +1,6 @@
 import { api } from "@/config/api";
 import { ITimeRecordApprovalPageResponse } from "@/types/recordApproval";
 import { WarningMessage } from "@/types/dashboard";
-import { UserData } from "@/types/user";
-
-export const fetchUserProfile = async (): Promise<UserData> => {
-  const { data } = await api.get("employee/own-profile");
-  return data as UserData;
-};
 
 export const fetchPendingApprovalsCount = async (): Promise<ITimeRecordApprovalPageResponse> => {
   const { data } = await api.get("records/pending-approvals");

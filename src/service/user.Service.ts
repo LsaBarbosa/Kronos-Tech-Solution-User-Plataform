@@ -1,15 +1,8 @@
 import { api } from "@/config/api";
-import { UserAccountData, UserData, ChangePasswordData, cleanNumberString } from "@/types/user";
+import { ChangePasswordData, cleanNumberString, UserAccountData } from "@/types/user";
+import { fetchSessionProfile } from "@/service/session-profile.service";
 
-export const fetchAccountData = async (): Promise<UserAccountData> => {
-  const { data } = await api.get("users/own-profile");
-  return data;
-};
-
-export const fetchUserData = async (_employeeId: string): Promise<UserData> => {
-  const { data } = await api.get("employee/own-profile");
-  return data;
-};
+export const fetchCurrentUserData = fetchSessionProfile;
 
 export const updateEmail = async (_employeeId: string, newEmail: string): Promise<void> => {
   await api.patch("employee/update-own-profile", { email: newEmail });
