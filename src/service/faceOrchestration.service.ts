@@ -16,22 +16,31 @@ export interface FaceCheckinRetryContext {
   requireShortSession?: boolean;
 }
 
+/**
+ * Status oficial do fluxo facial para consumo dos componentes.
+ * - `success`: etapa concluída sem erros.
+ * - `face_login_failure`: falha no login facial (`auth/login-face`).
+ * - `partial_checkin_failure`: login facial concluído, mas check-in falhou.
+ */
+export type FaceFlowStatus = "success" | "face_login_failure" | "partial_checkin_failure";
+
 export type FaceFlowResult =
   | { status: "success" }
   | { status: "face_login_failure"; message: string }
   | { status: "partial_checkin_failure"; message: string; retryContext: FaceCheckinRetryContext };
 
 /**
- * Fluxo facial oficial do frontend:
- * 1) login-face: valida a identidade facial e inicia uma sessão autenticada.
- * 2) checkin: registra o ponto usando a mesma sessão + geolocalização.
- * 3) logout opcional: encerra sessão curta quando `requireShortSession=true`.
+ * Serviço oficial de orquestração facial do frontend.
  *
- * Contrato único de retorno (`FaceFlowResult`):
- * - success: login/check-in concluídos.
- * - face_login_failure: falha no reconhecimento facial.
- * - partial_checkin_failure: login facial confirmado, mas check-in falhou;
- *   retorna `retryContext` para permitir nova tentativa sem recapturar o rosto.
+ * Ordem do fluxo de check-in facial:
+ * 1) `auth/login-face`
+ * 2) `records/checkin`
+ * 3) `auth/logout` (opcional quando `requireShortSession=true`)
+ *
+ * Contrato único de retorno (`FaceFlowResult`) para padronizar o consumo:
+ * - `success`
+ * - `face_login_failure`
+ * - `partial_checkin_failure`
  */
 
 const parseErrorMessage = async (response: Response, fallback: string) => {
@@ -94,6 +103,13 @@ const logoutFaceSession = async () => {
   }
 };
 
+/**
+ * Login facial puro (`auth/login-face`), sem check-in.
+ *
+ * Retornos possíveis:
+ * - `success`
+ * - `face_login_failure`
+ */
 export const executeFaceLoginFlow = async (faceImageBase64: string): Promise<FaceFlowResult> => {
   const loginResult = await loginFace(faceImageBase64);
 
@@ -104,6 +120,14 @@ export const executeFaceLoginFlow = async (faceImageBase64: string): Promise<Fac
   return { status: "success" };
 };
 
+/**
+ * Fluxo oficial para `login-face -> checkin -> logout opcional`.
+ *
+ * Retornos possíveis:
+ * - `success`
+ * - `face_login_failure`
+ * - `partial_checkin_failure`
+ */
 export const executeFaceCheckinFlow = async (
   retryContext: FaceCheckinRetryContext,
 ): Promise<FaceFlowResult> => {
@@ -133,6 +157,13 @@ export const executeFaceCheckinFlow = async (
   return { status: "success" };
 };
 
+/**
+ * Reaproveita sessão autenticada para reexecutar somente o check-in.
+ *
+ * Retornos possíveis:
+ * - `success`
+ * - `partial_checkin_failure`
+ */
 export const retryFaceCheckinFlow = async (
   retryContext: FaceCheckinRetryContext,
 ): Promise<FaceFlowResult> => {
