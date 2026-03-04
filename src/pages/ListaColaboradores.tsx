@@ -47,6 +47,16 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Checkbox } from "@/components/ui/checkbox";
 import { fetchEmployeesByActive, fetchUsersSearch, toggleUserActivation, updateManagedEmployee, updateUserById } from "@/service/adminPortal.service";
 import { Switch } from "@/components/ui/switch";
+import {
+  fetchEmployeesAdmin,
+  fetchUsersAdmin,
+  toggleUserAdminStatus,
+  updateEmployeeAdmin,
+  updateUserAdmin,
+  EmployeeAdminData,
+  UserAdminData,
+} from "@/service/employee-admin.service";
+import { getServiceErrorMessage } from "@/service/helpers/service-error.helper";
 
 const SCHEDULE_TYPES = [
     { value: "TRADITIONAL_5X2", label: "Tradicional 5x2" },
@@ -75,39 +85,9 @@ interface Address {
   state: string;
 }
 
-interface Employee {
-  employeeId: string;
-  fullName: string;
-  maskedCpf: string;
-  pis: string;
-  jobPosition: string;
-  email: string;
-  salary: number;
-  phone: string;
-  address: Address;
-  companyId: string;
-  active: boolean;
-  homeOffice: boolean;
-  workStartTime?: string;   
-  workEndTime?: string;     
-  breakStartTime?: string;  
-  breakEndTime?: string;
-  scheduleType?: string;
-  scaleStartDate?: string;
-  preferredDayOff?: string;
-  weekendOffIndex?: number;
-  fixedWorkDays?: string[];
+interface Employee extends EmployeeAdminData {}
 
-}
-
- interface UserData {
-  userId: string;
-  username: string;
-  role: "PARTNER" | "MANAGER";
-  active: boolean; // Adicione active, pois é o que vem da API
-  enabled?: boolean; // Mantenha enabled como opcional se quiser usar na UI
-  employeeId: string;
-}
+interface UserData extends UserAdminData {}
 
 interface CombinedColaborator extends Employee, UserData { }
 
@@ -474,7 +454,7 @@ const ListaColaboradores = () => {
       console.error("Erro ao salvar colaborador:", error);
       toast({
         title: "Erro",
-        description: error.message || "Não foi possível salvar as alterações.",
+        description: getServiceErrorMessage(error, "Não foi possível salvar as alterações."),
         variant: "destructive",
       });
     } finally {
@@ -560,7 +540,7 @@ const ListaColaboradores = () => {
       console.error("Erro ao alterar status:", error);
       toast({
         title: "Erro",
-        description: error.message || "Não foi possível alterar o status do usuário.",
+        description: getServiceErrorMessage(error, "Não foi possível alterar o status do usuário."),
         variant: "destructive",
       });
     }

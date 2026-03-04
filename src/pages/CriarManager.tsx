@@ -26,6 +26,13 @@ import {
     fetchCompanies as fetchCompaniesService,
 } from "@/service/adminPortal.service";
 import { Checkbox } from "@/components/ui/checkbox";
+import {
+    checkCpfExists,
+    checkUsernameExists,
+    createCollaboratorEmployee,
+    createCollaboratorUser,
+    fetchCollaboratorCompanies,
+} from "@/service/collaborator-management.service";
 
 const SCHEDULE_TYPES = [
     { value: "TRADITIONAL_5X2", label: "Tradicional 5x2 (Seg-Sex)" },

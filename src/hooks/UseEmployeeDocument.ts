@@ -3,6 +3,7 @@
 import { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
+import { isAuthenticationError } from "@/service/helpers/service-error.helper";
 import { Document, EmployeeListItem } from "@/types/document";
 import { fetchEmployeeDocuments, fetchEmployeesForSelection, downloadDocumentFile } from "@/service/document.Service";
 

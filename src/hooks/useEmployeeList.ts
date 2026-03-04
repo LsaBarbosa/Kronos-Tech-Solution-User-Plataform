@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { useToast } from "@/hooks/use-toast";
+import { isAuthenticationError } from "@/service/helpers/service-error.helper";
 import { useNavigate } from "react-router-dom";
 import { EmployeeData, formatCPF } from "@/types/employee";
 import { fetchEmployeeList, toggleEmployeeStatus, deleteEmployee } from "@/service/employee.Service";

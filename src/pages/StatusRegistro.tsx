@@ -12,6 +12,13 @@ import Sidebar from "@/components/Sidebar";
 import { Info, Save, ZapOff, Loader2 } from "lucide-react"; 
 import { fetchEmployeesForReport, fetchRecordsReport, toggleStatusRecordActivation, updateStatusRecord } from "@/service/reportPortal.service";
 import { useAuth } from "@/context/AuthContext";
+import {
+    fetchDetailedReport,
+    fetchEmployeesByActive,
+    toggleRecordActivate,
+    updateRecordStatus,
+} from "@/service/report.service";
+import { getServiceErrorMessage } from "@/service/helpers/service-error.helper";
 
 // 💡 NOVO: Componente de Filtros Modular
 import { RelatorioFiltros } from "@/pages/RelatorioFiltros"; 
@@ -176,7 +183,7 @@ const StatusRegistro = () => {
             console.error("Erro na busca:", error);
             toast({
                 title: "Erro",
-                description: error.message || "Ocorreu um erro ao buscar o relatório.",
+                description: getServiceErrorMessage(error, "Ocorreu um erro ao buscar o relatório."),
                 variant: "destructive",
             });
         } finally {
@@ -234,7 +241,7 @@ const StatusRegistro = () => {
             console.error("Erro ao atualizar status:", error);
             toast({
                 title: "Erro",
-                description: error.message || "Ocorreu um erro ao salvar o status.",
+                description: getServiceErrorMessage(error, "Ocorreu um erro ao salvar o status."),
                 variant: "destructive",
             });
         } finally {
@@ -276,7 +283,7 @@ const StatusRegistro = () => {
             console.error(`Erro ao ${currentAction.toLowerCase()} registro:`, error);
             toast({
                 title: "Erro",
-                description: error.message || `Ocorreu um erro ao ${currentAction.toLowerCase()} o registro.`,
+                description: getServiceErrorMessage(error, `Ocorreu um erro ao ${currentAction.toLowerCase()} o registro.`),
                 variant: "destructive",
             });
         } finally {

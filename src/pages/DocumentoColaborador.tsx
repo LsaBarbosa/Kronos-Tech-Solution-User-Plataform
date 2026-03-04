@@ -147,7 +147,7 @@ export default function EnviarDocumentos() {
                 console.error("Erro ao buscar funcionários:", error);
                 toast({
                     title: "Erro",
-                    description: "Erro ao buscar a lista de funcionários. Tente novamente.",
+                    description: (error as Error).message || "Erro ao buscar a lista de funcionários. Tente novamente.",
                     variant: "destructive",
                 });
             } finally {
@@ -266,7 +266,7 @@ export default function EnviarDocumentos() {
       console.error("Erro de upload:", error);
       toast({
         title: "Erro",
-        description: error.message || "Erro ao enviar documento. Tente novamente.",
+        description: (error as Error).message || "Erro ao enviar documento. Tente novamente.",
         variant: "destructive",
       });
     } finally {
