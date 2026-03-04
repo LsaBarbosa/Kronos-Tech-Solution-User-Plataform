@@ -13,6 +13,7 @@ export const fetchMessages = async (): Promise<Message[]> => {
   const response = await apiFetch("messages", {
     method: "GET",
     headers,
+    credentials: "include",
   });
 
   return parseApiResponse<Message[]>(response);
@@ -23,6 +24,7 @@ export const deleteMessage = async (messageId: string): Promise<void> => {
   const response = await apiFetch(`messages/${messageId}`, {
     method: "DELETE",
     headers,
+    credentials: "include",
   });
 
   await parseApiResponse<void>(response);
@@ -33,7 +35,6 @@ export const postMessage = async (payload: MessagePayload): Promise<void> => {
   const response = await apiFetch("messages", {
     method: "POST",
     headers,
-    credentials: "include",
     body: JSON.stringify(payload),
     credentials: "include",
   });
@@ -43,7 +44,10 @@ export const postMessage = async (payload: MessagePayload): Promise<void> => {
 
 export const fetchActiveEmployees = async (): Promise<EmployeeData[]> => {
   const headers = getAuthHeaders();
-  const response = await apiFetch("employee?active=true", { headers });
+  const response = await apiFetch("employee?active=true", {
+    headers,
+    credentials: "include",
+  });
   const data = await parseApiResponse<{ employees: EmployeeData[] }>(response);
 
   return data.employees.map((emp) => ({
