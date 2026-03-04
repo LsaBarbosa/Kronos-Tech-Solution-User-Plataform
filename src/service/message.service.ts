@@ -1,27 +1,12 @@
 // src/services/messageService.ts
 
-import { apiFetch } from "@/config/api";
+import { apiFetch, parseApiResponse } from "@/config/api";
 import { Message, MessagePayload } from "@/types/message";
 import { EmployeeData } from "@/types/employee";
 
 const getAuthHeaders = () => ({
   "Content-Type": "application/json",
 });
-
-const handleResponse = async (response: Response) => {
-  if (!response.ok) {
-    const errorData = await response.json();
-    const errorMessage = errorData.detail || errorData.message || `Erro de API (${response.status})`;
-    throw new Error(errorMessage);
-  }
-
-  const contentType = response.headers.get("content-type");
-  if (contentType && contentType.includes("application/json")) {
-    return response.json();
-  }
-
-  return {};
-};
 
 export const fetchMessages = async (): Promise<Message[]> => {
   const headers = getAuthHeaders();
@@ -30,7 +15,7 @@ export const fetchMessages = async (): Promise<Message[]> => {
     headers,
   });
 
-  return handleResponse(response);
+  return parseApiResponse<Message[]>(response);
 };
 
 export const deleteMessage = async (messageId: string): Promise<void> => {
@@ -40,7 +25,7 @@ export const deleteMessage = async (messageId: string): Promise<void> => {
     headers,
   });
 
-  await handleResponse(response);
+  await parseApiResponse<void>(response);
 };
 
 export const postMessage = async (payload: MessagePayload): Promise<void> => {
@@ -50,18 +35,19 @@ export const postMessage = async (payload: MessagePayload): Promise<void> => {
     headers,
     credentials: "include",
     body: JSON.stringify(payload),
+    credentials: "include",
   });
 
-  await handleResponse(response);
+  await parseApiResponse<void>(response);
 };
 
 export const fetchActiveEmployees = async (): Promise<EmployeeData[]> => {
   const headers = getAuthHeaders();
   const response = await apiFetch("employee?active=true", { headers });
-  const data = await handleResponse(response);
+  const data = await parseApiResponse<{ employees: EmployeeData[] }>(response);
 
-  return data.employees.map((emp: any) => ({
+  return data.employees.map((emp) => ({
     employeeId: emp.employeeId,
     fullName: emp.fullName,
-  })) as EmployeeData[];
+  }));
 };
