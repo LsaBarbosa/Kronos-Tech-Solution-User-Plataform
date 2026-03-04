@@ -87,7 +87,6 @@ const formSchema = employeeSchema.extend({
 type FormData = z.infer<typeof employeeSchema> & z.infer<typeof userSchema>;
 
 const CriarColaborador = () => {
-    const token = localStorage.getItem("token");
     const navigate = useNavigate();
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -214,7 +213,6 @@ const [faceImageBase64, setFaceImageBase64] = useState<string | undefined>(undef
 
         // Lógica de chamada à API para verificação (Mantida)
         try {
-                        if (!token) throw new Error("Token de autenticação não encontrado.");
 
             const response = await fetch(`${API_BASE_URL}users/check-username?username=${username}`, {
                 headers: {  },
@@ -256,7 +254,6 @@ const [faceImageBase64, setFaceImageBase64] = useState<string | undefined>(undef
         }
         
         try {
-                        if (!token) throw new Error("Token de autenticação não encontrado.");
 
             // Removendo máscaras e convertendo dados para envio ao backend
             const employeePayload = {
@@ -358,7 +355,6 @@ const [faceImageBase64, setFaceImageBase64] = useState<string | undefined>(undef
          }
 
         try {
-                        if (!token) throw new Error("Token de autenticação não encontrado.");
 
             // Aqui, usamos data.username, data.password e data.role que foram validados pelo userSchema
             const userPayload = {

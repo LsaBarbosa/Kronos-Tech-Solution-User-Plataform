@@ -248,16 +248,6 @@ export const ResultadosRelatorioDetalhado: React.FC<ResultadosDetalhadoProps> = 
         }
 
         try {
-            const token = localStorage.getItem('token');
-            if (!token) {
-                toast({
-                    title: "Não Autorizado",
-                    description: "Token de autenticação ausente. Faça login novamente.",
-                    variant: "destructive"
-                });
-                return;
-            }
-
             const url = `${API_BASE_URL}documents/${documentId}?employeeId=${employeeId}`;
 
             const response = await fetch(url, {

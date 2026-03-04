@@ -116,7 +116,6 @@ const isValidEmail = (email: string) => {
 };
 
 const ListaColaboradores = () => {
-    const token = localStorage.getItem("token");
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [colaboradores, setColaboradores] = useState<CombinedColaborator[]>([]);
   const [showInactive, setShowInactive] = useState(false);
@@ -136,10 +135,6 @@ const ListaColaboradores = () => {
   const fetchColaboradores = async () => {
     setIsLoading(true);
     try {
-            if (!token) {
-        throw new Error("Token de autenticação não encontrado.");
-      }
-
       const isActive = !showInactive;
 
       const [employeesResponse, usersResponse] = await Promise.all([
@@ -389,10 +384,6 @@ const ListaColaboradores = () => {
 
     setIsLoading(true);
     try {
-            if (!token) {
-        throw new Error("Token de autenticação não encontrado.");
-      }
-
       const bodyDataEmployee: { [key: string]: any } = {};
       const bodyDataUser: { [key: string]: any } = {};
 
@@ -577,10 +568,6 @@ const ListaColaboradores = () => {
     }
 
     try {
-            if (!token) {
-        throw new Error("Token de autenticação não encontrado.");
-      }
-
       // Chamada à API
       const response = await fetch(`${API_BASE_URL}users/toggle-activate/${userId}`, {
         method: "PATCH",

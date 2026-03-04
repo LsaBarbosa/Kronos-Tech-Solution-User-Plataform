@@ -9,6 +9,8 @@ export interface UserAccountData {
   role: string;
   active: boolean;
   employeeId: string;
+  companyId?: string;
+  claims?: Record<string, unknown>;
 }
 
 /**
