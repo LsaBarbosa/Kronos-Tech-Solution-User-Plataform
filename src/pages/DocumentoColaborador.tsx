@@ -12,7 +12,6 @@ import { Upload, FileText, X, UserCheck, UserX, Info, MessageSquareWarningIcon, 
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/context/AuthContext";
 import { listEmployeesForDocuments, uploadDocument } from "@/service/document.Service";
-import { getServiceErrorMessage } from "@/service/helpers/service-error.helper";
 
 interface Employee {
   id: string;
@@ -144,7 +143,7 @@ export default function EnviarDocumentos() {
                 console.error("Erro ao buscar funcionários:", error);
                 toast({
                     title: "Erro",
-                    description: getServiceErrorMessage(error, "Erro ao buscar a lista de funcionários. Tente novamente."),
+                    description: (error as Error).message || "Erro ao buscar a lista de funcionários. Tente novamente.",
                     variant: "destructive",
                 });
             } finally {
@@ -262,7 +261,7 @@ export default function EnviarDocumentos() {
       console.error("Erro de upload:", error);
       toast({
         title: "Erro",
-        description: getServiceErrorMessage(error, "Erro ao enviar documento. Tente novamente."),
+        description: (error as Error).message || "Erro ao enviar documento. Tente novamente.",
         variant: "destructive",
       });
     } finally {

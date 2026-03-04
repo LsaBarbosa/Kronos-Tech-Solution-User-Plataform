@@ -1,5 +1,5 @@
 import { api } from "@/config/api";
-import { getServiceErrorMessage } from "@/service/helpers/service-error.helper";
+import { throwServiceError } from "@/service/helpers/service-error.helper";
 import { Document, EmployeeListItem, MAX_UPLOAD_SIZE_BYTES } from "@/types/document";
 
 interface EmployeesResponse {
@@ -30,12 +30,16 @@ export interface DownloadDocumentParams {
 }
 
 export const listEmployeesForDocuments = async (active: string): Promise<Array<{ id: string; name: string }>> => {
-  const { data } = await api.get<EmployeesResponse>("employee", { params: { active } });
+  try {
+    const { data } = await api.get<EmployeesResponse>("employee", { params: { active } });
 
-  return (data.employees || []).map((emp) => ({
-    id: emp.employeeId || emp.id || "",
-    name: emp.fullName || emp.name || "",
-  }));
+    return (data.employees || []).map((emp) => ({
+      id: emp.employeeId || emp.id || "",
+      name: emp.fullName || emp.name || "",
+    }));
+  } catch (error) {
+    throwServiceError(error, "Erro ao buscar a lista de funcionários. Tente novamente.");
+  }
 };
 
 interface EmployeeSelectionResponse {
@@ -43,45 +47,61 @@ interface EmployeeSelectionResponse {
 }
 
 export const fetchEmployeesForSelection = async (): Promise<EmployeeListItem[]> => {
-  const { data } = await api.get<EmployeeSelectionResponse>("employees", { params: { active: true } });
-  return data.employees.map((emp) => ({ employeeId: emp.id, fullName: emp.name }));
+  try {
+    const { data } = await api.get<EmployeeSelectionResponse>("employees", { params: { active: true } });
+    return data.employees.map((emp) => ({ employeeId: emp.id, fullName: emp.name }));
+  } catch (error) {
+    throwServiceError(error, "Erro ao buscar a lista de funcionários. Tente novamente.");
+  }
 };
 
 export const listDocuments = async ({ employeeId, type }: ListDocumentsParams = {}): Promise<Document[]> => {
-  if (!employeeId && !type) {
-    const { data } = await api.get<Document[]>("documents/me");
-    return data;
+  try {
+    if (!employeeId && !type) {
+      const { data } = await api.get<Document[]>("documents/me");
+      return data;
+    }
+
+    const { data } = await api.get<DocumentsResponse>("documents", {
+      params: {
+        ...(employeeId ? { employeeId } : {}),
+        ...(type ? { type } : {}),
+      },
+    });
+
+    return (data.documents || []).map((doc) => ({
+      id: doc.id,
+      name: doc.fileName || doc.name || "Nome Desconhecido",
+      createdAt: doc.createdAt || doc.uploadedAt || "",
+      type: doc.type || type || "",
+    }));
+  } catch (error) {
+    throwServiceError(error, "Erro ao buscar documentos. Tente novamente.");
   }
-
-  const { data } = await api.get<DocumentsResponse>("documents", {
-    params: {
-      ...(employeeId ? { employeeId } : {}),
-      ...(type ? { type } : {}),
-    },
-  });
-
-  return (data.documents || []).map((doc) => ({
-    id: doc.id,
-    name: doc.fileName || doc.name || "Nome Desconhecido",
-    createdAt: doc.createdAt || doc.uploadedAt || "",
-    type: doc.type || type || "",
-  }));
 };
 
 export const fetchUserDocuments = listDocuments;
 
 export const fetchEmployeeDocuments = async (employeeId: string): Promise<Document[]> => {
-  const { data } = await api.get<Document[]>(`documents/employee/${employeeId}`);
-  return data;
+  try {
+    const { data } = await api.get<Document[]>(`documents/employee/${employeeId}`);
+    return data;
+  } catch (error) {
+    throwServiceError(error, "Erro ao buscar documentos. Tente novamente.");
+  }
 };
 
 export const deleteDocument = async (
   documentId: string,
   params?: DeleteDocumentParams,
 ): Promise<void> => {
-  await api.delete(`documents/${documentId}`, {
-    params: params?.employeeId ? { employeeId: params.employeeId } : undefined,
-  });
+  try {
+    await api.delete(`documents/${documentId}`, {
+      params: params?.employeeId ? { employeeId: params.employeeId } : undefined,
+    });
+  } catch (error) {
+    throwServiceError(error, "Falha ao excluir o documento.");
+  }
 };
 
 export const uploadDocument = async (
@@ -101,18 +121,22 @@ export const uploadDocument = async (
   const formData = new FormData();
   formData.append("file", file);
 
-  if (params.type) {
-    await api.post("documents", formData, {
-      params: { employeeId: params.employeeId, type: params.type },
+  try {
+    if (params.type) {
+      await api.post("documents", formData, {
+        params: { employeeId: params.employeeId, type: params.type },
+        headers: { "Content-Type": "multipart/form-data" },
+      });
+      return;
+    }
+
+    formData.append("employeeId", params.employeeId);
+    await api.post("documents/upload", formData, {
       headers: { "Content-Type": "multipart/form-data" },
     });
-    return;
+  } catch (error) {
+    throwServiceError(error, "Erro ao enviar documento. Tente novamente.");
   }
-
-  formData.append("employeeId", params.employeeId);
-  await api.post("documents/upload", formData, {
-    headers: { "Content-Type": "multipart/form-data" },
-  });
 };
 
 const resolveFileName = (contentDisposition: string | null, fallbackFileName: string): string => {
@@ -156,7 +180,7 @@ export const downloadDocument = async (
     const contentDisposition = response.headers["content-disposition"] || null;
     triggerFileDownload(response.data, resolveFileName(contentDisposition, fallbackFileName));
   } catch (error) {
-    throw new Error(getServiceErrorMessage(error, "Não foi possível realizar o download."));
+    throwServiceError(error, "Não foi possível realizar o download.");
   }
 };
 

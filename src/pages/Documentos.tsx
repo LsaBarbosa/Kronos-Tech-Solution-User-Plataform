@@ -17,7 +17,6 @@ import { toast } from "sonner";
 import { es } from 'date-fns/locale';
 import { deleteDocument, downloadDocument, listDocuments, listEmployeesForDocuments } from "@/service/document.Service";
 import { useAuth } from "@/context/AuthContext";
-import { getServiceErrorMessage } from "@/service/helpers/service-error.helper";
 
 interface Employee {
   id: string;
@@ -71,7 +70,7 @@ const Documentos = () => {
         setSelectedEmployeeId("");
       } catch (error) {
         console.error("Erro ao buscar funcionários:", error);
-        toast.error(getServiceErrorMessage(error, "Erro ao buscar a lista de funcionários. Tente novamente."));
+        toast.error((error as Error).message || "Erro ao buscar a lista de funcionários. Tente novamente.");
       } finally {
         setIsFetchingEmployees(false);
       }
@@ -98,7 +97,7 @@ const Documentos = () => {
 
     } catch (error) {
       console.error("Erro ao buscar documentos:", error);
-      toast.error(getServiceErrorMessage(error, "Erro ao buscar documentos. Tente novamente."));
+      toast.error((error as Error).message || "Erro ao buscar documentos. Tente novamente.");
       setDocuments([]);
       setFilteredDocuments([]);
     } finally {
@@ -127,7 +126,7 @@ const Documentos = () => {
         toast.success(`Documento "${documentName}" excluído com sucesso!`);
 
     } catch (error) {
-      toast.error(getServiceErrorMessage(error, "Falha ao excluir o documento."));
+      toast.error((error as Error).message || "Falha ao excluir o documento.");
     }
   };
 
