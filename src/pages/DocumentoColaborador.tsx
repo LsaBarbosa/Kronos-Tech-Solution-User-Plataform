@@ -10,8 +10,9 @@ import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox"; 
 import { Upload, FileText, X, UserCheck, UserX, Info, MessageSquareWarningIcon, LucideFileWarning, FileWarning } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { API_BASE_URL } from "@/config/api";
 import { useAuth } from "@/context/AuthContext";
+import { fetchEmployeesForDocuments, uploadEmployeeDocument } from "@/service/documents-admin.service";
+import { getServiceErrorMessage } from "@/service/helpers/service-error.helper";
 
 interface Employee {
   id: string;
@@ -24,10 +25,6 @@ const MAX_COMPRESS_SIZE_MB = 3; // 3MB target for image compression
 const ALLOWED_MIME_TYPES = ['.pdf', '.jpg', '.jpeg', '.png', '.docx', '.doc'];
 const ALLOWED_ACCEPT_STRING = ALLOWED_MIME_TYPES.join(', ');
 
-
-const getAuthHeaders = () => ({
-  'Content-Type': 'application/json',
-});
 
 // NOVO: Função para compressão de imagem (Target 3MB)
 const compressImage = (file: File, maxSizeMB: number = MAX_COMPRESS_SIZE_MB): Promise<File> => {
@@ -141,30 +138,13 @@ export default function EnviarDocumentos() {
         const fetchEmployees = async () => {
             setIsFetchingEmployees(true);
             try {
-                const headers = getAuthHeaders();
-                if (Object.keys(headers).length === 0) {
-                    return;
-                }
-
-                const response = await fetch(`${API_BASE_URL}employee?active=${activeEmployeeFilter}`, {
-                  credentials: "include",
-                  headers,
-                });
-                if (!response.ok) {
-                    const errorData = await response.json();
-                    throw new Error(errorData.detail ||"Erro ao buscar funcionários.");
-                }
-                const data = await response.json();
-                const formattedEmployees: Employee[] = data.employees.map((emp: any) => ({
-                    id: emp.employeeId,
-                    name: emp.fullName,
-                }));
+                const formattedEmployees: Employee[] = await fetchEmployeesForDocuments(activeEmployeeFilter);
                 setEmployees(formattedEmployees);
             } catch (error) {
                 console.error("Erro ao buscar funcionários:", error);
                 toast({
                     title: "Erro",
-                    description: "Erro ao buscar a lista de funcionários. Tente novamente.",
+                    description: getServiceErrorMessage(error, "Erro ao buscar a lista de funcionários. Tente novamente."),
                     variant: "destructive",
                 });
             } finally {
@@ -260,31 +240,9 @@ export default function EnviarDocumentos() {
     setIsUploading(true);
 
     try {
-      const headers = getAuthHeaders();
-      delete headers['Content-Type'];
-
       // 1. Aplica a compressão de imagem (se for imagem e for > 3MB)
       const finalFile = await compressImage(selectedFile, MAX_COMPRESS_SIZE_MB);
-
-      const formData = new FormData();
-      formData.append("file", finalFile); // Usa o arquivo comprimido (ou original)
-
-      const searchParams = new URLSearchParams({
-        employeeId: selectedEmployeeId, // Usará o ID selecionado (Manager) ou o ID do próprio usuário (outros)
-        type: selectedDocumentType,
-      });
-
-      const response = await fetch(`${API_BASE_URL}documents?${searchParams.toString()}`, {
-        method: "POST",
-        credentials: "include",
-        headers: headers,
-        body: formData,
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || "Erro ao enviar documento.");
-      }
+      await uploadEmployeeDocument(finalFile, selectedEmployeeId, selectedDocumentType);
 
       toast({
         title: "Sucesso",
@@ -304,7 +262,7 @@ export default function EnviarDocumentos() {
       console.error("Erro de upload:", error);
       toast({
         title: "Erro",
-        description: error.message || "Erro ao enviar documento. Tente novamente.",
+        description: getServiceErrorMessage(error, "Erro ao enviar documento. Tente novamente."),
         variant: "destructive",
       });
     } finally {

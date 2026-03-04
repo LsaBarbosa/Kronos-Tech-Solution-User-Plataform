@@ -10,8 +10,14 @@ import Header from "@/components/Header";
 import Sidebar from "@/components/Sidebar";
 // 🚀 ADICIONADO Loader2 para o spinner
 import { Info, Save, ZapOff, Loader2 } from "lucide-react"; 
-import { API_BASE_URL } from "@/config/api";
 import { useAuth } from "@/context/AuthContext";
+import {
+    fetchDetailedReport,
+    fetchEmployeesByActive,
+    toggleRecordActivate,
+    updateRecordStatus,
+} from "@/service/report.service";
+import { getServiceErrorMessage } from "@/service/helpers/service-error.helper";
 
 // 💡 NOVO: Componente de Filtros Modular
 import { RelatorioFiltros } from "@/pages/RelatorioFiltros"; 
@@ -109,24 +115,14 @@ const StatusRegistro = () => {
             setIsPartner(false);
 
             const activeStatus = employeeActive === "active";
-            const url = `${API_BASE_URL}employee?active=${activeStatus}`;
-
-            const response = await fetch(url, {
-                method: "GET",
-                credentials: "include",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-            });
-
-            if (response.ok) {
-                const data = await response.json();
-                setEmployees(data.employees || []);
+            const employeeList = await fetchEmployeesByActive(activeStatus);
+            setEmployees(employeeList);
+            if (employeeList) {
                 // 💡 CORREÇÃO: Lógica de verificação de funcionário selecionado
-                if (!employees.some(emp => emp.employeeId === selectedEmployee) && data.employees.length > 0) {
-                    setSelectedEmployee(data.employees[0].employeeId); 
-                } else if (!selectedEmployee && data.employees.length > 0) {
-                    setSelectedEmployee(data.employees[0].employeeId);
+                if (!employees.some(emp => emp.employeeId === selectedEmployee) && employeeList.length > 0) {
+                    setSelectedEmployee(employeeList[0].employeeId); 
+                } else if (!selectedEmployee && employeeList.length > 0) {
+                    setSelectedEmployee(employeeList[0].employeeId);
                 } else if (!selectedEmployee) {
                     setSelectedEmployee("");
                 }
@@ -166,26 +162,7 @@ const StatusRegistro = () => {
                 dates: formattedDates,
             };
 
-            const apiUrl = new URL(`${API_BASE_URL}records/report`, window.location.origin);
-            if (selectedEmployee) {
-                apiUrl.searchParams.append("employeeId", selectedEmployee);
-            }
-
-            const response = await fetch(apiUrl.toString(), {
-                method: "POST",
-                credentials: "include",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify(requestBody),
-            });
-
-            if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.detail || "Erro ao buscar o relatório. Tente novamente mais tarde.");
-            }
-
-            const data = await response.json();
+            const data = await fetchDetailedReport(requestBody, selectedEmployee || undefined);
 
             if (data.length === 0) {
                 setReportData([]);
@@ -204,7 +181,7 @@ const StatusRegistro = () => {
             console.error("Erro na busca:", error);
             toast({
                 title: "Erro",
-                description: error.message || "Ocorreu um erro ao buscar o relatório.",
+                description: getServiceErrorMessage(error, "Ocorreu um erro ao buscar o relatório."),
                 variant: "destructive",
             });
         } finally {
@@ -245,22 +222,7 @@ const StatusRegistro = () => {
         setIsSavingStatus(true); // 🚀 ATIVA O LOADING DO BOTÃO SALVAR
         
         try {
-            const endpoint = `${API_BASE_URL}records/update/status/${employeeId}/${timeRecordId}`;
-
-            const response = await fetch(endpoint, {
-                method: "PUT",
-                credentials: "include",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify({ statusRecord: statusRecord }),
-            });
-
-
-            if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.detail || "Erro ao atualizar o status do registro.");
-            }
+            await updateRecordStatus(employeeId, timeRecordId, statusRecord);
 
             toast({
                 title: "Sucesso",
@@ -277,7 +239,7 @@ const StatusRegistro = () => {
             console.error("Erro ao atualizar status:", error);
             toast({
                 title: "Erro",
-                description: error.message || "Ocorreu um erro ao salvar o status.",
+                description: getServiceErrorMessage(error, "Ocorreu um erro ao salvar o status."),
                 variant: "destructive",
             });
         } finally {
@@ -303,21 +265,7 @@ const StatusRegistro = () => {
         setIsTogglingActivate(true); // 🚀 ATIVA O LOADING DO BOTÃO TOGGLE
 
         try {
-            // Endpoint conforme informação do backend: PATCH records/toggle-activate/{employeeId}/{timeRecordId}
-            const endpoint = `${API_BASE_URL}records/toggle-activate/${employeeId}/${timeRecordId}`;
-
-            const response = await fetch(endpoint, {
-                method: "PUT", 
-                credentials: "include",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-            });
-
-            if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.detail || `Erro ao ${currentAction.toLowerCase()} o registro de ponto.`);
-            }
+            await toggleRecordActivate(employeeId, timeRecordId);
 
             toast({
                 title: "Sucesso",
@@ -333,7 +281,7 @@ const StatusRegistro = () => {
             console.error(`Erro ao ${currentAction.toLowerCase()} registro:`, error);
             toast({
                 title: "Erro",
-                description: error.message || `Ocorreu um erro ao ${currentAction.toLowerCase()} o registro.`,
+                description: getServiceErrorMessage(error, `Ocorreu um erro ao ${currentAction.toLowerCase()} o registro.`),
                 variant: "destructive",
             });
         } finally {

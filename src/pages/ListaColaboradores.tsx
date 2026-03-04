@@ -45,8 +45,17 @@ import { useToast } from "@/hooks/use-toast";
 // Importações adicionais
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
-import { API_BASE_URL } from "@/config/api";
 import { Switch } from "@/components/ui/switch";
+import {
+  fetchEmployeesAdmin,
+  fetchUsersAdmin,
+  toggleUserAdminStatus,
+  updateEmployeeAdmin,
+  updateUserAdmin,
+  EmployeeAdminData,
+  UserAdminData,
+} from "@/service/employee-admin.service";
+import { getServiceErrorMessage } from "@/service/helpers/service-error.helper";
 
 const SCHEDULE_TYPES = [
     { value: "TRADITIONAL_5X2", label: "Tradicional 5x2" },
@@ -75,39 +84,9 @@ interface Address {
   state: string;
 }
 
-interface Employee {
-  employeeId: string;
-  fullName: string;
-  maskedCpf: string;
-  pis: string;
-  jobPosition: string;
-  email: string;
-  salary: number;
-  phone: string;
-  address: Address;
-  companyId: string;
-  active: boolean;
-  homeOffice: boolean;
-  workStartTime?: string;   
-  workEndTime?: string;     
-  breakStartTime?: string;  
-  breakEndTime?: string;
-  scheduleType?: string;
-  scaleStartDate?: string;
-  preferredDayOff?: string;
-  weekendOffIndex?: number;
-  fixedWorkDays?: string[];
+interface Employee extends EmployeeAdminData {}
 
-}
-
- interface UserData {
-  userId: string;
-  username: string;
-  role: "PARTNER" | "MANAGER";
-  active: boolean; // Adicione active, pois é o que vem da API
-  enabled?: boolean; // Mantenha enabled como opcional se quiser usar na UI
-  employeeId: string;
-}
+interface UserData extends UserAdminData {}
 
 interface CombinedColaborator extends Employee, UserData { }
 
@@ -137,32 +116,10 @@ const ListaColaboradores = () => {
     try {
       const isActive = !showInactive;
 
-      const [employeesResponse, usersResponse] = await Promise.all([
-        fetch(`${API_BASE_URL}employee?active=${isActive}`, {
-          method: "GET",
-          credentials: "include",
-          headers: {
-            "Content-Type": "application/json",
-          },
-        }),
-        fetch(`${API_BASE_URL}users/search`, {
-          method: "GET",
-          credentials: "include",
-          headers: {
-            "Content-Type": "application/json",
-          },
-        }),
+      const [employees, users] = await Promise.all([
+        fetchEmployeesAdmin(isActive),
+        fetchUsersAdmin(),
       ]);
-
-      if (!employeesResponse.ok || !usersResponse.ok) {
-        throw new Error("Falha ao buscar os dados dos colaboradores.");
-      }
-
-      const employeesData = await employeesResponse.json();
-      const usersData = await usersResponse.json();
-
-      const employees = employeesData.employees || [];
-      const users = usersData.users || [];
 
       const usersMap = new Map<string, UserData>();
       users.forEach((user: UserData) => usersMap.set(user.employeeId, user));
@@ -481,23 +438,13 @@ const ListaColaboradores = () => {
 
       if (Object.keys(bodyDataEmployee).length > 0 || faceImageFile) {
         promises.push(
-          fetch(`${API_BASE_URL}employee/manager/update-employee/${colaboradorId}`, {
-            method: "PATCH",
-            credentials: "include",
-            headers: { "Content-Type": "application/json",  },
-            body: JSON.stringify(bodyDataEmployee),
-          })
+          updateEmployeeAdmin(colaboradorId, bodyDataEmployee)
         );
       }
 
       if (Object.keys(bodyDataUser).length > 0) {
         promises.push(
-          fetch(`${API_BASE_URL}users/search/${originalColaborador.userId}`, {
-            method: "PATCH",
-            credentials: "include",
-            headers: { "Content-Type": "application/json",  },
-            body: JSON.stringify(bodyDataUser),
-          })
+          updateUserAdmin(originalColaborador.userId, bodyDataUser)
         );
       }
 
@@ -509,7 +456,7 @@ const ListaColaboradores = () => {
       console.error("Erro ao salvar colaborador:", error);
       toast({
         title: "Erro",
-        description: error.message || "Não foi possível salvar as alterações.",
+        description: getServiceErrorMessage(error, "Não foi possível salvar as alterações."),
         variant: "destructive",
       });
     } finally {
@@ -573,22 +520,7 @@ const ListaColaboradores = () => {
 
     try {
       // Chamada à API
-      const response = await fetch(`${API_BASE_URL}users/toggle-activate/${userId}`, {
-        method: "PATCH",
-        credentials: "include",
-        headers: {
-          "Content-Type": "application/json",
-        },
-      });
-
-      if (!response.ok) {
-        let errorMessage = "Falha ao alterar status.";
-        try {
-          const errorData = await response.json();
-          if (errorData.detail) errorMessage = errorData.detail;
-        } catch (e) { }
-        throw new Error(errorMessage);
-      }
+      await toggleUserAdminStatus(userId);
 
       // --- PONTO DA CORREÇÃO ---
       
@@ -610,7 +542,7 @@ const ListaColaboradores = () => {
       console.error("Erro ao alterar status:", error);
       toast({
         title: "Erro",
-        description: error.message || "Não foi possível alterar o status do usuário.",
+        description: getServiceErrorMessage(error, "Não foi possível alterar o status do usuário."),
         variant: "destructive",
       });
     }
