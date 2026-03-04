@@ -173,6 +173,7 @@ const RelatorioDetalhado = () => {
 
             const response = await fetch(url, {
                 method: "GET",
+                credentials: "include",
                 headers: { "Content-Type": "application/json",  },
             });
 
@@ -190,6 +191,7 @@ const RelatorioDetalhado = () => {
         try {
             const response = await fetch(`${API_BASE_URL}users/search`, {
                 method: "GET",
+                credentials: "include",
                 headers: { "Content-Type": "application/json",  },
             });
 
@@ -233,6 +235,7 @@ const RelatorioDetalhado = () => {
 
             const response = await fetch(apiUrl.toString(), {
                 method: "POST",
+                credentials: "include",
                 headers: { "Content-Type": "application/json",  },
                 body: JSON.stringify(requestBody),
             });
@@ -557,6 +560,7 @@ const RelatorioDetalhado = () => {
             const endpoint = `${API_BASE_URL}records/update/time-record/${selectedRecord.timeRecordId}`;
             const response = await fetch(endpoint, {
                 method: "PUT",
+                credentials: "include",
                 headers: { "Content-Type": "application/json",  },
                 body: JSON.stringify(requestBody),
             });

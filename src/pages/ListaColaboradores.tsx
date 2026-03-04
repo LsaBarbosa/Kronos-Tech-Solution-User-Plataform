@@ -140,12 +140,14 @@ const ListaColaboradores = () => {
       const [employeesResponse, usersResponse] = await Promise.all([
         fetch(`${API_BASE_URL}employee?active=${isActive}`, {
           method: "GET",
+          credentials: "include",
           headers: {
             "Content-Type": "application/json",
           },
         }),
         fetch(`${API_BASE_URL}users/search`, {
           method: "GET",
+          credentials: "include",
           headers: {
             "Content-Type": "application/json",
           },
@@ -481,6 +483,7 @@ const ListaColaboradores = () => {
         promises.push(
           fetch(`${API_BASE_URL}employee/manager/update-employee/${colaboradorId}`, {
             method: "PATCH",
+            credentials: "include",
             headers: { "Content-Type": "application/json",  },
             body: JSON.stringify(bodyDataEmployee),
           })
@@ -491,6 +494,7 @@ const ListaColaboradores = () => {
         promises.push(
           fetch(`${API_BASE_URL}users/search/${originalColaborador.userId}`, {
             method: "PATCH",
+            credentials: "include",
             headers: { "Content-Type": "application/json",  },
             body: JSON.stringify(bodyDataUser),
           })
@@ -571,6 +575,7 @@ const ListaColaboradores = () => {
       // Chamada à API
       const response = await fetch(`${API_BASE_URL}users/toggle-activate/${userId}`, {
         method: "PATCH",
+        credentials: "include",
         headers: {
           "Content-Type": "application/json",
         },

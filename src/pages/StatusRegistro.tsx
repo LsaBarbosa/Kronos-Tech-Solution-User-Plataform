@@ -113,6 +113,7 @@ const StatusRegistro = () => {
 
             const response = await fetch(url, {
                 method: "GET",
+                credentials: "include",
                 headers: {
                     "Content-Type": "application/json",
                 },
@@ -172,6 +173,7 @@ const StatusRegistro = () => {
 
             const response = await fetch(apiUrl.toString(), {
                 method: "POST",
+                credentials: "include",
                 headers: {
                     "Content-Type": "application/json",
                 },
@@ -247,6 +249,7 @@ const StatusRegistro = () => {
 
             const response = await fetch(endpoint, {
                 method: "PUT",
+                credentials: "include",
                 headers: {
                     "Content-Type": "application/json",
                 },
@@ -305,6 +308,7 @@ const StatusRegistro = () => {
 
             const response = await fetch(endpoint, {
                 method: "PUT", 
+                credentials: "include",
                 headers: {
                     "Content-Type": "application/json",
                 },

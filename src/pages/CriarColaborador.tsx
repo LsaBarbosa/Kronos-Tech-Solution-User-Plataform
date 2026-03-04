@@ -215,6 +215,7 @@ const [faceImageBase64, setFaceImageBase64] = useState<string | undefined>(undef
         try {
 
             const response = await fetch(`${API_BASE_URL}users/check-username?username=${username}`, {
+                credentials: "include",
                 headers: {  },
             });
 
@@ -285,6 +286,7 @@ const [faceImageBase64, setFaceImageBase64] = useState<string | undefined>(undef
 
             const employeeResponse = await fetch(`${API_BASE_URL}employee`, {
                 method: "POST",
+                credentials: "include",
                 headers: { "Content-Type": "application/json",  },
                 body: JSON.stringify(employeePayload),
             });
@@ -365,6 +367,7 @@ const [faceImageBase64, setFaceImageBase64] = useState<string | undefined>(undef
 
             const userResponse = await fetch(`${API_BASE_URL}users`, {
                 method: "POST",
+                credentials: "include",
                 headers: { "Content-Type": "application/json",  },
                 body: JSON.stringify(userPayload),
             });

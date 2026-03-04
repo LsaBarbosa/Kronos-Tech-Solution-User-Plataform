@@ -193,6 +193,7 @@ const CriarEmpresa = () => {
 
             // Chamada à API para verificação de CNPJ
             const response = await fetch(`${API_BASE_URL}companies/check-cnpj?cnpj=${cnpj}`, {
+                credentials: "include",
                 headers: {  },
             });
 
@@ -265,6 +266,7 @@ const CriarEmpresa = () => {
             // 3. Chamada da API para CRIAR A EMPRESA
             const companyResponse = await fetch(`${API_BASE_URL}companies`, { 
                 method: "POST",
+                credentials: "include",
                 headers: {
                     "Content-Type": "application/json",
                 },
