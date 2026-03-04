@@ -4,6 +4,7 @@ import { useState, useCallback, useEffect } from "react";
 import { useForm, UseFormReturn } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useSearchParams, useNavigate } from "react-router-dom";
+import { LOGIN_ROUTE } from "@/config/routes";
 import { useToast } from "@/hooks/use-toast";
 import { resetPasswordSchema, ResetPasswordFormType, ResetPasswordPayload } from "@/types/auth";
 import { resetPassword } from "@/service/auth.Service";
@@ -43,7 +44,7 @@ export const useResetPassword = (): UseResetPasswordReturn => {
                 description: "Token de redefinição não encontrado na URL. Retorne à página de login.", 
                 variant: "destructive" 
             });
-            navigate("/login");
+            navigate(LOGIN_ROUTE);
         }
     }, [token, navigate, toast]);
 
@@ -70,7 +71,7 @@ export const useResetPassword = (): UseResetPasswordReturn => {
             });
             
             // Redireciona para login após um pequeno atraso
-            setTimeout(() => navigate("/login"), 3000);
+            setTimeout(() => navigate(LOGIN_ROUTE), 3000);
 
         } catch (error: any) {
             console.error("Erro ao redefinir senha:", error);

@@ -1,4 +1,5 @@
 import { useState, useRef, useCallback, useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import { Camera, RefreshCcw, Loader2, ScanFace, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
@@ -7,8 +8,8 @@ import { toast } from "sonner";
 import { loginWithFace } from "@/service/auth.Service";
 
 interface FaceLoginModalProps {
-    isOpen: boolean;
-    onOpenChange: (open: boolean) => void;
+  isOpen: boolean;
+  onOpenChange: (open: boolean) => void;
 }
 
 const FaceLoginModal = ({ isOpen, onOpenChange }: FaceLoginModalProps) => {

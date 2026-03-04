@@ -6,6 +6,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast"; 
+import { isAuthenticationError } from "@/service/helpers/service-error.helper";
 import { 
     CompanyListItem, 
     CompanyData, 

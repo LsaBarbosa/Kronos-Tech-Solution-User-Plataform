@@ -75,7 +75,7 @@ const Documentos = () => {
         setSelectedEmployeeId("");
       } catch (error) {
         console.error("Erro ao buscar funcionários:", error);
-        toast.error("Erro ao buscar a lista de funcionários. Tente novamente.");
+        toast.error((error as Error).message || "Erro ao buscar a lista de funcionários. Tente novamente.");
       } finally {
         setIsFetchingEmployees(false);
       }
@@ -109,7 +109,7 @@ const Documentos = () => {
 
     } catch (error) {
       console.error("Erro ao buscar documentos:", error);
-      toast.error("Erro ao buscar documentos. Tente novamente.");
+      toast.error((error as Error).message || "Erro ao buscar documentos. Tente novamente.");
       setDocuments([]);
       setFilteredDocuments([]);
     } finally {
@@ -138,12 +138,9 @@ const Documentos = () => {
         toast.success(`Documento "${documentName}" excluído com sucesso!`);
 
     } catch (error) {
-   if (error.response?.status === 403) {
-      const serverMessage = error.response.data?.detail;
-    
+      toast.error((error as Error).message || "Falha ao excluir o documento.");
     }
-  }
-};
+  };
 
   // Normalize document date string to 'yyyy-MM-dd'
   const toISODate = (dateStr: string): string => {
@@ -192,7 +189,7 @@ const Documentos = () => {
 
   const handleDownload = async (document: Document) => {
     try {
-      await downloadDocumentFile(document.id, {
+      await downloadDocument(document.id, {
         employeeId: selectedEmployeeId,
         fallbackFileName: document.name,
       });

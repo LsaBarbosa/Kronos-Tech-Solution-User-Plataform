@@ -253,14 +253,14 @@ export const ResultadosRelatorioDetalhado: React.FC<ResultadosDetalhadoProps> = 
 
             toast({
                 title: "Download Iniciado",
-                description: `Download de ${filename} concluído.`,
+                description: `Download de ${employeeName}_documento concluído.`,
             });
 
         } catch (error) {
             console.error("Erro ao iniciar o download:", error);
             toast({
                 title: "Falha no Download",
-                description: `Erro: ${(error as Error).message}`,
+                description: `Erro: ${(error as Error).message || "Não foi possível realizar o download."}`,
                 variant: "destructive",
             });
         }
