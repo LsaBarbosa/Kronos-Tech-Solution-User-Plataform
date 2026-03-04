@@ -6,7 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import Clock from "@/components/Clock";
 import { Eye, EyeOff, ScanFace } from "lucide-react"; // Adicionado ScanFace
 import { toast } from "sonner"; // Ajustado import para sonner padrão se necessário, ou "@/components/ui/sonner"
-import { API_BASE_URL } from "@/config/api";
+import { API_BASE_URL, apiFetch } from "@/config/api";
 import FaceLoginModal from "@/components/FaceLoginModal"; // Import do novo modal
 import { useNavigate } from "react-router-dom";
 
@@ -26,7 +26,7 @@ const LoginForm = () => {
     setIsSubmitting(true);
 
     try {
-      const response = await fetch(API_URL, {
+      const response = await apiFetch(API_URL, {
         method: "POST",
         headers: {
           "Content-Type": "application/json",

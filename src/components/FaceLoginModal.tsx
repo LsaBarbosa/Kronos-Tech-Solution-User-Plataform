@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Card, CardContent } from "@/components/ui/card";
 import { toast } from "sonner";
-import { API_BASE_URL } from "@/config/api";
+import { API_BASE_URL, apiFetch } from "@/config/api";
 
 interface FaceLoginModalProps {
     isOpen: boolean;
@@ -119,7 +119,7 @@ const FaceLoginModal = ({ isOpen, onOpenChange }: FaceLoginModalProps) => {
         const base64Data = imageSrc.split(',')[1]; 
 
         try {
-            const response = await fetch(`${API_BASE_URL}auth/login-face`, {
+            const response = await apiFetch(`${API_BASE_URL}auth/login-face`, {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",

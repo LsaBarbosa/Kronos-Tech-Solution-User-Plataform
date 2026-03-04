@@ -45,7 +45,7 @@ import { useToast } from "@/hooks/use-toast";
 // Importações adicionais
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
-import { API_BASE_URL } from "@/config/api";
+import { API_BASE_URL, apiFetch } from "@/config/api";
 import { Switch } from "@/components/ui/switch";
 
 const SCHEDULE_TYPES = [
@@ -143,14 +143,14 @@ const ListaColaboradores = () => {
       const isActive = !showInactive;
 
       const [employeesResponse, usersResponse] = await Promise.all([
-        fetch(`${API_BASE_URL}employee?active=${isActive}`, {
+        apiFetch(`${API_BASE_URL}employee?active=${isActive}`, {
           method: "GET",
           headers: {
             "Content-Type": "application/json",
             Authorization: `Bearer ${token}`,
           },
         }),
-        fetch(`${API_BASE_URL}users/search`, {
+        apiFetch(`${API_BASE_URL}users/search`, {
           method: "GET",
           headers: {
             "Content-Type": "application/json",
@@ -491,7 +491,7 @@ const ListaColaboradores = () => {
 
       if (Object.keys(bodyDataEmployee).length > 0 || faceImageFile) {
         promises.push(
-          fetch(`${API_BASE_URL}employee/manager/update-employee/${colaboradorId}`, {
+          apiFetch(`${API_BASE_URL}employee/manager/update-employee/${colaboradorId}`, {
             method: "PATCH",
             headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
             body: JSON.stringify(bodyDataEmployee),
@@ -501,7 +501,7 @@ const ListaColaboradores = () => {
 
       if (Object.keys(bodyDataUser).length > 0) {
         promises.push(
-          fetch(`${API_BASE_URL}users/search/${originalColaborador.userId}`, {
+          apiFetch(`${API_BASE_URL}users/search/${originalColaborador.userId}`, {
             method: "PATCH",
             headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
             body: JSON.stringify(bodyDataUser),
@@ -586,7 +586,7 @@ const ListaColaboradores = () => {
       }
 
       // Chamada à API
-      const response = await fetch(`${API_BASE_URL}users/toggle-activate/${userId}`, {
+      const response = await apiFetch(`${API_BASE_URL}users/toggle-activate/${userId}`, {
         method: "PATCH",
         headers: {
           "Content-Type": "application/json",

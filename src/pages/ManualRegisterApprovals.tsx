@@ -26,7 +26,7 @@ import { Alert, AlertDescription, AlertTitle } from "../components/ui/alert";
 import { PaginationComponent } from "../components/ui/PaginationComponent";
 import { StatusRecord } from '../types/recordApproval';
 import { cn } from '../lib/utils';
-import { API_BASE_URL } from '../config/api';
+import { API_BASE_URL, apiFetch } from '../config/api';
 
 // ---------------------------------------------------------------------
 // --- 1. FUNÇÕES DE UTILIDADE E TIPOS
@@ -324,7 +324,7 @@ const ManualRegisterApprovals = () => {
 
             const url = `${API_BASE_URL}documents/${documentId}?employeeId=${employeeId}`;
 
-            const response = await fetch(url, {
+            const response = await apiFetch(url, {
                 headers: {
                     'Authorization': `Bearer ${token}`,
                 },
