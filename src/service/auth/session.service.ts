@@ -19,6 +19,14 @@ export interface SessionProfileResponse {
   employeeProfile: EmployeeProfileResponse;
 }
 
+export interface SessionUserResponse {
+  employeeId: string;
+  role: SessionRole;
+  fullName: string;
+  username?: string;
+  email?: string;
+}
+
 export const fetchSessionProfile = async (): Promise<SessionProfileResponse> => {
   const accountResponse = await apiFetch('users/own-profile', { method: 'GET' });
   const account = await parseApiResponse<AccountProfileResponse>(accountResponse);
@@ -29,5 +37,17 @@ export const fetchSessionProfile = async (): Promise<SessionProfileResponse> => 
   return {
     account,
     employeeProfile,
+  };
+};
+
+export const fetchSessionUser = async (): Promise<SessionUserResponse> => {
+  const { account, employeeProfile } = await fetchSessionProfile();
+
+  return {
+    employeeId: account.employeeId || employeeProfile.employeeId,
+    role: account.role,
+    fullName: employeeProfile.fullName || account.username || '',
+    username: account.username,
+    email: employeeProfile.email,
   };
 };
