@@ -53,3 +53,15 @@ export const resetPassword = async (payload: ResetPasswordPayload): Promise<void
     // Se a API retornar sucesso (200/204), a função passa.
     await handleResponse(response);
 };
+
+/**
+ * Encerra a sessão no backend.
+ */
+export const logout = async (): Promise<void> => {
+    const response = await fetch(`${API_BASE_URL}auth/logout`, {
+        method: 'POST',
+        credentials: 'include',
+    });
+
+    await handleResponse(response);
+};
