@@ -28,6 +28,7 @@ export const useEmployeeDocuments = (): UseEmployeeDocumentsReturn => {
     
     const { toast } = useToast();
     const navigate = useNavigate();
+    const isSessionError = (error: any) => error?.response?.status === 401 || error?.response?.status === 403;
 
     // 1. Busca a lista de colaboradores (executa apenas na montagem)
     useEffect(() => {
@@ -41,7 +42,7 @@ export const useEmployeeDocuments = (): UseEmployeeDocumentsReturn => {
                 }
             } catch (err: any) {
                 setError(err.message);
-                if (err.message.includes("Token")) navigate("/login");
+                if (isSessionError(err)) navigate("/login");
                 toast({ title: "Erro", description: err.message, variant: "destructive" });
             } finally {
                 setIsFetchingEmployees(false);

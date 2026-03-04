@@ -50,7 +50,7 @@ export const useEmployeeList = (): UseEmployeeListReturn => {
             setState(prev => ({ ...prev, colaboradores: data }));
         } catch (error: any) {
             setState(prev => ({ ...prev, error: error.message || "Falha ao carregar lista." }));
-            if (error.message.includes("Token")) navigate("/login");
+            if (isSessionError(error)) navigate("/login");
         } finally {
             setState(prev => ({ ...prev, isLoading: false }));
         }
@@ -156,3 +156,4 @@ export const useEmployeeList = (): UseEmployeeListReturn => {
         formatCPF, // Exporta a função utilitária
     };
 };
+    const isSessionError = (error: any) => error?.response?.status === 401 || error?.response?.status === 403;

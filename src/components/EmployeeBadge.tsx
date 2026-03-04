@@ -7,8 +7,8 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
-import { API_BASE_URL } from "@/config/api";
 import { Separator } from "@radix-ui/react-separator";
+import { updateOwnProfile } from "@/service/profile.service";
 
 interface UserProfile {
   fullName: string;
@@ -70,18 +70,7 @@ const EmployeeBadge = ({ userData, isLoading, onUpdateSuccess }: EmployeeBadgePr
           [field]: field === 'phone' ? tempData.phone.replace(/\D/g, '') : tempData[field] 
       };
       
-      const response = await fetch(`${API_BASE_URL}employee/update-own-profile`, {
-        method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify(payload),
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.detail ||"Falha ao atualizar o perfil.");
-      }
+      await updateOwnProfile(payload);
 
       toast.success(`Dados do perfil atualizados com sucesso.`);
       

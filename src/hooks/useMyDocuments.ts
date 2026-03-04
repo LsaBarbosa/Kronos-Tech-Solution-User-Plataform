@@ -24,6 +24,7 @@ export const useMyDocuments = (): UseMyDocumentsReturn => {
     
     const { toast } = useToast();
     const navigate = useNavigate();
+    const isSessionError = (error: any) => error?.response?.status === 401 || error?.response?.status === 403;
 
     const loadDocuments = useCallback(async () => {
         setIsLoading(true);
@@ -33,7 +34,7 @@ export const useMyDocuments = (): UseMyDocumentsReturn => {
             setDocuments(data);
         } catch (err: any) {
             setError(err.message);
-            if (err.message.includes("Token")) navigate("/login");
+            if (isSessionError(err)) navigate("/login");
             toast({ title: "Erro", description: err.message, variant: "destructive" });
         } finally {
             setIsLoading(false);

@@ -56,7 +56,7 @@ export const useMessages = (): UseMessagesReturn => {
             setMessages(data);
         } catch (err: any) {
             setError(err.message);
-            if (err.message.includes("Token")) {
+            if (isSessionError(err)) {
                  navigate("/login"); 
             }
             toast({
@@ -149,3 +149,4 @@ export const useMessages = (): UseMessagesReturn => {
         handleDeleteMessage,
     };
 };
+    const isSessionError = (error: any) => error?.response?.status === 401 || error?.response?.status === 403;
