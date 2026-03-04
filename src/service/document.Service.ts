@@ -1,7 +1,9 @@
 // src/services/documentService.ts
 
-import { API_BASE_URL, apiFetch, parseApiResponse } from '@/config/api';
-import { Document, EmployeeListItem, MAX_UPLOAD_SIZE_BYTES } from '@/types/document';
+import { API_BASE_URL } from "@/config/api"; 
+import { Document, EmployeeListItem, MAX_UPLOAD_SIZE_BYTES } from "@/types/document";
+import { getAuthToken } from "./company.Service";
+import { buildApiUrl, downloadFile } from "./fileDownload.service";
 
 export const fetchUserDocuments = async (): Promise<Document[]> => {
   const response = await apiFetch('documents/me');
@@ -13,7 +15,13 @@ export const deleteDocument = async (documentId: string): Promise<void> => {
   await parseApiResponse(response);
 };
 
-export const generateDownloadUrl = (documentId: string): string => `${API_BASE_URL}documents/${documentId}/download`;
+/**
+ * Realiza o download de um documento específico.
+ */
+export const downloadDocument = async (documentId: string, employeeId?: string, filename?: string): Promise<void> => {
+    const url = buildApiUrl(`documents/${documentId}`, { employeeId });
+    await downloadFile(url, { filename });
+};
 
 export const fetchEmployeesForSelection = async (): Promise<EmployeeListItem[]> => {
   const response = await apiFetch('employees?active=true');
