@@ -126,6 +126,7 @@ const FaceLoginModal = ({
         setImageSrc(null);
         setRetryContext(null);
         setIsCapturing(false);
+        setPartialFailureMessage(null);
         setTimeout(() => {
             startWebcam();
         }, 50);
@@ -189,7 +190,15 @@ const FaceLoginModal = ({
             onOpenChange(false);
         } catch (error: any) {
             console.error(error);
-            toast.error(error.message || "Rosto não reconhecido ou não cadastrado.");
+            const message = error instanceof Error ? error.message : "Rosto não reconhecido ou não cadastrado.";
+            if (message.includes("Identidade confirmada")) {
+                setPartialFailureMessage(message);
+                toast.error("Falha ao concluir registro de ponto.");
+                setIsSubmitting(false);
+                return;
+            }
+
+            toast.error(message);
             setImageSrc(null);
             startWebcam();
         } finally {
@@ -264,7 +273,7 @@ const FaceLoginModal = ({
                                     <Button
                                         onClick={handleRetake}
                                         variant="outline"
-                                        disabled={isSubmitting}
+                                        disabled={isSubmitting || isRetryingCheckin}
                                         className="flex-1"
                                     >
                                         <RefreshCcw className="h-4 w-4 mr-2" />
@@ -303,6 +312,7 @@ const FaceLoginModal = ({
                                             )}
                                         </Button>
                                     )}
+                                </div>
                                 </div>
                             ) : (
                                 <div className="flex flex-col gap-2">

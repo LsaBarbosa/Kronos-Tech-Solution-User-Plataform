@@ -96,8 +96,6 @@ const StatusRegistro = () => {
     // 1. Busca de Funcionários (Mantida e reutilizada)
     const fetchEmployees = useCallback(async () => {
         try {
-            const token = localStorage.getItem("token");
-            if (!token) return;
 
             const userRole = sessionUser?.role;
             const userId = sessionUser?.employeeId;
@@ -119,7 +117,7 @@ const StatusRegistro = () => {
                 method: "GET",
                 headers: {
                     "Content-Type": "application/json",
-                    Authorization: `Bearer ${token}`,
+                    
                 },
             });
 
@@ -154,10 +152,6 @@ const StatusRegistro = () => {
         setIsLoading(true); // 🚀 ATIVA O LOADING NO INÍCIO DA BUSCA
 
         try {
-            const token = localStorage.getItem("token");
-            if (!token) {
-                throw new Error("Token de autenticação não encontrado.");
-            }
 
             // A conversão de data é feita aqui. O RelatorioFiltros lida com a seleção.
             const formattedDates = selectedDates.map(date => {
@@ -184,7 +178,7 @@ const StatusRegistro = () => {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
-                    Authorization: `Bearer ${token}`,
+                    
                 },
                 body: JSON.stringify(requestBody),
             });
@@ -254,10 +248,6 @@ const StatusRegistro = () => {
         setIsSavingStatus(true); // 🚀 ATIVA O LOADING DO BOTÃO SALVAR
         
         try {
-            const token = localStorage.getItem("token");
-            if (!token) {
-                throw new Error("Token de autenticação não encontrado.");
-            }
 
             const endpoint = `${API_BASE_URL}records/update/status/${employeeId}/${timeRecordId}`;
 
@@ -265,7 +255,7 @@ const StatusRegistro = () => {
                 method: "PUT",
                 headers: {
                     "Content-Type": "application/json",
-                    Authorization: `Bearer ${token}`,
+                    
                 },
                 body: JSON.stringify({ statusRecord: statusRecord }),
             });
@@ -317,10 +307,6 @@ const StatusRegistro = () => {
         setIsTogglingActivate(true); // 🚀 ATIVA O LOADING DO BOTÃO TOGGLE
 
         try {
-            const token = localStorage.getItem("token");
-            if (!token) {
-                throw new Error("Token de autenticação não encontrado.");
-            }
 
             // Endpoint conforme informação do backend: PATCH records/toggle-activate/{employeeId}/{timeRecordId}
             const endpoint = `${API_BASE_URL}records/toggle-activate/${employeeId}/${timeRecordId}`;
@@ -329,7 +315,7 @@ const StatusRegistro = () => {
                 method: "PUT", 
                 headers: {
                     "Content-Type": "application/json",
-                    Authorization: `Bearer ${token}`,
+                    
                 },
             });
 

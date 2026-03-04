@@ -213,11 +213,9 @@ const [faceImageBase64, setFaceImageBase64] = useState<string | undefined>(undef
 
         // Lógica de chamada à API para verificação (Mantida)
         try {
-            const token = localStorage.getItem("token");
-            if (!token) throw new Error("Token de autenticação não encontrado.");
 
             const response = await apiFetch(`${API_BASE_URL}users/check-username?username=${username}`, {
-                headers: { "Authorization": `Bearer ${token}` },
+                credentials: "include",
             });
 
             if (response.ok) {
@@ -256,8 +254,6 @@ const [faceImageBase64, setFaceImageBase64] = useState<string | undefined>(undef
         }
         
         try {
-            const token = localStorage.getItem("token");
-            if (!token) throw new Error("Token de autenticação não encontrado.");
 
             // Removendo máscaras e convertendo dados para envio ao backend
             const employeePayload = {
@@ -289,7 +285,8 @@ const [faceImageBase64, setFaceImageBase64] = useState<string | undefined>(undef
 
             const employeeResponse = await apiFetch(`${API_BASE_URL}employee`, {
                 method: "POST",
-                headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` },
+                headers: { "Content-Type": "application/json" },
+                credentials: "include",
                 body: JSON.stringify(employeePayload),
             });
 
@@ -359,8 +356,6 @@ const [faceImageBase64, setFaceImageBase64] = useState<string | undefined>(undef
          }
 
         try {
-            const token = localStorage.getItem("token");
-            if (!token) throw new Error("Token de autenticação não encontrado.");
 
             // Aqui, usamos data.username, data.password e data.role que foram validados pelo userSchema
             const userPayload = {
@@ -371,7 +366,8 @@ const [faceImageBase64, setFaceImageBase64] = useState<string | undefined>(undef
 
             const userResponse = await apiFetch(`${API_BASE_URL}users`, {
                 method: "POST",
-                headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` },
+                headers: { "Content-Type": "application/json" },
+                credentials: "include",
                 body: JSON.stringify(userPayload),
             });
 

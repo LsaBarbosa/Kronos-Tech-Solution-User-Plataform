@@ -1,7 +1,9 @@
-const LOGIN_PATH = "/login";
+import { clearLocalAuthSession } from '@/lib/auth-session';
 
-export const redirectToLogin = () => {
-  localStorage.removeItem("token");
+const LOGIN_PATH = '/login';
+
+export const redirectToLogin = (): void => {
+  clearLocalAuthSession();
 
   if (window.location.pathname !== LOGIN_PATH) {
     window.location.href = LOGIN_PATH;

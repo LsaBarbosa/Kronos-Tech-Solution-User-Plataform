@@ -41,16 +41,12 @@ interface DownloadFileOptions {
 }
 
 export const downloadFile = async (url: string, options: DownloadFileOptions = {}): Promise<void> => {
-  const token = localStorage.getItem("token");
   const headers = new Headers(options.headers);
 
-  if (token) {
-    headers.set("Authorization", `Bearer ${token}`);
-  }
 
   const response = await fetch(url, {
     method: options.method || "GET",
-    headers,
+    headers: options.headers,
     body: options.body,
     credentials: "include",
   });

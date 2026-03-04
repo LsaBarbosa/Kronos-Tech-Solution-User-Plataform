@@ -4,17 +4,9 @@ import { API_BASE_URL } from "@/config/api";
 import { Message, MessagePayload } from "@/types/message";
 import { EmployeeData } from "@/types/employee";
 
-const getAuthHeaders = () => {
-  const token = localStorage.getItem("token");
-  if (!token) {
-    throw new Error("Token de autenticação não encontrado.");
-  }
-
-  return {
-    "Content-Type": "application/json",
-    Authorization: `Bearer ${token}`,
-  };
-};
+const getAuthHeaders = () => ({
+  "Content-Type": "application/json",
+});
 
 const handleResponse = async (response: Response) => {
   if (!response.ok) {
@@ -36,6 +28,7 @@ export const fetchMessages = async (): Promise<Message[]> => {
   const response = await fetch(`${API_BASE_URL}messages`, {
     method: "GET",
     headers,
+    credentials: "include",
   });
 
   return handleResponse(response);
@@ -46,6 +39,7 @@ export const deleteMessage = async (messageId: string): Promise<void> => {
   const response = await fetch(`${API_BASE_URL}messages/${messageId}`, {
     method: "DELETE",
     headers,
+    credentials: "include",
   });
 
   await handleResponse(response);
@@ -64,7 +58,7 @@ export const postMessage = async (payload: MessagePayload): Promise<void> => {
 
 export const fetchActiveEmployees = async (): Promise<EmployeeData[]> => {
   const headers = getAuthHeaders();
-  const response = await fetch(`${API_BASE_URL}employee?active=true`, { headers });
+  const response = await fetch(`${API_BASE_URL}employee?active=true`, { headers, credentials: "include" });
   const data = await handleResponse(response);
 
   return data.employees.map((emp: any) => ({
