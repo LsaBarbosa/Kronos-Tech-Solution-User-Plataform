@@ -5,7 +5,9 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Card, CardContent } from "@/components/ui/card";
 import { toast } from "sonner";
+import { useAuth } from "@/context/AuthContext";
 import { loginWithFace } from "@/service/auth.Service";
+import { getServiceErrorMessage } from "@/service/helpers/service-error.helper";
 
 interface FaceLoginModalProps {
   isOpen: boolean;
@@ -20,6 +22,9 @@ const FaceLoginModal = ({ isOpen, onOpenChange }: FaceLoginModalProps) => {
     
     const videoRef = useRef<HTMLVideoElement>(null);
     const canvasRef = useRef<HTMLCanvasElement>(null);
+
+    const navigate = useNavigate();
+    const { checkSession } = useAuth();
 
     const stopWebcam = useCallback(() => {
         const videoElement = videoRef.current;
@@ -59,9 +64,12 @@ const FaceLoginModal = ({ isOpen, onOpenChange }: FaceLoginModalProps) => {
                 videoRef.current?.play().catch(e => console.error("Erro ao reproduzir vídeo:", e));
             };
 
-        } catch (error: any) {
-            if (error.name !== 'AbortError') { 
-                 console.error("Erro ao acessar a webcam:", error); 
+        } catch (error: unknown) {
+            const mediaErrorName =
+                typeof error === "object" && error !== null && "name" in error ? String(error.name) : undefined;
+
+            if (mediaErrorName !== "AbortError") {
+                 console.error("Erro ao acessar a webcam:", error);
                  toast.error("Erro ao acessar a webcam. Verifique as permissões.");
             }
             setIsCapturing(false);
@@ -121,19 +129,25 @@ const FaceLoginModal = ({ isOpen, onOpenChange }: FaceLoginModalProps) => {
 
         try {
             await loginWithFace(base64Data);
+            const isAuthenticated = await checkSession();
 
-            toast.success("Identidade confirmada! Acessando plataforma...", {
+            if (!isAuthenticated) {
+                toast.error("Não foi possível validar sua sessão. Tente novamente.");
+                setImageSrc(null);
+                setIsSubmitting(false);
+                startWebcam();
+                return;
+            }
+
+            toast.success("Sessão autenticada por biometria! Redirecionando...", {
                 duration: 2000,
             });
 
-            setTimeout(() => {
-                // Força refresh para limpar a memória da câmera e garantir estado limpo
-                window.location.href = "/dashboard";
-            }, 1000);
-
-        } catch (error: any) {
+            onOpenChange(false);
+            navigate("/dashboard", { replace: true });
+        } catch (error: unknown) {
             console.error(error);
-            toast.error(error.message || "Rosto não reconhecido ou não cadastrado.");
+            toast.error(getServiceErrorMessage(error, "Não foi possível autenticar com biometria facial."));
             setImageSrc(null);
             setIsSubmitting(false);
             startWebcam(); // Reinicia câmera automaticamente em caso de erro

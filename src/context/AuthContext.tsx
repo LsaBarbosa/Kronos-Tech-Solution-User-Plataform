@@ -9,7 +9,7 @@ interface AuthContextValue {
   status: AuthStatus;
   session: UserAccountData | null;
   isAuthenticated: boolean;
-  checkSession: () => Promise<void>;
+  checkSession: () => Promise<boolean>;
   clearSession: () => void;
   logout: () => Promise<void>;
 }
@@ -25,21 +25,23 @@ export const AuthProvider = ({ children }: { children: React.ReactNode }) => {
     setStatus("unauthenticated");
   }, []);
 
-  const checkSession = useCallback(async () => {
+  const checkSession = useCallback(async (): Promise<boolean> => {
     setStatus("checking");
     try {
       const profile = await fetchCurrentSession();
       setSession(profile);
       setStatus("authenticated");
+      return true;
     } catch (error) {
       if (isAxiosError(error) && [401, 403].includes(error.response?.status ?? 0)) {
         clearSession();
-        return;
+        return false;
       }
 
       console.error("Falha ao carregar sessão autenticada.", error);
       setSession(null);
       setStatus("unauthenticated");
+      return false;
     }
   }, [clearSession]);
 
