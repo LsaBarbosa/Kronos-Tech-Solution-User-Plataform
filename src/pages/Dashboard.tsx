@@ -15,6 +15,7 @@ import { useNavigate } from "react-router-dom";
 import { Card, CardContent } from "@/components/ui/card"; 
 import { Button } from "@/components/ui/button";
 import { Separator } from "@/components/ui/separator";
+import FaceLoginModal from "@/components/FaceLoginModal";
 
 import { useDashboardData } from "@/hooks/useDashboardData";
 import { useVacationCount } from "@/hooks/useVacationCount"; 
@@ -60,6 +61,7 @@ const getSecondName = (fullName: string | undefined): string => {
 const Dashboard = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [showSalary, setShowSalary] = useState(false); 
+  const [isCheckinFaceModalOpen, setIsCheckinFaceModalOpen] = useState(false);
   
   const handleToggleSidebar = useCallback(() => setSidebarOpen((prev) => !prev), []);
   const toggleSalary = useCallback(() => setShowSalary(prev => !prev), []); // Toggle do salário
@@ -358,6 +360,16 @@ const Dashboard = () => {
                                 <div className="flex justify-center mt-4">
                                     <Clock /> 
                                 </div>
+                                <div className="mt-4 flex justify-center">
+                                    <Button
+                                        onClick={(event) => {
+                                            event.stopPropagation();
+                                            setIsCheckinFaceModalOpen(true);
+                                        }}
+                                    >
+                                        Registrar ponto
+                                    </Button>
+                                </div>
                                 <p className="text-center text-sm text-muted-foreground mt-4">Clique para acessar o Relatório Completo</p>
                             </CardContent>
                         </Card>
@@ -551,6 +563,12 @@ const Dashboard = () => {
                 </div>
             )}
           </div>
+          <FaceLoginModal
+            isOpen={isCheckinFaceModalOpen}
+            onOpenChange={setIsCheckinFaceModalOpen}
+            mode="checkin"
+            requireShortSession
+          />
         </main>
       </div>
     </div>

@@ -6,32 +6,17 @@ interface GeolocationPayload {
 }
 
 interface FaceLoginResponse {
-  token?: string;
+  status?: string;
+  message?: string;
 }
 
 interface RegisterPointOptions {
   shouldLogoutAfterFlow?: boolean;
 }
 
-export interface RegisterPointResult {
-  checkinRegistered: true;
-}
-
-export const FACE_CHECKIN_ERROR_CODE = {
-  FACE_LOGIN_FAILURE: "FACE_LOGIN_FAILURE",
-  PARTIAL_CHECKIN_FAILURE: "PARTIAL_CHECKIN_FAILURE",
-} as const;
-
-export type FaceCheckinErrorCode = (typeof FACE_CHECKIN_ERROR_CODE)[keyof typeof FACE_CHECKIN_ERROR_CODE];
-
-export class FaceCheckinFlowError extends Error {
-  readonly code: FaceCheckinErrorCode;
-
-  constructor(code: FaceCheckinErrorCode, message: string) {
-    super(message);
-    this.name = "FaceCheckinFlowError";
-    this.code = code;
-  }
+interface RegisterPointResult {
+  status: "success";
+  auth?: FaceLoginResponse;
 }
 
 const parseErrorResponse = async (response: Response, fallbackMessage: string): Promise<string> => {
@@ -139,5 +124,5 @@ export const registerPointWithFace = async (
     }
   }
 
-  return { checkinRegistered: true };
+  return { status: "success", auth: loginData };
 };

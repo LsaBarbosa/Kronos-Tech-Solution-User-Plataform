@@ -1,31 +1,40 @@
 import { useState, useRef, useCallback, useEffect } from "react";
-import { Camera, RefreshCcw, Loader2, ScanFace, Check } from "lucide-react";
+import { Camera, RefreshCcw, Loader2, ScanFace, Check, MapPin } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Card, CardContent } from "@/components/ui/card";
+import { useAuth } from "@/context/AuthContext";
 import { toast } from "sonner";
+import { useAuth } from "@/context/AuthContext";
+import { useNavigate } from "react-router-dom";
 import {
-    FACE_CHECKIN_ERROR_CODE,
-    FaceCheckinFlowError,
-    registerPointWithFace,
-    retryCheckin,
-} from "@/service/faceCheckinOrchestrator.service";
+    authenticateWithFace,
+    executeFaceCheckinFlow,
+    FaceCheckinRetryContext,
+    retryFaceCheckinFlow,
+} from "@/service/faceOrchestration.service";
 
 interface FaceLoginModalProps {
     isOpen: boolean;
     onOpenChange: (open: boolean) => void;
+    mode?: "login" | "checkin";
+    requireShortSession?: boolean;
 }
 
-const FaceLoginModal = ({ isOpen, onOpenChange }: FaceLoginModalProps) => {
+const FaceLoginModal = ({
+    isOpen,
+    onOpenChange,
+    mode = "login",
+    requireShortSession = false,
+}: FaceLoginModalProps) => {
     const navigate = useNavigate();
     const { bootstrapSession } = useAuth();
     const [imageSrc, setImageSrc] = useState<string | null>(null);
     const [isCapturing, setIsCapturing] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [isStreamReady, setIsStreamReady] = useState(false);
-    const [isRetryingCheckin, setIsRetryingCheckin] = useState(false);
-    const [partialFailureMessage, setPartialFailureMessage] = useState<string | null>(null);
-    
+    const [retryContext, setRetryContext] = useState<FaceCheckinRetryContext | null>(null);
+
     const videoRef = useRef<HTMLVideoElement>(null);
     const canvasRef = useRef<HTMLCanvasElement>(null);
 
@@ -43,34 +52,33 @@ const FaceLoginModal = ({ isOpen, onOpenChange }: FaceLoginModalProps) => {
 
     const startWebcam = useCallback(async () => {
         if (imageSrc) return;
-        
-        stopWebcam(); 
+
+        stopWebcam();
         setIsCapturing(true);
 
         try {
-            const stream = await navigator.mediaDevices.getUserMedia({ 
-                video: { 
-                    facingMode: 'user', 
+            const stream = await navigator.mediaDevices.getUserMedia({
+                video: {
+                    facingMode: "user",
                     width: { ideal: 400 },
-                    height: { ideal: 300 }
-                } 
+                    height: { ideal: 300 },
+                },
             });
 
             if (!videoRef.current) {
-                 stream.getTracks().forEach(track => track.stop());
-                 return;
+                stream.getTracks().forEach(track => track.stop());
+                return;
             }
-            
+
             videoRef.current.srcObject = stream;
             videoRef.current.onloadedmetadata = () => {
                 setIsStreamReady(true);
                 videoRef.current?.play().catch(e => console.error("Erro ao reproduzir vídeo:", e));
             };
-
-        } catch (error: unknown) {
-            if (error.name !== 'AbortError') { 
-                 console.error("Erro ao acessar a webcam:", error); 
-                 toast.error("Erro ao acessar a webcam. Verifique as permissões.");
+        } catch (error: any) {
+            if (error.name !== "AbortError") {
+                console.error("Erro ao acessar a webcam:", error);
+                toast.error("Erro ao acessar a webcam. Verifique as permissões.");
             }
             setIsCapturing(false);
         }
@@ -82,10 +90,9 @@ const FaceLoginModal = ({ isOpen, onOpenChange }: FaceLoginModalProps) => {
         } else {
             stopWebcam();
             setImageSrc(null);
+            setRetryContext(null);
             setIsSubmitting(false);
-            setIsCapturing(false); 
-            setIsRetryingCheckin(false);
-            setPartialFailureMessage(null);
+            setIsCapturing(false);
         }
     }, [isOpen, startWebcam, stopWebcam]);
 
@@ -94,20 +101,21 @@ const FaceLoginModal = ({ isOpen, onOpenChange }: FaceLoginModalProps) => {
 
         const video = videoRef.current;
         const canvas = canvasRef.current;
-        
-        const width = video.videoWidth > 0 ? video.videoWidth : 400; 
+
+        const width = video.videoWidth > 0 ? video.videoWidth : 400;
         const height = video.videoHeight > 0 ? video.videoHeight : 300;
-        
+
         canvas.width = width;
         canvas.height = height;
-        
-        const ctx = canvas.getContext('2d');
+
+        const ctx = canvas.getContext("2d");
         if (ctx) {
             ctx.drawImage(video, 0, 0, width, height);
-            const dataUrl = canvas.toDataURL('image/jpeg', 0.9);
-            
+            const dataUrl = canvas.toDataURL("image/jpeg", 0.9);
+
             if (dataUrl.length > 100) {
                 setImageSrc(dataUrl);
+                setRetryContext(null);
                 stopWebcam();
             } else {
                 toast.error("Falha na captura. Tente novamente.");
@@ -117,19 +125,42 @@ const FaceLoginModal = ({ isOpen, onOpenChange }: FaceLoginModalProps) => {
 
     const handleRetake = () => {
         setImageSrc(null);
+        setRetryContext(null);
         setIsCapturing(false);
+        setIsSubmitting(false);
+        setIsRetryingCheckin(false);
         setPartialFailureMessage(null);
         setTimeout(() => {
             startWebcam();
         }, 50);
     };
 
+    const getGeolocation = (): Promise<{ latitude: number; longitude: number }> =>
+        new Promise((resolve, reject) => {
+            if (!navigator.geolocation) {
+                reject(new Error("Geolocalização não é suportada neste dispositivo."));
+                return;
+            }
+
+            navigator.geolocation.getCurrentPosition(
+                (position) => {
+                    resolve({
+                        latitude: position.coords.latitude,
+                        longitude: position.coords.longitude,
+                    });
+                },
+                () => {
+                    reject(new Error("Não foi possível obter a geolocalização para registrar o ponto."));
+                },
+                { enableHighAccuracy: true, timeout: 10000, maximumAge: 0 },
+            );
+        });
+
     const handleLoginAttempt = async () => {
         if (!imageSrc) return;
-        
+
         setIsSubmitting(true);
-        const base64Data = imageSrc.split(',')[1]; 
-        const shouldLogoutAfterFlow = String(import.meta.env.VITE_FACE_CHECKIN_SHORT_SESSION).toLowerCase() === "true";
+        const base64Data = imageSrc.split(",")[1];
 
         try {
             await registerPointWithFace(base64Data, { shouldLogoutAfterFlow });
@@ -139,54 +170,52 @@ const FaceLoginModal = ({ isOpen, onOpenChange }: FaceLoginModalProps) => {
                 duration: 2000,
             });
 
-            onOpenChange(false);
-            await bootstrapSession();
-            navigate("/dashboard", { replace: true });
+            if (!flowResult.success) {
+                if (flowResult.partialFailure && flowResult.retryContext) {
+                    setRetryContext(flowResult.retryContext);
+                    toast.error(flowResult.message || "Falha no registro do ponto após autenticação. Tente novamente.");
+                    return;
+                }
 
-        } catch (error: unknown) {
+                throw new Error(flowResult.message || "Falha na autenticação facial.");
+            }
+
+            toast.success("Ponto registrado com sucesso!");
+            onOpenChange(false);
+        } catch (error: any) {
             console.error(error);
             if (error instanceof FaceCheckinFlowError && error.code === FACE_CHECKIN_ERROR_CODE.PARTIAL_CHECKIN_FAILURE) {
                 setPartialFailureMessage(error.message);
                 toast.error("Falha ao concluir registro de ponto.");
-                setIsSubmitting(false);
                 return;
             }
 
             const message = error instanceof Error ? error.message : "Rosto não reconhecido ou não cadastrado.";
             toast.error(message);
             setImageSrc(null);
+            startWebcam();
+        } finally {
             setIsSubmitting(false);
-            startWebcam(); // Reinicia câmera automaticamente em caso de erro
         }
     };
 
     const handleRetryCheckin = async () => {
-        if (!imageSrc) return;
+        if (!retryContext) return;
 
-        setIsRetryingCheckin(true);
-        try {
-            const base64Data = imageSrc.split(',')[1];
-            await retryCheckin(base64Data);
-            setPartialFailureMessage(null);
+        setIsSubmitting(true);
+        const result = await retryFaceCheckinFlow(retryContext);
+        setIsSubmitting(false);
 
-            toast.success("Ponto registrado com sucesso! Acessando plataforma...", {
-                duration: 2000,
-            });
-
-            setTimeout(() => {
-                window.location.href = "/dashboard";
-            }, 1000);
-        } catch (error: unknown) {
-            console.error(error);
-            setPartialFailureMessage(
-                `Identidade já confirmada, mas o registro de ponto ainda falhou: ${error instanceof Error ? error.message : "tente novamente."}`
-            );
-            toast.error("Não foi possível registrar o ponto. Tente novamente.");
-        } finally {
-            setIsRetryingCheckin(false);
-            setIsSubmitting(false);
+        if (result.success) {
+            toast.success("Ponto registrado com sucesso na nova tentativa!");
+            onOpenChange(false);
+            return;
         }
+
+        toast.error(result.message || "Falha ao registrar o ponto na nova tentativa.");
     };
+
+    const isCheckinMode = mode === "checkin";
 
     return (
         <Dialog open={isOpen} onOpenChange={onOpenChange}>
@@ -194,28 +223,30 @@ const FaceLoginModal = ({ isOpen, onOpenChange }: FaceLoginModalProps) => {
                 <DialogHeader>
                     <DialogTitle className="flex items-center gap-2">
                         <ScanFace className="w-5 h-5 text-primary" />
-                        Acesso Biométrico
+                        {isCheckinMode ? "Registrar Ponto Facial" : "Acesso Biométrico"}
                     </DialogTitle>
                     <DialogDescription>
-                        Posicione seu rosto na câmera para realizar o login seguro.
+                        {isCheckinMode
+                            ? "Capture seu rosto para autenticar e registrar seu ponto com geolocalização."
+                            : "Posicione seu rosto na câmera para realizar o login seguro."}
                     </DialogDescription>
                 </DialogHeader>
                 <Card className="border-2 border-primary/20 shadow-lg">
                     <CardContent className="pt-6">
                         <div className="relative w-full aspect-video rounded-lg overflow-hidden bg-black flex items-center justify-center border border-border">
                             {isCapturing && !imageSrc && (
-                                <video 
-                                    ref={videoRef} 
+                                <video
+                                    ref={videoRef}
                                     className="w-full h-full object-cover transform scale-x-[-1]"
-                                    playsInline 
+                                    playsInline
                                     muted
                                 />
                             )}
-                            
+
                             {imageSrc && (
                                 <img src={imageSrc} alt="Captured Face" className="w-full h-full object-cover transform scale-x-[-1]" />
                             )}
-                            
+
                             <canvas ref={canvasRef} className="hidden" />
 
                             {!isCapturing && !imageSrc && (
@@ -224,17 +255,16 @@ const FaceLoginModal = ({ isOpen, onOpenChange }: FaceLoginModalProps) => {
                         </div>
 
                         <div className="flex flex-col gap-3 mt-4">
-                            {imageSrc ? (
-                                <div className="flex flex-col gap-2">
-                                    {partialFailureMessage && (
-                                        <p className="text-xs text-destructive bg-destructive/10 border border-destructive/20 rounded-md p-2">
-                                            {partialFailureMessage}
-                                        </p>
-                                    )}
+                            {retryContext && isCheckinMode && (
+                                <div className="rounded-md border border-amber-500/40 bg-amber-50 p-3 text-xs text-amber-700">
+                                    Login facial confirmado, mas o check-in falhou. Você pode tentar novamente sem recapturar o rosto.
+                                </div>
+                            )}
 
-                                    <div className="flex gap-2">
-                                    <Button 
-                                        onClick={handleRetake} 
+                            {imageSrc ? (
+                                <div className="flex gap-2">
+                                    <Button
+                                        onClick={handleRetake}
                                         variant="outline"
                                         disabled={isSubmitting || isRetryingCheckin}
                                         className="flex-1"
@@ -242,29 +272,45 @@ const FaceLoginModal = ({ isOpen, onOpenChange }: FaceLoginModalProps) => {
                                         <RefreshCcw className="h-4 w-4 mr-2" />
                                         Refazer Foto
                                     </Button>
-                                    <Button 
-                                        onClick={partialFailureMessage ? handleRetryCheckin : handleLoginAttempt} 
-                                        disabled={isSubmitting || isRetryingCheckin}
-                                        className="flex-1"
-                                    >
-                                        {isSubmitting || isRetryingCheckin ? (
-                                            <>
-                                                <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                                                {partialFailureMessage ? "Reenviando..." : "Validando..."}
-                                            </>
-                                        ) : (
-                                            <>
-                                                <Check className="h-4 w-4 mr-2" />
-                                                {partialFailureMessage ? "Tentar novamente" : "Confirmar"}
-                                            </>
-                                        )}
-                                    </Button>
+                                    {retryContext && isCheckinMode ? (
+                                        <Button onClick={handleRetryCheckin} disabled={isSubmitting} className="flex-1">
+                                            {isSubmitting ? (
+                                                <>
+                                                    <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                                                    Tentando...
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <MapPin className="h-4 w-4 mr-2" />
+                                                    Tentar check-in
+                                                </>
+                                            )}
+                                        </Button>
+                                    ) : (
+                                        <Button
+                                            onClick={handleLoginAttempt}
+                                            disabled={isSubmitting}
+                                            className="flex-1"
+                                        >
+                                            {isSubmitting ? (
+                                                <>
+                                                    <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                                                    {isCheckinMode ? "Registrando..." : "Validando..."}
+                                                </>
+                                            ) : (
+                                                <>
+                                                    <Check className="h-4 w-4 mr-2" />
+                                                    {isCheckinMode ? "Confirmar registro" : "Confirmar"}
+                                                </>
+                                            )}
+                                        </Button>
+                                    )}
                                 </div>
                                 </div>
                             ) : (
                                 <div className="flex flex-col gap-2">
-                                    <Button 
-                                        onClick={handleCapture} 
+                                    <Button
+                                        onClick={handleCapture}
                                         disabled={!isStreamReady || isSubmitting}
                                         className="w-full"
                                         variant="default"
@@ -272,11 +318,10 @@ const FaceLoginModal = ({ isOpen, onOpenChange }: FaceLoginModalProps) => {
                                         <Camera className="h-4 w-4 mr-2" />
                                         Capturar Rosto
                                     </Button>
-                                    
-                                    {/* Botão Refazer Foto também disponível antes da captura se algo travar */}
-                                    <Button 
+
+                                    <Button
                                         onClick={handleRetake}
-                                        variant="outline" 
+                                        variant="outline"
                                         disabled={isSubmitting}
                                         className="w-full"
                                     >
