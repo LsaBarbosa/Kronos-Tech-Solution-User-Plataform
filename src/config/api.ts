@@ -5,6 +5,7 @@ import {
   buildTermsRedirectUrl,
   HTTP_STATUS,
 } from '@/config/http-errors';
+import { queryClient } from '@/lib/queryClient';
 
 const rawApiBaseUrl = import.meta.env.VITE_API_URL ?? 'http://localhost:3000/';
 
@@ -32,6 +33,20 @@ export const api = axios.create({
   },
 });
 
+let hasUnauthorizedRedirect = false;
+
+export const handleUnauthorized = (): void => {
+  localStorage.setItem('session_invalid', 'true');
+  queryClient.clear();
+
+  if (hasUnauthorizedRedirect || window.location.pathname === '/login') {
+    return;
+  }
+
+  hasUnauthorizedRedirect = true;
+  window.location.assign('/login');
+};
+
 api.interceptors.response.use(
   (response) => response,
   (error) => {
@@ -39,12 +54,7 @@ api.interceptors.response.use(
     const data = error.response?.data as ApiErrorPayload | undefined;
 
     if (status === HTTP_STATUS.UNAUTHORIZED) {
-      localStorage.setItem('session_invalid', 'true');
-
-      if (window.location.pathname !== '/login') {
-        window.location.href = '/login';
-      }
-
+      handleUnauthorized();
       return Promise.reject(error);
     }
 
@@ -67,6 +77,12 @@ export const apiFetch = (input: string | URL, init: RequestInit = {}): Promise<R
   return fetch(url, {
     ...init,
     credentials: init.credentials ?? 'include',
+  }).then((response) => {
+    if (response.status === HTTP_STATUS.UNAUTHORIZED) {
+      handleUnauthorized();
+    }
+
+    return response;
   });
 };
 
@@ -90,11 +106,7 @@ export const parseApiResponse = async <T>(response: Response): Promise<T> => {
 
   if (!response.ok) {
     if (response.status === HTTP_STATUS.UNAUTHORIZED) {
-      localStorage.setItem('session_invalid', 'true');
-
-      if (window.location.pathname !== '/login') {
-        window.location.href = '/login';
-      }
+      handleUnauthorized();
     }
 
     if (
