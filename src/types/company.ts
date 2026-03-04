@@ -58,9 +58,6 @@ export interface CompanyUpdatePayload {
 
 // --- Funções Utilitárias Puras ---
 
-// Função para buscar o token (puramente utilitária)
-export const getAuthToken = (): string => localStorage.getItem("token") || "";
-
 // Função para formatar CNPJ (do seu código)
 export const formatCNPJ = (cnpj: string): string => cnpj.replace(/^(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})$/, "$1.$2.$3/$4-$5");
 
