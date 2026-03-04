@@ -2,7 +2,7 @@ import React from "react";
 import { Toaster } from "@/components/ui/toaster";
 import { Toaster as Sonner } from "@/components/ui/sonner";
 import { TooltipProvider } from "@/components/ui/tooltip";
-import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
+import { QueryClientProvider } from "@tanstack/react-query";
 import { BrowserRouter, Routes, Route } from "react-router-dom";
 import { ThemeProvider } from "@/hooks/useTheme";
 import { AuthProvider } from "@/context/AuthContext";
@@ -37,8 +37,7 @@ import RequestTimeOff, { RequestManualRegistration } from "./pages/RequestManual
 import ManualRegisterApprovals from "./pages/ManualRegisterApprovals";
 import EspelhoPonto from "./pages/EspelhoPonto";
 import AuditoriaFiscal from "./pages/AuditoriaFiscal";
-  
-const queryClient = new QueryClient();
+import { queryClient } from "@/lib/queryClient";
 
 const App = () => (
   <QueryClientProvider client={queryClient}>

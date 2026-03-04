@@ -11,6 +11,7 @@ import {
     updatePhone, 
     changePassword 
 } from "@/service/user.Service";
+import { clearLocalAuthSession } from "@/lib/auth-session";
 
 /**
  * Interface para o retorno do hook useUser.
@@ -109,8 +110,8 @@ export const useUser = (): UseUserReturn => {
         variant: "destructive",
       });
       // Em caso de falha crítica (ex: token inválido), força o logout
-      localStorage.removeItem("token");
-      navigate("/login");
+      clearLocalAuthSession();
+      navigate("/login", { replace: true });
     }
   }, [loadUserData, toast, navigate]);
 

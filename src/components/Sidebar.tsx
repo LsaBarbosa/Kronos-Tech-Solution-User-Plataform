@@ -15,6 +15,8 @@ import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/component
 import { cn } from "@/lib/utils";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { logout } from "@/service/auth.Service";
+import { clearLocalAuthSession } from "@/lib/auth-session";
 import { FiscalService } from "@/service/fiscal.service"; // Ajuste o caminho conforme criou o arquivo acima
 import { useToast } from "@/components/ui/use-toast"; // Assumindo que você tem um toast (opcional)
 import { useSessionUser } from "@/hooks/useSessionUser";
@@ -38,10 +40,29 @@ const Sidebar = ({ isOpen, toggleSidebar }: SidebarProps) => {
   const { sessionUser } = useSessionUser();
   const { toast } = useToast(); // Opcional, apenas para feedback visual
 
-  const handleLogout = () => {
-    localStorage.removeItem("token");
-    navigate("/");
-    toggleSidebar();
+  useEffect(() => {
+    const token = localStorage.getItem("token");
+    if (token) {
+      const decoded = decodeToken(token);
+      setUserRole(decoded?.role || "");
+    }
+  }, []);
+
+  const handleLogout = async () => {
+    try {
+      await logout();
+    } catch (error) {
+      console.error("Falha ao encerrar sessão no servidor", error);
+      toast({
+        title: "Sessão encerrada localmente",
+        description: "Não foi possível confirmar o logout no servidor.",
+        variant: "destructive",
+      });
+    } finally {
+      clearLocalAuthSession();
+      navigate("/login", { replace: true });
+      toggleSidebar();
+    }
   };
 
   const userRole = sessionUser?.role || "";
