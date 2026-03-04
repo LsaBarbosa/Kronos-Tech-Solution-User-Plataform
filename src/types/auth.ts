@@ -21,6 +21,15 @@ export interface ResetPasswordPayload {
     confirmPassword: string
 }
 
+/**
+ * Resposta de login (credencial ou facial).
+ * A autenticação é baseada no cookie de sessão; qualquer payload extra é opcional.
+ */
+export interface LoginResponse {
+    token?: string;
+    [key: string]: unknown;
+}
+
 
 // --- ESQUEMAS DE VALIDAÇÃO ---
 
