@@ -1,5 +1,5 @@
 import { API_BASE_URL } from "@/config/api";
-import { redirectToLogin } from "@/utils/authRedirect";
+import { handleUnauthorized } from "@/config/api";
 
 const extractErrorMessage = async (response: Response) => {
   try {
@@ -32,6 +32,18 @@ const parseFilenameFromDisposition = (contentDisposition: string | null) => {
   return undefined;
 };
 
+const parseFilenameFromUrl = (url: string) => {
+  try {
+    const parsedUrl = new URL(url, window.location.origin);
+    const pathname = parsedUrl.pathname;
+    const filename = pathname.split("/").filter(Boolean).pop();
+
+    return filename || undefined;
+  } catch {
+    return undefined;
+  }
+};
+
 interface DownloadFileOptions {
   filename?: string;
   method?: "GET" | "POST";
@@ -52,7 +64,7 @@ export const downloadFile = async (url: string, options: DownloadFileOptions = {
   });
 
   if (response.status === 401) {
-    redirectToLogin();
+    handleUnauthorized();
     throw new Error("Sessão expirada. Faça login novamente.");
   }
 
@@ -66,6 +78,7 @@ export const downloadFile = async (url: string, options: DownloadFileOptions = {
   const filename =
     options.filename ||
     parseFilenameFromDisposition(response.headers.get("content-disposition")) ||
+    parseFilenameFromUrl(url) ||
     "download";
 
   const link = window.document.createElement("a");
