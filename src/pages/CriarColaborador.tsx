@@ -18,7 +18,8 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select";
-import { API_BASE_URL, apiFetch } from "@/config/api";
+import { createEmployee } from "@/service/employee.service";
+import { checkUsernameStatus, createUser } from "@/service/users.service";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
 
@@ -214,14 +215,12 @@ const [faceImageBase64, setFaceImageBase64] = useState<string | undefined>(undef
         // Lógica de chamada à API para verificação (Mantida)
         try {
 
-            const response = await apiFetch(`${API_BASE_URL}users/check-username?username=${username}`, {
-                credentials: "include",
-            });
+            const availability = await checkUsernameStatus(username);
 
-            if (response.ok) {
+            if (availability === 'unavailable') {
                 toast({ title: "Nome de usuário indisponível", description: "Este nome de usuário já está em uso.", variant: "destructive" });
                 setUsernameAvailability('unavailable');
-            } else if (response.status === 404) {
+            } else if (availability === 'available') {
                 toast({ title: "Nome de usuário disponível!", description: "Você pode usar este nome de usuário para o registro." });
                 setUsernameAvailability('available');
             } else {
@@ -283,19 +282,15 @@ const [faceImageBase64, setFaceImageBase64] = useState<string | undefined>(undef
                 fixedWorkDays: data.fixedWorkDays || []
             };
 
-            const employeeResponse = await apiFetch(`${API_BASE_URL}employee`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                credentials: "include",
-                body: JSON.stringify(employeePayload),
-            });
-
-            if (!employeeResponse.ok) {
-                const errorData = await employeeResponse.json();
-                throw new Error(errorData.detail || errorData.message || "Desculpe. Verifique o campo CPF e tente novamente!");
+            let employeeData;
+            try {
+                employeeData = await createEmployee(employeePayload);
+            } catch (error) {
+                if (error instanceof Error && error.message.startsWith('Erro de API')) {
+                    throw new Error("Desculpe. Verifique o campo CPF e tente novamente!");
+                }
+                throw error;
             }
-            
-            const employeeData = await employeeResponse.json();
             const employeeId = employeeData.employeeId;
             
             // SUCESSO DO PASSO 1: Salva o ID e avança o passo
@@ -364,17 +359,7 @@ const [faceImageBase64, setFaceImageBase64] = useState<string | undefined>(undef
                 employeeId: savedEmployeeId, // Usa o ID salvo do Passo 1
             };
 
-            const userResponse = await apiFetch(`${API_BASE_URL}users`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json" },
-                credentials: "include",
-                body: JSON.stringify(userPayload),
-            });
-
-            if (!userResponse.ok) {
-                const errorData = await userResponse.json();
-                throw new Error(errorData.detail || errorData.message || "Falha ao criar o usuário.");
-            }
+            await createUser(userPayload);
 
             // SUCESSO FINAL
             toast({
