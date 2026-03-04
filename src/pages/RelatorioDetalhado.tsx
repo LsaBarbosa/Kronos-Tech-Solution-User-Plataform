@@ -59,6 +59,7 @@ const generateCSV = (data: any[], headers: string[], fileName: string) => {
 };
 
 const RelatorioDetalhado = () => {
+    const token = localStorage.getItem("token");
     const [sidebarOpen, setSidebarOpen] = useState(false);
     const [selectedDates, setSelectedDates] = useState<Date[]>([]);
     const [referenceTime, setReferenceTime] = useState("08:00");
@@ -155,8 +156,7 @@ const RelatorioDetalhado = () => {
 
     const fetchEmployees = useCallback(async () => {
         try {
-            const token = localStorage.getItem("token");
-            if (!token) return;
+                        if (!token) return;
 
             const decoded = decodeToken(token);
             const userRole = decoded?.role;
@@ -177,7 +177,7 @@ const RelatorioDetalhado = () => {
 
             const response = await fetch(url, {
                 method: "GET",
-                headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+                headers: { "Content-Type": "application/json",  },
             });
 
             if (response.ok) {
@@ -192,12 +192,11 @@ const RelatorioDetalhado = () => {
 
     const fetchManagers = async () => {
         try {
-            const token = localStorage.getItem("token");
-            if (!token) throw new Error("Token de autenticação não encontrado.");
+                        if (!token) throw new Error("Token de autenticação não encontrado.");
 
             const response = await fetch(`${API_BASE_URL}users/search`, {
                 method: "GET",
-                headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+                headers: { "Content-Type": "application/json",  },
             });
 
             if (!response.ok) {
@@ -227,8 +226,7 @@ const RelatorioDetalhado = () => {
         setIsLoading(true);
 
         try {
-            const token = localStorage.getItem("token");
-            if (!token) throw new Error("Token não encontrado.");
+                        if (!token) throw new Error("Token não encontrado.");
 
             const formattedDates = selectedDates.map(date => format(date, "dd-MM-yyyy"));
             const requestBody = {
@@ -243,7 +241,7 @@ const RelatorioDetalhado = () => {
 
             const response = await fetch(apiUrl.toString(), {
                 method: "POST",
-                headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+                headers: { "Content-Type": "application/json",  },
                 body: JSON.stringify(requestBody),
             });
 
@@ -549,8 +547,7 @@ const RelatorioDetalhado = () => {
 
     const handleSaveRecord = async (data: EditRecordFormData) => {
         try {
-            const token = localStorage.getItem("token");
-            if (!token) throw new Error("Token de autenticação não encontrado.");
+                        if (!token) throw new Error("Token de autenticação não encontrado.");
             if (!selectedRecord || !selectedRecord.timeRecordId) throw new Error("Registro não encontrado.");
 
             const formatDate = (dateString: string) => {
@@ -569,7 +566,7 @@ const RelatorioDetalhado = () => {
             const endpoint = `${API_BASE_URL}records/update/time-record/${selectedRecord.timeRecordId}`;
             const response = await fetch(endpoint, {
                 method: "PUT",
-                headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+                headers: { "Content-Type": "application/json",  },
                 body: JSON.stringify(requestBody),
             });
 

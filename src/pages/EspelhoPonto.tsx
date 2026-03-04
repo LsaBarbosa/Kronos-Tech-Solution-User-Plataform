@@ -67,8 +67,7 @@ export default function EspelhoPonto() {
 
   // 1. Verifica Permissões e Carrega Lista
   useEffect(() => {
-    const token = localStorage.getItem("token");
-    if (token) {
+        if (token) {
       const decoded = decodeToken(token);
       const role = decoded?.role || "";
       

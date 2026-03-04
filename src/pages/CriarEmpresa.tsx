@@ -56,6 +56,7 @@ const formSchema = z.object({
 });
 
 const CriarEmpresa = () => {
+    const token = localStorage.getItem("token");
     const [sidebarOpen, setSidebarOpen] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const navigate = useNavigate();
@@ -190,12 +191,11 @@ const CriarEmpresa = () => {
         setCnpjAvailability('checking');
 
         try {
-            const token = localStorage.getItem("token");
-            if (!token) throw new Error("Token de autenticação não encontrado.");
+                        if (!token) throw new Error("Token de autenticação não encontrado.");
 
             // Chamada à API para verificação de CNPJ
             const response = await fetch(`${API_BASE_URL}companies/check-cnpj?cnpj=${cnpj}`, {
-                headers: { "Authorization": `Bearer ${token}` },
+                headers: {  },
             });
 
             if (response.ok) {
@@ -252,8 +252,7 @@ const CriarEmpresa = () => {
         // ---------------------------------
 
         try {
-            const token = localStorage.getItem("token");
-            if (!token) {
+                        if (!token) {
                 toast({
                     title: "Sessão Expirada",
                     description: "O token de autenticação não foi encontrado. Faça login novamente.",
@@ -280,7 +279,6 @@ const CriarEmpresa = () => {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
-                    Authorization: `Bearer ${token}`,
                 },
                 body: JSON.stringify(companyPayload),
             });

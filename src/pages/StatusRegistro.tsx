@@ -29,6 +29,7 @@ import {
 
 // O nome do componente foi mantido como StatusRegistro.
 const StatusRegistro = () => {
+    const token = localStorage.getItem("token");
     const [sidebarOpen, setSidebarOpen] = useState(false);
     // 💡 ESTADOS DO FILTRO - Compartilhados com RelatorioFiltros
     const [selectedDates, setSelectedDates] = useState<Date[]>([]);
@@ -95,8 +96,7 @@ const StatusRegistro = () => {
     // 1. Busca de Funcionários (Mantida e reutilizada)
     const fetchEmployees = useCallback(async () => {
         try {
-            const token = localStorage.getItem("token");
-            if (!token) return;
+                        if (!token) return;
 
             const decoded = decodeToken(token);
             const userRole = decoded?.role;
@@ -119,7 +119,6 @@ const StatusRegistro = () => {
                 method: "GET",
                 headers: {
                     "Content-Type": "application/json",
-                    Authorization: `Bearer ${token}`,
                 },
             });
 
@@ -154,8 +153,7 @@ const StatusRegistro = () => {
         setIsLoading(true); // 🚀 ATIVA O LOADING NO INÍCIO DA BUSCA
 
         try {
-            const token = localStorage.getItem("token");
-            if (!token) {
+                        if (!token) {
                 throw new Error("Token de autenticação não encontrado.");
             }
 
@@ -184,7 +182,6 @@ const StatusRegistro = () => {
                 method: "POST",
                 headers: {
                     "Content-Type": "application/json",
-                    Authorization: `Bearer ${token}`,
                 },
                 body: JSON.stringify(requestBody),
             });
@@ -254,8 +251,7 @@ const StatusRegistro = () => {
         setIsSavingStatus(true); // 🚀 ATIVA O LOADING DO BOTÃO SALVAR
         
         try {
-            const token = localStorage.getItem("token");
-            if (!token) {
+                        if (!token) {
                 throw new Error("Token de autenticação não encontrado.");
             }
 
@@ -265,7 +261,6 @@ const StatusRegistro = () => {
                 method: "PUT",
                 headers: {
                     "Content-Type": "application/json",
-                    Authorization: `Bearer ${token}`,
                 },
                 body: JSON.stringify({ statusRecord: statusRecord }),
             });
@@ -317,8 +312,7 @@ const StatusRegistro = () => {
         setIsTogglingActivate(true); // 🚀 ATIVA O LOADING DO BOTÃO TOGGLE
 
         try {
-            const token = localStorage.getItem("token");
-            if (!token) {
+                        if (!token) {
                 throw new Error("Token de autenticação não encontrado.");
             }
 
@@ -329,7 +323,6 @@ const StatusRegistro = () => {
                 method: "PUT", 
                 headers: {
                     "Content-Type": "application/json",
-                    Authorization: `Bearer ${token}`,
                 },
             });
 

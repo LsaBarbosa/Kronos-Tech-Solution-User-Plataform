@@ -261,7 +261,7 @@ export const ResultadosRelatorioDetalhado: React.FC<ResultadosDetalhadoProps> = 
             const url = `${API_BASE_URL}documents/${documentId}?employeeId=${employeeId}`;
 
             const response = await fetch(url, {
-                headers: { 'Authorization': `Bearer ${token}` },
+                headers: {  },
             });
 
             if (!response.ok) {

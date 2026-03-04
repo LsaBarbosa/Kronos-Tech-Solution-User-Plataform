@@ -26,13 +26,11 @@ const ALLOWED_ACCEPT_STRING = ALLOWED_MIME_TYPES.join(', ');
 
 // Auxiliary function to get authentication headers
 const getAuthHeaders = () => {
-  const token = localStorage.getItem('token');
-  if (!token) {
+    if (!token) {
     console.error("Token não encontrado.");
     return {};
   }
   return {
-    'Authorization': `Bearer ${token}`,
     'Content-Type': 'application/json',
   };
 };
@@ -129,8 +127,7 @@ export default function EnviarDocumentos() {
   const handleToggleSidebar = useCallback(() => setSidebarOpen((prev) => !prev), []);
 
   useEffect(() => {
-    const token = localStorage.getItem('token');
-    if (!token) {
+        if (!token) {
       return;
     }
 

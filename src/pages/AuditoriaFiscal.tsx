@@ -79,8 +79,7 @@ export default function AuditoriaFiscal() {
   const { toast } = useToast();
 
   useEffect(() => {
-    const token = localStorage.getItem("token");
-    if (token) {
+        if (token) {
       const decoded = decodeToken(token);
       const role = decoded?.role || "";
       if (role === "MANAGER" || role === "ADMIN") {
