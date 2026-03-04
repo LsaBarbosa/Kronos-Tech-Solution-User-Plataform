@@ -4,7 +4,8 @@ import { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast"; 
 import { Message } from "@/types/message";
-import { fetchMessages, deleteMessage, getUserRoleFromToken } from "@/service/message.service";
+import { fetchMessages, deleteMessage } from "@/service/message.service";
+import { useSessionUser } from "@/hooks/useSessionUser";
 
 type UserRole = 'MANAGER' | 'PARTNER' | 'CTO' | '';
 
@@ -38,6 +39,7 @@ export const useMessages = (): UseMessagesReturn => {
     const [userRole, setUserRole] = useState<UserRole>(''); 
 
     const navigate = useNavigate();
+    const { sessionUser } = useSessionUser();
     const { toast } = useToast();
 
     // --- FUNÇÕES DE LÓGICA / API ---
@@ -45,9 +47,6 @@ export const useMessages = (): UseMessagesReturn => {
     const loadMessages = useCallback(async () => {
         setIsLoading(true);
         setError(null);
-        
-        const role = getUserRoleFromToken();
-        setUserRole(role);
         
         try {
             const data = await fetchMessages();
@@ -99,7 +98,17 @@ export const useMessages = (): UseMessagesReturn => {
     }, [selectedMessage, toast]);
 
 
-    // --- HANDLERS DE UI ---
+    
+
+    useEffect(() => {
+        const role = sessionUser?.role;
+        if (role === "MANAGER" || role === "PARTNER" || role === "CTO") {
+            setUserRole(role);
+            return;
+        }
+        setUserRole('');
+    }, [sessionUser?.role]);
+// --- HANDLERS DE UI ---
     
     const handleOpenMessage = useCallback((message: Message) => {
         setSelectedMessage(message);

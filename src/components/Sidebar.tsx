@@ -13,29 +13,16 @@ import {
 import { Button } from "@/components/ui/button";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { cn } from "@/lib/utils";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { FiscalService } from "@/service/fiscal.service"; // Ajuste o caminho conforme criou o arquivo acima
 import { useToast } from "@/components/ui/use-toast"; // Assumindo que você tem um toast (opcional)
+import { useSessionUser } from "@/hooks/useSessionUser";
 
 interface SidebarProps {
   isOpen: boolean;
   toggleSidebar: () => void; 
 }
-
-const decodeToken = (token: string) => {
-  try {
-    const base64Url = token.split('.')[1];
-    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-    const payload = decodeURIComponent(atob(base64).split('').map(function(c) {
-      return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
-    }).join(''));
-    return JSON.parse(payload);
-  } catch (error) {
-    console.error("Falha ao decodificar o token", error);
-    return null;
-  }
-};
 
 const Sidebar = ({ isOpen, toggleSidebar }: SidebarProps) => {
   const [documentosOpen, setDocumentosOpen] = useState(false);
@@ -47,17 +34,9 @@ const Sidebar = ({ isOpen, toggleSidebar }: SidebarProps) => {
   // 🆕 Estado para o novo subgrupo Auditoria
   const [auditoriaOpen, setAuditoriaOpen] = useState(false);
   
-  const [userRole, setUserRole] = useState("");
   const navigate = useNavigate();
+  const { sessionUser } = useSessionUser();
   const { toast } = useToast(); // Opcional, apenas para feedback visual
-
-  useEffect(() => {
-    const token = localStorage.getItem("token");
-    if (token) {
-      const decoded = decodeToken(token);
-      setUserRole(decoded?.role || "");
-    }
-  }, []);
 
   const handleLogout = () => {
     localStorage.removeItem("token");
@@ -65,6 +44,7 @@ const Sidebar = ({ isOpen, toggleSidebar }: SidebarProps) => {
     toggleSidebar();
   };
 
+  const userRole = sessionUser?.role || "";
   const isManager = userRole === "MANAGER";
   const isCto = userRole === "CTO";
 
