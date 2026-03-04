@@ -10,8 +10,51 @@ export const deleteDocument = async (documentId: string): Promise<void> => {
   await api.delete(`documents/${documentId}`);
 };
 
-export const generateDownloadUrl = (documentId: string): string => {
-  return `${API_BASE_URL}documents/${documentId}/download`;
+interface DownloadDocumentParams {
+  employeeId?: string;
+  fallbackFileName?: string;
+}
+
+const resolveFileName = (contentDisposition: string | null, fallbackFileName: string): string => {
+  if (!contentDisposition) return fallbackFileName;
+
+  const utf8FileNameMatch = contentDisposition.match(/filename\*=UTF-8''([^;]+)/i);
+  if (utf8FileNameMatch?.[1]) {
+    return decodeURIComponent(utf8FileNameMatch[1]);
+  }
+
+  const fileNameMatch = contentDisposition.match(/filename="?([^";]+)"?/i);
+  if (fileNameMatch?.[1]) {
+    return fileNameMatch[1];
+  }
+
+  return fallbackFileName;
+};
+
+export const downloadDocumentFile = async (
+  documentId: string,
+  { employeeId, fallbackFileName = "documento" }: DownloadDocumentParams = {},
+): Promise<void> => {
+  const query = employeeId ? `?employeeId=${encodeURIComponent(employeeId)}` : "";
+  const response = await fetch(`${API_BASE_URL}documents/${documentId}${query}`, {
+    credentials: "include",
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json().catch(() => ({}));
+    throw new Error(errorData.detail || "Não foi possível realizar o download.");
+  }
+
+  const blob = await response.blob();
+  const href = window.URL.createObjectURL(blob);
+  const link = window.document.createElement("a");
+  link.href = href;
+  link.download = resolveFileName(response.headers.get("Content-Disposition"), fallbackFileName);
+
+  window.document.body.appendChild(link);
+  link.click();
+  window.document.body.removeChild(link);
+  window.URL.revokeObjectURL(href);
 };
 
 export const fetchEmployeesForSelection = async (): Promise<EmployeeListItem[]> => {

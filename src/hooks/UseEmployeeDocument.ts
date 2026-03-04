@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { Document, EmployeeListItem } from "@/types/document";
-import { fetchEmployeeDocuments, fetchEmployeesForSelection, generateDownloadUrl } from "@/service/document.Service";
+import { fetchEmployeeDocuments, fetchEmployeesForSelection, downloadDocumentFile } from "@/service/document.Service";
 
 interface UseEmployeeDocumentsReturn {
     employees: EmployeeListItem[];
@@ -15,7 +15,7 @@ interface UseEmployeeDocumentsReturn {
     error: string | null;
     setSelectedEmployeeId: (id: string) => void;
     handleFetchDocuments: (employeeId: string) => Promise<void>;
-    generateDownloadUrl: (documentId: string) => string;
+    downloadDocumentFile: (documentId: string, options?: { employeeId?: string; fallbackFileName?: string }) => Promise<void>;
 }
 
 export const useEmployeeDocuments = (): UseEmployeeDocumentsReturn => {
@@ -92,6 +92,6 @@ export const useEmployeeDocuments = (): UseEmployeeDocumentsReturn => {
         error,
         setSelectedEmployeeId,
         handleFetchDocuments,
-        generateDownloadUrl, // 💡 Exporta a função pura do service
+        downloadDocumentFile,
     };
 };
