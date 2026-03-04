@@ -22,6 +22,7 @@ export const statusMap: Record<string, string> = {
     VACATION_REJECTED: "Férias Rejeitadas",
     IMPLICIT_BREAK: "Pausa",
      WORK_TIME_REQUEST: "Solicitação de Ajuste",
+      WORK_TIME_REJECTED: "Rejeitado por ADM",
 };
 // Interface DetailedReportItem simplificada (sem a lista 'breaks')
 export interface DetailedReportItem {
@@ -121,7 +122,8 @@ export const statusOptions = [
     { value: "TIME_OFF_REJECTED", label: "Horas Abonadas Rejeitadas" },
     { value: "VACATION_REJECTED", label: "Férias Rejeitadas" },
     { value: "IMPLICIT_BREAK", label: "Pausa" }, 
-   {  value:    "WORK_TIME_REQUEST", label :"Solicitação de Ajuste" }
+   {  value: "WORK_TIME_REQUEST", label :"Solicitação de Ajuste" },
+   {  value: "WORK_TIME_REJECTED", label :"Rejeitado por ADM" }
 
 ];
 
