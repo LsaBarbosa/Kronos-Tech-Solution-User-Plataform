@@ -10,7 +10,7 @@ import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox"; 
 import { Upload, FileText, X, UserCheck, UserX, Info, MessageSquareWarningIcon, LucideFileWarning, FileWarning } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { API_BASE_URL } from "@/config/api";
+import { API_BASE_URL, apiFetch } from "@/config/api";
 
 interface Employee {
   id: string;
@@ -174,7 +174,7 @@ export default function EnviarDocumentos() {
                     return;
                 }
 
-                const response = await fetch(`${API_BASE_URL}employee?active=${activeEmployeeFilter}`, { headers });
+                const response = await apiFetch(`${API_BASE_URL}employee?active=${activeEmployeeFilter}`, { headers });
                 if (!response.ok) {
                     const errorData = await response.json();
                     throw new Error(errorData.detail ||"Erro ao buscar funcionários.");
@@ -299,7 +299,7 @@ export default function EnviarDocumentos() {
         type: selectedDocumentType,
       });
 
-      const response = await fetch(`${API_BASE_URL}documents?${searchParams.toString()}`, {
+      const response = await apiFetch(`${API_BASE_URL}documents?${searchParams.toString()}`, {
         method: "POST",
         headers: headers,
         body: formData,
