@@ -15,13 +15,8 @@ import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { es } from 'date-fns/locale';
-import { downloadDocumentFile } from "@/service/document.Service";
+import { deleteDocument, downloadDocument, listDocuments, listEmployeesForDocuments } from "@/service/document.Service";
 import { useAuth } from "@/context/AuthContext";
-import {
-  deleteDocumentByEmployee,
-  fetchDocumentsByEmployeeAndType,
-  fetchEmployeesForDocuments,
-} from "@/service/documents-admin.service";
 import { getServiceErrorMessage } from "@/service/helpers/service-error.helper";
 
 interface Employee {
@@ -71,7 +66,7 @@ const Documentos = () => {
     const fetchEmployees = async () => {
       setIsFetchingEmployees(true);
       try {
-        const formattedEmployees: Employee[] = await fetchEmployeesForDocuments(activeEmployeeFilter);
+        const formattedEmployees: Employee[] = await listEmployeesForDocuments(activeEmployeeFilter);
         setEmployees(formattedEmployees);
         setSelectedEmployeeId("");
       } catch (error) {
@@ -95,7 +90,7 @@ const Documentos = () => {
     setHasSearched(true);
 
     try {
-      const formattedDocuments = await fetchDocumentsByEmployeeAndType(selectedEmployeeId, selectedDocumentType);
+      const formattedDocuments = await listDocuments({ employeeId: selectedEmployeeId, type: selectedDocumentType });
 
       setDocuments(formattedDocuments);
       setFilteredDocuments(formattedDocuments);
@@ -123,7 +118,7 @@ const Documentos = () => {
     }
 
     try {
-        await deleteDocumentByEmployee(documentId, selectedEmployeeId);
+        await deleteDocument(documentId, { employeeId: selectedEmployeeId });
 
         // Se o DELETE foi um sucesso (status 204 No Content ou 200 OK), atualiza o estado local
         setDocuments(prev => prev.filter(doc => doc.id !== documentId));
@@ -183,7 +178,7 @@ const Documentos = () => {
 
   const handleDownload = async (document: Document) => {
     try {
-      await downloadDocumentFile(document.id, {
+      await downloadDocument(document.id, {
         employeeId: selectedEmployeeId,
         fallbackFileName: document.name,
       });
