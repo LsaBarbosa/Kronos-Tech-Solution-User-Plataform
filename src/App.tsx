@@ -37,6 +37,7 @@ import ManualRegisterApprovals from "./pages/ManualRegisterApprovals";
 import EspelhoPonto from "./pages/EspelhoPonto";
 import AuditoriaFiscal from "./pages/AuditoriaFiscal";
 import { AuthProvider } from "./context/AuthContext";
+import { PUBLIC_ROUTES } from "./config/routes";
   
 const queryClient = new QueryClient();
 
@@ -51,7 +52,7 @@ const App = () => (
             <Routes>
 
             <Route path="/" element={<TokenRedirect />} />
-            <Route path="/login" element={<Login />} />
+            <Route path={PUBLIC_ROUTES.LOGIN} element={<Login />} />
             <Route path="/senha-primeiro-acesso" element={<EsqueciSenha />} />
             <Route path="/resetar-senha" element={<ResetPassword />} />
 

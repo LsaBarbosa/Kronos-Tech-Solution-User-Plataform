@@ -1,6 +1,7 @@
 // src/components/ProtectedRoute.tsx
 import React from 'react';
 import { Navigate, Outlet } from 'react-router-dom';
+import { PUBLIC_ROUTES } from '@/config/routes';
 import { useAuth } from '@/context/AuthContext';
 
 const ProtectedRoute = () => {
@@ -11,7 +12,7 @@ const ProtectedRoute = () => {
   }
 
   if (!isAuthenticated) {
-    return <Navigate to="/login" replace />;
+    return <Navigate to={PUBLIC_ROUTES.LOGIN} replace />;
   }
 
   return <Outlet />;
