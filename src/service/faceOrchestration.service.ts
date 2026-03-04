@@ -104,10 +104,6 @@ export const executeFaceLoginFlow = async (faceImageBase64: string): Promise<Fac
   return { status: "success" };
 };
 
-export const authenticateWithFace = async (faceImageBase64: string): Promise<FaceFlowResult> => {
-  return executeFaceLoginFlow(faceImageBase64);
-};
-
 export const executeFaceCheckinFlow = async (
   retryContext: FaceCheckinRetryContext,
 ): Promise<FaceFlowResult> => {
