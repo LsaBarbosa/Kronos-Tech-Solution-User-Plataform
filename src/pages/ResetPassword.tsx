@@ -17,11 +17,11 @@ const ResetPassword = () => {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const navigate = useNavigate();
 
-  // 💡 HOOK: Toda a lógica de estado, token e submissão
-  const { form, isSubmitting, token, isSuccess, onSubmit } = useResetPassword();
+  // 💡 HOOK: Toda a lógica de estado, token de redefinição e submissão
+  const { form, isSubmitting, passwordResetToken, isSuccess, onSubmit } = useResetPassword();
 
-  // Se o token for nulo (checado no hook), o hook já deve ter exibido um toast e redirecionado.
-  if (!token) {
+  // Se o token de redefinição for nulo (checado no hook), o hook já deve ter exibido um toast e redirecionado.
+  if (!passwordResetToken) {
     return (
         <div className="flex h-screen items-center justify-center">
              <Loader2 className="h-10 w-10 animate-spin text-primary" />

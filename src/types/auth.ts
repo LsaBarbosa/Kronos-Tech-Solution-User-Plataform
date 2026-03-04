@@ -14,9 +14,12 @@ export interface RecoverPasswordPayload {
 
 /**
  * Payload de redefinição de senha (ResetPassword).
+ *
+ * `passwordResetToken` é EXCLUSIVO do fluxo de recuperação de senha
+ * (rota `/resetar-senha`) e não deve ser tratado como token de sessão/login.
  */
 export interface ResetPasswordPayload {
-    token: string;
+    passwordResetToken: string;
     newPassword: string;
     confirmPassword: string
 }
