@@ -21,6 +21,7 @@ import {
 import { checkUsernameExists, createEmployee, createUser } from "@/service/adminPortal.service";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
+import { checkUsernameExists, createCollaboratorEmployee, createCollaboratorUser } from "@/service/collaborator-management.service";
 
 const SCHEDULE_TYPES = [
     { value: "TRADITIONAL_5X2", label: "Tradicional 5x2 (Seg-Sex)" },

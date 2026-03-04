@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { useToast } from "@/hooks/use-toast";
+import { isAuthenticationError } from "@/service/helpers/service-error.helper";
 import { useNavigate } from "react-router-dom";
 import { EmployeeData, formatCPF } from "@/types/employee";
 import { fetchEmployeeList, toggleEmployeeStatus, deleteEmployee } from "@/service/employee.Service";
@@ -50,7 +51,7 @@ export const useEmployeeList = (): UseEmployeeListReturn => {
             setState(prev => ({ ...prev, colaboradores: data }));
         } catch (error: any) {
             setState(prev => ({ ...prev, error: error.message || "Falha ao carregar lista." }));
-            if (error.message.includes("Token")) navigate("/login");
+            if (isAuthenticationError(error)) navigate("/login");
         } finally {
             setState(prev => ({ ...prev, isLoading: false }));
         }

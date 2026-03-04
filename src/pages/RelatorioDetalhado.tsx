@@ -24,6 +24,13 @@ import {
 } from "@/utils/report-utils";
 import { fetchEmployeesForReport, fetchManagersForReport, fetchRecordsReport, requestTimeRecordUpdate } from "@/service/reportPortal.service";
 import { useAuth } from "@/context/AuthContext";
+import {
+    fetchDetailedReport,
+    fetchEmployeesByActive,
+    fetchManagers as fetchManagersService,
+    updateTimeRecord,
+} from "@/service/report.service";
+import { getServiceErrorMessage } from "@/service/helpers/service-error.helper";
 
 // Sub-componentes
 import { ResultadosRelatorioDetalhado } from "@/components/ResultadosRelatorioDetalhado";
@@ -186,7 +193,7 @@ const RelatorioDetalhado = () => {
             setManagers(filteredManagers);
         } catch (error) {
             console.error("Erro ao buscar gerentes:", error);
-            toast({ title: "Erro", description: (error as Error).message, variant: "destructive" });
+            toast({ title: "Erro", description: getServiceErrorMessage(error, "Erro ao buscar usuários."), variant: "destructive" });
         }
     };
 
@@ -222,7 +229,7 @@ const RelatorioDetalhado = () => {
 
         } catch (error) {
             console.error("Erro na busca:", error);
-            toast({ title: "Erro", description: (error as Error).message, variant: "destructive" });
+            toast({ title: "Erro", description: getServiceErrorMessage(error, "Erro ao buscar o relatório."), variant: "destructive" });
         } finally {
             setIsLoading(false);
         }
@@ -530,7 +537,7 @@ const RelatorioDetalhado = () => {
             handleSearch();
         } catch (error) {
             console.error("Erro ao salvar:", error);
-            toast({ title: "Erro", description: (error as Error).message, variant: "destructive" });
+            toast({ title: "Erro", description: getServiceErrorMessage(error, "Erro ao solicitar a aprovação."), variant: "destructive" });
         }
     };
 

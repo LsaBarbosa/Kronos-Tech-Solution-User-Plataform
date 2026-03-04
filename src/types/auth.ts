@@ -23,10 +23,15 @@ export interface ResetPasswordPayload {
 
 /**
  * Resposta de login (credencial ou facial).
- * A autenticação é baseada no cookie de sessão; qualquer payload extra é opcional.
+ *
+ * A autenticação da aplicação depende exclusivamente do cookie de sessão httpOnly.
+ * O frontend não recebe nem persiste JWT no payload de login.
+ * Campos auxiliares retornados pelo backend devem permanecer neutros/metadata.
  */
 export interface LoginResponse {
-    token?: string;
+    message?: string;
+    user?: Record<string, unknown>;
+    // Dados extras são opcionais e genéricos; não há contrato de token no body de login.
     [key: string]: unknown;
 }
 
