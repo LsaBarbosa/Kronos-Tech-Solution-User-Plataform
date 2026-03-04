@@ -135,10 +135,6 @@ const ListaColaboradores = () => {
   const fetchColaboradores = async () => {
     setIsLoading(true);
     try {
-      const token = localStorage.getItem("token");
-      if (!token) {
-        throw new Error("Token de autenticação não encontrado.");
-      }
 
       const isActive = !showInactive;
 
@@ -147,14 +143,14 @@ const ListaColaboradores = () => {
           method: "GET",
           headers: {
             "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
+            
           },
         }),
         apiFetch(`${API_BASE_URL}users/search`, {
           method: "GET",
           headers: {
             "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
+            
           },
         }),
       ]);
@@ -391,10 +387,6 @@ const ListaColaboradores = () => {
 
     setIsLoading(true);
     try {
-      const token = localStorage.getItem("token");
-      if (!token) {
-        throw new Error("Token de autenticação não encontrado.");
-      }
 
       const bodyDataEmployee: { [key: string]: any } = {};
       const bodyDataUser: { [key: string]: any } = {};
@@ -493,7 +485,8 @@ const ListaColaboradores = () => {
         promises.push(
           apiFetch(`${API_BASE_URL}employee/manager/update-employee/${colaboradorId}`, {
             method: "PATCH",
-            headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+            headers: { "Content-Type": "application/json" },
+                credentials: "include",
             body: JSON.stringify(bodyDataEmployee),
           })
         );
@@ -503,7 +496,8 @@ const ListaColaboradores = () => {
         promises.push(
           apiFetch(`${API_BASE_URL}users/search/${originalColaborador.userId}`, {
             method: "PATCH",
-            headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
+            headers: { "Content-Type": "application/json" },
+                credentials: "include",
             body: JSON.stringify(bodyDataUser),
           })
         );
@@ -580,17 +574,13 @@ const ListaColaboradores = () => {
     }
 
     try {
-      const token = localStorage.getItem("token");
-      if (!token) {
-        throw new Error("Token de autenticação não encontrado.");
-      }
 
       // Chamada à API
       const response = await apiFetch(`${API_BASE_URL}users/toggle-activate/${userId}`, {
         method: "PATCH",
         headers: {
           "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
+          
         },
       });
 
@@ -599,7 +589,9 @@ const ListaColaboradores = () => {
         try {
           const errorData = await response.json();
           if (errorData.detail) errorMessage = errorData.detail;
-        } catch (e) { }
+        } catch {
+          // no-op
+        }
         throw new Error(errorMessage);
       }
 

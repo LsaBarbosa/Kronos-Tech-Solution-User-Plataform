@@ -40,14 +40,6 @@ const Sidebar = ({ isOpen, toggleSidebar }: SidebarProps) => {
   const { sessionUser } = useSessionUser();
   const { toast } = useToast(); // Opcional, apenas para feedback visual
 
-  useEffect(() => {
-    const token = localStorage.getItem("token");
-    if (token) {
-      const decoded = decodeToken(token);
-      setUserRole(decoded?.role || "");
-    }
-  }, []);
-
   const handleLogout = async () => {
     try {
       await logout();

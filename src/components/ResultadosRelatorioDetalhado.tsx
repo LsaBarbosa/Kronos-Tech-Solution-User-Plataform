@@ -59,6 +59,7 @@ const getAddressFromCoordinates = async (latitude: number, longitude: number): P
         const url = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`;
         
         const response = await apiFetch(url, {
+            credentials: 'omit',
             headers: {
                 'User-Agent': 'KronosSystem/1.0',
                 'Accept-Language': 'pt-BR'
@@ -248,20 +249,10 @@ export const ResultadosRelatorioDetalhado: React.FC<ResultadosDetalhadoProps> = 
         }
 
         try {
-            const token = localStorage.getItem('token');
-            if (!token) {
-                toast({
-                    title: "Não Autorizado",
-                    description: "Token de autenticação ausente. Faça login novamente.",
-                    variant: "destructive"
-                });
-                return;
-            }
-
             const url = `${API_BASE_URL}documents/${documentId}?employeeId=${employeeId}`;
 
             const response = await apiFetch(url, {
-                headers: { 'Authorization': `Bearer ${token}` },
+                credentials: 'include',
             });
 
             if (!response.ok) {
@@ -269,7 +260,9 @@ export const ResultadosRelatorioDetalhado: React.FC<ResultadosDetalhadoProps> = 
                 try {
                     const errorData = await response.json();
                     errorMessage = errorData.detail || errorMessage;
-                } catch { }
+                } catch {
+                    // no-op
+                }
                 throw new Error(errorMessage);
             }
 
@@ -279,7 +272,7 @@ export const ResultadosRelatorioDetalhado: React.FC<ResultadosDetalhadoProps> = 
             if (contentDisposition) {
                 const filenameMatch = contentDisposition.match(/filename="(.+?)"/);
                 if (filenameMatch && filenameMatch[1]) {
-                    filename = decodeURIComponent(filenameMatch[1].replace(/\"/g, ''));
+                    filename = decodeURIComponent(filenameMatch[1].replace(/"/g, ''));
                 }
             }
 
