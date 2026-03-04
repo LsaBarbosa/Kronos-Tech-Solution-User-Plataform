@@ -69,6 +69,16 @@ export const listEmployees = async (active?: boolean): Promise<EmployeeSearchIte
   return data.employees ?? [];
 };
 
+export const listEmployeesByStatus = async (active: string | boolean): Promise<EmployeeSummary[]> => {
+  const normalizedActive = typeof active === 'boolean' ? active : active === 'true';
+  const employees = await listEmployees(normalizedActive);
+
+  return employees.map((employee) => ({
+    employeeId: employee.employeeId,
+    fullName: employee.fullName,
+  }));
+};
+
 export const updateEmployeeByManager = async (
   employeeId: string,
   payload: Record<string, unknown>,

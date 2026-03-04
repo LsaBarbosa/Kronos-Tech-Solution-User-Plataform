@@ -1,4 +1,4 @@
-import React, { useState, useEffect, useCallback, useRef } from "react";
+import React, { useState, useEffect, useCallback } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -10,7 +10,6 @@ import Header from "@/components/Header";
 import Sidebar from "@/components/Sidebar";
 // 🚀 ADICIONADO Loader2 para o spinner
 import { Info, Save, ZapOff, Loader2 } from "lucide-react"; 
-import { API_BASE_URL, apiFetch } from "@/config/api";
 
 // 💡 NOVO: Componente de Filtros Modular
 import { RelatorioFiltros } from "@/pages/RelatorioFiltros"; 
@@ -18,7 +17,13 @@ import { RelatorioFiltros } from "@/pages/RelatorioFiltros";
 import { ResultadosRelatorioDetalhado } from "@/components/ResultadosRelatorioDetalhado"; 
 
 // 💡 NOVO: Importando utilitários centralizados
-import { 
+import {
+    fetchDetailedReport,
+    toggleRecordActivation,
+    updateTimeRecordStatus,
+} from "@/service/reports.service";
+import { listEmployeesByStatus } from "@/service/employee.service";
+import {
     statusOptions, 
     getStatusColor, 
     getTranslatedStatus,
@@ -111,28 +116,16 @@ const StatusRegistro = () => {
             setIsPartner(false);
 
             const activeStatus = employeeActive === "active";
-            const url = `${API_BASE_URL}employee?active=${activeStatus}`;
-
-            const response = await apiFetch(url, {
-                method: "GET",
-                headers: {
-                    "Content-Type": "application/json",
-                    
-                },
-            });
-
-            if (response.ok) {
-                const data = await response.json();
-                setEmployees(data.employees || []);
+            const employeeData = await listEmployeesByStatus(activeStatus);
+            setEmployees(employeeData || []);
                 // 💡 CORREÇÃO: Lógica de verificação de funcionário selecionado
-                if (!employees.some(emp => emp.employeeId === selectedEmployee) && data.employees.length > 0) {
-                    setSelectedEmployee(data.employees[0].employeeId); 
-                } else if (!selectedEmployee && data.employees.length > 0) {
-                    setSelectedEmployee(data.employees[0].employeeId);
+                if (!employees.some(emp => emp.employeeId === selectedEmployee) && employeeData.length > 0) {
+                    setSelectedEmployee(employeeData[0].employeeId); 
+                } else if (!selectedEmployee && employeeData.length > 0) {
+                    setSelectedEmployee(employeeData[0].employeeId);
                 } else if (!selectedEmployee) {
                     setSelectedEmployee("");
                 }
-            }
         } catch (error) {
             console.error("Erro ao buscar funcionários:", error);
         }
@@ -169,26 +162,7 @@ const StatusRegistro = () => {
                 dates: formattedDates,
             };
 
-            const apiUrl = new URL(`${API_BASE_URL}records/report`, window.location.origin);
-            if (selectedEmployee) {
-                apiUrl.searchParams.append("employeeId", selectedEmployee);
-            }
-
-            const response = await apiFetch(apiUrl.toString(), {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    
-                },
-                body: JSON.stringify(requestBody),
-            });
-
-            if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.detail || "Erro ao buscar o relatório. Tente novamente mais tarde.");
-            }
-
-            const data = await response.json();
+            const data = await fetchDetailedReport(requestBody, selectedEmployee || undefined);
 
             if (data.length === 0) {
                 setReportData([]);
@@ -249,22 +223,7 @@ const StatusRegistro = () => {
         
         try {
 
-            const endpoint = `${API_BASE_URL}records/update/status/${employeeId}/${timeRecordId}`;
-
-            const response = await apiFetch(endpoint, {
-                method: "PUT",
-                headers: {
-                    "Content-Type": "application/json",
-                    
-                },
-                body: JSON.stringify({ statusRecord: statusRecord }),
-            });
-
-
-            if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.detail || "Erro ao atualizar o status do registro.");
-            }
+            await updateTimeRecordStatus(employeeId, timeRecordId, statusRecord);
 
             toast({
                 title: "Sucesso",
@@ -308,21 +267,7 @@ const StatusRegistro = () => {
 
         try {
 
-            // Endpoint conforme informação do backend: PATCH records/toggle-activate/{employeeId}/{timeRecordId}
-            const endpoint = `${API_BASE_URL}records/toggle-activate/${employeeId}/${timeRecordId}`;
-
-            const response = await apiFetch(endpoint, {
-                method: "PUT", 
-                headers: {
-                    "Content-Type": "application/json",
-                    
-                },
-            });
-
-            if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.detail || `Erro ao ${currentAction.toLowerCase()} o registro de ponto.`);
-            }
+            await toggleRecordActivation(employeeId, timeRecordId);
 
             toast({
                 title: "Sucesso",

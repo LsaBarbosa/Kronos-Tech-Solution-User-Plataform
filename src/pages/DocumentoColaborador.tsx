@@ -10,8 +10,8 @@ import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox"; 
 import { Upload, FileText, X, UserCheck, UserX, Info, MessageSquareWarningIcon, LucideFileWarning, FileWarning } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
-import { API_BASE_URL, apiFetch } from "@/config/api";
 import { useSessionUser } from "@/hooks/useSessionUser";
+import { fetchEmployeesByActiveStatus, uploadEmployeeDocument } from "@/service/document.Service";
 
 interface Employee {
   id: string;
@@ -23,12 +23,6 @@ const MAX_UPLOAD_SIZE_BYTES = 5 * 1024 * 1024; // 5MB
 const MAX_COMPRESS_SIZE_MB = 3; // 3MB target for image compression
 const ALLOWED_MIME_TYPES = ['.pdf', '.jpg', '.jpeg', '.png', '.docx', '.doc'];
 const ALLOWED_ACCEPT_STRING = ALLOWED_MIME_TYPES.join(', ');
-
-
-// Auxiliary function to get authentication headers
-const getAuthHeaders = () => ({
-  'Content-Type': 'application/json',
-});
 
 
 // NOVO: Função para compressão de imagem (Target 3MB)
@@ -143,18 +137,8 @@ export default function EnviarDocumentos() {
         const fetchEmployees = async () => {
             setIsFetchingEmployees(true);
             try {
-                const headers = getAuthHeaders();
-                if (Object.keys(headers).length === 0) {
-                    return;
-                }
-
-                const response = await apiFetch(`${API_BASE_URL}employee?active=${activeEmployeeFilter}`, { headers });
-                if (!response.ok) {
-                    const errorData = await response.json();
-                    throw new Error(errorData.detail ||"Erro ao buscar funcionários.");
-                }
-                const data = await response.json();
-                const formattedEmployees: Employee[] = data.employees.map((emp: any) => ({
+                const employeeData = await fetchEmployeesByActiveStatus(activeEmployeeFilter);
+                const formattedEmployees: Employee[] = employeeData.map((emp) => ({
                     id: emp.employeeId,
                     name: emp.fullName,
                 }));
@@ -259,30 +243,10 @@ export default function EnviarDocumentos() {
     setIsUploading(true);
 
     try {
-      const headers = getAuthHeaders();
-      delete headers['Content-Type'];
-
       // 1. Aplica a compressão de imagem (se for imagem e for > 3MB)
       const finalFile = await compressImage(selectedFile, MAX_COMPRESS_SIZE_MB);
 
-      const formData = new FormData();
-      formData.append("file", finalFile); // Usa o arquivo comprimido (ou original)
-
-      const searchParams = new URLSearchParams({
-        employeeId: selectedEmployeeId, // Usará o ID selecionado (Manager) ou o ID do próprio usuário (outros)
-        type: selectedDocumentType,
-      });
-
-      const response = await apiFetch(`${API_BASE_URL}documents?${searchParams.toString()}`, {
-        method: "POST",
-        headers: headers,
-        body: formData,
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.message || "Erro ao enviar documento.");
-      }
+      await uploadEmployeeDocument(finalFile, selectedEmployeeId, selectedDocumentType);
 
       toast({
         title: "Sucesso",
