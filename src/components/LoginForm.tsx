@@ -21,6 +21,7 @@ const LoginForm = () => {
   const [isFaceLoginOpen, setIsFaceLoginOpen] = useState(false); // Estado do modal facial
 
   const navigate = useNavigate(); 
+  const { checkSession } = useAuth();
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -48,8 +49,7 @@ const LoginForm = () => {
 
       // Pequeno delay para o usuário ver o feedback
       setTimeout(() => {
-        // Redirecionamento com refresh para garantir limpeza de memória/cache
-        window.location.href = "/dashboard";
+        navigate("/dashboard", { replace: true });
       }, 800);
 
     } catch (error) {

@@ -26,6 +26,30 @@ const handleResponse = async (response: Response): Promise<any> => {
     return {};
 };
 
+/**
+ * Verifica sessão atual via endpoint autenticado por cookie.
+ */
+export const fetchCurrentSession = async (): Promise<any> => {
+    const response = await fetch(`${API_BASE_URL}users/own-profile`, {
+        method: "GET",
+        credentials: "include",
+    });
+
+    return handleResponse(response);
+};
+
+/**
+ * Invalida sessão atual no backend (cookie/token server-side).
+ */
+export const logoutSession = async (): Promise<void> => {
+    const response = await fetch(`${API_BASE_URL}auth/logout`, {
+        method: "POST",
+        credentials: "include",
+    });
+
+    await handleResponse(response);
+};
+
 // --- Serviços de Recuperação ---
 
 /**
