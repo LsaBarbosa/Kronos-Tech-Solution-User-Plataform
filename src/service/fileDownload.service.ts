@@ -1,7 +1,6 @@
 import { API_BASE_URL } from "@/config/api";
 import { redirectToLogin } from "@/utils/authRedirect";
 
-
 const extractErrorMessage = async (response: Response) => {
   try {
     const contentType = response.headers.get("content-type") || "";
@@ -45,9 +44,8 @@ export const downloadFile = async (url: string, options: DownloadFileOptions = {
   headers.delete("authorization");
   headers.delete("Authorization");
 
-
   const response = await fetch(url, {
-    method: options.method || "GET",
+    method: options.method ?? "GET",
     headers,
     body: options.body,
     credentials: "include",
