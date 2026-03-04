@@ -34,6 +34,7 @@ const FaceLoginModal = ({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isStreamReady, setIsStreamReady] = useState(false);
   const [retryContext, setRetryContext] = useState<FaceCheckinRetryContext | null>(null);
+  const [flowErrorMessage, setFlowErrorMessage] = useState<string | null>(null);
 
   const videoRef = useRef<HTMLVideoElement>(null);
   const canvasRef = useRef<HTMLCanvasElement>(null);
@@ -98,6 +99,7 @@ const FaceLoginModal = ({
     stopWebcam();
     setImageSrc(null);
     setRetryContext(null);
+    setFlowErrorMessage(null);
     setIsSubmitting(false);
     setIsCapturing(false);
   }, [isOpen, startWebcam, stopWebcam]);
@@ -128,12 +130,14 @@ const FaceLoginModal = ({
 
     setImageSrc(dataUrl);
     setRetryContext(null);
+    setFlowErrorMessage(null);
     stopWebcam();
   };
 
   const handleRetake = () => {
     setImageSrc(null);
     setRetryContext(null);
+    setFlowErrorMessage(null);
     setIsCapturing(false);
     setIsSubmitting(false);
 
@@ -167,6 +171,7 @@ const FaceLoginModal = ({
     if (!imageSrc) return;
 
     setIsSubmitting(true);
+    setFlowErrorMessage(null);
     const base64Data = imageSrc.split(",")[1];
 
     try {
@@ -193,7 +198,10 @@ const FaceLoginModal = ({
 
       if (flowResult.status === "partial_checkin_failure") {
         setRetryContext(flowResult.retryContext);
-        toast.error(flowResult.message || "Falha no registro do ponto após autenticação. Tente novamente.");
+        const partialFailureMessage =
+          flowResult.message || "Falha no registro do ponto após autenticação. Tente novamente.";
+        setFlowErrorMessage(partialFailureMessage);
+        toast.error(partialFailureMessage);
         return;
       }
 
@@ -206,6 +214,7 @@ const FaceLoginModal = ({
     } catch (error: unknown) {
       console.error(error);
       const message = error instanceof Error ? error.message : "Rosto não reconhecido ou não cadastrado.";
+      setFlowErrorMessage(message);
       toast.error(message);
       setImageSrc(null);
       setRetryContext(null);
@@ -219,6 +228,7 @@ const FaceLoginModal = ({
     if (!retryContext) return;
 
     setIsSubmitting(true);
+    setFlowErrorMessage(null);
     const result = await retryFaceCheckinFlow(retryContext);
     setIsSubmitting(false);
 
@@ -228,11 +238,18 @@ const FaceLoginModal = ({
       return;
     }
 
-    toast.error(result.message || "Falha ao registrar o ponto na nova tentativa.");
+    const retryFailureMessage = result.message || "Falha ao registrar o ponto na nova tentativa.";
+    setFlowErrorMessage(retryFailureMessage);
+    toast.error(retryFailureMessage);
+  };
+
+  const handleOpenChange = (open: boolean) => {
+    if (isSubmitting) return;
+    onOpenChange(open);
   };
 
   return (
-    <Dialog open={isOpen} onOpenChange={onOpenChange}>
+    <Dialog open={isOpen} onOpenChange={handleOpenChange}>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
@@ -272,6 +289,12 @@ const FaceLoginModal = ({
             </div>
 
             <div className="flex flex-col gap-3 mt-4">
+              {flowErrorMessage && (
+                <div className="rounded-md border border-red-500/40 bg-red-50 p-3 text-xs text-red-700">
+                  {flowErrorMessage}
+                </div>
+              )}
+
               {retryContext && isCheckinMode && (
                 <div className="rounded-md border border-amber-500/40 bg-amber-50 p-3 text-xs text-amber-700">
                   Login facial confirmado, mas o check-in falhou. Você pode tentar novamente sem recapturar o rosto.
