@@ -45,7 +45,7 @@ import { useToast } from "@/hooks/use-toast";
 // Importações adicionais
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
-import { API_BASE_URL } from "@/config/api";
+import { fetchEmployeesByActive, fetchUsersSearch, toggleUserActivation, updateManagedEmployee, updateUserById } from "@/service/adminPortal.service";
 import { Switch } from "@/components/ui/switch";
 
 const SCHEDULE_TYPES = [
@@ -137,30 +137,7 @@ const ListaColaboradores = () => {
     try {
       const isActive = !showInactive;
 
-      const [employeesResponse, usersResponse] = await Promise.all([
-        fetch(`${API_BASE_URL}employee?active=${isActive}`, {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-          },
-        }),
-        fetch(`${API_BASE_URL}users/search`, {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-          },
-        }),
-      ]);
-
-      if (!employeesResponse.ok || !usersResponse.ok) {
-        throw new Error("Falha ao buscar os dados dos colaboradores.");
-      }
-
-      const employeesData = await employeesResponse.json();
-      const usersData = await usersResponse.json();
-
-      const employees = employeesData.employees || [];
-      const users = usersData.users || [];
+      const [employees, users] = await Promise.all([fetchEmployeesByActive(isActive), fetchUsersSearch()]);
 
       const usersMap = new Map<string, UserData>();
       users.forEach((user: UserData) => usersMap.set(user.employeeId, user));
@@ -479,21 +456,13 @@ const ListaColaboradores = () => {
 
       if (Object.keys(bodyDataEmployee).length > 0 || faceImageFile) {
         promises.push(
-          fetch(`${API_BASE_URL}employee/manager/update-employee/${colaboradorId}`, {
-            method: "PATCH",
-            headers: { "Content-Type": "application/json",  },
-            body: JSON.stringify(bodyDataEmployee),
-          })
+          updateManagedEmployee(colaboradorId, bodyDataEmployee)
         );
       }
 
       if (Object.keys(bodyDataUser).length > 0) {
         promises.push(
-          fetch(`${API_BASE_URL}users/search/${originalColaborador.userId}`, {
-            method: "PATCH",
-            headers: { "Content-Type": "application/json",  },
-            body: JSON.stringify(bodyDataUser),
-          })
+          updateUserById(originalColaborador.userId, bodyDataUser)
         );
       }
 
@@ -569,21 +538,7 @@ const ListaColaboradores = () => {
 
     try {
       // Chamada à API
-      const response = await fetch(`${API_BASE_URL}users/toggle-activate/${userId}`, {
-        method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-        },
-      });
-
-      if (!response.ok) {
-        let errorMessage = "Falha ao alterar status.";
-        try {
-          const errorData = await response.json();
-          if (errorData.detail) errorMessage = errorData.detail;
-        } catch (e) { }
-        throw new Error(errorMessage);
-      }
+      await toggleUserActivation(userId);
 
       // --- PONTO DA CORREÇÃO ---
       

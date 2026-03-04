@@ -10,7 +10,7 @@ import Header from "@/components/Header";
 import Sidebar from "@/components/Sidebar";
 // 🚀 ADICIONADO Loader2 para o spinner
 import { Info, Save, ZapOff, Loader2 } from "lucide-react"; 
-import { API_BASE_URL } from "@/config/api";
+import { fetchEmployeesForReport, fetchRecordsReport, toggleStatusRecordActivation, updateStatusRecord } from "@/service/reportPortal.service";
 import { useAuth } from "@/context/AuthContext";
 
 // 💡 NOVO: Componente de Filtros Modular
@@ -109,23 +109,15 @@ const StatusRegistro = () => {
             setIsPartner(false);
 
             const activeStatus = employeeActive === "active";
-            const url = `${API_BASE_URL}employee?active=${activeStatus}`;
+            const employeesData = await fetchEmployeesForReport(activeStatus);
 
-            const response = await fetch(url, {
-                method: "GET",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-            });
-
-            if (response.ok) {
-                const data = await response.json();
-                setEmployees(data.employees || []);
+            if (employeesData) {
+                setEmployees(employeesData || []);
                 // 💡 CORREÇÃO: Lógica de verificação de funcionário selecionado
-                if (!employees.some(emp => emp.employeeId === selectedEmployee) && data.employees.length > 0) {
-                    setSelectedEmployee(data.employees[0].employeeId); 
-                } else if (!selectedEmployee && data.employees.length > 0) {
-                    setSelectedEmployee(data.employees[0].employeeId);
+                if (!employees.some(emp => emp.employeeId === selectedEmployee) && employeesData.length > 0) {
+                    setSelectedEmployee(employeesData[0].employeeId); 
+                } else if (!selectedEmployee && employeesData.length > 0) {
+                    setSelectedEmployee(employeesData[0].employeeId);
                 } else if (!selectedEmployee) {
                     setSelectedEmployee("");
                 }
@@ -165,25 +157,7 @@ const StatusRegistro = () => {
                 dates: formattedDates,
             };
 
-            const apiUrl = new URL(`${API_BASE_URL}records/report`, window.location.origin);
-            if (selectedEmployee) {
-                apiUrl.searchParams.append("employeeId", selectedEmployee);
-            }
-
-            const response = await fetch(apiUrl.toString(), {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify(requestBody),
-            });
-
-            if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.detail || "Erro ao buscar o relatório. Tente novamente mais tarde.");
-            }
-
-            const data = await response.json();
+            const data = await fetchRecordsReport(requestBody, selectedEmployee || undefined);
 
             if (data.length === 0) {
                 setReportData([]);
@@ -243,21 +217,7 @@ const StatusRegistro = () => {
         setIsSavingStatus(true); // 🚀 ATIVA O LOADING DO BOTÃO SALVAR
         
         try {
-            const endpoint = `${API_BASE_URL}records/update/status/${employeeId}/${timeRecordId}`;
-
-            const response = await fetch(endpoint, {
-                method: "PUT",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify({ statusRecord: statusRecord }),
-            });
-
-
-            if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.detail || "Erro ao atualizar o status do registro.");
-            }
+            await updateStatusRecord(employeeId, timeRecordId, statusRecord);
 
             toast({
                 title: "Sucesso",
@@ -300,20 +260,7 @@ const StatusRegistro = () => {
         setIsTogglingActivate(true); // 🚀 ATIVA O LOADING DO BOTÃO TOGGLE
 
         try {
-            // Endpoint conforme informação do backend: PATCH records/toggle-activate/{employeeId}/{timeRecordId}
-            const endpoint = `${API_BASE_URL}records/toggle-activate/${employeeId}/${timeRecordId}`;
-
-            const response = await fetch(endpoint, {
-                method: "PUT", 
-                headers: {
-                    "Content-Type": "application/json",
-                },
-            });
-
-            if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.detail || `Erro ao ${currentAction.toLowerCase()} o registro de ponto.`);
-            }
+            await toggleStatusRecordActivation(employeeId, timeRecordId);
 
             toast({
                 title: "Sucesso",
