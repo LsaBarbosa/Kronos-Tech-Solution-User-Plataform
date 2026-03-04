@@ -1,7 +1,6 @@
 import { api } from "@/config/api";
 import { throwServiceError } from "@/service/helpers/service-error.helper";
-import { mapSession, unwrapObject } from "@/service/helpers/response-normalizer.helper";
-import { LoginResponse, RecoverPasswordPayload, ResetPasswordPayload } from "@/types/auth";
+import { RecoverPasswordPayload, ResetPasswordPayload } from "@/types/auth";
 import type { UserAccountData } from "@/types/user";
 
 interface OwnProfileResponse {
@@ -38,19 +37,17 @@ export const logoutSession = async (): Promise<void> => {
   }
 };
 
-export const loginWithPassword = async (username: string, password: string): Promise<LoginResponse> => {
+export const loginWithPassword = async (username: string, password: string): Promise<void> => {
   try {
-    const { data } = await api.post("auth/login", { username, password });
-    return unwrapObject(data ?? {}, "Login com senha") as LoginResponse;
+    await api.post("auth/login", { username, password });
   } catch (error) {
     throwServiceError(error, "Falha ao realizar login com senha.");
   }
 };
 
-export const loginWithFace = async (faceImageBase64: string): Promise<LoginResponse> => {
+export const loginWithFace = async (faceImageBase64: string): Promise<void> => {
   try {
-    const { data } = await api.post("auth/login-face", { faceImageBase64 });
-    return unwrapObject(data ?? {}, "Login facial") as LoginResponse;
+    await api.post("auth/login-face", { faceImageBase64 });
   } catch (error) {
     throwServiceError(error, "Falha ao realizar login facial.");
   }

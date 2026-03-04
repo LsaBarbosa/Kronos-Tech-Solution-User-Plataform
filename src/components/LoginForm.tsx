@@ -8,13 +8,9 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import Clock from "@/components/Clock";
-import { Eye, EyeOff, ScanFace } from "lucide-react"; // Adicionado ScanFace
-import { toast } from "sonner"; // Ajustado import para sonner padrão se necessário, ou "@/components/ui/sonner"
-import FaceLoginModal from "@/components/FaceLoginModal"; // Import do novo modal
-import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
 import { loginWithPassword } from "@/service/auth.Service";
+import { getServiceErrorMessage } from "@/service/helpers/service-error.helper";
 
 const LoginForm = () => {
   const [showPassword, setShowPassword] = useState(false);
@@ -32,14 +28,15 @@ const LoginForm = () => {
 
     try {
       await loginWithPassword(username, password);
-      await checkSession();
+      const isAuthenticated = await checkSession();
 
-      toast.success("Login realizado com sucesso!");
+      if (!isAuthenticated) {
+        toast.error("Não foi possível validar sua sessão. Tente novamente.");
+        return;
+      }
 
-      await checkSession();
-      setTimeout(() => {
-        navigate("/dashboard", { replace: true });
-      }, 800);
+      toast.success("Sessão autenticada com sucesso! Redirecionando...");
+      navigate("/dashboard", { replace: true });
     } catch (error) {
       toast.error(getServiceErrorMessage(error, "Usuário ou senha inválidos."));
     } finally {
