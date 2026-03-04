@@ -80,7 +80,7 @@ const renderStatusBadge = (status: StatusRecord) => {
             return <span className={cn(baseClasses, 'bg-amber-100 text-amber-800 border-amber-200 dark:bg-amber-900/50 dark:text-amber-200 dark:border-amber-800')}>{statusMap[status]}</span>;
         
         // 💡 NOVO CASE: Esquecimento de Ponto (Roxo)
-        case 'FORGOTTEN_REGISTRATION':
+        case 'WORK_TIME_REQUEST':
             return <span className={cn(baseClasses, 'bg-purple-100 text-purple-800 border-purple-200 dark:bg-purple-900/50 dark:text-purple-200 dark:border-purple-800')}>{statusMap[status]}</span>;
             
         case 'TIME_OFF':
