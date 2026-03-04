@@ -29,9 +29,6 @@ export interface ResetPasswordPayload {
  * Campos auxiliares retornados pelo backend devem permanecer neutros/metadata.
  */
 export interface LoginResponse {
-    message?: string;
-    user?: Record<string, unknown>;
-    // Dados extras são opcionais e genéricos; não há contrato de token no body de login.
     [key: string]: unknown;
 }
 

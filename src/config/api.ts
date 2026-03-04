@@ -10,8 +10,8 @@ const redirectToTerms = (redirectBaseUrl: string) => {
 };
 
 const redirectToLogin = () => {
-  if (window.location.pathname !== LOGIN_ROUTE) {
-    window.location.href = LOGIN_ROUTE;
+  if (window.location.pathname !== '/login') {
+    window.location.href = '/login';
   }
 };
 

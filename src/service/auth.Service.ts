@@ -26,18 +26,14 @@ export const logoutSession = async (): Promise<void> => {
   await api.post("auth/logout");
 };
 
-export const loginWithPassword = async (
-  payload: { username: string; password: string }
-): Promise<LoginResponse | null> => {
-  const { data } = await api.post("auth/login", payload);
-  return (data as LoginResponse | undefined) ?? null;
+export const loginWithPassword = async (username: string, password: string): Promise<LoginResponse> => {
+  const { data } = await api.post("auth/login", { username, password });
+  return data ?? {};
 };
 
-export const loginWithFace = async (
-  payload: { faceImageBase64: string }
-): Promise<LoginResponse | null> => {
-  const { data } = await api.post("auth/login-face", payload);
-  return (data as LoginResponse | undefined) ?? null;
+export const loginWithFace = async (faceImageBase64: string): Promise<LoginResponse> => {
+  const { data } = await api.post("auth/login-face", { faceImageBase64 });
+  return data ?? {};
 };
 
 export const recoverPasswordRequest = async (payload: RecoverPasswordPayload): Promise<void> => {

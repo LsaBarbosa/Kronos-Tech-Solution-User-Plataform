@@ -94,6 +94,7 @@ export const useDocumentUpload = (): UseDocumentUploadReturn => {
     const [fileError, setFileError] = useState<string | null>(null);
 
     const fileInputRef = useRef<HTMLInputElement>(null);
+    const isSessionError = (error: any) => error?.response?.status === 401 || error?.response?.status === 403;
     const { toast } = useToast();
     const navigate = useNavigate();
 
@@ -106,7 +107,7 @@ export const useDocumentUpload = (): UseDocumentUploadReturn => {
                 setEmployees(data);
             } catch (err: any) {
                 setError(err.message);
-                if (isAuthenticationError(err)) navigate("/login");
+                if (isSessionError(err)) navigate("/login");
                 toast({ title: "Erro", description: err.message, variant: "destructive" });
             } finally {
                 setIsFetchingEmployees(false);

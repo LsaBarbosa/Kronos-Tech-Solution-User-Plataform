@@ -8,8 +8,12 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import Clock from "@/components/Clock";
+import { Eye, EyeOff, ScanFace } from "lucide-react"; // Adicionado ScanFace
+import { toast } from "sonner"; // Ajustado import para sonner padrão se necessário, ou "@/components/ui/sonner"
+import FaceLoginModal from "@/components/FaceLoginModal"; // Import do novo modal
+import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
-import { getServiceErrorMessage } from "@/service/helpers/service-error.helper";
 import { loginWithPassword } from "@/service/auth.Service";
 
 const LoginForm = () => {
@@ -27,10 +31,8 @@ const LoginForm = () => {
     setIsSubmitting(true);
 
     try {
-      // O body de login pode conter metadados opcionais, mas a autenticação é feita apenas via cookie httpOnly.
-      const loginPayload = await loginWithPassword({ username, password });
-      const loginMetadata = loginPayload ?? null;
-      void loginMetadata;
+      await loginWithPassword(username, password);
+      await checkSession();
 
       toast.success("Login realizado com sucesso!");
 

@@ -76,6 +76,7 @@ export const useCompanySearch = (): UseCompanySearchReturn => {
     
     const navigate = useNavigate();
     const { toast } = useToast();
+    const isSessionError = (error: any) => error?.response?.status === 401 || error?.response?.status === 403;
 
     // 💡 Formulário de edição
     const editForm = useForm<EditFormData>({
@@ -102,7 +103,7 @@ export const useCompanySearch = (): UseCompanySearchReturn => {
         } catch (err: any) {
             console.error("Falha ao buscar empresas:", err);
             setError(err.message || "Falha ao carregar as empresas. Tente novamente.");
-            if (isAuthenticationError(err)) {
+            if (isSessionError(err)) {
                 navigate("/login"); 
             }
         } finally {
