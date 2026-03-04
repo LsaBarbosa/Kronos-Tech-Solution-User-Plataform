@@ -6,7 +6,8 @@ interface GeolocationPayload {
 }
 
 interface FaceLoginResponse {
-  token?: string;
+  status?: string;
+  message?: string;
 }
 
 interface RegisterPointOptions {
@@ -14,7 +15,8 @@ interface RegisterPointOptions {
 }
 
 interface RegisterPointResult {
-  token?: string;
+  status: "success";
+  auth?: FaceLoginResponse;
 }
 
 const parseErrorResponse = async (response: Response, fallbackMessage: string): Promise<string> => {
@@ -111,5 +113,5 @@ export const registerPointWithFace = async (
     }
   }
 
-  return { token: loginData.token };
+  return { status: "success", auth: loginData };
 };

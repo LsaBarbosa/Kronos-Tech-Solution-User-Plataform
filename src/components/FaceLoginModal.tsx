@@ -160,20 +160,11 @@ const FaceLoginModal = ({
         const base64Data = imageSrc.split(",")[1];
 
         try {
-            if (mode === "login") {
-                await authenticateWithFace(base64Data);
-                toast.success("Identidade confirmada! Acessando plataforma...", { duration: 2000 });
-                onOpenChange(false);
-                await bootstrapSession();
-                navigate("/dashboard", { replace: true });
-                return;
-            }
-
-            const location = await getGeolocation();
-            const flowResult = await executeFaceCheckinFlow({
-                faceImageBase64: base64Data,
-                location,
-                requireShortSession,
+            await registerPointWithFace(base64Data, { shouldLogoutAfterFlow });
+            setPartialFailureMessage(null);
+            
+            toast.success("Ponto registrado com sucesso! Acessando plataforma...", {
+                duration: 2000,
             });
 
             if (!flowResult.success) {
