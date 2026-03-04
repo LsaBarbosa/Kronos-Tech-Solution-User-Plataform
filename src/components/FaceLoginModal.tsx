@@ -3,6 +3,7 @@ import { Camera, RefreshCcw, Loader2, ScanFace, Check, MapPin } from "lucide-rea
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Card, CardContent } from "@/components/ui/card";
+import { useAuth } from "@/context/AuthContext";
 import { toast } from "sonner";
 import { useAuth } from "@/context/AuthContext";
 import { useNavigate } from "react-router-dom";
@@ -126,6 +127,8 @@ const FaceLoginModal = ({
         setImageSrc(null);
         setRetryContext(null);
         setIsCapturing(false);
+        setIsSubmitting(false);
+        setIsRetryingCheckin(false);
         setPartialFailureMessage(null);
         setTimeout(() => {
             startWebcam();
@@ -185,7 +188,6 @@ const FaceLoginModal = ({
             if (message.includes("Identidade confirmada")) {
                 setPartialFailureMessage(message);
                 toast.error("Falha ao concluir registro de ponto.");
-                setIsSubmitting(false);
                 return;
             }
 
