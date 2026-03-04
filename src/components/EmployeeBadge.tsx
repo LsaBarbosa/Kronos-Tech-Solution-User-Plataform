@@ -7,7 +7,7 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
-import { API_BASE_URL } from "@/config/api";
+import { API_BASE_URL, apiFetch } from "@/config/api";
 import { Separator } from "@radix-ui/react-separator";
 
 interface UserProfile {
@@ -75,7 +75,7 @@ const EmployeeBadge = ({ userData, isLoading, onUpdateSuccess }: EmployeeBadgePr
           [field]: field === 'phone' ? tempData.phone.replace(/\D/g, '') : tempData[field] 
       };
       
-      const response = await fetch(`${API_BASE_URL}employee/update-own-profile`, {
+      const response = await apiFetch(`${API_BASE_URL}employee/update-own-profile`, {
         method: "PATCH",
         headers: {
           "Content-Type": "application/json",
