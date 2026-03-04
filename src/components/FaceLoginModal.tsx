@@ -12,6 +12,8 @@ interface FaceLoginModalProps {
 }
 
 const FaceLoginModal = ({ isOpen, onOpenChange }: FaceLoginModalProps) => {
+    const navigate = useNavigate();
+    const { bootstrapSession } = useAuth();
     const [imageSrc, setImageSrc] = useState<string | null>(null);
     const [isCapturing, setIsCapturing] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
@@ -136,10 +138,9 @@ const FaceLoginModal = ({ isOpen, onOpenChange }: FaceLoginModalProps) => {
                 duration: 2000,
             });
 
-            setTimeout(() => {
-                // Força refresh para limpar a memória da câmera e garantir estado limpo
-                window.location.href = "/dashboard";
-            }, 1000);
+            onOpenChange(false);
+            await bootstrapSession();
+            navigate("/dashboard", { replace: true });
 
         } catch (error: unknown) {
             console.error(error);

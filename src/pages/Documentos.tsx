@@ -16,6 +16,7 @@ import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { es } from 'date-fns/locale';
 import { API_BASE_URL } from "@/config/api";
+import { downloadDocument } from "@/service/document.Service";
 
 interface Employee {
   id: string;
@@ -42,20 +43,6 @@ const getAuthHeaders = () => {
   };
 };
 
-// New function to decode the JWT token
-const decodeToken = (token: string) => {
-  try {
-    const base64Url = token.split('.')[1];
-    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-    const payload = decodeURIComponent(atob(base64).split('').map(function (c) {
-      return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
-    }).join(''));
-    return JSON.parse(payload);
-  } catch (error) {
-    console.error("Falha ao decodificar o token", error);
-    return null;
-  }
-};
 
 // --- NOVA FUNÇÃO PARA TRATAR ERROS DE API ---
 const handleApiError = async (response: Response) => {
@@ -86,24 +73,19 @@ const Documentos = () => {
   const [isPartner, setIsPartner] = useState(false);
   const [currentUserId, setCurrentUserId] = useState("");
   const [currentUserName, setCurrentUserName] = useState("");
+  const { sessionUser } = useSessionUser();
 
   useEffect(() => {
-    const token = localStorage.getItem('token');
-    if (!token) {
-      return;
-    }
-
-    const decoded = decodeToken(token);
-    const userRole = decoded?.role;
-    const userId = decoded?.employeeId;
-    const userName = decoded?.fullName;
+    const userRole = sessionUser?.role;
+    const userId = sessionUser?.employeeId;
+    const userName = sessionUser?.fullName;
 
     setIsPartner(userRole === 'PARTNER');
     setCurrentUserId(userId || "");
     setCurrentUserName(userName || "");
 
-    if (userRole === 'PARTNER') {
-      setEmployees([{ id: userId, name: userName }]);
+    if (userRole === 'PARTNER' && userId) {
+      setEmployees([{ id: userId, name: userName || "" }]);
       setSelectedEmployeeId(userId);
       return;
     }
@@ -116,7 +98,7 @@ const Documentos = () => {
           return;
         }
 
-        const response = await fetch(`${API_BASE_URL}employee?active=${activeEmployeeFilter}`, { headers });
+        const response = await apiFetch(`${API_BASE_URL}employee?active=${activeEmployeeFilter}`, { headers });
         if (!response.ok) {
           await handleApiError(response);
           return;
@@ -137,7 +119,7 @@ const Documentos = () => {
     };
 
     fetchEmployees();
-  }, [activeEmployeeFilter]);
+  }, [activeEmployeeFilter, sessionUser]);
 
   const handleSearch = async () => {
     if (!selectedEmployeeId || !selectedDocumentType) {
@@ -157,7 +139,7 @@ const Documentos = () => {
         type: selectedDocumentType,
       });
 
-      const response = await fetch(`${API_BASE_URL}documents?${searchParams.toString()}`, {
+      const response = await apiFetch(`${API_BASE_URL}documents?${searchParams.toString()}`, {
         headers: headers,
       });
 
@@ -209,7 +191,7 @@ const Documentos = () => {
         // Constrói a URL do DELETE: /documents/{documentId}?employeeId={employeeId}
         const url = `${API_BASE_URL}documents/${documentId}?employeeId=${selectedEmployeeId}`;
 
-        const response = await fetch(url, {
+        const response = await apiFetch(url, {
             method: "DELETE",
             headers: headers,
         });
@@ -280,29 +262,8 @@ const Documentos = () => {
 
   const handleDownload = async (document: Document) => {
     try {
-      const headers = getAuthHeaders();
-      if (Object.keys(headers).length === 0) return;
-
-      const url = `${API_BASE_URL}documents/${document.id}?employeeId=${selectedEmployeeId}`;
-
-      const response = await fetch(url, { headers });
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.detail || "Não foi possível realizar o download")
-      }
-
-      const blob = await response.blob();
-      const href = window.URL.createObjectURL(blob);
-      const link = window.document.createElement('a'); // Use window.document para ser explícito
-      link.href = href;
-      link.download = document.name;
-      window.document.body.appendChild(link);
-      link.click();
-      window.document.body.removeChild(link);
-      window.URL.revokeObjectURL(href);
-
+      await downloadDocument(document.id, selectedEmployeeId, document.name);
       toast.success(`Download de ${document.name} iniciado`);
-
     } catch (error) {
       console.error("Erro ao iniciar o download:", error);
       toast.error(`Falha ao baixar o documento ${document.name}. Tente novamente.`);

@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { Document, EmployeeListItem } from "@/types/document";
-import { fetchEmployeeDocuments, fetchEmployeesForSelection, generateDownloadUrl } from "@/service/document.Service";
+import { fetchEmployeeDocuments, fetchEmployeesForSelection, downloadDocument } from "@/service/document.Service";
 
 interface UseEmployeeDocumentsReturn {
     employees: EmployeeListItem[];
@@ -15,7 +15,7 @@ interface UseEmployeeDocumentsReturn {
     error: string | null;
     setSelectedEmployeeId: (id: string) => void;
     handleFetchDocuments: (employeeId: string) => Promise<void>;
-    generateDownloadUrl: (documentId: string) => string;
+    downloadDocument: (documentId: string, filename?: string) => Promise<void>;
 }
 
 export const useEmployeeDocuments = (): UseEmployeeDocumentsReturn => {
@@ -83,6 +83,11 @@ export const useEmployeeDocuments = (): UseEmployeeDocumentsReturn => {
         }
     }, [selectedEmployeeId, handleFetchDocuments]);
 
+
+    const handleDownloadDocument = useCallback(async (documentId: string, filename?: string) => {
+        if (!selectedEmployeeId) throw new Error("Colaborador não selecionado.");
+        await downloadDocument(documentId, selectedEmployeeId, filename);
+    }, [selectedEmployeeId]);
     return {
         employees,
         documents,
@@ -92,6 +97,6 @@ export const useEmployeeDocuments = (): UseEmployeeDocumentsReturn => {
         error,
         setSelectedEmployeeId,
         handleFetchDocuments,
-        generateDownloadUrl, // 💡 Exporta a função pura do service
+        downloadDocument: handleDownloadDocument,
     };
 };

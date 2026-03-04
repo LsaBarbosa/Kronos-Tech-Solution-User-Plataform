@@ -1,12 +1,14 @@
 // src/hooks/useDashboardData.ts
 
 import { useState, useEffect, useCallback, useMemo } from "react";
+import { AxiosError } from "axios";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { fetchUserProfile, fetchPendingApprovalsCount, fetchAllWarnings, updateLastSeenMessageTimestamp } from "@/service/dashboard.service";
 import { ITimeRecordApprovalPageResponse } from "@/types/recordApproval"; 
 import { WarningMessage, hasApprovalPermission } from "@/types/dashboard";
 import { UserData } from "@/types/user"; 
+import { ApiErrorPayload, DEFAULT_ERROR_MESSAGE, getErrorMessageFromPayload, SESSION_INVALID_MESSAGE } from "@/config/http-errors";
 
 interface UseDashboardDataReturn {
     userData: UserData & { role: string } | null; 
@@ -32,6 +34,22 @@ export const useDashboardData = (): UseDashboardDataReturn => {
 
     const userRole = userData?.role || '';
     const canApprove = useMemo(() => hasApprovalPermission(userRole), [userRole]);
+
+    const getDisplayErrorMessage = useCallback((error: unknown, fallback: string): string => {
+        if (error instanceof AxiosError) {
+            if (error.response?.status === 401) {
+                return SESSION_INVALID_MESSAGE;
+            }
+
+            return getErrorMessageFromPayload(error.response?.data as ApiErrorPayload | undefined, fallback);
+        }
+
+        if (error instanceof Error) {
+            return error.message;
+        }
+
+        return fallback;
+    }, []);
 
     const fetchApprovalsCount = useCallback(async (role: string) => {
         if (!hasApprovalPermission(role)) {
@@ -61,41 +79,17 @@ export const useDashboardData = (): UseDashboardDataReturn => {
             setPendingApprovalsCount(approvals.count);
             setAllWarnings(warnings);
 
-        } catch (err: any) { 
-            
-            // =================================================================
-            // 🛑 LÓGICA DE AVISO + REDIRECIONAMENTO COM DELAY 🛑
-            // =================================================================
-            if (err.response?.status === 403 && err.response?.data?.type === 'TERMS_NOT_ACCEPTED') {
-                
-                const backendData = err.response.data;
-                const termoUrl = backendData.redirect_url;
-                const currentPlatformUrl = window.location.href; 
-
-                // 1. Exibe o aviso visual para o usuário
-                toast({
-                    title: "Termos de Uso Pendentes",
-                    description: "Você será redirecionado em 3 segundos para assinar o termo de consentimento.",
-                    variant: "destructive", // Vermelho chama mais atenção, ou use "default"
-                    duration: 4000, // Mantém o toast visível durante o delay
-                });
-
-                // 2. Aguarda 3 segundos (3000ms) antes de mudar a página
-                setTimeout(() => {
-                    window.location.href = `${termoUrl}?returnUrl=${encodeURIComponent(currentPlatformUrl)}`;
-                }, 3500);
-                
-                return; // Interrompe o fluxo para não exibir outros erros
-            }
-            // =================================================================
-
+        } catch (err: unknown) { 
             console.error("Erro no Dashboard:", err);
-            
-            // ... restante do tratamento de erros (401, etc)
+            toast({
+                title: "Erro ao carregar dashboard",
+                description: getDisplayErrorMessage(err, DEFAULT_ERROR_MESSAGE),
+                variant: "destructive",
+            });
         } finally {
             setIsLoading(false);
         }
-    }, [toast, navigate, fetchApprovalsCount]);
+    }, [toast, fetchApprovalsCount, getDisplayErrorMessage]);
 
     useEffect(() => {
         fetchProfile();
@@ -115,15 +109,15 @@ export const useDashboardData = (): UseDashboardDataReturn => {
             try {
                 await updateLastSeenMessageTimestamp(); 
                 setUserData(prev => prev ? { ...prev, lastSeenMessageTimestamp: new Date().toISOString() } : null);
-            } catch (err: any) {
+            } catch (err: unknown) {
                 toast({ 
                     title: "Atenção", 
-                    description: (err as Error).message || "Falha ao registrar a visualização dos avisos.", 
+                    description: getDisplayErrorMessage(err, "Falha ao registrar a visualização dos avisos."), 
                     variant: "destructive" 
                 });
             }
         }
-    }, [newWarnings.length, navigate, toast]);
+    }, [newWarnings.length, navigate, toast, getDisplayErrorMessage]);
 
     return {
         userData,
