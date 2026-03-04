@@ -18,12 +18,12 @@ import {
     Manager,
     EditRecordFormData,
     editRecordSchema,
-    decodeToken,
     isHoliday,
     getTranslatedStatus,
     formatDateWithDayOfWeek,
 } from "@/utils/report-utils";
 import { API_BASE_URL } from "@/config/api";
+import { useAuth } from "@/context/AuthContext";
 
 // Sub-componentes
 import { ResultadosRelatorioDetalhado } from "@/components/ResultadosRelatorioDetalhado";
@@ -59,7 +59,6 @@ const generateCSV = (data: any[], headers: string[], fileName: string) => {
 };
 
 const RelatorioDetalhado = () => {
-    const token = localStorage.getItem("token");
     const [sidebarOpen, setSidebarOpen] = useState(false);
     const [selectedDates, setSelectedDates] = useState<Date[]>([]);
     const [referenceTime, setReferenceTime] = useState("08:00");
@@ -75,6 +74,7 @@ const RelatorioDetalhado = () => {
     const [selectedRecord, setSelectedRecord] = useState<DetailedReportItem | null>(null);
     const [employees, setEmployees] = useState<Employee[]>([]);
     const { toast } = useToast();
+    const { session } = useAuth();
     const [managers, setManagers] = useState<Manager[]>([]);
     const [isPartner, setIsPartner] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
@@ -156,21 +156,17 @@ const RelatorioDetalhado = () => {
 
     const fetchEmployees = useCallback(async () => {
         try {
-                        if (!token) return;
+            const userRole = session?.role;
+            const userId = session?.employeeId;
+            const userName = session?.username;
 
-            const decoded = decodeToken(token);
-            const userRole = decoded?.role;
-            const userId = decoded?.employeeId;
-            const userName = decoded?.fullName;
-
-            if (userRole === "PARTNER") {
+            if (userRole === "PARTNER" && userId) {
                 setIsPartner(true);
-                setEmployees([{ employeeId: userId, fullName: userName }]);
+                setEmployees([{ employeeId: userId, fullName: userName || "Usuário" }]);
                 setSelectedEmployee(userId);
                 return;
-            } else {
-                setIsPartner(false);
             }
+            setIsPartner(false);
 
             const activeStatus = employeeActive === "active";
             const url = employeeActive ? `${API_BASE_URL}employee?active=${activeStatus}` : `${API_BASE_URL}employee`;
@@ -188,12 +184,10 @@ const RelatorioDetalhado = () => {
         } catch (error) {
             console.error("Erro ao buscar funcionários:", error);
         }
-    }, [employeeActive, selectedEmployee]);
+    }, [employeeActive, selectedEmployee, session]);
 
     const fetchManagers = async () => {
         try {
-                        if (!token) throw new Error("Token de autenticação não encontrado.");
-
             const response = await fetch(`${API_BASE_URL}users/search`, {
                 method: "GET",
                 headers: { "Content-Type": "application/json",  },
@@ -226,8 +220,6 @@ const RelatorioDetalhado = () => {
         setIsLoading(true);
 
         try {
-                        if (!token) throw new Error("Token não encontrado.");
-
             const formattedDates = selectedDates.map(date => format(date, "dd-MM-yyyy"));
             const requestBody = {
                 reference: referenceTime,
@@ -547,7 +539,6 @@ const RelatorioDetalhado = () => {
 
     const handleSaveRecord = async (data: EditRecordFormData) => {
         try {
-                        if (!token) throw new Error("Token de autenticação não encontrado.");
             if (!selectedRecord || !selectedRecord.timeRecordId) throw new Error("Registro não encontrado.");
 
             const formatDate = (dateString: string) => {

@@ -56,7 +56,6 @@ const formSchema = z.object({
 });
 
 const CriarEmpresa = () => {
-    const token = localStorage.getItem("token");
     const [sidebarOpen, setSidebarOpen] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const navigate = useNavigate();
@@ -191,7 +190,6 @@ const CriarEmpresa = () => {
         setCnpjAvailability('checking');
 
         try {
-                        if (!token) throw new Error("Token de autenticação não encontrado.");
 
             // Chamada à API para verificação de CNPJ
             const response = await fetch(`${API_BASE_URL}companies/check-cnpj?cnpj=${cnpj}`, {
@@ -252,16 +250,6 @@ const CriarEmpresa = () => {
         // ---------------------------------
 
         try {
-                        if (!token) {
-                toast({
-                    title: "Sessão Expirada",
-                    description: "O token de autenticação não foi encontrado. Faça login novamente.",
-                    variant: "destructive",
-                });
-                navigate("/login");
-                return;
-            }
-
             // 2. Monta o Payload APENAS com os dados da Empresa
             const companyPayload = {
                 name: values.name,

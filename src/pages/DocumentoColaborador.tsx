@@ -11,6 +11,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Upload, FileText, X, UserCheck, UserX, Info, MessageSquareWarningIcon, LucideFileWarning, FileWarning } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
 import { API_BASE_URL } from "@/config/api";
+import { useAuth } from "@/context/AuthContext";
 
 interface Employee {
   id: string;
@@ -24,31 +25,9 @@ const ALLOWED_MIME_TYPES = ['.pdf', '.jpg', '.jpeg', '.png', '.docx', '.doc'];
 const ALLOWED_ACCEPT_STRING = ALLOWED_MIME_TYPES.join(', ');
 
 
-// Auxiliary function to get authentication headers
-const getAuthHeaders = () => {
-    if (!token) {
-    console.error("Token não encontrado.");
-    return {};
-  }
-  return {
-    'Content-Type': 'application/json',
-  };
-};
-
-// Nova função para decodificar o token JWT
-const decodeToken = (token: string) => {
-  try {
-    const base64Url = token.split('.')[1];
-    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-    const payload = decodeURIComponent(atob(base64).split('').map(function (c) {
-      return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
-    }).join(''));
-    return JSON.parse(payload);
-  } catch (error) {
-    console.error("Falha ao decodificar o token", error);
-    return null;
-  }
-};
+const getAuthHeaders = () => ({
+  'Content-Type': 'application/json',
+});
 
 // NOVO: Função para compressão de imagem (Target 3MB)
 const compressImage = (file: File, maxSizeMB: number = MAX_COMPRESS_SIZE_MB): Promise<File> => {
@@ -124,17 +103,13 @@ export default function EnviarDocumentos() {
   const [userRole, setUserRole] = useState(""); 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
+  const { session } = useAuth();
   const handleToggleSidebar = useCallback(() => setSidebarOpen((prev) => !prev), []);
 
   useEffect(() => {
-        if (!token) {
-      return;
-    }
-
-    const decoded = decodeToken(token);
-    const userRole = decoded?.role; 
-    const userId = decoded?.employeeId;
-    const userName = decoded?.fullName;
+    const userRole = session?.role; 
+    const userId = session?.employeeId;
+    const userName = session?.username;
 
     const isManager = userRole === 'MANAGER'; 
     
@@ -196,7 +171,7 @@ export default function EnviarDocumentos() {
 
         fetchEmployees();
     }
-  }, [activeEmployeeFilter]);
+  }, [activeEmployeeFilter, session]);
 
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault();

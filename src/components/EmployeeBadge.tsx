@@ -66,11 +66,6 @@ const EmployeeBadge = ({ userData, isLoading, onUpdateSuccess }: EmployeeBadgePr
 
     setIsUpdating(true);
     try {
-      const token = localStorage.getItem("token");
-      if (!token) {
-        throw new Error("Token de autenticação não encontrado.");
-      }
-
       const payload = { 
           [field]: field === 'phone' ? tempData.phone.replace(/\D/g, '') : tempData[field] 
       };

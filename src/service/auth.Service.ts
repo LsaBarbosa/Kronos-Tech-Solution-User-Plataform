@@ -1,9 +1,25 @@
 import { api } from "@/config/api";
 import { RecoverPasswordPayload, ResetPasswordPayload } from "@/types/auth";
+import type { UserAccountData } from "@/types/user";
 
-export const fetchCurrentSession = async (): Promise<any> => {
-  const { data } = await api.get("users/own-profile");
-  return data;
+const normalizeSession = (data: any): UserAccountData => ({
+  userId: data?.userId || data?.id || "",
+  username: data?.username || data?.fullName || "",
+  role: data?.role || "",
+  active: Boolean(data?.active ?? true),
+  employeeId: data?.employeeId || "",
+  companyId: data?.companyId,
+  claims: data?.claims,
+});
+
+export const fetchCurrentSession = async (): Promise<UserAccountData> => {
+  try {
+    const { data } = await api.get("auth/me");
+    return normalizeSession(data);
+  } catch {
+    const { data } = await api.get("users/own-profile");
+    return normalizeSession(data);
+  }
 };
 
 export const logoutSession = async (): Promise<void> => {

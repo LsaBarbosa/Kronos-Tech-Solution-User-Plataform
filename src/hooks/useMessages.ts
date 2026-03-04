@@ -4,7 +4,8 @@ import { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast"; 
 import { Message } from "@/types/message";
-import { fetchMessages, deleteMessage, getUserRoleFromToken } from "@/service/message.service";
+import { fetchMessages, deleteMessage, getSessionRole } from "@/service/message.service";
+import { useAuth } from "@/context/AuthContext";
 
 type UserRole = 'MANAGER' | 'PARTNER' | 'CTO' | '';
 
@@ -39,6 +40,7 @@ export const useMessages = (): UseMessagesReturn => {
 
     const navigate = useNavigate();
     const { toast } = useToast();
+    const { session } = useAuth();
 
     // --- FUNÇÕES DE LÓGICA / API ---
     
@@ -46,7 +48,7 @@ export const useMessages = (): UseMessagesReturn => {
         setIsLoading(true);
         setError(null);
         
-        const role = getUserRoleFromToken();
+        const role = getSessionRole(session?.role);
         setUserRole(role);
         
         try {
@@ -65,7 +67,7 @@ export const useMessages = (): UseMessagesReturn => {
         } finally {
             setIsLoading(false);
         }
-    }, [toast, navigate]);
+    }, [toast, navigate, session]);
 
 
     const handleDeleteMessage = useCallback(async () => {
