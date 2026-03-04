@@ -5,7 +5,6 @@ import { queryClient } from '@/lib/queryClient';
  * sem executar lógica de validação/decodificação de JWT.
  */
 export const clearLocalAuthSession = (): void => {
-  localStorage.removeItem('token');
   localStorage.removeItem('session_invalid');
   queryClient.clear();
 };

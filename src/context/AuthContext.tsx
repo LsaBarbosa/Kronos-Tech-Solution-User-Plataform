@@ -36,8 +36,6 @@ interface AuthContextValue {
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
 
 const clearSessionAndRedirectToLogin = () => {
-  localStorage.removeItem("token");
-
   if (window.location.pathname !== "/login") {
     window.location.href = "/login";
   }
