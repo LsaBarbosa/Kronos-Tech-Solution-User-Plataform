@@ -1,8 +1,7 @@
 // src/services/documentService.ts
 
-import { API_BASE_URL } from "@/config/api"; 
+import { apiFetch, parseApiResponse } from "@/config/api";
 import { Document, EmployeeListItem, MAX_UPLOAD_SIZE_BYTES } from "@/types/document";
-import { getAuthToken } from "./company.Service";
 import { buildApiUrl, downloadFile } from "./fileDownload.service";
 
 export const fetchUserDocuments = async (): Promise<Document[]> => {
