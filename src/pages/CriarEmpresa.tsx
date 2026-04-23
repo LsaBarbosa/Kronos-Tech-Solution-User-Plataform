@@ -25,10 +25,9 @@ import { Input } from "@/components/ui/input";
 import { ArrowLeft, Building2, Save, MapPin, Loader2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
-import { API_BASE_URL } from "@/config/api";
+import { api } from "@/config/api";
 
-// NOVO: Variável de ambiente para o HERE API Key
-const HERE_API_KEY = "4BOpnro1zHzBBh9olurKhD4aWIw9I-gcY6VRox9wSXU";
+const HERE_API_KEY = import.meta.env.VITE_HERE_API_KEY ?? "";
 
 // Schema de validação (AGORA SÓ COM DADOS DA EMPRESA)
 const formSchema = z.object({
@@ -190,28 +189,21 @@ const CriarEmpresa = () => {
         setCnpjAvailability('checking');
 
         try {
-            const token = localStorage.getItem("token");
-            if (!token) throw new Error("Token de autenticação não encontrado.");
-
-            // Chamada à API para verificação de CNPJ
-            const response = await fetch(`${API_BASE_URL}companies/check-cnpj?cnpj=${cnpj}`, {
-                headers: { "Authorization": `Bearer ${token}` },
+            await api.get("/companies/check-cnpj", {
+                params: { cnpj },
             });
 
-            if (response.ok) {
-                // Status 200/OK: CNPJ existe (indisponível)
-                toast({ title: "CNPJ indisponível", description: "Este CNPJ já está cadastrado no sistema.", variant: "destructive" });
-                setCnpjAvailability('unavailable');
-            } else if (response.status === 404) {
-                // Status 404: CNPJ não existe (disponível)
+            toast({ title: "CNPJ indisponível", description: "Este CNPJ já está cadastrado no sistema.", variant: "destructive" });
+            setCnpjAvailability('unavailable');
+        } catch (error: any) {
+            const status = error.status ?? error.response?.status;
+
+            if (status === 404) {
                 toast({ title: "CNPJ disponível!", description: "Você pode usar este CNPJ para o registro." });
                 setCnpjAvailability('available');
-            } else {
-                // Outros erros
-                toast({ title: "Erro na verificação", description: "Ocorreu um erro ao verificar o CNPJ.", variant: "destructive" });
-                setCnpjAvailability(null);
+                return;
             }
-        } catch (error) {
+
             console.error("Erro na comunicação com a API:", error);
             toast({ title: "Erro de rede", description: "Falha ao conectar com o servidor.", variant: "destructive" });
             setCnpjAvailability(null);
@@ -252,17 +244,6 @@ const CriarEmpresa = () => {
         // ---------------------------------
 
         try {
-            const token = localStorage.getItem("token");
-            if (!token) {
-                toast({
-                    title: "Sessão Expirada",
-                    description: "O token de autenticação não foi encontrado. Faça login novamente.",
-                    variant: "destructive",
-                });
-                navigate("/login");
-                return;
-            }
-
             // 2. Monta o Payload APENAS com os dados da Empresa
             const companyPayload = {
                 name: values.name,
@@ -276,32 +257,7 @@ const CriarEmpresa = () => {
             };
 
             // 3. Chamada da API para CRIAR A EMPRESA
-            const companyResponse = await fetch(`${API_BASE_URL}companies`, { 
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    Authorization: `Bearer ${token}`,
-                },
-                body: JSON.stringify(companyPayload),
-            });
-
-          
-        if (!companyResponse.ok) {
-            // Se houver erro (4xx ou 5xx), tenta ler o JSON para a mensagem de erro
-            const contentType = companyResponse.headers.get("content-type");
-            let errorMessage = "Erro ao criar empresa.";
-
-            if (contentType && contentType.includes("application/json")) {
-                const errorData = await companyResponse.json();
-                errorMessage = errorData.detail || errorData.title || errorMessage;
-            }
-            throw new Error(errorMessage);
-        }
-
-        // *****************************************************************
-        // CORREÇÃO: Sucesso com status 2xx (e corpo vazio). 
-        // Removemos a chamada a companyResponse.json().
-        // *****************************************************************
+            await api.post("/companies", companyPayload);
 
         // 4. SUCESSO e REDIRECIONAMENTO para a próxima etapa
         toast({

@@ -15,7 +15,12 @@ import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { es } from 'date-fns/locale';
-import { API_BASE_URL } from "@/config/api";
+import {
+  deleteDocument,
+  downloadDocument,
+  fetchDocuments,
+  fetchEmployeesForSelection,
+} from "@/service/document.Service";
 
 interface Employee {
   id: string;
@@ -29,19 +34,6 @@ interface Document {
   type: string;
 }
 
-// Auxiliary function to get authentication headers
-const getAuthHeaders = () => {
-  const token = localStorage.getItem('token');
-  if (!token) {
-    toast.error("Você não está autenticado. Redirecionando para o login...");
-    return {};
-  }
-  return {
-    'Authorization': `Bearer ${token}`,
-    'Content-Type': 'application/json',
-  };
-};
-
 // New function to decode the JWT token
 const decodeToken = (token: string) => {
   try {
@@ -54,20 +46,6 @@ const decodeToken = (token: string) => {
   } catch (error) {
     console.error("Falha ao decodificar o token", error);
     return null;
-  }
-};
-
-// --- NOVA FUNÇÃO PARA TRATAR ERROS DE API ---
-const handleApiError = async (response: Response) => {
-  try {
-    const errorData = await response.json();
-    if (errorData.message) {
-      toast.error(errorData.message);
-    } else {
-      toast.error(`Erro ${response.status}: ${errorData.error || 'Ocorreu um erro.'}`);
-    }
-  } catch {
-    toast.error(`Erro ${response.status}: Ocorreu um erro inesperado.`);
   }
 };
 
@@ -111,18 +89,8 @@ const Documentos = () => {
     const fetchEmployees = async () => {
       setIsFetchingEmployees(true);
       try {
-        const headers = getAuthHeaders();
-        if (Object.keys(headers).length === 0) {
-          return;
-        }
-
-        const response = await fetch(`${API_BASE_URL}employee?active=${activeEmployeeFilter}`, { headers });
-        if (!response.ok) {
-          await handleApiError(response);
-          return;
-        }
-        const data = await response.json();
-        const formattedEmployees: Employee[] = data.employees.map((emp: any) => ({
+        const data = await fetchEmployeesForSelection(activeEmployeeFilter === "true");
+        const formattedEmployees: Employee[] = data.map((emp) => ({
           id: emp.employeeId,
           name: emp.fullName,
         }));
@@ -149,37 +117,14 @@ const Documentos = () => {
     setHasSearched(true);
 
     try {
-      const headers = getAuthHeaders();
-      if (Object.keys(headers).length === 0) return;
-
-      const searchParams = new URLSearchParams({
+      const data = await fetchDocuments({
         employeeId: selectedEmployeeId,
         type: selectedDocumentType,
       });
 
-      const response = await fetch(`${API_BASE_URL}documents?${searchParams.toString()}`, {
-        headers: headers,
-      });
-
-      if (!response.ok) {
-        await handleApiError(response);
-        setDocuments([]);
-        setFilteredDocuments([]);
-        return;
-      }
-
-      const data = await response.json();
-
-      const formattedDocuments = data.documents.map((doc: any) => ({
-        id: doc.id,
-        name: doc.fileName || "Nome Desconhecido",
-        createdAt: doc.createdAt || doc.uploadedAt,
-        type: selectedDocumentType,
-      }));
-
-      setDocuments(formattedDocuments);
-      setFilteredDocuments(formattedDocuments);
-      toast.success(`${formattedDocuments.length} documento(s) encontrado(s) - ${getDocumentTypeLabel(selectedDocumentType)}`);
+      setDocuments(data);
+      setFilteredDocuments(data);
+      toast.success(`${data.length} documento(s) encontrado(s) - ${getDocumentTypeLabel(selectedDocumentType)}`);
 
     } catch (error) {
       console.error("Erro ao buscar documentos:", error);
@@ -203,21 +148,7 @@ const Documentos = () => {
     }
 
     try {
-        const headers = getAuthHeaders();
-        if (Object.keys(headers).length === 0) return;
-
-        // Constrói a URL do DELETE: /documents/{documentId}?employeeId={employeeId}
-        const url = `${API_BASE_URL}documents/${documentId}?employeeId=${selectedEmployeeId}`;
-
-        const response = await fetch(url, {
-            method: "DELETE",
-            headers: headers,
-        });
-
-        if (!response.ok) {
-            await handleApiError(response);
-            return;
-        }
+        await deleteDocument(documentId);
 
         // Se o DELETE foi um sucesso (status 204 No Content ou 200 OK), atualiza o estado local
         setDocuments(prev => prev.filter(doc => doc.id !== documentId));
@@ -280,27 +211,7 @@ const Documentos = () => {
 
   const handleDownload = async (document: Document) => {
     try {
-      const headers = getAuthHeaders();
-      if (Object.keys(headers).length === 0) return;
-
-      const url = `${API_BASE_URL}documents/${document.id}?employeeId=${selectedEmployeeId}`;
-
-      const response = await fetch(url, { headers });
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.detail || "Não foi possível realizar o download")
-      }
-
-      const blob = await response.blob();
-      const href = window.URL.createObjectURL(blob);
-      const link = window.document.createElement('a'); // Use window.document para ser explícito
-      link.href = href;
-      link.download = document.name;
-      window.document.body.appendChild(link);
-      link.click();
-      window.document.body.removeChild(link);
-      window.URL.revokeObjectURL(href);
-
+      await downloadDocument(document.id, document.name);
       toast.success(`Download de ${document.name} iniciado`);
 
     } catch (error) {

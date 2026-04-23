@@ -1,4 +1,5 @@
 type EnvelopeRecord = Record<string, unknown>;
+type Mapper<TRaw, TOutput> = (item: TRaw) => TOutput;
 
 const DEFAULT_LIST_KEYS = [
   "content",
@@ -14,7 +15,7 @@ const DEFAULT_LIST_KEYS = [
 
 export const extractArray = <T = unknown>(
   payload: unknown,
-  keys: string[] = DEFAULT_LIST_KEYS
+  keys: readonly string[] = DEFAULT_LIST_KEYS
 ): T[] => {
   if (Array.isArray(payload)) {
     return payload as T[];
@@ -30,7 +31,7 @@ export const extractArray = <T = unknown>(
   return key ? (envelope[key] as T[]) : [];
 };
 
-export const extractObject = <T extends EnvelopeRecord = EnvelopeRecord>(
+export const extractObject = <T = EnvelopeRecord>(
   payload: unknown,
   key = "data"
 ): Partial<T> => {
@@ -66,3 +67,15 @@ export const mapUserProfile = (payload: unknown) => {
     role: profile.role ?? "",
   };
 };
+
+export const mapArrayPayload = <TRaw = unknown, TOutput = TRaw>(
+  payload: unknown,
+  mapper: Mapper<TRaw, TOutput>,
+  keys: readonly string[] = DEFAULT_LIST_KEYS
+): TOutput[] => extractArray<TRaw>(payload, keys).map(mapper);
+
+export const mapObjectPayload = <TRaw = EnvelopeRecord, TOutput = TRaw>(
+  payload: unknown,
+  mapper: Mapper<Partial<TRaw>, TOutput>,
+  key = "data"
+): TOutput => mapper(extractObject<TRaw>(payload, key));

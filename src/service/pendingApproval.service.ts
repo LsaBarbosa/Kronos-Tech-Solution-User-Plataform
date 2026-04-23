@@ -1,42 +1,11 @@
 // src/services/recordApproval.service.ts
 
-import { API_BASE_URL } from "@/config/api"; 
-import { ITimeRecordApprovalPageResponse, IPendingApprovalQueryParams, TimeRecordApprovalPageResponse, 
-  TimeRecordPageResponse, 
+import { api } from "@/config/api";
+import { ITimeRecordApprovalPageResponse, IPendingApprovalQueryParams,
   ITimeOffQueryParams,
   ITimeRecordPageResponse,
   IRequestTimeOffData} from "@/types/recordApproval";
-
-
-const getAuthHeaders = () => {
-    const token = localStorage.getItem('token');
-    if (!token) {
-        throw new Error("Token de autenticação não encontrado.");
-    }
-    return {
-        "Authorization": `Bearer ${token}`,
-    };
-};
-
-const getAuthHeadersWithJson = () => {
-    return {
-        "Content-Type": "application/json",
-        ...getAuthHeaders(),
-    };
-};
-
-const handleResponse = async (response: Response) => {
-    if (!response.ok) {
-        const errorData = await response.json();
-        const errorMessage = errorData.detail || errorData.message || `Erro de API (${response.status})`;
-        throw new Error(errorMessage);
-    }
-    const contentType = response.headers.get("content-type");
-    if (contentType && contentType.includes("application/json")) {
-        return response.json();
-    }
-    return {};
-};
+import { extractObject } from "@/service/helpers/response-normalizer.helper";
 
 // --- Funções de Serviço para Aprovações de Ponto (fetch, patch) ---
 
@@ -49,20 +18,13 @@ const BASE_URL = "records";
 export const fetchPendingApprovals = async (
     params: IPendingApprovalQueryParams
 ): Promise<ITimeRecordApprovalPageResponse> => {
-    const headers = getAuthHeaders();
-    
-    // Constrói a query string com os parâmetros opcionais
-    const query = new URLSearchParams({
-        page: params.page.toString(),
-        // Adiciona employeeName se existir
-        ...(params.employeeName && { employeeName: params.employeeName }),
-    }).toString();
-
-    const response = await fetch(`${API_BASE_URL}${BASE_URL}/pending-approvals?${query}`, {
-        method: "GET",
-        headers: headers,
+    const response = await api.get<ITimeRecordApprovalPageResponse>(`/${BASE_URL}/pending-approvals`, {
+        params: {
+            page: params.page,
+            ...(params.employeeName && { employeeName: params.employeeName }),
+        },
     });
-    return handleResponse(response);
+    return extractObject<ITimeRecordApprovalPageResponse>(response.data) as ITimeRecordApprovalPageResponse;
 };
 
 /**
@@ -70,13 +32,7 @@ export const fetchPendingApprovals = async (
  * @param timeRecordId ID do registro a ser aprovado.
  */
 export const approveTimeRecordChange = async (timeRecordId: number): Promise<void> => {
-    const headers = getAuthHeaders();
-
-    const response = await fetch(`${API_BASE_URL}${BASE_URL}/approve/${timeRecordId}`, {
-        method: "PATCH",
-        headers: headers,
-    });
-    await handleResponse(response);
+    await api.patch(`/${BASE_URL}/approve/${timeRecordId}`);
 };
 
 /**
@@ -84,13 +40,7 @@ export const approveTimeRecordChange = async (timeRecordId: number): Promise<voi
  * @param timeRecordId ID do registro a ser rejeitado.
  */
 export const rejectTimeRecordChange = async (timeRecordId: number): Promise<void> => {
-    const headers = getAuthHeaders();
-
-    const response = await fetch(`${API_BASE_URL}${BASE_URL}/reject/${timeRecordId}`, {
-        method: "PATCH",
-        headers: headers,
-    });
-    await handleResponse(response);
+    await api.patch(`/${BASE_URL}/reject/${timeRecordId}`);
 };
 
 /**
@@ -100,7 +50,6 @@ export const rejectTimeRecordChange = async (timeRecordId: number): Promise<void
  * @returns O ID do TimeRecord criado (number).
  */
 export const requestTimeOff = async (requestData: IRequestTimeOffData, document?: File): Promise<number> => {
-    const headers = getAuthHeaders(); 
     const formData = new FormData();
 
     // 1. Adiciona o JSON da requisição
@@ -112,13 +61,8 @@ export const requestTimeOff = async (requestData: IRequestTimeOffData, document?
         formData.append('document', document, document.name);
     }
 
-    const response = await fetch(`${API_BASE_URL}${BASE_URL}/time-off-request`, {
-        method: "POST",
-        headers: headers, 
-        body: formData,
-    });
-    
-    return handleResponse(response);
+    const response = await api.post<number>(`/${BASE_URL}/time-off-request`, formData);
+    return response.data;
 };
 
 /**
@@ -128,22 +72,15 @@ export const requestTimeOff = async (requestData: IRequestTimeOffData, document?
 export const listTimeOffRequests = async (
     params: ITimeOffQueryParams
 ): Promise<ITimeRecordPageResponse> => { // Usando o tipo importado
-    const headers = getAuthHeaders();
-    
-    // Constrói a query string
-    const query = new URLSearchParams({
-        page: params.page.toString(),
-        size: params.size.toString(),
-        status: params.status,
-        // Adiciona employeeName se existir
-        ...(params.employeeName && { employeeName: params.employeeName }),
-    }).toString();
-
-    const response = await fetch(`${API_BASE_URL}${BASE_URL}/time-off/requests?${query}`, {
-        method: "GET",
-        headers: headers,
+    const response = await api.get<ITimeRecordPageResponse>(`/${BASE_URL}/time-off/requests`, {
+        params: {
+            page: params.page,
+            size: params.size,
+            status: params.status,
+            ...(params.employeeName && { employeeName: params.employeeName }),
+        },
     });
-    return handleResponse(response);
+    return extractObject<ITimeRecordPageResponse>(response.data) as ITimeRecordPageResponse;
 };
 
 /**
@@ -151,13 +88,7 @@ export const listTimeOffRequests = async (
  * @param timeRecordId ID do registro de ponto a ser aprovado.
  */
 export const approveTimeOff = async (timeRecordId: number): Promise<void> => {
-    const headers = getAuthHeaders();
-
-    const response = await fetch(`${API_BASE_URL}${BASE_URL}/time-off/approve/${timeRecordId}`, {
-        method: "PATCH",
-        headers: headers,
-    });
-    await handleResponse(response);
+    await api.patch(`/${BASE_URL}/time-off/approve/${timeRecordId}`);
 };
 
 /**
@@ -165,11 +96,5 @@ export const approveTimeOff = async (timeRecordId: number): Promise<void> => {
  * @param timeRecordId ID do registro de ponto a ser rejeitado.
  */
 export const rejectTimeOff = async (timeRecordId: number): Promise<void> => {
-    const headers = getAuthHeaders(); 
-
-    const response = await fetch(`${API_BASE_URL}${BASE_URL}/time-off/reject/${timeRecordId}`, {
-        method: "PATCH",
-        headers: headers,
-    });
-    await handleResponse(response);
+    await api.patch(`/${BASE_URL}/time-off/reject/${timeRecordId}`);
 };

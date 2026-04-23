@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { CalendarIcon, Download, Edit, Coffee, FileText, MapPin, Clock } from "lucide-react";
 import { DetailedReportItem, statusOptions, getStatusColor, statusMap } from "@/utils/report-utils"; 
 import { useToast } from "@/hooks/use-toast";
-import { API_BASE_URL } from "@/config/api";
+import { downloadDocument } from "@/service/document.Service";
 import { Button } from "./ui/button";
 import { PaginationComponent } from "./ui/PaginationComponent";
 
@@ -248,54 +248,11 @@ export const ResultadosRelatorioDetalhado: React.FC<ResultadosDetalhadoProps> = 
         }
 
         try {
-            const token = localStorage.getItem('token');
-            if (!token) {
-                toast({
-                    title: "Não Autorizado",
-                    description: "Token de autenticação ausente. Faça login novamente.",
-                    variant: "destructive"
-                });
-                return;
-            }
-
-            const url = `${API_BASE_URL}documents/${documentId}?employeeId=${employeeId}`;
-
-            const response = await fetch(url, {
-                headers: { 'Authorization': `Bearer ${token}` },
-            });
-
-            if (!response.ok) {
-                let errorMessage = "Não foi possível realizar o download.";
-                try {
-                    const errorData = await response.json();
-                    errorMessage = errorData.detail || errorMessage;
-                } catch { }
-                throw new Error(errorMessage);
-            }
-
-            const contentDisposition = response.headers.get('Content-Disposition');
-            let filename = `${employeeName}_documento`; 
-
-            if (contentDisposition) {
-                const filenameMatch = contentDisposition.match(/filename="(.+?)"/);
-                if (filenameMatch && filenameMatch[1]) {
-                    filename = decodeURIComponent(filenameMatch[1].replace(/\"/g, ''));
-                }
-            }
-
-            const blob = await response.blob();
-            const href = window.URL.createObjectURL(blob);
-            const link = window.document.createElement('a');
-            link.href = href;
-            link.download = filename;
-            window.document.body.appendChild(link);
-            link.click();
-            window.document.body.removeChild(link);
-            window.URL.revokeObjectURL(href);
+            await downloadDocument(documentId, `${employeeName}_documento`);
 
             toast({
                 title: "Download Iniciado",
-                description: `Download de ${filename} concluído.`,
+                description: `Download de ${employeeName}_documento concluído.`,
             });
 
         } catch (error) {

@@ -7,7 +7,8 @@ import {
   useState,
   type ReactNode,
 } from "react";
-import { api } from "@/config/api";
+import { isAuthServiceError } from "@/service/helpers/service-error.helper";
+import { loadSessionProfile } from "@/service/session-profile.service";
 import type { UserAccountData, UserData } from "@/types/user";
 
 export type AuthStatus = "checking" | "authenticated" | "unauthenticated";
@@ -30,11 +31,6 @@ interface AuthContextValue {
 }
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
-
-const isUnauthorizedError = (error: unknown) => {
-  const status = (error as { response?: { status?: number } })?.response?.status;
-  return status === 401 || status === 403;
-};
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [status, setStatus] = useState<AuthStatus>("checking");
@@ -61,20 +57,17 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     setStatus("checking");
 
     try {
-      const [accountResponse, profileResponse] = await Promise.all([
-        api.get<UserAccountData>("/users/own-profile"),
-        api.get<UserData>("/employee/own-profile"),
-      ]);
+      const sessionProfile = await loadSessionProfile();
 
-      const account = accountResponse.data;
-      const profile = profileResponse.data;
-      const role = account.role || profile.role || "";
-
-      setUser({ account, profile, role });
+      setUser({
+        account: sessionProfile.accountData,
+        profile: sessionProfile.profileData,
+        role: sessionProfile.role,
+      });
       setToken(storedToken);
       setStatus("authenticated");
     } catch (error) {
-      if (isUnauthorizedError(error)) {
+      if (isAuthServiceError(error)) {
         clearSession();
         return;
       }

@@ -1,0 +1,98 @@
+import { HttpResponse, http } from "msw";
+import { describe, expect, it } from "vitest";
+import { server } from "@/test/mocks/server";
+import {
+  checkCpfAvailability,
+  checkUsernameAvailability,
+  createCollaborator,
+  createUser,
+  type CollaboratorCreationPayload,
+  type UserCreationPayload,
+} from "./collaborator-management.service";
+
+const collaboratorPayload: CollaboratorCreationPayload = {
+  fullName: "Maria Silva",
+  cpf: "12345678901",
+  jobPosition: "Analista",
+  email: "maria@exemplo.com",
+  salary: 4200,
+  phone: "11999999999",
+  homeOffice: false,
+  address: {
+    postalCode: "01001000",
+    number: "100",
+  },
+  workStartTime: "08:00",
+  workEndTime: "17:00",
+  breakStartTime: "12:00",
+  breakEndTime: "13:00",
+  scheduleType: "TRADITIONAL_5X2",
+  scaleStartDate: null,
+  preferredDayOff: null,
+  weekendOffIndex: null,
+  fixedWorkDays: ["MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY"],
+};
+
+const userPayload: UserCreationPayload = {
+  username: "maria.silva",
+  role: "PARTNER",
+  employeeId: "emp-123",
+};
+
+describe("collaborator-management.service", () => {
+  it("verifica CPF disponivel quando o backend responde 404", async () => {
+    server.use(
+      http.get("*/employee/check-cpf", () => new HttpResponse(null, { status: 404 }))
+    );
+
+    await expect(checkCpfAvailability("12345678901")).resolves.toBe(true);
+  });
+
+  it("verifica CPF indisponivel quando o backend responde 200", async () => {
+    server.use(
+      http.get("*/employee/check-cpf", () => HttpResponse.json({}, { status: 200 }))
+    );
+
+    await expect(checkCpfAvailability("12345678901")).resolves.toBe(false);
+  });
+
+  it("verifica username disponivel e indisponivel no endpoint real", async () => {
+    server.use(
+      http.get("*/users/check-username", () => new HttpResponse(null, { status: 404 }))
+    );
+
+    await expect(checkUsernameAvailability("maria.silva")).resolves.toBe(true);
+
+    server.use(
+      http.get("*/users/check-username", () => HttpResponse.json({}, { status: 200 }))
+    );
+
+    await expect(checkUsernameAvailability("maria.silva")).resolves.toBe(false);
+  });
+
+  it("cria colaborador e retorna employeeId", async () => {
+    server.use(
+      http.post("*/employee", async ({ request }) => {
+        const body = await request.json();
+        expect(body).toMatchObject(collaboratorPayload);
+        return HttpResponse.json({ employeeId: "emp-123" });
+      })
+    );
+
+    await expect(createCollaborator(collaboratorPayload)).resolves.toEqual({
+      employeeId: "emp-123",
+    });
+  });
+
+  it("cria usuario final com sucesso", async () => {
+    server.use(
+      http.post("*/users", async ({ request }) => {
+        const body = await request.json();
+        expect(body).toEqual(userPayload);
+        return new HttpResponse(null, { status: 201 });
+      })
+    );
+
+    await expect(createUser(userPayload)).resolves.toBeUndefined();
+  });
+});

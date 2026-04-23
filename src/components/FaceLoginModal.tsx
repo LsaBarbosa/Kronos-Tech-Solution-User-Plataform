@@ -7,6 +7,7 @@ import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
 import { loginWithFace } from "@/service/auth.Service";
 import { useAuth } from "@/context/AuthContext";
+import { getServiceErrorMessage } from "@/service/helpers/service-error.helper";
 
 interface FaceLoginModalProps {
     isOpen: boolean;
@@ -136,8 +137,9 @@ const FaceLoginModal = ({ isOpen, onOpenChange }: FaceLoginModalProps) => {
 
         } catch (error: unknown) {
             console.error(error);
-            const errorMessage = error instanceof Error ? error.message : "Rosto não reconhecido ou não cadastrado.";
-            toast.error(errorMessage);
+            toast.error(
+                getServiceErrorMessage(error, "Rosto não reconhecido ou não cadastrado.")
+            );
             setImageSrc(null);
             setIsSubmitting(false);
             startWebcam(); // Reinicia câmera automaticamente em caso de erro

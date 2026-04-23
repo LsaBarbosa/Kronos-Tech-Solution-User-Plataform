@@ -4,7 +4,11 @@ import { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { Document } from "@/types/document";
-import { fetchUserDocuments, deleteDocument, generateDownloadUrl } from "@/service/document.Service";
+import {
+    deleteDocument,
+    downloadDocument,
+    fetchUserDocuments,
+} from "@/service/document.Service";
 
 interface UseMyDocumentsReturn {
     documents: Document[];
@@ -12,7 +16,7 @@ interface UseMyDocumentsReturn {
     isDeleting: boolean;
     error: string | null;
     handleDeleteDocument: (documentId: string, documentName: string) => Promise<void>;
-    generateDownloadUrl: (documentId: string) => string;
+    handleDownloadDocument: (documentId: string, documentName: string) => Promise<void>;
     refetchDocuments: () => void;
 }
 
@@ -71,13 +75,26 @@ export const useMyDocuments = (): UseMyDocumentsReturn => {
         }
     }, [isDeleting, toast]);
 
+    const handleDownloadDocument = useCallback(async (documentId: string, documentName: string) => {
+        try {
+            await downloadDocument(documentId, documentName);
+            toast({ title: "Sucesso", description: `Download de "${documentName}" iniciado.` });
+        } catch (err: any) {
+            toast({
+                title: "Erro",
+                description: err.message || "Falha ao iniciar o download do documento.",
+                variant: "destructive",
+            });
+        }
+    }, [toast]);
+
     return {
         documents,
         isLoading,
         isDeleting,
         error,
         handleDeleteDocument,
-        generateDownloadUrl, // 💡 Exporta a função pura do service
+        handleDownloadDocument,
         refetchDocuments: loadDocuments,
     };
 };

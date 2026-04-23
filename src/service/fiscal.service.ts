@@ -1,19 +1,5 @@
 // src/service/fiscal.service.ts
-import { API_BASE_URL } from '@/config/api';
-import axios from 'axios';
-
- 
-
-// Configuração base do Axios (ajuste conforme seu projeto já tenha uma instância configurada)
-const api = axios.create({
-  baseURL: API_BASE_URL,
-});
-
-api.interceptors.request.use((config) => {
-  const token = localStorage.getItem('token');
-  if (token) config.headers.Authorization = `Bearer ${token}`;
-  return config;
-});
+import { api } from '@/config/api';
 
 const downloadBlob = (blob: Blob, filename: string) => {
   const url = window.URL.createObjectURL(blob);

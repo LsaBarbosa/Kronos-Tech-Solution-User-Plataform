@@ -6,6 +6,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useToast } from "@/hooks/use-toast";
 import { forgotPasswordSchema, ForgotPasswordFormType, cleanCPF } from "@/types/auth";
 import { recoverPasswordRequest } from "@/service/auth.Service";
+import { getServiceErrorMessage } from "@/service/helpers/service-error.helper";
 
 interface UseForgotPasswordReturn {
     form: UseFormReturn<ForgotPasswordFormType>;
@@ -54,7 +55,10 @@ export const useForgotPassword = (): UseForgotPasswordReturn => {
             console.error("Erro na recuperação de senha:", error);
             toast({
                 title: "Erro na Solicitação",
-                description: error.message || "Não foi possível processar a solicitação. Verifique os dados.",
+                description: getServiceErrorMessage(
+                    error,
+                    "Não foi possível processar a solicitação. Verifique os dados."
+                ),
                 variant: "destructive",
             });
         } finally {

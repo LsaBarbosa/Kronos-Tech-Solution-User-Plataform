@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import {
   extractArray,
   extractObject,
+  mapArrayPayload,
   mapUserProfile,
 } from "../response-normalizer.helper";
 
@@ -32,5 +33,17 @@ describe("response-normalizer.helper", () => {
       email: "",
       role: "",
     });
+  });
+
+  it("mapeia lista envelopada para objeto de front", () => {
+    expect(
+      mapArrayPayload(
+        { companies: [{ id: "c-1", name: "Kronos" }] },
+        (company: { id: string; name: string }) => ({
+          companyId: company.id,
+          label: company.name,
+        })
+      )
+    ).toEqual([{ companyId: "c-1", label: "Kronos" }]);
   });
 });

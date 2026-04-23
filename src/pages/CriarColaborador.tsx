@@ -8,7 +8,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { toast } from "@/hooks/use-toast";
 import { ArrowLeft, User, Shield, Loader2, MapPin, CheckCircle, Clock, CalendarDays } from "lucide-react";
-import { useNavigate } from "react-router-dom";
 import Header from "@/components/Header";
 import Sidebar from "@/components/Sidebar";
 import {
@@ -18,9 +17,14 @@ import {
     SelectTrigger,
     SelectValue,
 } from "@/components/ui/select";
-import { API_BASE_URL } from "@/config/api";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
+import {
+    checkCpfAvailability,
+    checkUsernameAvailability,
+    createCollaborator,
+    createUser,
+} from "@/service/collaborator-management.service";
 
 const SCHEDULE_TYPES = [
     { value: "TRADITIONAL_5X2", label: "Tradicional 5x2 (Seg-Sex)" },
@@ -87,7 +91,6 @@ const formSchema = employeeSchema.extend({
 type FormData = z.infer<typeof employeeSchema> & z.infer<typeof userSchema>;
 
 const CriarColaborador = () => {
-    const navigate = useNavigate();
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [sidebarOpen, setSidebarOpen] = useState(false);
     const handleToggleSidebar = useCallback(() => setSidebarOpen((prev) => !prev), []);
@@ -95,10 +98,14 @@ const CriarColaborador = () => {
     const [savedEmployeeId, setSavedEmployeeId] = useState<string | null>(null);
     const [stepCompleted, setStepCompleted] = useState(false); 
     
+    // Estados para verificação de CPF
+    const [cpfAvailability, setCpfAvailability] = useState<'available' | 'unavailable' | 'checking' | null>(null);
+    const [isCheckingCPF, setIsCheckingCPF] = useState(false);
+
     // Estados para verificação de username
     const [usernameAvailability, setUsernameAvailability] = useState<'available' | 'unavailable' | 'checking' | null>(null);
     const [isCheckingUsername, setIsCheckingUsername] = useState(false);
-const [faceImageBase64, setFaceImageBase64] = useState<string | undefined>(undefined);
+    const [faceImageBase64, setFaceImageBase64] = useState<string | undefined>(undefined);
     
     // NOVO ESTADO: Armazenar o nome do arquivo selecionado para exibir no input
     const [fileName, setFileName] = useState<string | undefined>(undefined);
@@ -182,6 +189,54 @@ const [faceImageBase64, setFaceImageBase64] = useState<string | undefined>(undef
     };
     // -----------------------
 
+    const handleCheckCPF = async () => {
+        const cpfWithMask = form.getValues("cpf");
+        const cpf = cpfWithMask.replace(/\D/g, "");
+
+        if (cpf.length !== 11) {
+            toast({
+                title: "Erro de validação",
+                description: "O CPF deve ter 11 dígitos.",
+                variant: "destructive",
+            });
+            setCpfAvailability(null);
+            return;
+        }
+
+        setIsCheckingCPF(true);
+        setCpfAvailability("checking");
+
+        try {
+            const available = await checkCpfAvailability(cpf);
+
+            if (available) {
+                toast({
+                    title: "CPF disponível!",
+                    description: "Você pode usar este CPF para o registro.",
+                });
+                setCpfAvailability("available");
+                return;
+            }
+
+            toast({
+                title: "CPF indisponível",
+                description: "Este CPF já está cadastrado no sistema.",
+                variant: "destructive",
+            });
+            setCpfAvailability("unavailable");
+        } catch (error) {
+            console.error("Erro na comunicação com a API:", error);
+            toast({
+                title: "Erro de rede",
+                description: "Falha ao conectar com o servidor.",
+                variant: "destructive",
+            });
+            setCpfAvailability(null);
+        } finally {
+            setIsCheckingCPF(false);
+        }
+    };
+
     const handleCheckUsername = async () => {
         // Bloqueia se o Passo 1 não estiver completo
         if (!stepCompleted) {
@@ -211,25 +266,24 @@ const [faceImageBase64, setFaceImageBase64] = useState<string | undefined>(undef
         setIsCheckingUsername(true);
         setUsernameAvailability('checking');
 
-        // Lógica de chamada à API para verificação (Mantida)
         try {
-            const token = localStorage.getItem("token");
-            if (!token) throw new Error("Token de autenticação não encontrado.");
+            const available = await checkUsernameAvailability(username);
 
-            const response = await fetch(`${API_BASE_URL}users/check-username?username=${username}`, {
-                headers: { "Authorization": `Bearer ${token}` },
-            });
-
-            if (response.ok) {
-                toast({ title: "Nome de usuário indisponível", description: "Este nome de usuário já está em uso.", variant: "destructive" });
-                setUsernameAvailability('unavailable');
-            } else if (response.status === 404) {
-                toast({ title: "Nome de usuário disponível!", description: "Você pode usar este nome de usuário para o registro." });
+            if (available) {
+                toast({
+                    title: "Nome de usuário disponível!",
+                    description: "Você pode usar este nome de usuário para o registro.",
+                });
                 setUsernameAvailability('available');
-            } else {
-                toast({ title: "Erro na verificação", description: "Ocorreu um erro ao verificar o nome de usuário.", variant: "destructive" });
-                setUsernameAvailability(null);
+                return;
             }
+
+            toast({
+                title: "Nome de usuário indisponível",
+                description: "Este nome de usuário já está em uso.",
+                variant: "destructive",
+            });
+            setUsernameAvailability('unavailable');
         } catch (error) {
             console.error("Erro na comunicação com a API:", error);
             toast({ title: "Erro de rede", description: "Falha ao conectar com o servidor.", variant: "destructive" });
@@ -254,11 +308,18 @@ const [faceImageBase64, setFaceImageBase64] = useState<string | undefined>(undef
             setIsSubmitting(false);
             return;
         }
+
+        if (cpfAvailability !== "available") {
+            toast({
+                title: "Ação Pendente",
+                description: "É necessário verificar a disponibilidade do CPF antes de continuar.",
+                variant: "destructive",
+            });
+            setIsSubmitting(false);
+            return;
+        }
         
         try {
-            const token = localStorage.getItem("token");
-            if (!token) throw new Error("Token de autenticação não encontrado.");
-
             // Removendo máscaras e convertendo dados para envio ao backend
             const employeePayload = {
                 fullName: data.nomeCompleto,
@@ -287,18 +348,7 @@ const [faceImageBase64, setFaceImageBase64] = useState<string | undefined>(undef
                 fixedWorkDays: data.fixedWorkDays || []
             };
 
-            const employeeResponse = await fetch(`${API_BASE_URL}employee`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` },
-                body: JSON.stringify(employeePayload),
-            });
-
-            if (!employeeResponse.ok) {
-                const errorData = await employeeResponse.json();
-                throw new Error(errorData.detail || errorData.message || "Desculpe. Verifique o campo CPF e tente novamente!");
-            }
-            
-            const employeeData = await employeeResponse.json();
+            const employeeData = await createCollaborator(employeePayload);
             const employeeId = employeeData.employeeId;
             
             // SUCESSO DO PASSO 1: Salva o ID e avança o passo
@@ -359,9 +409,6 @@ const [faceImageBase64, setFaceImageBase64] = useState<string | undefined>(undef
          }
 
         try {
-            const token = localStorage.getItem("token");
-            if (!token) throw new Error("Token de autenticação não encontrado.");
-
             // Aqui, usamos data.username, data.password e data.role que foram validados pelo userSchema
             const userPayload = {
                 username: data.username,
@@ -369,16 +416,7 @@ const [faceImageBase64, setFaceImageBase64] = useState<string | undefined>(undef
                 employeeId: savedEmployeeId, // Usa o ID salvo do Passo 1
             };
 
-            const userResponse = await fetch(`${API_BASE_URL}users`, {
-                method: "POST",
-                headers: { "Content-Type": "application/json", "Authorization": `Bearer ${token}` },
-                body: JSON.stringify(userPayload),
-            });
-
-            if (!userResponse.ok) {
-                const errorData = await userResponse.json();
-                throw new Error(errorData.detail || errorData.message || "Falha ao criar o usuário.");
-            }
+            await createUser(userPayload);
 
             // SUCESSO FINAL
             toast({
@@ -391,9 +429,6 @@ const [faceImageBase64, setFaceImageBase64] = useState<string | undefined>(undef
             setSavedEmployeeId(null);
             setStepCompleted(false);
             setUsernameAvailability(null);
-            
-          
-
         } catch (error) {
             console.error("Erro no Passo 2 (Usuário):", error);
             toast({
@@ -511,8 +546,32 @@ const [faceImageBase64, setFaceImageBase64] = useState<string | undefined>(undef
                                         <FormField control={form.control} name="cpf" render={({ field }) => (
                                             <FormItem>
                                                 <FormLabel className="text-base font-semibold">CPF</FormLabel>
-                                                <FormControl><Input placeholder="000.000.000-00" className="h-12 text-base" {...field} onChange={(e) => field.onChange(maskCPF(e.target.value))} maxLength={14} /></FormControl>
-                                                <FormMessage />
+                                                <div className="flex gap-2">
+                                                    <FormControl>
+                                                        <Input
+                                                            placeholder="000.000.000-00"
+                                                            className="h-12 text-base"
+                                                            {...field}
+                                                            onChange={(e) => {
+                                                                field.onChange(maskCPF(e.target.value));
+                                                                setCpfAvailability(null);
+                                                            }}
+                                                            maxLength={14}
+                                                        />
+                                                    </FormControl>
+                                                    <Button
+                                                        type="button"
+                                                        onClick={handleCheckCPF}
+                                                        disabled={isCheckingCPF || field.value.replace(/\D/g, "").length < 11}
+                                                        className="touch-target w-auto h-12"
+                                                    >
+                                                        {isCheckingCPF ? <Loader2 className="h-4 w-4 animate-spin" /> : "Verificar"}
+                                                    </Button>
+                                                </div>
+                                                <FormMessage>
+                                                    {cpfAvailability === "unavailable" && "CPF já existe."}
+                                                    {cpfAvailability === "available" && <span className="text-green-500">CPF disponível.</span>}
+                                                </FormMessage>
                                             </FormItem>
                                         )}/>
 

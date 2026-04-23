@@ -10,6 +10,7 @@ import FaceLoginModal from "@/components/FaceLoginModal"; // Import do novo moda
 import { useNavigate } from "react-router-dom";
 import { loginWithPassword } from "@/service/auth.Service";
 import { useAuth } from "@/context/AuthContext";
+import { getServiceErrorMessage } from "@/service/helpers/service-error.helper";
 
 const LoginForm = () => {
   const [showPassword, setShowPassword] = useState(false);
@@ -33,8 +34,9 @@ const LoginForm = () => {
       navigate("/dashboard", { replace: true });
 
     } catch (error) {
-      const errorMessage = error instanceof Error ? error.message : "Erro desconhecido ao tentar fazer login.";
-      toast.error(errorMessage);
+      toast.error(
+        getServiceErrorMessage(error, "Erro desconhecido ao tentar fazer login.")
+      );
     } finally {
       setIsSubmitting(false);
     }

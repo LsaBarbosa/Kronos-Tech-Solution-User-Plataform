@@ -3,14 +3,11 @@
 import { useState, useEffect, useCallback } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
-import { UserAccountData, UserData, ChangePasswordData, cleanNumberString } from "@/types/user"; // Assumindo cleanNumberString está em types/user
-import { 
-    fetchAccountData, 
-    fetchUserData, 
-    updateEmail, 
-    updatePhone, 
-    changePassword 
-} from "@/service/user.Service";
+import { UserAccountData, UserData, ChangePasswordData, cleanNumberString } from "@/types/user";
+import { updateEmail, updatePhone, changePassword } from "@/service/user.Service";
+import { loadSessionProfile } from "@/service/session-profile.service";
+import { getServiceErrorMessage, isAuthServiceError } from "@/service/helpers/service-error.helper";
+import { useAuth } from "@/context/AuthContext";
 
 /**
  * Interface para o retorno do hook useUser.
@@ -45,6 +42,7 @@ interface UseUserReturn {
 export const useUser = (): UseUserReturn => {
   const { toast } = useToast();
   const navigate = useNavigate();
+  const { logout } = useAuth();
 
   // --- ESTADOS PRINCIPAIS ---
   const [userAccountData, setUserAccountData] = useState<UserAccountData | null>(null);
@@ -67,52 +65,49 @@ export const useUser = (): UseUserReturn => {
     confirmPassword: "",
     currentPassword: "",
   });
-  // --- FUNÇÕES DE CARREGAMENTO ---
+  const handleServiceError = useCallback(
+    (error: unknown, title: string, fallback: string) => {
+      const authExpired = isAuthServiceError(error);
 
-  const loadUserData = useCallback(async (accountData: UserAccountData) => {
+      toast({
+        title: authExpired ? "Erro de Autenticação" : title,
+        description: getServiceErrorMessage(error, fallback),
+        variant: "destructive",
+      });
+
+      if (authExpired) {
+        logout();
+        navigate("/login");
+      }
+    },
+    [logout, navigate, toast]
+  );
+
+  const loadAccountData = useCallback(async () => {
+    setIsLoading(true);
+
     try {
-      // Busca dados detalhados do funcionário usando o employeeId
-      const employeeResponse = await fetchUserData(accountData.employeeId);
-      
-      // Inicializa os campos de edição com os dados atuais
-      setNewEmail(employeeResponse.email || "");
-      setNewPhone(employeeResponse.phone || "");
-
-      // Combina e define os dados do usuário
-      setUserData({ ...employeeResponse, role: accountData.role });
+      const sessionProfile = await loadSessionProfile();
+      setUserAccountData(sessionProfile.accountData);
+      setUserData(sessionProfile.userData);
+      setNewEmail(sessionProfile.profileData.email || "");
+      setNewPhone(sessionProfile.profileData.phone || "");
 
       toast({
         title: "Dados carregados com sucesso",
         description: "Informações do usuário atualizadas.",
       });
     } catch (error) {
-      toast({
-        title: "Erro ao carregar dados",
-        description: `Não foi possível carregar as informações detalhadas.`,
-        variant: "destructive",
-      });
+      handleServiceError(
+        error,
+        "Erro ao carregar dados",
+        "Não foi possível carregar as informações detalhadas."
+      );
       console.error(error);
     } finally {
       setIsLoading(false);
     }
-  }, [toast]);
-
-  const loadAccountData = useCallback(async () => {
-    try {
-      const accountData = await fetchAccountData();
-      setUserAccountData(accountData);
-      await loadUserData(accountData); // Carrega dados detalhados após a conta
-    } catch (error) {
-      toast({
-        title: "Erro de Autenticação",
-        description: `Sessão expirada ou falha ao buscar dados. Redirecionando para login.`,
-        variant: "destructive",
-      });
-      // Em caso de falha crítica (ex: token inválido), força o logout
-      localStorage.removeItem("token");
-      navigate("/login");
-    }
-  }, [loadUserData, toast, navigate]);
+  }, [handleServiceError, toast]);
 
   // EFEITO: Carrega dados na montagem
   useEffect(() => {
@@ -186,16 +181,12 @@ const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
       setIsEditingEmail(false);
       
       toast({ title: "Sucesso", description: "E-mail atualizado.", variant: "default" });
-    } catch (error: any) {
-      toast({ 
-          title: "Erro ao salvar e-mail", 
-          description: error.message || "Tente novamente mais tarde.", 
-          variant: "destructive" 
-      });
+    } catch (error) {
+      handleServiceError(error, "Erro ao salvar e-mail", "Tente novamente mais tarde.");
     } finally {
       setIsLoading(false);
     }
-  }, [newEmail, userAccountData, toast]);
+  }, [handleServiceError, newEmail, userAccountData, toast]);
 
   const handleSavePhone = useCallback(async () => {
     if (!newPhone.trim() || !userAccountData) {
@@ -218,16 +209,12 @@ const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
       setIsEditingPhone(false);
       
       toast({ title: "Sucesso", description: "Telefone atualizado.", variant: "default" });
-    } catch (error: any) {
-      toast({ 
-          title: "Erro ao salvar telefone", 
-          description: error.message || "Tente novamente mais tarde.", 
-          variant: "destructive" 
-      });
+    } catch (error) {
+      handleServiceError(error, "Erro ao salvar telefone", "Tente novamente mais tarde.");
     } finally {
       setIsLoading(false);
     }
-  }, [newPhone, userAccountData, toast]);
+  }, [handleServiceError, newPhone, userAccountData, toast]);
 
 
  const handleChangePassword = useCallback(async () => {
@@ -249,12 +236,12 @@ const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
    setPasswordData({ currentPassword: "", newPassword: "", confirmPassword: "" });
       setShowPasswordFields(false);
       toast({ title: "Sucesso", description: "Senha alterada com sucesso.", variant: "default" });
-    } catch (error: any) {
-      toast({ title: "Erro ao alterar senha", description: error.message, variant: "destructive" });
+    } catch (error) {
+      handleServiceError(error, "Erro ao alterar senha", "Tente novamente mais tarde.");
     } finally {
       setIsSavingPassword(false); // <--- FIM DO LOADING
     }
-  }, [passwordData, toast]);
+  }, [handleServiceError, passwordData, toast]);
 
   return {
     userAccountData,

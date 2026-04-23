@@ -1,8 +1,9 @@
 // src/services/messageService.ts
 
-import { API_BASE_URL } from "@/config/api"; // Assumindo que esta constante existe
+import { api } from "@/config/api";
 import { Message, MessagePayload } from "@/types/message";
 import { EmployeeData } from "@/types/employee"; 
+import { extractArray, mapArrayPayload } from "@/service/helpers/response-normalizer.helper";
 
 // --- Funções Auxiliares (Puras) ---
 
@@ -20,70 +21,28 @@ const decodeToken = (token: string) => {
     }
 };
 
-const getAuthHeaders = () => {
-    const token = localStorage.getItem('token');
-    if (!token) {
-        throw new Error("Token de autenticação não encontrado.");
-    }
-    return {
-        "Content-Type": "application/json",
-        "Authorization": `Bearer ${token}`,
-    };
-};
-
-const handleResponse = async (response: Response) => {
-    if (!response.ok) {
-        const errorData = await response.json();
-        const errorMessage = errorData.detail || errorData.message || `Erro de API (${response.status})`;
-        throw new Error(errorMessage);
-    }
-    const contentType = response.headers.get("content-type");
-    if (contentType && contentType.includes("application/json")) {
-        return response.json();
-    }
-    return {};
-};
-
 // --- Funções de Serviço para AVISOS (fetch, delete, post) ---
 
 /**
  * Busca todas as mensagens visíveis para o usuário logado (usado em Avisos.tsx).
  */
 export const fetchMessages = async (): Promise<Message[]> => {
-    const headers = getAuthHeaders();
-    const response = await fetch(`${API_BASE_URL}messages`, {
-        method: "GET",
-        headers: headers,
-    });
-    const data = await handleResponse(response);
-    return data; 
+    const response = await api.get<Message[]>("/messages");
+    return extractArray<Message>(response.data, ["messages"]); 
 };
 
 /**
  * Deleta uma mensagem pelo ID (usado em Avisos.tsx).
  */
 export const deleteMessage = async (messageId: string): Promise<void> => {
-    const headers = getAuthHeaders();
-    const response = await fetch(`${API_BASE_URL}messages/${messageId}`, {
-        method: "DELETE",
-        headers: headers,
-    });
-    await handleResponse(response);
+    await api.delete(`/messages/${messageId}`);
 };
 
 /**
  * Envia o novo aviso (mensagem) (usado em CriarAviso.tsx).
  */
 export const postMessage = async (payload: MessagePayload): Promise<void> => {
-    const headers = getAuthHeaders();
-    
-    const response = await fetch(`${API_BASE_URL}messages`, {
-        method: "POST",
-        headers: headers,
-        body: JSON.stringify(payload),
-    });
-
-    await handleResponse(response);
+    await api.post("/messages", payload);
 };
 
 // --- Funções de Serviço para COLABORADORES (usado em CriarAviso.tsx) ---
@@ -92,16 +51,13 @@ export const postMessage = async (payload: MessagePayload): Promise<void> => {
  * Busca a lista de colaboradores ativos para seleção de destinatários.
  */
 export const fetchActiveEmployees = async (): Promise<EmployeeData[]> => {
-    const headers = getAuthHeaders();
-    const response = await fetch(`${API_BASE_URL}employee?active=true`, { headers });
-
-    const data = await handleResponse(response);
-    
-    // Mapeamento id/fullName
-    return data.employees.map((emp: any) => ({
+    const response = await api.get<{ employees: any[] }>("/employee", {
+        params: { active: true },
+    });
+    return mapArrayPayload<any, EmployeeData>(response.data, (emp) => ({
         employeeId: emp.employeeId,
         fullName: emp.fullName,
-    })) as EmployeeData[];
+    }) as EmployeeData, ["employees"]);
 };
 
 /**

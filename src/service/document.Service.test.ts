@@ -1,0 +1,147 @@
+import { HttpResponse, http } from "msw";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+import { api } from "@/config/api";
+import { server } from "@/test/mocks/server";
+import {
+  deleteDocument,
+  downloadDocument,
+  fetchDocuments,
+  fetchEmployeesForSelection,
+  uploadDocument,
+} from "./document.Service";
+
+let createObjectURLMock: ReturnType<typeof vi.fn>;
+let revokeObjectURLMock: ReturnType<typeof vi.fn>;
+
+describe("document.Service", () => {
+  beforeEach(() => {
+    vi.restoreAllMocks();
+    createObjectURLMock = vi.fn(() => "blob:documento");
+    revokeObjectURLMock = vi.fn();
+    Object.defineProperty(window.URL, "createObjectURL", {
+      value: createObjectURLMock,
+      configurable: true,
+    });
+    Object.defineProperty(window.URL, "revokeObjectURL", {
+      value: revokeObjectURLMock,
+      configurable: true,
+    });
+  });
+
+  it("lista documentos pelo envelope real da API", async () => {
+    server.use(
+      http.get("*/documents", ({ request }) => {
+        const url = new URL(request.url);
+        expect(url.searchParams.get("employeeId")).toBe("emp-1");
+        expect(url.searchParams.get("type")).toBe("PAYSLIP");
+
+        return HttpResponse.json({
+          documents: [
+            {
+              id: "doc-1",
+              fileName: "contracheque.pdf",
+              uploadedAt: "2026-04-23T10:00:00Z",
+              type: "PAYSLIP",
+            },
+          ],
+        });
+      })
+    );
+
+    await expect(
+      fetchDocuments({ employeeId: "emp-1", type: "PAYSLIP" })
+    ).resolves.toEqual([
+      {
+        id: "doc-1",
+        name: "contracheque.pdf",
+        createdAt: "2026-04-23T10:00:00Z",
+        type: "PAYSLIP",
+      },
+    ]);
+  });
+
+  it("faz upload multipart com file, type e employeeId", async () => {
+    const postSpy = vi.spyOn(api, "post").mockResolvedValue({} as never);
+
+    await expect(
+      uploadDocument(
+        new File(["conteudo"], "arquivo.pdf", { type: "application/pdf" }),
+        "emp-1",
+        "PAYSLIP"
+      )
+    ).resolves.toBeUndefined();
+
+    expect(postSpy).toHaveBeenCalledWith(
+      "/documents",
+      expect.any(FormData)
+    );
+
+    const [, formData] = postSpy.mock.calls[0];
+    expect((formData as FormData).get("employeeId")).toBe("emp-1");
+    expect((formData as FormData).get("type")).toBe("PAYSLIP");
+
+    const file = (formData as FormData).get("file");
+    expect(file).toBeInstanceOf(File);
+    expect((file as File).name).toBe("arquivo.pdf");
+  });
+
+  it("baixa documento respeitando o nome do arquivo retornado", async () => {
+    const clickSpy = vi
+      .spyOn(HTMLAnchorElement.prototype, "click")
+      .mockImplementation(() => undefined);
+
+    server.use(
+      http.get("*/documents/doc-1", () =>
+        new HttpResponse("conteudo", {
+          status: 200,
+          headers: {
+            "Content-Disposition": 'attachment; filename="contracheque.pdf"',
+          },
+        })
+      )
+    );
+
+    await expect(downloadDocument("doc-1", "fallback.pdf")).resolves.toMatchObject(
+      {
+        fileName: "contracheque.pdf",
+      }
+    );
+
+    expect(createObjectURLMock).toHaveBeenCalled();
+    expect(clickSpy).toHaveBeenCalled();
+    expect(revokeObjectURLMock).toHaveBeenCalledWith("blob:documento");
+  });
+
+  it("exclui documento pelo endpoint correto", async () => {
+    server.use(
+      http.delete("*/documents/doc-1", () => new HttpResponse(null, { status: 204 }))
+    );
+
+    await expect(deleteDocument("doc-1")).resolves.toBeUndefined();
+  });
+
+  it("busca colaboradores ativos para seleção", async () => {
+    server.use(
+      http.get("*/employee", ({ request }) => {
+        const url = new URL(request.url);
+        expect(url.searchParams.get("active")).toBe("true");
+
+        return HttpResponse.json({
+          employees: [
+            {
+              employeeId: "emp-1",
+              fullName: "Maria Silva",
+            },
+          ],
+        });
+      })
+    );
+
+    await expect(fetchEmployeesForSelection()).resolves.toEqual([
+      {
+        employeeId: "emp-1",
+        fullName: "Maria Silva",
+      },
+    ]);
+  });
+});

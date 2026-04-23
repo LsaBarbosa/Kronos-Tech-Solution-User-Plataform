@@ -7,6 +7,7 @@ import { useSearchParams, useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { resetPasswordSchema, ResetPasswordFormType, ResetPasswordPayload } from "@/types/auth";
 import { resetPassword } from "@/service/auth.Service";
+import { getServiceErrorMessage } from "@/service/helpers/service-error.helper";
 
 interface UseResetPasswordReturn {
     form: UseFormReturn<ResetPasswordFormType>;
@@ -76,7 +77,10 @@ export const useResetPassword = (): UseResetPasswordReturn => {
             console.error("Erro ao redefinir senha:", error);
             toast({
                 title: "Erro na Redefinição",
-                description: error.message || "Falha ao redefinir a senha. O token pode ter expirado.",
+                description: getServiceErrorMessage(
+                    error,
+                    "Falha ao redefinir a senha. O token pode ter expirado."
+                ),
                 variant: "destructive",
             });
         } finally {

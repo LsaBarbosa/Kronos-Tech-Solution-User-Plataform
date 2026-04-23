@@ -1,36 +1,10 @@
 // src/services/companyService.ts
 
-import { API_BASE_URL } from "@/config/api"; //
+import { api } from "@/config/api";
 import { CompanyListItem, CompanyData, Location, CompanyUpdatePayload, cleanCEP, getAuthToken } from "@/types/company";
+import { extractArray, extractObject } from "@/service/helpers/response-normalizer.helper";
 
-// 💡 Constante crucial para geocodificação (idealmente, deve vir de .env)
-const HERE_API_KEY = "4BOpnro1zHzBBh9olurKhD4aWIw9I-gcY6VRox9wSXU"; 
-
-// --- Funções Auxiliares de Requisição ---
-
-const getAuthHeaders = (): HeadersInit => {
-    const token = getAuthToken();
-    if (!token) {
-        // Lançar erro que será capturado pelo hook
-        throw new Error("Token de autenticação não encontrado."); 
-    }
-    return { 
-        "Content-Type": "application/json", 
-        "Authorization": `Bearer ${token}` 
-    };
-};
-
-const handleResponse = async (response: Response): Promise<any> => {
-    if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.detail || errorData.message || `Erro de API (${response.status})`);
-    }
-    const contentType = response.headers.get("content-type");
-    if (contentType && contentType.includes("application/json")) {
-        return response.json();
-    }
-    return {};
-};
+const HERE_API_KEY = import.meta.env.VITE_HERE_API_KEY ?? "";
 
 // --- Serviços de API ---
 
@@ -38,32 +12,23 @@ const handleResponse = async (response: Response): Promise<any> => {
  * Busca a lista resumida de todas as empresas.
  */
 export const fetchCompanyList = async (): Promise<CompanyListItem[]> => {
-    const headers = getAuthHeaders();
-    const response = await fetch(`${API_BASE_URL}companies`, { headers });
-    const data = await handleResponse(response);
-    return data.companies; // Assumindo que a API retorna { companies: [...] }
+    const response = await api.get<{ companies: CompanyListItem[] }>("/companies");
+    return extractArray<CompanyListItem>(response.data, ["companies"]);
 };
 
 /**
  * Busca os detalhes de uma empresa específica por CNPJ.
  */
 export const fetchCompanyDetails = async (cnpj: string): Promise<CompanyData> => {
-    const headers = getAuthHeaders();
-    const response = await fetch(`${API_BASE_URL}companies/${cnpj}`, { headers });
-    return handleResponse(response) ;
+    const response = await api.get<CompanyData>(`/companies/${cnpj}`);
+    return extractObject<CompanyData>(response.data) as CompanyData;
 };
 
 /**
  * Atualiza os dados de uma empresa (PATCH).
  */
 export const updateCompany = async (cnpj: string, payload: CompanyUpdatePayload): Promise<void> => {
-    const headers = getAuthHeaders();
-    const response = await fetch(`${API_BASE_URL}companies/${cnpj}`, {
-        method: "PATCH",
-        headers: headers,
-        body: JSON.stringify(payload),
-    });
-    await handleResponse(response);
+    await api.patch(`/companies/${cnpj}`, payload);
 };
 
 // --- Serviço de Geolocalização (Movido do componente) ---
@@ -74,7 +39,7 @@ export const updateCompany = async (cnpj: string, payload: CompanyUpdatePayload)
 export const getGeolocationFromCEP = async (cep: string, number: string): Promise<Location> => {
     
     if (!HERE_API_KEY) {
-        throw new Error("A chave HERE_API_KEY não foi definida no serviço.");
+        throw new Error("A chave VITE_HERE_API_KEY não foi definida.");
     }
 
     try {
@@ -116,13 +81,7 @@ export const getGeolocationFromCEP = async (cep: string, number: string): Promis
  * Alterna o status (Ativo/Inativo) de uma empresa.
  */
 export const toggleCompanyStatus = async (cnpj: string, currentStatus: boolean): Promise<void> => {
-    const headers = getAuthHeaders();
-    const response = await fetch(`${API_BASE_URL}companies/${cnpj}/toggle-activate`, {
-        method: 'PATCH',
-        headers: headers,
-        body: JSON.stringify({ active: !currentStatus })
-    });
-    await handleResponse(response);
+    await api.patch(`/companies/${cnpj}/toggle-activate`, { active: !currentStatus });
 };
 
 // Função utilitária para formatar CNPJ (Mantida como pura)

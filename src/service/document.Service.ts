@@ -1,126 +1,155 @@
-// src/services/documentService.ts
+import { api } from "@/config/api";
+import { mapArrayPayload } from "@/service/helpers/response-normalizer.helper";
+import {
+  Document,
+  EmployeeListItem,
+  MAX_UPLOAD_SIZE_BYTES,
+} from "@/types/document";
 
-import { API_BASE_URL } from "@/config/api"; 
-import { Document, EmployeeListItem, MAX_UPLOAD_SIZE_BYTES } from "@/types/document";
-import { getAuthToken } from "./company.Service";
+export interface DocumentFilters {
+  employeeId?: string;
+  type?: string;
+}
 
-// --- Funções Auxiliares de Requisição ---
+export interface DownloadedDocument {
+  fileName: string;
+  blob: Blob;
+}
 
-const getAuthHeaders = (contentType: 'json' | 'multipart' = 'json') => {
-    const token = localStorage.getItem('token');
-    if (!token) {
-        throw new Error("Token de autenticação não encontrado."); 
-    }
-    const headers: HeadersInit = {
-        "Authorization": `Bearer ${token}`,
-    };
-    if (contentType === 'json') {
-        headers["Content-Type"] = "application/json";
-    }
-    // Para 'multipart', o navegador define o Content-Type (boundary)
-    return headers;
+type DocumentApiRecord = {
+  id?: string;
+  name?: string;
+  fileName?: string;
+  createdAt?: string;
+  uploadedAt?: string;
+  type?: string;
 };
 
-const handleResponse = async (response: Response): Promise<any> => {
-    if (!response.ok) {
-        const errorData = await response.json();
-        const errorMessage = errorData.detail || errorData.message || `Erro de API (${response.status})`;
-        throw new Error(errorMessage);
-    }
-    const contentType = response.headers.get("content-type");
-    if (contentType && contentType.includes("application/json")) {
-        return response.json();
-    }
-    return {};
+const parseDownloadFileName = (
+  contentDisposition: string | null,
+  fallbackFileName: string
+) => {
+  if (!contentDisposition) {
+    return fallbackFileName;
+  }
+
+  const utf8Match = contentDisposition.match(/filename\*=UTF-8''([^;]+)/i);
+  if (utf8Match?.[1]) {
+    return decodeURIComponent(utf8Match[1]);
+  }
+
+  const filenameMatch = contentDisposition.match(/filename="?([^";]+)"?/i);
+  if (filenameMatch?.[1]) {
+    return filenameMatch[1];
+  }
+
+  return fallbackFileName;
 };
 
-// --- Serviços de Documentos do Usuário Logado (Documentos.tsx) ---
+const triggerBrowserDownload = (blob: Blob, fileName: string) => {
+  const href = window.URL.createObjectURL(blob);
+  const link = window.document.createElement("a");
+  link.href = href;
+  link.download = fileName;
+  window.document.body.appendChild(link);
+  link.click();
+  window.document.body.removeChild(link);
+  window.URL.revokeObjectURL(href);
+};
 
-/**
- * Busca a lista de documentos do usuário logado.
- */
+export const fetchDocuments = async (
+  filters: DocumentFilters = {}
+): Promise<Document[]> => {
+  const response = await api.get("/documents", {
+    params: Object.keys(filters).length > 0 ? filters : undefined,
+  });
+
+  return mapArrayPayload<DocumentApiRecord, Document>(
+    response.data,
+    (document) => ({
+      id: document.id ?? "",
+      name: document.name ?? document.fileName ?? "Nome Desconhecido",
+      createdAt: document.createdAt ?? document.uploadedAt ?? "",
+      type: document.type ?? "",
+    }),
+    ["documents"]
+  );
+};
+
 export const fetchUserDocuments = async (): Promise<Document[]> => {
-    const headers = getAuthHeaders('json');
-    const response = await fetch(`${API_BASE_URL}documents/me`, { headers });
-    const data = await handleResponse(response);
-    return data; // Assumindo que a API retorna o array de documentos
+  return fetchDocuments();
 };
 
-/**
- * Deleta um documento pelo ID.
- */
+export const fetchEmployeeDocuments = async (
+  employeeId: string,
+  filters: Omit<DocumentFilters, "employeeId"> = {}
+): Promise<Document[]> => {
+  return fetchDocuments({
+    ...filters,
+    employeeId,
+  });
+};
+
 export const deleteDocument = async (documentId: string): Promise<void> => {
-    const headers = getAuthHeaders('json');
-    const response = await fetch(`${API_BASE_URL}documents/${documentId}`, {
-        method: "DELETE",
-        headers: headers,
-    });
-    await handleResponse(response);
+  await api.delete(`/documents/${documentId}`);
 };
 
-/**
- * Gera a URL de download para um documento específico.
- */
-export const generateDownloadUrl = (documentId: string): string => {
-    const token = getAuthHeaders('json').Authorization;
-    // URL simulada que precisa de autenticação (usado no href do Documentos.tsx)
-    return `${API_BASE_URL}documents/${documentId}/download?token=${token}`; 
+export const downloadDocument = async (
+  documentId: string,
+  fallbackFileName: string
+): Promise<DownloadedDocument> => {
+  const response = await api.get<Blob>(`/documents/${documentId}`, {
+    responseType: "blob",
+  });
+
+  const contentDisposition =
+    response.headers["content-disposition"] ??
+    response.headers["Content-Disposition"] ??
+    null;
+  const fileName = parseDownloadFileName(contentDisposition, fallbackFileName);
+  const blob = response.data instanceof Blob ? response.data : new Blob([response.data]);
+
+  triggerBrowserDownload(blob, fileName);
+
+  return {
+    fileName,
+    blob,
+  };
 };
 
+export const fetchEmployeesForSelection = async (
+  active = true
+): Promise<EmployeeListItem[]> => {
+  const response = await api.get("/employee", {
+    params: { active },
+  });
 
-// --- Serviços para Gestores (DocumentoColaborador.tsx) ---
-
-/**
- * Busca a lista de colaboradores ativos (compartilhado com EnviarDocumentos).
- */
-export const fetchEmployeesForSelection = async (): Promise<EmployeeListItem[]> => {
-    const headers = getAuthHeaders('json');
-    const response = await fetch(`${API_BASE_URL}employees?active=true`, { headers });
-    const data = await handleResponse(response);
-    // Adapte o mapeamento conforme sua API retorna a lista
-    return data.employees.map((emp: any) => ({
-        employeeId: emp.id,
-        fullName: emp.name,
-    })) as EmployeeListItem[]; 
+  return mapArrayPayload<
+    { employeeId?: string; fullName?: string; id?: string; name?: string },
+    EmployeeListItem
+  >(
+    response.data,
+    (employee) => ({
+      employeeId: employee.employeeId ?? employee.id ?? "",
+      fullName: employee.fullName ?? employee.name ?? "",
+    }),
+    ["employees"]
+  );
 };
 
-/**
- * Busca documentos de um colaborador específico (para DocumentoColaborador).
- */
-export const fetchEmployeeDocuments = async (employeeId: string): Promise<Document[]> => {
-    const headers = getAuthHeaders('json');
-    const response = await fetch(`${API_BASE_URL}documents/employee/${employeeId}`, { headers });
-    const data = await handleResponse(response);
-    return data; 
-};
+export const uploadDocument = async (
+  file: File,
+  employeeId: string,
+  type: string
+): Promise<void> => {
+  if (file.size > MAX_UPLOAD_SIZE_BYTES) {
+    throw new Error("O arquivo excede o limite de 5MB.");
+  }
 
-// --- Serviços de Upload (EnviarDocumentos.tsx) ---
+  const formData = new FormData();
+  formData.append("file", file);
+  formData.append("employeeId", employeeId);
+  formData.append("type", type);
 
-/**
- * Realiza o upload do arquivo para o colaborador selecionado (pode ser o próprio usuário logado).
- * @param file O arquivo a ser enviado.
- * @param employeeId O ID do colaborador destinatário.
- */
-export const uploadDocument = async (file: File, employeeId: string): Promise<void> => {
-    if (file.size > MAX_UPLOAD_SIZE_BYTES) {
-        throw new Error("O arquivo excede o limite de 5MB.");
-    }
-    
-    // Configuração do FormData para envio de arquivo
-    const formData = new FormData();
-    formData.append('file', file);
-    formData.append('employeeId', employeeId);
-    
-    const token = getAuthToken();
-
-    const response = await fetch(`${API_BASE_URL}documents/upload`, {
-        method: 'POST',
-        headers: {
-            "Authorization": `Bearer ${token}`,
-            // Não defina Content-Type; o navegador o fará para FormData, incluindo o boundary
-        },
-        body: formData,
-    });
-    
-    await handleResponse(response);
+  await api.post("/documents", formData);
 };

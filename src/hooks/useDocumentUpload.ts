@@ -6,6 +6,8 @@ import { useToast } from "@/hooks/use-toast";
 import { EmployeeListItem, MAX_UPLOAD_SIZE_BYTES, ALLOWED_MIME_TYPES } from "@/types/document";
 import { fetchEmployeesForSelection, uploadDocument } from "@/service/document.Service";
 
+const DEFAULT_DOCUMENT_TYPE = "EMPLOYEE_DOCUMENTS";
+
 // ===========================================
 // FUNÇÕES DE COMPRESSÃO E CONVERSÃO (NOVAS)
 // ===========================================
@@ -168,7 +170,7 @@ export const useDocumentUpload = (): UseDocumentUploadReturn => {
         setError(null);
 
         try {
-            await uploadDocument(selectedFile, selectedEmployeeId); 
+            await uploadDocument(selectedFile, selectedEmployeeId, DEFAULT_DOCUMENT_TYPE);
 
             toast({ title: "Sucesso", description: `Documento "${selectedFile.name}" enviado com sucesso!` });
             

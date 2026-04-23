@@ -1,38 +1,10 @@
-// src/services/employeeService.ts
+// Legacy collaborator service. Prefer collaborator-management.service.ts for
+// the new collaborator creation flow.
 
 // 💡 CORREÇÃO 2: Importa o EmployeeCreationPayload corrigido
 import { EmployeeCreationPayload, CompanyListItem, EmployeeData, cleanNumberString } from "@/types/employee";
-import { API_BASE_URL } from "@/config/api"; 
-import { string } from "zod";
-
-// --- Funções Auxiliares de Requisição ---
-
-const getAuthHeaders = (contentType: 'json' | 'form' = 'json') => {
-    const token = localStorage.getItem('token');
-    if (!token) {
-        throw new Error("Token de autenticação não encontrado. Redirecionando para login.");
-    }
-    const headers: HeadersInit = {
-        "Authorization": `Bearer ${token}`,
-    };
-    if (contentType === 'json') {
-        headers["Content-Type"] = "application/json";
-    }
-    return headers;
-};
-
-const handleResponse = async (response: Response): Promise<any> => {
-    if (!response.ok) {
-        const errorData = await response.json();
-        const errorMessage = errorData.detail || errorData.message || `Erro de API (${response.status})`;
-        throw new Error(errorMessage);
-    }
-    const contentType = response.headers.get("content-type");
-    if (contentType && contentType.includes("application/json")) {
-        return response.json();
-    }
-    return {};
-};
+import { api } from "@/config/api";
+import { extractArray, mapArrayPayload } from "@/service/helpers/response-normalizer.helper";
 
 // --- Serviços de Criação (CriarColaborador.tsx / CriarManager.tsx) ---
 
@@ -41,25 +13,27 @@ const handleResponse = async (response: Response): Promise<any> => {
  */
 export const checkUsernameAvailability = async (username: string): Promise<boolean> => {
     if (username.length < 5) return false;
-    const headers = getAuthHeaders('json');
     // Endpoint simulado
-    const response = await fetch(`${API_BASE_URL}auth/username-availability?username=${username}`, { headers });
-    
-    if (response.ok) {
-        const data = await response.json();
-        return data.available; 
+    try {
+        const response = await api.get<{ available: boolean }>("/auth/username-availability", {
+            params: { username },
+        });
+        return response.data.available;
+    } catch {
+        return false;
     }
-    return false;
 };
 
 /**
  * Busca a lista de todas as empresas (para o Select).
  */
 export const fetchCompanyList = async (): Promise<CompanyListItem[]> => {
-    const headers = getAuthHeaders('json');
-    const response = await fetch(`${API_BASE_URL}companies/list-basic`, { headers });
-    const data = await handleResponse(response);
-    return data.map((item: any) => ({ companyId: item.id, name: item.name }));
+    const response = await api.get<any[]>("/companies/list-basic");
+    return mapArrayPayload<any, CompanyListItem>(
+        response.data,
+        (item) => ({ companyId: item.id, name: item.name }),
+        ["companies", "data"]
+    );
 };
 
 // 💡 FUNÇÃO DE ADAPTAÇÃO CENTRALIZADA DE DADOS DO FORM PARA O PAYLOAD DA API
@@ -85,13 +59,7 @@ export const createPartner = async (formData: EmployeeCreationPayload): Promise<
     const finalPayload = createApiPayload(formData);
     (finalPayload as any).role = 'PARTNER'; // Define o papel no payload
     
-    const headers = getAuthHeaders('json');
-    const response = await fetch(`${API_BASE_URL}employees/create-partner`, {
-        method: 'POST',
-        headers: headers,
-        body: JSON.stringify(finalPayload),
-    });
-    await handleResponse(response);
+    await api.post("/employees/create-partner", finalPayload);
 };
 
 /**
@@ -101,13 +69,7 @@ export const createManager = async (formData: EmployeeCreationPayload): Promise<
     const finalPayload = createApiPayload(formData);
     (finalPayload as any).role = 'MANAGER'; // Define o papel no payload
 
-    const headers = getAuthHeaders('json');
-    const response = await fetch(`${API_BASE_URL}employees/create-manager`, {
-        method: 'POST',
-        headers: headers,
-        body: JSON.stringify(finalPayload),
-    });
-    await handleResponse(response);
+    await api.post("/employees/create-manager", finalPayload);
 };
 
 // --- Serviços de Listagem e Ação (ListaColaboradores.tsx) ---
@@ -116,33 +78,20 @@ export const createManager = async (formData: EmployeeCreationPayload): Promise<
  * Busca a lista completa de colaboradores (PARTNERs e MANAGERs).
  */
 export const fetchEmployeeList = async (): Promise<EmployeeData[]> => {
-    const headers = getAuthHeaders('json');
-    const response = await fetch(`${API_BASE_URL}employee`, { headers });
-    const data = await handleResponse(response);
-    return data.employees as EmployeeData[]; 
+    const response = await api.get<{ employees: EmployeeData[] }>("/employee");
+    return extractArray<EmployeeData>(response.data, ["employees"]); 
 };
 
 /**
  * Alterna o status (Ativo/Inativo) de um colaborador.
  */
 export const toggleEmployeeStatus = async (employeeId: string, currentStatus: boolean): Promise<void> => {
-    const headers = getAuthHeaders('json');
-    const response = await fetch(`${API_BASE_URL}employees/${employeeId}/toggle-status`, {
-        method: 'PATCH',
-        headers: headers,
-        body: JSON.stringify({ active: !currentStatus })
-    });
-    await handleResponse(response);
+    await api.patch(`/employees/${employeeId}/toggle-status`, { active: !currentStatus });
 };
 
 /**
  * Deleta um colaborador.
  */
 export const deleteEmployee = async (employeeId: string): Promise<void> => {
-    const headers = getAuthHeaders('json');
-    const response = await fetch(`${API_BASE_URL}employees/${employeeId}`, {
-        method: 'DELETE',
-        headers: headers,
-    });
-    await handleResponse(response);
+    await api.delete(`/employees/${employeeId}`);
 };

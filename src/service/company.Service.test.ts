@@ -1,0 +1,123 @@
+import { HttpResponse, http } from "msw";
+import { describe, expect, it } from "vitest";
+import { server } from "@/test/mocks/server";
+import {
+  fetchCompanyDetails,
+  fetchCompanyList,
+  toggleCompanyStatus,
+  updateCompany,
+} from "./company.Service";
+import type { CompanyData, CompanyListItem, CompanyUpdatePayload } from "@/types/company";
+
+const companyListItem: CompanyListItem = {
+  id: "company-1",
+  name: "Kronos Tech",
+  cnpj: "12345678000190",
+  email: "contato@kronos.test",
+  active: true,
+  address: {
+    street: "Rua Central",
+    number: "100",
+    postalCode: "01001000",
+    city: "Sao Paulo",
+    state: "SP",
+  },
+  location: {
+    latitude: -23.55,
+    longitude: -46.63,
+  },
+};
+
+const companyDetails: CompanyData = {
+  ...companyListItem,
+  address: {
+    ...companyListItem.address,
+    neighborhood: "Centro",
+  },
+  activeEmployees: 8,
+  inactiveEmployees: 2,
+};
+
+describe("company.Service", () => {
+  it("lista empresas usando envelope companies", async () => {
+    server.use(
+      http.get("*/companies", () =>
+        HttpResponse.json({ companies: [companyListItem] })
+      )
+    );
+
+    await expect(fetchCompanyList()).resolves.toEqual([companyListItem]);
+  });
+
+  it("busca detalhes de empresa por CNPJ", async () => {
+    server.use(
+      http.get("*/companies/:cnpj", ({ params }) => {
+        expect(params.cnpj).toBe("12345678000190");
+        return HttpResponse.json({ data: companyDetails });
+      })
+    );
+
+    await expect(fetchCompanyDetails("12345678000190")).resolves.toEqual(
+      companyDetails
+    );
+  });
+
+  it("atualiza empresa com payload correto", async () => {
+    const payload: CompanyUpdatePayload = {
+      name: "Kronos Atualizada",
+      email: "novo@kronos.test",
+      active: true,
+      address: {
+        postalCode: "01311000",
+        number: "200",
+      },
+      location: {
+        latitude: -23.56,
+        longitude: -46.65,
+      },
+    };
+
+    server.use(
+      http.patch("*/companies/:cnpj", async ({ params, request }) => {
+        expect(params.cnpj).toBe("12345678000190");
+        await expect(request.json()).resolves.toEqual(payload);
+        return new HttpResponse(null, { status: 204 });
+      })
+    );
+
+    await expect(updateCompany("12345678000190", payload)).resolves.toBeUndefined();
+  });
+
+  it("alterna status da empresa enviando o status inverso", async () => {
+    server.use(
+      http.patch("*/companies/:cnpj/toggle-activate", async ({ params, request }) => {
+        expect(params.cnpj).toBe("12345678000190");
+        await expect(request.json()).resolves.toEqual({ active: false });
+        return new HttpResponse(null, { status: 204 });
+      })
+    );
+
+    await expect(toggleCompanyStatus("12345678000190", true)).resolves.toBeUndefined();
+  });
+
+  it("propaga erro padronizado quando empresa nao existe", async () => {
+    server.use(
+      http.get("*/companies/:cnpj", () =>
+        HttpResponse.json(
+          { detail: "Empresa nao encontrada." },
+          { status: 404 }
+        )
+      )
+    );
+
+    await expect(fetchCompanyDetails("00000000000000")).rejects.toMatchObject({
+      kind: "http",
+      status: 404,
+      message: "Empresa nao encontrada.",
+      response: {
+        status: 404,
+        data: { detail: "Empresa nao encontrada." },
+      },
+    });
+  });
+});

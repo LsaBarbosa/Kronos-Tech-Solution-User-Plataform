@@ -1,9 +1,20 @@
- 
-  
-
-  import axios from 'axios';
+import axios from "axios";
+import { normalizeServiceError } from "@/service/helpers/service-error.helper";
 
 export const API_BASE_URL = import.meta.env.VITE_API_URL;
+
+export const buildTermsRedirectUrl = (
+  redirectBaseUrl: string,
+  currentPlatformUrl: string
+) => `${redirectBaseUrl}?returnUrl=${encodeURIComponent(currentPlatformUrl)}`;
+
+const redirectBrowserTo = (url: string) => {
+  if (typeof navigator !== "undefined" && navigator.userAgent.includes("jsdom")) {
+    return;
+  }
+
+  window.location.assign(url);
+};
 
 // Cria uma instância do Axios
 export const api = axios.create({
@@ -17,12 +28,28 @@ export const api = axios.create({
 api.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem('token'); // Ou onde você guarda o token
+
+    if (typeof FormData !== "undefined" && config.data instanceof FormData) {
+      const headers = config.headers as {
+        delete?: (name: string) => void;
+        [key: string]: unknown;
+      };
+
+      if (typeof headers.delete === "function") {
+        headers.delete("Content-Type");
+        headers.delete("content-type");
+      } else {
+        delete headers["Content-Type"];
+        delete headers["content-type"];
+      }
+    }
+
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
     return config;
   },
-  (error) => Promise.reject(error)
+  (error) => Promise.reject(normalizeServiceError(error))
 );
 
 // Interceptor de Resposta (Para pegar o erro 403 dos Termos)
@@ -34,21 +61,20 @@ api.interceptors.response.use(
 
       // LÓGICA DO REDIRECIONAMENTO DOS TERMOS
       if (status === 403 && data?.type === 'TERMS_NOT_ACCEPTED') {
-        
         // 1. Pega a URL que o backend mandou (https://termo.kronossolutions.tech/)
         const redirectBaseUrl = data.redirect_url;
-        
+
         // 2. Pega a URL atual da plataforma para o usuário voltar depois
         const currentPlatformUrl = window.location.href;
 
         // 3. Monta a URL final com o parâmetro de retorno
         // Ex: https://termo...?returnUrl=https://plataforma.../dashboard
-        const finalRedirectUrl = `${redirectBaseUrl}?returnUrl=${encodeURIComponent(currentPlatformUrl)}`;
+        const finalRedirectUrl = buildTermsRedirectUrl(redirectBaseUrl, currentPlatformUrl);
 
         // 4. Força o redirecionamento
-        window.location.href = finalRedirectUrl;
+        redirectBrowserTo(finalRedirectUrl);
         
-        return Promise.reject(error); // Interrompe o fluxo para não quebrar a tela
+        return Promise.reject(normalizeServiceError(error)); // Interrompe o fluxo para não quebrar a tela
       }
 
       // Tratamento genérico de sessão expirada (opcional)
@@ -56,6 +82,6 @@ api.interceptors.response.use(
          // console.log("Acesso negado genérico");
       }
     }
-    return Promise.reject(error);
+    return Promise.reject(normalizeServiceError(error));
   }
 );
