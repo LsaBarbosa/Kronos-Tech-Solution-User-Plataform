@@ -139,7 +139,7 @@ function dispatch(action: Action) {
 
 type Toast = Omit<ToasterToast, "id">
 
-function toast({ ...props }: Toast) {
+function showToast({ ...props }: Toast) {
   const id = genId()
 
   const update = (props: ToasterToast) =>
@@ -167,6 +167,34 @@ function toast({ ...props }: Toast) {
     update,
   }
 }
+
+type ToastShortcutOptions = Partial<Omit<Toast, "title" | "description" | "variant">> & {
+  title?: React.ReactNode;
+  description?: React.ReactNode;
+  variant?: Toast["variant"];
+}
+
+type ToastApi = typeof showToast & {
+  success: (message: React.ReactNode, options?: ToastShortcutOptions) => ReturnType<typeof showToast>;
+  error: (message: React.ReactNode, options?: ToastShortcutOptions) => ReturnType<typeof showToast>;
+}
+
+const toast = Object.assign(showToast, {
+  success: (message: React.ReactNode, options: ToastShortcutOptions = {}) =>
+    showToast({
+      title: options.title ?? "Sucesso",
+      description: options.description ?? message,
+      variant: options.variant ?? "default",
+      ...options,
+    }),
+  error: (message: React.ReactNode, options: ToastShortcutOptions = {}) =>
+    showToast({
+      title: options.title ?? "Erro",
+      description: options.description ?? message,
+      variant: options.variant ?? "destructive",
+      ...options,
+    }),
+}) as ToastApi;
 
 function useToast() {
   const [state, setState] = React.useState<State>(memoryState)

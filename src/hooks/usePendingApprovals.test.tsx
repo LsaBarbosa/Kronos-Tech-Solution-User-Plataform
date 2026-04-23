@@ -2,7 +2,7 @@ import { renderHook, waitFor, act } from "@testing-library/react";
 import type { ReactNode } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { beforeEach, describe, expect, it, vi } from "vitest";
-import { useToast } from "@/components/ui/use-toast";
+import { useToast } from "@/hooks/use-toast";
 import {
   approveTimeRecordChange,
   fetchPendingApprovals,
@@ -10,7 +10,7 @@ import {
 } from "@/service/records.service";
 import { usePendingApprovals } from "./usePendingApproval";
 
-vi.mock("@/components/ui/use-toast", () => ({
+vi.mock("@/hooks/use-toast", () => ({
   toast: vi.fn(),
   useToast: vi.fn(),
 }));

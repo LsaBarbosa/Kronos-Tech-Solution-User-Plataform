@@ -3,7 +3,7 @@ import { Camera, RefreshCcw, Loader2, ScanFace, Check } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Card, CardContent } from "@/components/ui/card";
-import { toast } from "sonner";
+import { toast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
 import { loginWithFace } from "@/service/auth.service";
 import { useAuth } from "@/context/AuthContext";

@@ -5,7 +5,7 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import FaceLoginModal from "./FaceLoginModal";
 import { loginWithFace } from "@/service/auth.service";
 import { useAuth } from "@/context/AuthContext";
-import { toast } from "sonner";
+import { toast } from "@/hooks/use-toast";
 
 const navigateMock = vi.fn();
 const authLoginMock = vi.fn();
@@ -19,11 +19,12 @@ vi.mock("@/context/AuthContext", () => ({
   useAuth: vi.fn(),
 }));
 
-vi.mock("sonner", () => ({
+vi.mock("@/hooks/use-toast", () => ({
   toast: {
     success: vi.fn(),
     error: vi.fn(),
   },
+  useToast: vi.fn(),
 }));
 
 vi.mock("react-router-dom", async () => {

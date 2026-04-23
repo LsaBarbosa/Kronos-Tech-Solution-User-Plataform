@@ -2,7 +2,7 @@
 
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { IVacationQueryParams, IVacationRequestResponse } from "@/types/vacation";
-import { toast } from "sonner";
+import { toast } from "@/hooks/use-toast";
 import { fetchVacationRequests, approveVacationRequest, rejectVacationRequest } from "@/service/records.service";
 import { getServiceErrorMessage } from "@/service/helpers/service-error.helper";
 

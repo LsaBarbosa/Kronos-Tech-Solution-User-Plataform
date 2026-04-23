@@ -16,7 +16,7 @@ import { cn } from "@/lib/utils";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { FiscalService } from "@/service/fiscal.service"; // Ajuste o caminho conforme criou o arquivo acima
-import { useToast } from "@/components/ui/use-toast"; // Assumindo que você tem um toast (opcional)
+import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/context/AuthContext";
 import { APP_PATHS, APP_ROUTE_META } from "@/config/app-routes";
 

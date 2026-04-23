@@ -1,7 +1,7 @@
 // src/hooks/usePendingApproval.ts
 
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { toast } from "@/components/ui/use-toast"; // Assumindo o caminho correto
+import { toast } from "@/hooks/use-toast";
 import {
   ITimeRecordApprovalPageResponse,
   IPendingApprovalQueryParams,

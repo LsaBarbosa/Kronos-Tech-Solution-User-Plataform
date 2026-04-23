@@ -3,7 +3,7 @@ import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router-dom";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import Documentos from "./Documentos";
-import { toast } from "sonner";
+import { toast } from "@/hooks/use-toast";
 import {
   deleteDocument,
   downloadDocument,
@@ -69,11 +69,12 @@ vi.mock("@/components/ui/select", async () => {
   };
 });
 
-vi.mock("sonner", () => ({
+vi.mock("@/hooks/use-toast", () => ({
   toast: {
     success: vi.fn(),
     error: vi.fn(),
   },
+  useToast: vi.fn(),
 }));
 
 vi.mock("@/context/AuthContext", () => ({
@@ -152,7 +153,11 @@ describe("Documentos", () => {
 
     expect(screen.getByRole("button", { name: /Buscar Documentos/i })).toBeDisabled();
 
-    await user.selectOptions(screen.getAllByRole("combobox")[2], "PAYSLIP");
+    await waitFor(() => {
+      expect(screen.getByRole("button", { name: /Buscar Documentos/i })).toBeEnabled();
+    });
+
+    await user.selectOptions(screen.getByRole("combobox"), "PAYSLIP");
 
     await user.click(screen.getByRole("button", { name: /Buscar Documentos/i }));
 
@@ -177,7 +182,11 @@ describe("Documentos", () => {
       </MemoryRouter>
     );
 
-    await user.selectOptions(screen.getAllByRole("combobox")[2], "PAYSLIP");
+    await waitFor(() => {
+      expect(screen.getByRole("button", { name: /Buscar Documentos/i })).toBeEnabled();
+    });
+
+    await user.selectOptions(screen.getByRole("combobox"), "PAYSLIP");
     await user.click(screen.getByRole("button", { name: /Buscar Documentos/i }));
 
     await waitFor(() => {

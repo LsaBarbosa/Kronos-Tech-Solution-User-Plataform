@@ -1,7 +1,7 @@
 // NOVO ARQUIVO: src/hooks/useVacationRequest.ts
 
 import { useMutation, useQuery } from '@tanstack/react-query';
-import { toast } from 'sonner';
+import { toast } from '@/hooks/use-toast';
 import { useState } from 'react';
 import { format } from 'date-fns';
 import * as z from 'zod';

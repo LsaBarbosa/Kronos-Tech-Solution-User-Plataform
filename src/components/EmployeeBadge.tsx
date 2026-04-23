@@ -6,7 +6,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input"; 
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
-import { toast } from "sonner";
+import { toast } from "@/hooks/use-toast";
 import { Separator } from "@radix-ui/react-separator";
 import { updateEmail, updatePhone } from "@/service/user.service";
 
