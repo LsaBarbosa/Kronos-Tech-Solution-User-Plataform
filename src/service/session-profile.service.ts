@@ -1,4 +1,4 @@
-import { fetchAccountData, fetchUserData } from "@/service/user.Service";
+import { fetchAccountData, fetchUserData } from "@/service/user.service";
 import type { UserAccountData, UserData } from "@/types/user";
 
 export interface SessionProfileData {

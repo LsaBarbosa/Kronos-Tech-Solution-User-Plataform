@@ -5,7 +5,7 @@ import { useForm, UseFormReturn } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useToast } from "@/hooks/use-toast";
 import { forgotPasswordSchema, ForgotPasswordFormType, cleanCPF } from "@/types/auth";
-import { recoverPasswordRequest } from "@/service/auth.Service";
+import { recoverPasswordRequest } from "@/service/auth.service";
 import { getServiceErrorMessage } from "@/service/helpers/service-error.helper";
 
 interface UseForgotPasswordReturn {

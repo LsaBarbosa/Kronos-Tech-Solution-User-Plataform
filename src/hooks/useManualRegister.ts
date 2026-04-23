@@ -8,7 +8,7 @@ import {
   RequestTimeOffRequestPayload,
   TimeOffFormState,
 } from "../types/vacation";
-import { listUsers } from "../service/user.Service"; 
+import { listUsers } from "../service/user.service"; 
 import { requestTimeOff } from "../service/records.service";
 import { getServiceErrorMessage } from "@/service/helpers/service-error.helper";
 

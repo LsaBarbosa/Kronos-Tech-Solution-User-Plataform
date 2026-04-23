@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback, useRef } from "react";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { EmployeeListItem, MAX_UPLOAD_SIZE_BYTES, ALLOWED_MIME_TYPES } from "@/types/document";
-import { fetchEmployeesForSelection, uploadDocument } from "@/service/document.Service";
+import { fetchEmployeesForSelection, uploadDocument } from "@/service/document.service";
 
 const DEFAULT_DOCUMENT_TYPE = "EMPLOYEE_DOCUMENTS";
 

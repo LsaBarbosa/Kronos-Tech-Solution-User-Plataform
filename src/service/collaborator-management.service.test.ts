@@ -3,9 +3,13 @@ import { describe, expect, it } from "vitest";
 import { server } from "@/test/mocks/server";
 import {
   checkCpfAvailability,
+  deleteEmployee,
   checkUsernameAvailability,
   createCollaborator,
+  fetchCompanyList,
+  fetchEmployeeList,
   createUser,
+  toggleEmployeeStatus,
   type CollaboratorCreationPayload,
   type UserCreationPayload,
 } from "./collaborator-management.service";
@@ -94,5 +98,54 @@ describe("collaborator-management.service", () => {
     );
 
     await expect(createUser(userPayload)).resolves.toBeUndefined();
+  });
+
+  it("lista empresas no formato oficial", async () => {
+    server.use(
+      http.get("*/companies", () =>
+        HttpResponse.json({
+          companies: [
+            { id: "cmp-1", name: "Kronos" },
+          ],
+        })
+      )
+    );
+
+    await expect(fetchCompanyList()).resolves.toEqual([
+      { companyId: "cmp-1", name: "Kronos" },
+    ]);
+  });
+
+  it("lista colaboradores e permite alternar ou excluir status", async () => {
+    server.use(
+      http.get("*/employee", () =>
+        HttpResponse.json({
+          employees: [
+            {
+              id: "emp-1",
+              fullName: "Maria",
+              active: true,
+            },
+          ],
+        })
+      ),
+      http.patch("*/employees/emp-1/toggle-status", async ({ request }) => {
+        const body = await request.json();
+        expect(body).toEqual({ active: false });
+        return new HttpResponse(null, { status: 204 });
+      }),
+      http.delete("*/employees/emp-1", () => new HttpResponse(null, { status: 204 }))
+    );
+
+    await expect(fetchEmployeeList()).resolves.toEqual([
+      {
+        id: "emp-1",
+        fullName: "Maria",
+        active: true,
+      },
+    ]);
+
+    await expect(toggleEmployeeStatus("emp-1", true)).resolves.toBeUndefined();
+    await expect(deleteEmployee("emp-1")).resolves.toBeUndefined();
   });
 });

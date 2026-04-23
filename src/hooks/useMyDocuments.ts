@@ -8,7 +8,7 @@ import {
     deleteDocument,
     downloadDocument,
     fetchUserDocuments,
-} from "@/service/document.Service";
+} from "@/service/document.service";
 
 interface UseMyDocumentsReturn {
     documents: Document[];

@@ -8,12 +8,12 @@ import {
   fetchDocuments,
   fetchEmployeesForSelection,
   uploadDocument,
-} from "./document.Service";
+} from "./document.service";
 
 let createObjectURLMock: ReturnType<typeof vi.fn>;
 let revokeObjectURLMock: ReturnType<typeof vi.fn>;
 
-describe("document.Service", () => {
+describe("document.service", () => {
   beforeEach(() => {
     vi.restoreAllMocks();
     createObjectURLMock = vi.fn(() => "blob:documento");

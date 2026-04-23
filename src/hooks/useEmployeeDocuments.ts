@@ -8,9 +8,9 @@ import {
     downloadDocument,
     fetchEmployeeDocuments,
     fetchEmployeesForSelection,
-} from "@/service/document.Service";
+} from "@/service/document.service";
 
-interface UseEmployeeDocumentsReturn {
+interface useEmployeeDocumentssReturn {
     employees: EmployeeListItem[];
     documents: Document[];
     selectedEmployeeId: string;
@@ -22,7 +22,7 @@ interface UseEmployeeDocumentsReturn {
     handleDownloadDocument: (documentId: string, documentName: string) => Promise<void>;
 }
 
-export const useEmployeeDocuments = (): UseEmployeeDocumentsReturn => {
+export const useEmployeeDocuments = (): useEmployeeDocumentssReturn => {
     const [employees, setEmployees] = useState<EmployeeListItem[]>([]);
     const [documents, setDocuments] = useState<Document[]>([]);
     const [selectedEmployeeId, setSelectedEmployeeId] = useState<string>("");

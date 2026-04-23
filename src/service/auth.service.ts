@@ -1,4 +1,5 @@
 import { api } from "@/config/api";
+import { API_ROUTES, buildRoute } from "@/config/api-routes";
 import { RecoverPasswordPayload, ResetPasswordPayload } from "@/types/auth";
 
 export interface LoginPayload {
@@ -18,7 +19,7 @@ export interface FaceLoginPayload {
  * Autentica usuário e senha no backend e retorna o token de sessão.
  */
 export const loginWithPassword = async (payload: LoginPayload): Promise<LoginResponse> => {
-    const response = await api.post<LoginResponse>("/auth/login", payload);
+    const response = await api.post<LoginResponse>(buildRoute(API_ROUTES.AUTH, "login"), payload);
 
     if (!response.data?.token) {
         throw new Error("Resposta de login sem token.");
@@ -31,7 +32,7 @@ export const loginWithPassword = async (payload: LoginPayload): Promise<LoginRes
  * Autentica por biometria facial e retorna o token de sessão.
  */
 export const loginWithFace = async (payload: FaceLoginPayload): Promise<LoginResponse> => {
-    const response = await api.post<LoginResponse>("/auth/login-face", payload);
+    const response = await api.post<LoginResponse>(buildRoute(API_ROUTES.AUTH, "login-face"), payload);
 
     if (!response.data?.token) {
         throw new Error("Resposta de login facial sem token.");
@@ -44,12 +45,12 @@ export const loginWithFace = async (payload: FaceLoginPayload): Promise<LoginRes
  * Envia a solicitação para gerar o token de recuperação de senha.
  */
 export const recoverPasswordRequest = async (payload: RecoverPasswordPayload): Promise<void> => {
-    await api.post("/auth/recover-password", payload);
+    await api.post(buildRoute(API_ROUTES.AUTH, "recover-password"), payload);
 };
 
 /**
  * Redefine a senha utilizando o token recebido por e-mail.
  */
 export const resetPassword = async (payload: ResetPasswordPayload): Promise<void> => {
-    await api.post("/auth/reset-password", payload);
+    await api.post(buildRoute(API_ROUTES.AUTH, "reset-password"), payload);
 };

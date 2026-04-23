@@ -1,6 +1,7 @@
 // src/services/dashboardService.ts
 
 import { api } from "@/config/api";
+import { API_ROUTES, buildRoute } from "@/config/api-routes";
 import { ITimeRecordApprovalPageResponse } from "@/types/recordApproval";
 import { WarningMessage } from "@/types/dashboard"; 
 // 💡 CORREÇÃO 6: Importando UserData do local correto
@@ -14,7 +15,7 @@ import { extractArray, extractObject } from "@/service/helpers/response-normaliz
  * 💡 CORREÇÃO 7: Usando UserData como tipo de retorno.
  */
 export const fetchUserProfile = async (): Promise<UserData> => {
-    const response = await api.get<UserData>("/employee/own-profile");
+    const response = await api.get<UserData>(buildRoute(API_ROUTES.EMPLOYEE, "own-profile"));
     return extractObject<UserData>(response.data) as UserData;
 };
 
@@ -23,7 +24,7 @@ export const fetchUserProfile = async (): Promise<UserData> => {
  * Endpoint corrigido para 'records/pending-approvals'
  */
 export const fetchPendingApprovalsCount = async (): Promise<ITimeRecordApprovalPageResponse> => { // ✅ CORREÇÃO: Retorna o objeto de páginação
-    const response = await api.get<ITimeRecordApprovalPageResponse>("/records/pending-approvals");
+    const response = await api.get<ITimeRecordApprovalPageResponse>(buildRoute(API_ROUTES.RECORDS, "pending-approvals"));
     return extractObject<ITimeRecordApprovalPageResponse>(response.data) as ITimeRecordApprovalPageResponse;
 };
 
@@ -32,7 +33,7 @@ export const fetchPendingApprovalsCount = async (): Promise<ITimeRecordApprovalP
  * Endpoint corrigido para 'messages'
  */
 export const fetchAllWarnings = async (): Promise<WarningMessage[]> => {
-    const response = await api.get<WarningMessage[]>("/messages");
+    const response = await api.get<WarningMessage[]>(`/${API_ROUTES.MESSAGES}`);
     return extractArray<WarningMessage>(response.data, ["messages"]); 
 };
 
@@ -42,5 +43,5 @@ export const fetchAllWarnings = async (): Promise<WarningMessage[]> => {
  */
 export const updateLastSeenMessageTimestamp = async (): Promise<void> => {
     // A API de produção usa POST para marcar como visto: employee/mark-messages-seen.
-    await api.post("/employee/mark-messages-seen", {});
+    await api.post(buildRoute(API_ROUTES.EMPLOYEE, "mark-messages-seen"), {});
 };

@@ -3,6 +3,7 @@
 import { api } from "@/config/api";
 import { CompanyListItem, CompanyData, Location, CompanyUpdatePayload, cleanCEP, getAuthToken } from "@/types/company";
 import { extractArray, extractObject } from "@/service/helpers/response-normalizer.helper";
+import { API_ROUTES, buildRoute } from "@/config/api-routes";
 
 const HERE_API_KEY = import.meta.env.VITE_HERE_API_KEY ?? "";
 
@@ -12,7 +13,7 @@ const HERE_API_KEY = import.meta.env.VITE_HERE_API_KEY ?? "";
  * Busca a lista resumida de todas as empresas.
  */
 export const fetchCompanyList = async (): Promise<CompanyListItem[]> => {
-    const response = await api.get<{ companies: CompanyListItem[] }>("/companies");
+    const response = await api.get<{ companies: CompanyListItem[] }>(`/${API_ROUTES.COMPANIES}`);
     return extractArray<CompanyListItem>(response.data, ["companies"]);
 };
 
@@ -20,7 +21,7 @@ export const fetchCompanyList = async (): Promise<CompanyListItem[]> => {
  * Busca os detalhes de uma empresa específica por CNPJ.
  */
 export const fetchCompanyDetails = async (cnpj: string): Promise<CompanyData> => {
-    const response = await api.get<CompanyData>(`/companies/${cnpj}`);
+    const response = await api.get<CompanyData>(buildRoute(API_ROUTES.COMPANIES, cnpj));
     return extractObject<CompanyData>(response.data) as CompanyData;
 };
 
@@ -28,7 +29,7 @@ export const fetchCompanyDetails = async (cnpj: string): Promise<CompanyData> =>
  * Atualiza os dados de uma empresa (PATCH).
  */
 export const updateCompany = async (cnpj: string, payload: CompanyUpdatePayload): Promise<void> => {
-    await api.patch(`/companies/${cnpj}`, payload);
+    await api.patch(buildRoute(API_ROUTES.COMPANIES, cnpj), payload);
 };
 
 // --- Serviço de Geolocalização (Movido do componente) ---
@@ -81,7 +82,7 @@ export const getGeolocationFromCEP = async (cep: string, number: string): Promis
  * Alterna o status (Ativo/Inativo) de uma empresa.
  */
 export const toggleCompanyStatus = async (cnpj: string, currentStatus: boolean): Promise<void> => {
-    await api.patch(`/companies/${cnpj}/toggle-activate`, { active: !currentStatus });
+    await api.patch(buildRoute(API_ROUTES.COMPANIES, cnpj, "toggle-activate"), { active: !currentStatus });
 };
 
 // Função utilitária para formatar CNPJ (Mantida como pura)

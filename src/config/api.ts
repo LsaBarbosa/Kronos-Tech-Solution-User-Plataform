@@ -60,7 +60,7 @@ api.interceptors.response.use(
       const { status, data } = error.response;
 
       // LÓGICA DO REDIRECIONAMENTO DOS TERMOS
-      if (status === 403 && data?.type === 'TERMS_NOT_ACCEPTED') {
+      if (status === 403 && data?.type === "TERMS_NOT_ACCEPTED") {
         // 1. Pega a URL que o backend mandou (https://termo.kronossolutions.tech/)
         const redirectBaseUrl = data.redirect_url;
 

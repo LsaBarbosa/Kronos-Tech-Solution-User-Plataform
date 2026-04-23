@@ -26,7 +26,7 @@ import { Alert, AlertDescription, AlertTitle } from "../components/ui/alert";
 import { PaginationComponent } from "../components/ui/PaginationComponent";
 import { StatusRecord } from '../types/recordApproval';
 import { cn } from '../lib/utils';
-import { downloadDocument } from '@/service/document.Service';
+import { downloadDocument } from '@/service/document.service';
 
 // ---------------------------------------------------------------------
 // --- 1. FUNÇÕES DE UTILIDADE E TIPOS

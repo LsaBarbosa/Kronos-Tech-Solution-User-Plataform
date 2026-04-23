@@ -4,7 +4,7 @@ import { useState, useEffect, useCallback } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
 import { UserAccountData, UserData, ChangePasswordData, cleanNumberString } from "@/types/user";
-import { updateEmail, updatePhone, changePassword } from "@/service/user.Service";
+import { updateEmail, updatePhone, changePassword } from "@/service/user.service";
 import { loadSessionProfile } from "@/service/session-profile.service";
 import { getServiceErrorMessage, isAuthServiceError } from "@/service/helpers/service-error.helper";
 import { useAuth } from "@/context/AuthContext";

@@ -5,9 +5,9 @@ import {
   changePassword,
   updateEmail,
   updatePhone,
-} from "./user.Service";
+} from "./user.service";
 
-describe("user.Service", () => {
+describe("user.service", () => {
   it("atualiza email", async () => {
     server.use(
       http.patch("*/employee/update-own-profile", async ({ request }) => {

@@ -1,6 +1,8 @@
 import { api } from "@/config/api";
+import { API_ROUTES, buildRoute } from "@/config/api-routes";
 import { normalizeServiceError } from "@/service/helpers/service-error.helper";
-import { extractObject } from "@/service/helpers/response-normalizer.helper";
+import { extractArray, extractObject } from "@/service/helpers/response-normalizer.helper";
+import { CompanyListItem, EmployeeData } from "@/types/employee";
 
 export interface CollaboratorAddressPayload {
   postalCode: string;
@@ -60,16 +62,16 @@ const checkAvailabilityByStatus = async (
 };
 
 export const checkCpfAvailability = async (cpf: string): Promise<boolean> =>
-  checkAvailabilityByStatus("/employee/check-cpf", "cpf", cpf);
+  checkAvailabilityByStatus(buildRoute(API_ROUTES.EMPLOYEE, "check-cpf"), "cpf", cpf);
 
 export const checkUsernameAvailability = async (
   username: string
-): Promise<boolean> => checkAvailabilityByStatus("/users/check-username", "username", username);
+): Promise<boolean> => checkAvailabilityByStatus(buildRoute(API_ROUTES.USERS, "check-username"), "username", username);
 
 export const createCollaborator = async (
   payload: CollaboratorCreationPayload
 ): Promise<CollaboratorCreationResponse> => {
-  const response = await api.post<CollaboratorCreationResponse>("/employee", payload);
+  const response = await api.post<CollaboratorCreationResponse>(`/${API_ROUTES.EMPLOYEE}`, payload);
   const data = extractObject<CollaboratorCreationResponse>(response.data) as CollaboratorCreationResponse;
 
   if (!data.employeeId) {
@@ -80,5 +82,33 @@ export const createCollaborator = async (
 };
 
 export const createUser = async (payload: UserCreationPayload): Promise<void> => {
-  await api.post("/users", payload);
+  await api.post(`/${API_ROUTES.USERS}`, payload);
+};
+
+export const fetchCompanyList = async (): Promise<CompanyListItem[]> => {
+  const response = await api.get<{ companies?: Array<{ id?: string; companyId?: string; name?: string }> }>(`/${API_ROUTES.COMPANIES}`);
+  const companies = extractArray<{ id?: string; companyId?: string; name?: string }>(response.data, ["companies"]);
+
+  return companies.map((company) => ({
+    companyId: company.companyId ?? company.id ?? "",
+    name: company.name ?? "",
+  }));
+};
+
+export const fetchEmployeeList = async (): Promise<EmployeeData[]> => {
+  const response = await api.get<{ employees?: EmployeeData[] }>(`/${API_ROUTES.EMPLOYEE}`);
+  return extractArray<EmployeeData>(response.data, ["employees"]);
+};
+
+export const toggleEmployeeStatus = async (
+  employeeId: string,
+  currentStatus: boolean
+): Promise<void> => {
+  await api.patch(buildRoute(API_ROUTES.EMPLOYEES, employeeId, "toggle-status"), {
+    active: !currentStatus,
+  });
+};
+
+export const deleteEmployee = async (employeeId: string): Promise<void> => {
+  await api.delete(buildRoute(API_ROUTES.EMPLOYEES, employeeId));
 };

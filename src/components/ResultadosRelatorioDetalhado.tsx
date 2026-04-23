@@ -6,7 +6,7 @@ import { Badge } from "@/components/ui/badge";
 import { CalendarIcon, Download, Edit, Coffee, FileText, MapPin, Clock } from "lucide-react";
 import { DetailedReportItem, statusOptions, getStatusColor, statusMap } from "@/utils/report-utils"; 
 import { useToast } from "@/hooks/use-toast";
-import { downloadDocument } from "@/service/document.Service";
+import { downloadDocument } from "@/service/document.service";
 import { Button } from "./ui/button";
 import { PaginationComponent } from "./ui/PaginationComponent";
 

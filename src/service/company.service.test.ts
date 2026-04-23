@@ -6,7 +6,7 @@ import {
   fetchCompanyList,
   toggleCompanyStatus,
   updateCompany,
-} from "./company.Service";
+} from "./company.service";
 import type { CompanyData, CompanyListItem, CompanyUpdatePayload } from "@/types/company";
 
 const companyListItem: CompanyListItem = {
@@ -38,7 +38,7 @@ const companyDetails: CompanyData = {
   inactiveEmployees: 2,
 };
 
-describe("company.Service", () => {
+describe("company.service", () => {
   it("lista empresas usando envelope companies", async () => {
     server.use(
       http.get("*/companies", () =>

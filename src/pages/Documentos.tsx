@@ -20,7 +20,7 @@ import {
   downloadDocument,
   fetchDocuments,
   fetchEmployeesForSelection,
-} from "@/service/document.Service";
+} from "@/service/document.service";
 
 interface Employee {
   id: string;

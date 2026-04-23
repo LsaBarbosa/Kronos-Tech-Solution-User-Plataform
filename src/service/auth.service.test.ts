@@ -1,9 +1,9 @@
 import { HttpResponse, http } from "msw";
 import { describe, expect, it } from "vitest";
 import { server } from "@/test/mocks/server";
-import { loginWithFace, loginWithPassword } from "./auth.Service";
+import { loginWithFace, loginWithPassword } from "./auth.service";
 
-describe("auth.Service", () => {
+describe("auth.service", () => {
   it("realiza login com sucesso e retorna token", async () => {
     server.use(
       http.post("*/auth/login", async ({ request }) => {

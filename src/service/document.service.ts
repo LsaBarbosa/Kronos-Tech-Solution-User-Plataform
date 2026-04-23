@@ -1,4 +1,5 @@
 import { api } from "@/config/api";
+import { API_ROUTES, buildRoute } from "@/config/api-routes";
 import { mapArrayPayload } from "@/service/helpers/response-normalizer.helper";
 import {
   Document,
@@ -60,7 +61,7 @@ const triggerBrowserDownload = (blob: Blob, fileName: string) => {
 export const fetchDocuments = async (
   filters: DocumentFilters = {}
 ): Promise<Document[]> => {
-  const response = await api.get("/documents", {
+  const response = await api.get(`/${API_ROUTES.DOCUMENTS}`, {
     params: Object.keys(filters).length > 0 ? filters : undefined,
   });
 
@@ -91,14 +92,14 @@ export const fetchEmployeeDocuments = async (
 };
 
 export const deleteDocument = async (documentId: string): Promise<void> => {
-  await api.delete(`/documents/${documentId}`);
+  await api.delete(buildRoute(API_ROUTES.DOCUMENTS, documentId));
 };
 
 export const downloadDocument = async (
   documentId: string,
   fallbackFileName: string
 ): Promise<DownloadedDocument> => {
-  const response = await api.get<Blob>(`/documents/${documentId}`, {
+  const response = await api.get<Blob>(buildRoute(API_ROUTES.DOCUMENTS, documentId), {
     responseType: "blob",
   });
 
@@ -120,7 +121,7 @@ export const downloadDocument = async (
 export const fetchEmployeesForSelection = async (
   active = true
 ): Promise<EmployeeListItem[]> => {
-  const response = await api.get("/employee", {
+  const response = await api.get(`/${API_ROUTES.EMPLOYEE}`, {
     params: { active },
   });
 
@@ -151,5 +152,5 @@ export const uploadDocument = async (
   formData.append("employeeId", employeeId);
   formData.append("type", type);
 
-  await api.post("/documents", formData);
+  await api.post(`/${API_ROUTES.DOCUMENTS}`, formData);
 };

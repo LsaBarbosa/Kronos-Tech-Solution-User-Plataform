@@ -35,7 +35,7 @@ vi.mock("@/service/session-profile.service", () => ({
   loadSessionProfile: vi.fn(),
 }));
 
-vi.mock("@/service/user.Service", () => ({
+vi.mock("@/service/user.service", () => ({
   updateEmail: vi.fn(),
   updatePhone: vi.fn(),
   changePassword: vi.fn(),

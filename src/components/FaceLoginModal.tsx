@@ -5,7 +5,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } f
 import { Card, CardContent } from "@/components/ui/card";
 import { toast } from "sonner";
 import { useNavigate } from "react-router-dom";
-import { loginWithFace } from "@/service/auth.Service";
+import { loginWithFace } from "@/service/auth.service";
 import { useAuth } from "@/context/AuthContext";
 import { getServiceErrorMessage } from "@/service/helpers/service-error.helper";
 

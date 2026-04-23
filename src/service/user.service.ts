@@ -1,6 +1,7 @@
 // src/services/userService.ts
 
 import { api } from "@/config/api";
+import { API_ROUTES, buildRoute } from "@/config/api-routes";
 import { UserAccountData, UserData, ChangePasswordData, cleanNumberString } from "@/types/user";
 import { extractArray, extractObject } from "@/service/helpers/response-normalizer.helper";
 
@@ -11,7 +12,7 @@ import { extractArray, extractObject } from "@/service/helpers/response-normaliz
  * Busca os dados básicos da conta do usuário.
  */
 export const fetchAccountData = async (): Promise<UserAccountData> => {
-  const response = await api.get<UserAccountData>("/users/own-profile");
+  const response = await api.get<UserAccountData>(buildRoute(API_ROUTES.USERS, "own-profile"));
   return extractObject<UserAccountData>(response.data) as UserAccountData;
 };
 
@@ -19,7 +20,7 @@ export const fetchAccountData = async (): Promise<UserAccountData> => {
  * Busca os dados detalhados do colaborador/usuário.
  */
 export const fetchUserData = async (): Promise<UserData> => {
-  const response = await api.get<UserData>("/employee/own-profile");
+  const response = await api.get<UserData>(buildRoute(API_ROUTES.EMPLOYEE, "own-profile"));
   return extractObject<UserData>(response.data) as UserData;
 };
 
@@ -29,14 +30,14 @@ export const fetchUserData = async (): Promise<UserData> => {
  * Atualiza o e-mail do usuário.
  */
 export const updateEmail = async (employeeId: string, newEmail: string): Promise<void> => {
-  await api.patch("/employee/update-own-profile", { email: newEmail });
+  await api.patch(buildRoute(API_ROUTES.EMPLOYEE, "update-own-profile"), { email: newEmail });
 };
 
 /**
  * Atualiza o telefone do usuário.
  */
 export const updatePhone = async (employeeId: string, newPhone: string): Promise<void> => {
-  await api.patch("/employee/update-own-profile", { phone: cleanNumberString(newPhone) });
+  await api.patch(buildRoute(API_ROUTES.EMPLOYEE, "update-own-profile"), { phone: cleanNumberString(newPhone) });
 };
 
 /**
@@ -54,7 +55,7 @@ export const changePassword = async (data: ChangePasswordData): Promise<void> =>
       confirmPassword: data.confirmPassword 
   };
 
-  await api.put("/users/password", apiPayload);
+  await api.put(buildRoute(API_ROUTES.USERS, "password"), apiPayload);
 };
 
 /**
@@ -63,7 +64,7 @@ export const changePassword = async (data: ChangePasswordData): Promise<void> =>
  * @returns Lista de dados detalhados do usuário (UserAccountData).
  */
 export const listUsers = async (active: boolean | null): Promise<UserAccountData[]> => {
-  const response = await api.get<{ users: UserAccountData[] }>("/users/search", {
+  const response = await api.get<{ users: UserAccountData[] }>(buildRoute(API_ROUTES.USERS, "search"), {
     params: active !== null ? { active } : undefined,
   });
   

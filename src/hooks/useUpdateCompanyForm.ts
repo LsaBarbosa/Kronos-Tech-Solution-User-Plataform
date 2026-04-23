@@ -13,7 +13,7 @@ import {
     updateCompany, 
     getGeolocationFromCEP,
     formatCNPJ
-} from "@/service/company.Service";
+} from "@/service/company.service";
 
 // --- SCHEMAS DE VALIDAÇÃO ---
 const formSchema = z.object({

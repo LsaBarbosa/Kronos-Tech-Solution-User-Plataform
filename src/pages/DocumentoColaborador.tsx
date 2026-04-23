@@ -13,7 +13,7 @@ import { useToast } from "@/hooks/use-toast";
 import {
   fetchEmployeesForSelection,
   uploadDocument,
-} from "@/service/document.Service";
+} from "@/service/document.service";
 
 interface Employee {
   id: string;

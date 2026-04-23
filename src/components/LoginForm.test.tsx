@@ -3,7 +3,7 @@ import userEvent from "@testing-library/user-event";
 import { MemoryRouter } from "react-router-dom";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import LoginForm from "./LoginForm";
-import { loginWithPassword } from "@/service/auth.Service";
+import { loginWithPassword } from "@/service/auth.service";
 import { useAuth } from "@/context/AuthContext";
 import { toast } from "sonner";
 
@@ -18,7 +18,7 @@ vi.mock("@/components/FaceLoginModal", () => ({
   default: () => <div data-testid="face-login-modal" />,
 }));
 
-vi.mock("@/service/auth.Service", () => ({
+vi.mock("@/service/auth.service", () => ({
   loginWithPassword: vi.fn(),
 }));
 

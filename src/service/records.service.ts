@@ -1,4 +1,5 @@
 import { api } from "@/config/api";
+import { API_ROUTES, buildRoute } from "@/config/api-routes";
 import { extractArray, extractObject } from "@/service/helpers/response-normalizer.helper";
 import {
   IManagerOption,
@@ -15,7 +16,7 @@ import {
   IVacationRequestResponse,
 } from "@/types/vacation";
 
-const RECORDS_BASE_URL = "/records";
+const RECORDS_BASE_URL = `/${API_ROUTES.RECORDS}`;
 
 export const fetchPendingApprovals = async (
   params: IPendingApprovalQueryParams
@@ -114,7 +115,7 @@ export const rejectVacationRequest = async (timeRecordIds: number[]): Promise<vo
 };
 
 export const fetchManagerOptions = async (): Promise<IManagerOption[]> => {
-  const response = await api.get<{ users?: any[] }>("/users/search", {
+  const response = await api.get<{ users?: any[] }>(buildRoute(API_ROUTES.USERS, "search"), {
     params: { active: true },
   });
 

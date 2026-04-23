@@ -1,11 +1,12 @@
 import { api } from "@/config/api";
+import { API_ROUTES, buildRoute } from "@/config/api-routes";
 import { normalizeServiceError } from "@/service/helpers/service-error.helper";
 
 const FISCAL_ENDPOINTS = {
-  mirror: "/legal/espelho-ponto",
-  technicalCertificate: "/legal/technical-certificate",
-  afd: "/legal/afd",
-  aej: "/legal/aej",
+  mirror: buildRoute(API_ROUTES.LEGAL, "espelho-ponto"),
+  technicalCertificate: buildRoute(API_ROUTES.LEGAL, "technical-certificate"),
+  afd: buildRoute(API_ROUTES.LEGAL, "afd"),
+  aej: buildRoute(API_ROUTES.LEGAL, "aej"),
 } as const;
 
 const FISCAL_FILE_NAMES = {

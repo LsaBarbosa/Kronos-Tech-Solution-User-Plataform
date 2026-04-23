@@ -6,7 +6,7 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import { useSearchParams, useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { resetPasswordSchema, ResetPasswordFormType, ResetPasswordPayload } from "@/types/auth";
-import { resetPassword } from "@/service/auth.Service";
+import { resetPassword } from "@/service/auth.service";
 import { getServiceErrorMessage } from "@/service/helpers/service-error.helper";
 
 interface UseResetPasswordReturn {

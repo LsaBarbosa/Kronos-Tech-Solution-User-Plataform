@@ -43,7 +43,7 @@ import { useToast } from "@/components/ui/use-toast";
 
 // Services
 import { FiscalService } from "@/service/fiscal.service";
-import { fetchEmployeeList } from "@/service/employee.Service";
+import { fetchEmployeeList } from "@/service/collaborator-management.service";
 import Sidebar from "@/components/Sidebar";
 import Header from "@/components/Header";
 
