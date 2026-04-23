@@ -10,7 +10,8 @@ import {
     fetchPendingApprovals, 
     approveTimeRecordChange, 
     rejectTimeRecordChange 
-} from "@/service/pendingApproval.service"; 
+} from "@/service/records.service"; 
+import { getServiceErrorMessage } from "@/service/helpers/service-error.helper";
 
 /**
  * Hook para gerenciar a listagem, aprovação e rejeição de solicitações de ponto.
@@ -41,7 +42,7 @@ export const usePendingApprovals = (params: IPendingApprovalQueryParams) => {
     onError: (e: any) => {
       toast({
         title: "❌ Erro ao Aprovar",
-        description: e.message || "Não foi possível aprovar a solicitação.", 
+        description: getServiceErrorMessage(e, "Não foi possível aprovar a solicitação."), 
         variant: "destructive",
       });
     },
@@ -61,7 +62,7 @@ export const usePendingApprovals = (params: IPendingApprovalQueryParams) => {
     onError: (e: any) => {
       toast({
         title: "❌ Erro ao Rejeitar",
-        description: e.message || "Não foi possível rejeitar a solicitação.", 
+        description: getServiceErrorMessage(e, "Não foi possível rejeitar a solicitação."), 
         variant: "destructive",
       });
     },

@@ -9,7 +9,8 @@ import {
   TimeOffFormState,
 } from "../types/vacation";
 import { listUsers } from "../service/user.Service"; 
-import { requestTimeOff } from "../service/vacation.service";
+import { requestTimeOff } from "../service/records.service";
+import { getServiceErrorMessage } from "@/service/helpers/service-error.helper";
 
 type TimeOffFormErrors = Partial<Record<keyof TimeOffFormState, string>>;
 
@@ -42,8 +43,10 @@ export const useRequestManualRegistration = () => {
         console.error("Erro ao carregar managers:", error);
         toast({
           title: "Erro ao carregar",
-          description:
-            "Não foi possível carregar a lista de gestores. Tente novamente.",
+          description: getServiceErrorMessage(
+            error,
+            "Não foi possível carregar a lista de gestores. Tente novamente."
+          ),
           variant: "destructive",
         });
       }
@@ -127,7 +130,10 @@ export const useRequestManualRegistration = () => {
       setErrors({});
     } catch (error) {
       console.error("Erro ao solicitar:", error);
-      const errorMessage = (error as Error).message || "Não foi possível processar a solicitação.";
+      const errorMessage = getServiceErrorMessage(
+        error,
+        "Não foi possível processar a solicitação."
+      );
       toast({
         title: "Erro na Solicitação",
         description: errorMessage,

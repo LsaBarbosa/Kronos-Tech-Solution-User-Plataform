@@ -3,7 +3,8 @@
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
 import { IVacationQueryParams, IVacationRequestResponse } from "@/types/vacation";
 import { toast } from "sonner";
-import { fetchVacationRequests, approveVacationRequest, rejectVacationRequest } from "@/service/vacation.service";
+import { fetchVacationRequests, approveVacationRequest, rejectVacationRequest } from "@/service/records.service";
+import { getServiceErrorMessage } from "@/service/helpers/service-error.helper";
 
 // Validador defensivo: garante que o resultado é sempre um array
 const ensureArray = (data: any): IVacationRequestResponse[] => {
@@ -33,7 +34,7 @@ export const useVacationApprovals = (params: IVacationQueryParams) => {
             toast.success("Férias aprovadas com sucesso!");
         },
         onError: (error) => {
-            toast.error(`Falha na aprovação: ${error.message}`);
+            toast.error(`Falha na aprovação: ${getServiceErrorMessage(error)}`);
         },
     });
 
@@ -45,7 +46,7 @@ export const useVacationApprovals = (params: IVacationQueryParams) => {
             toast.success("Férias rejeitadas com sucesso!");
         },
         onError: (error) => {
-            toast.error(`Falha na rejeição: ${error.message}`);
+            toast.error(`Falha na rejeição: ${getServiceErrorMessage(error)}`);
         },
     });
 

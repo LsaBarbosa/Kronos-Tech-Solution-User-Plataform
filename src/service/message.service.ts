@@ -5,22 +5,6 @@ import { Message, MessagePayload } from "@/types/message";
 import { EmployeeData } from "@/types/employee"; 
 import { extractArray, mapArrayPayload } from "@/service/helpers/response-normalizer.helper";
 
-// --- Funções Auxiliares (Puras) ---
-
-const decodeToken = (token: string) => {
-    try {
-        const base64Url = token.split('.')[1];
-        const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-        const payload = decodeURIComponent(atob(base64).split('').map(function (c) {
-            return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
-        }).join(''));
-        return JSON.parse(payload);
-    } catch (error) {
-        console.error("Falha ao decodificar o token", error);
-        return null;
-    }
-};
-
 // --- Funções de Serviço para AVISOS (fetch, delete, post) ---
 
 /**
@@ -58,20 +42,4 @@ export const fetchActiveEmployees = async (): Promise<EmployeeData[]> => {
         employeeId: emp.employeeId,
         fullName: emp.fullName,
     }) as EmployeeData, ["employees"]);
-};
-
-/**
- * Obtém o papel do usuário (role) do token para lógica de permissões.
- */
-export const getUserRoleFromToken = (): 'MANAGER' | 'PARTNER' | 'CTO' | '' => {
-    const token = localStorage.getItem("token");
-    if (!token) return '';
-    
-    const decoded = decodeToken(token);
-    const role = decoded?.role;
-
-    if (role === 'MANAGER' || role === 'PARTNER' || role === 'CTO') {
-        return role;
-    }
-    return '';
 };

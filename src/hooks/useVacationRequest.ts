@@ -6,7 +6,8 @@ import { useState } from 'react';
 import { format } from 'date-fns';
 import * as z from 'zod';
 import { IRequestVacationRequest, IManagerOption } from '@/types/vacation';
-import { requestVacation, fetchManagerOptions } from '@/service/vacation.service';
+import { requestVacation, fetchManagerOptions } from '@/service/records.service';
+import { getServiceErrorMessage } from '@/service/helpers/service-error.helper';
 
 // --- Zod Schema para Validação ---
 const VacationSchema = z.object({
@@ -49,7 +50,7 @@ export const useVacationRequest = () => {
             setManagerId('');
         },
         onError: (error) => {
-            toast.error(`Falha na solicitação: ${error.message}`);
+            toast.error(`Falha na solicitação: ${getServiceErrorMessage(error)}`);
         },
     });
 
@@ -78,7 +79,7 @@ export const useVacationRequest = () => {
                     description: `Campo: ${firstError.path.join('.')}`
                 });
             } else {
-                toast.error("Erro desconhecido ao processar a solicitação.");
+                toast.error(getServiceErrorMessage(error, "Erro desconhecido ao processar a solicitação."));
             }
         }
     };

@@ -1,7 +1,8 @@
 import { useState, useEffect, useCallback } from 'react';
-import * as PendingApprovalService from '@/service/pendingApproval.service';
+import * as RecordsService from '@/service/records.service';
 import { ITimeOffQueryParams, ITimeRecordPageResponse } from '@/types/recordApproval';
 import { useToast } from '@/components/ui/use-toast';
+import { getServiceErrorMessage } from '@/service/helpers/service-error.helper';
 
 // Define o tipo de dados e funções que o hook irá retornar
 export interface UseTimeOffApprovalsReturn {
@@ -43,7 +44,7 @@ export const useTimeOffApprovals = (): UseTimeOffApprovalsReturn => {
     const fetchApprovals = useCallback(async () => {
         setIsLoading(true);
         try {
-            const data = await PendingApprovalService.listTimeOffRequests({
+            const data = await RecordsService.listTimeOffRequests({
                 page: currentPage,
                 size: ROWS_PER_PAGE,
                 employeeName: searchQuery,
@@ -54,7 +55,10 @@ export const useTimeOffApprovals = (): UseTimeOffApprovalsReturn => {
             console.error('Erro ao buscar aprovações de abono:', error);
             toast({
                 title: 'Erro de Carregamento',
-                description: 'Não foi possível carregar as solicitações de abono.',
+                description: getServiceErrorMessage(
+                    error,
+                    'Não foi possível carregar as solicitações de abono.'
+                ),
                 variant: 'destructive',
             });
         } finally {
@@ -66,10 +70,10 @@ export const useTimeOffApprovals = (): UseTimeOffApprovalsReturn => {
         setIsMutating(true);
         try {
             if (action === 'approve') {
-                await PendingApprovalService.approveTimeOff(timeRecordId);
+                await RecordsService.approveTimeOff(timeRecordId);
                 toast({ title: 'Sucesso', description: 'Solicitação aprovada com sucesso!' });
             } else {
-                await PendingApprovalService.rejectTimeOff(timeRecordId);
+                await RecordsService.rejectTimeOff(timeRecordId);
                 toast({ title: 'Sucesso', description: 'Solicitação rejeitada com sucesso!' });
             }
             await fetchApprovals(); // Recarrega a lista após a ação
@@ -77,7 +81,7 @@ export const useTimeOffApprovals = (): UseTimeOffApprovalsReturn => {
             console.error(`Erro ao ${action} abono:`, error);
             toast({
                 title: 'Erro',
-                description: `Não foi possível ${action} o abono. Detalhes: ${(error as Error).message}`,
+                description: `Não foi possível ${action} o abono. Detalhes: ${getServiceErrorMessage(error)}`,
                 variant: 'destructive',
             });
         } finally {

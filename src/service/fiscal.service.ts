@@ -1,46 +1,135 @@
-// src/service/fiscal.service.ts
-import { api } from '@/config/api';
+import { api } from "@/config/api";
+import { normalizeServiceError } from "@/service/helpers/service-error.helper";
 
-const downloadBlob = (blob: Blob, filename: string) => {
+const FISCAL_ENDPOINTS = {
+  mirror: "/legal/espelho-ponto",
+  technicalCertificate: "/legal/technical-certificate",
+  afd: "/legal/afd",
+  aej: "/legal/aej",
+} as const;
+
+const FISCAL_FILE_NAMES = {
+  mirror: (startDate: string, endDate: string) => `Espelho_${startDate}_${endDate}.pdf`,
+  technicalCertificate: () => "Atestado_Tecnico.p7s",
+  afd: () => "AFD.txt",
+  aej: (startDate: string, endDate: string) => `AEJ_${startDate}_${endDate}.p7s`,
+} as const;
+
+const CONTENT_DISPOSITION_FILE_NAME_REGEX =
+  /filename\*=(?:UTF-8'')?([^;]+)|filename="?([^";]+)"?/i;
+
+const downloadBlob = (blob: Blob, fileName: string) => {
   const url = window.URL.createObjectURL(blob);
-  const link = document.createElement('a');
+  const link = document.createElement("a");
+
   link.href = url;
-  link.setAttribute('download', filename);
+  link.download = fileName;
+  link.style.display = "none";
+
   document.body.appendChild(link);
   link.click();
-  link.parentNode?.removeChild(link);
+  link.remove();
   window.URL.revokeObjectURL(url);
 };
 
+const getResponseFileName = (
+  fallbackFileName: string,
+  contentDisposition?: string
+) => {
+  if (!contentDisposition) {
+    return fallbackFileName;
+  }
+
+  const match = CONTENT_DISPOSITION_FILE_NAME_REGEX.exec(contentDisposition);
+  const fileName = match?.[1] ?? match?.[2];
+
+  if (!fileName) {
+    return fallbackFileName;
+  }
+
+  return decodeURIComponent(fileName.replace(/^"|"$/g, ""));
+};
+
+const downloadFiscalBlob = (
+  response: { data: Blob; headers?: Record<string, string | undefined> },
+  fallbackFileName: string
+) => {
+  const fileName = getResponseFileName(
+    fallbackFileName,
+    response.headers?.["content-disposition"] ?? response.headers?.["Content-Disposition"]
+  );
+
+  downloadBlob(new Blob([response.data]), fileName);
+  return fileName;
+};
+
 export const FiscalService = {
-  // Espelho de Ponto (PDF)
   downloadMirror: async (startDate: string, endDate: string, targetEmployeeId?: string) => {
-    const params: any = { startDate, endDate };
-    if (targetEmployeeId) params.targetEmployeeId = targetEmployeeId;
-    const response = await api.get('/legal/espelho-ponto', { params, responseType: 'blob' });
-    downloadBlob(new Blob([response.data]), `Espelho_${startDate}_${endDate}.pdf`);
+    try {
+      const params: Record<string, string> = { startDate, endDate };
+
+      if (targetEmployeeId) {
+        params.targetEmployeeId = targetEmployeeId;
+      }
+
+      const response = await api.get(FISCAL_ENDPOINTS.mirror, {
+        params,
+        responseType: "blob",
+      });
+
+      return downloadFiscalBlob(response, FISCAL_FILE_NAMES.mirror(startDate, endDate));
+    } catch (error) {
+      throw normalizeServiceError(error);
+    }
   },
 
   downloadTechnicalCertificate: async () => {
-    const response = await api.get('/legal/technical-certificate', { responseType: 'blob' });
-    downloadBlob(new Blob([response.data]), `Atestado_Tecnico.p7s`);
+    try {
+      const response = await api.get(FISCAL_ENDPOINTS.technicalCertificate, {
+        responseType: "blob",
+      });
+
+      return downloadFiscalBlob(response, FISCAL_FILE_NAMES.technicalCertificate());
+    } catch (error) {
+      throw normalizeServiceError(error);
+    }
   },
 
-  // AFD (TXT)
   downloadAfd: async (targetEmployeeId?: string) => {
-    const params: any = {};
-    if (targetEmployeeId) params.targetEmployeeId = targetEmployeeId;
-    
-    const response = await api.get('/legal/afd', { params, responseType: 'blob' });
-    downloadBlob(new Blob([response.data]), 'AFD.txt');
+    try {
+      const params: Record<string, string> = {};
+
+      if (targetEmployeeId) {
+        params.targetEmployeeId = targetEmployeeId;
+      }
+
+      const response = await api.get(FISCAL_ENDPOINTS.afd, {
+        params,
+        responseType: "blob",
+      });
+
+      return downloadFiscalBlob(response, FISCAL_FILE_NAMES.afd());
+    } catch (error) {
+      throw normalizeServiceError(error);
+    }
   },
 
-  // AEJ (P7S)
   downloadAej: async (startDate: string, endDate: string, targetEmployeeId?: string) => {
-    const params: any = { startDate, endDate };
-    if (targetEmployeeId) params.targetEmployeeId = targetEmployeeId;
+    try {
+      const params: Record<string, string> = { startDate, endDate };
 
-    const response = await api.get('/legal/aej', { params, responseType: 'blob' });
-    downloadBlob(new Blob([response.data]), `AEJ_${startDate}_${endDate}.p7s`);
-  }
+      if (targetEmployeeId) {
+        params.targetEmployeeId = targetEmployeeId;
+      }
+
+      const response = await api.get(FISCAL_ENDPOINTS.aej, {
+        params,
+        responseType: "blob",
+      });
+
+      return downloadFiscalBlob(response, FISCAL_FILE_NAMES.aej(startDate, endDate));
+    } catch (error) {
+      throw normalizeServiceError(error);
+    }
+  },
 };

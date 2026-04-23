@@ -3,8 +3,10 @@
 import { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast"; 
+import { useAuth } from "@/context/AuthContext";
 import { Message } from "@/types/message";
-import { fetchMessages, deleteMessage, getUserRoleFromToken } from "@/service/message.service";
+import { fetchMessages, deleteMessage } from "@/service/message.service";
+import { getServiceErrorMessage, isAuthServiceError } from "@/service/helpers/service-error.helper";
 
 type UserRole = 'MANAGER' | 'PARTNER' | 'CTO' | '';
 
@@ -39,33 +41,33 @@ export const useMessages = (): UseMessagesReturn => {
 
     const navigate = useNavigate();
     const { toast } = useToast();
+    const { role, logout } = useAuth();
 
     // --- FUNÇÕES DE LÓGICA / API ---
     
     const loadMessages = useCallback(async () => {
         setIsLoading(true);
         setError(null);
-        
-        const role = getUserRoleFromToken();
-        setUserRole(role);
+        setUserRole(role as UserRole);
         
         try {
             const data = await fetchMessages();
             setMessages(data);
         } catch (err: any) {
-            setError(err.message);
-            if (err.message.includes("Token")) {
+            setError(getServiceErrorMessage(err, "Não foi possível carregar as mensagens."));
+            if (isAuthServiceError(err)) {
+                 logout();
                  navigate("/login"); 
             }
             toast({
                 title: "Erro ao buscar mensagens",
-                description: err.message,
+                description: getServiceErrorMessage(err, "Não foi possível carregar as mensagens."),
                 variant: "destructive",
             });
         } finally {
             setIsLoading(false);
         }
-    }, [toast, navigate]);
+    }, [logout, navigate, role, toast]);
 
 
     const handleDeleteMessage = useCallback(async () => {
@@ -88,9 +90,10 @@ export const useMessages = (): UseMessagesReturn => {
             });
         } catch (err: any) {
             console.error("Erro ao deletar mensagem:", err);
+            const message = getServiceErrorMessage(err, "Falha ao deletar a mensagem.");
             toast({
                 title: "Erro ao deletar mensagem",
-                description: err.message,
+                description: message,
                 variant: "destructive",
             });
         } finally {

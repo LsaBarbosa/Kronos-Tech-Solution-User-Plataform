@@ -1,7 +1,7 @@
 // ARQUIVO CORRIGIDO: src/hooks/useVacationCount.ts
 
 import { useQuery } from '@tanstack/react-query';
-import { fetchPendingVacationCount } from '@/service/vacation.service';
+import { fetchPendingVacationCount } from '@/service/records.service';
 
 /**
  * Hook para buscar a contagem de solicitações de férias PENDENTES.

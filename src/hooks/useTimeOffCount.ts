@@ -1,7 +1,7 @@
 // src/hooks/useTimeOffCount.ts
 
 import { useState, useEffect } from 'react';
-import * as PendingApprovalService from '@/service/pendingApproval.service';
+import * as RecordsService from '@/service/records.service';
 import { ITimeRecordPageResponse } from '@/types/recordApproval';
 import { useToast } from "@/hooks/use-toast";
 
@@ -21,7 +21,7 @@ export const useTimeOffCount = (): UseTimeOffCountReturn => {
         try {
             // Filtra por status 'PENDING' e pega apenas o primeiro elemento (page: 0, size: 1)
             // para obter o totalElements com o mínimo de dados, se o serviço suportar
-            const data: ITimeRecordPageResponse = await PendingApprovalService.listTimeOffRequests({
+            const data: ITimeRecordPageResponse = await RecordsService.listTimeOffRequests({
                 page: 0,
                 size: 1,
                 employeeName: '',
