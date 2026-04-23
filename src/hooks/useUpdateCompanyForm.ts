@@ -14,6 +14,7 @@ import {
     getGeolocationFromCEP,
     formatCNPJ
 } from "@/service/company.service";
+import { isAuthServiceError, normalizeServiceError } from "@/service/helpers/service-error.helper";
 
 // --- SCHEMAS DE VALIDAÇÃO ---
 const formSchema = z.object({
@@ -89,13 +90,14 @@ export const useUpdateCompanyForm = (): UseUpdateCompanyFormReturn => {
         try {
             const data = await fetchCompanyList();
             setCompanies(data);
-        } catch (error: any) {
-            console.error("Erro ao buscar empresas:", error);
-            if (error.message.includes("Token")) navigate("/");
+        } catch (error) {
+            const normalized = normalizeServiceError(error);
+            console.error("Erro ao buscar empresas:", normalized);
+            if (isAuthServiceError(normalized)) navigate("/login");
             
             toast({ 
                 title: "Erro", 
-                description: error.message || "Não foi possível carregar a lista de empresas.", 
+                description: normalized.message || "Não foi possível carregar a lista de empresas.", 
                 variant: "destructive" 
             });
         } finally {
@@ -128,11 +130,12 @@ export const useUpdateCompanyForm = (): UseUpdateCompanyFormReturn => {
             });
 
             toast({ title: "Dados carregados", description: `Detalhes de ${data.name} preenchidos no formulário.` });
-        } catch (error: any) {
-            console.error("Erro ao buscar detalhes da empresa:", error);
+        } catch (error) {
+            const normalized = normalizeServiceError(error);
+            console.error("Erro ao buscar detalhes da empresa:", normalized);
             toast({ 
                 title: "Erro", 
-                description: error.message || "Não foi possível carregar os detalhes da empresa.", 
+                description: normalized.message || "Não foi possível carregar os detalhes da empresa.", 
                 variant: "destructive" 
             });
             form.reset({ selectedCnpj: cnpj }); 
@@ -203,13 +206,15 @@ export const useUpdateCompanyForm = (): UseUpdateCompanyFormReturn => {
             form.reset({ selectedCnpj: "" });
             setOriginalCompany(null);
             
-        } catch (error: any) {
-            console.error("Erro no processo de atualização:", error);
+        } catch (error) {
+            const normalized = normalizeServiceError(error);
+            console.error("Erro no processo de atualização:", normalized);
             toast({
                 title: "Erro ao atualizar empresa",
-                description: error.message || "Tente novamente mais tarde.",
+                description: normalized.message || "Tente novamente mais tarde.",
                 variant: "destructive",
             });
+            if (isAuthServiceError(normalized)) navigate("/login");
         } finally {
             setIsSubmitting(false);
             setIsGeocoding(false);

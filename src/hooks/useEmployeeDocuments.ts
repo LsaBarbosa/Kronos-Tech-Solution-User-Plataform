@@ -9,6 +9,7 @@ import {
     fetchEmployeeDocuments,
     fetchEmployeesForSelection,
 } from "@/service/document.service";
+import { isAuthServiceError, normalizeServiceError } from "@/service/helpers/service-error.helper";
 
 interface useEmployeeDocumentssReturn {
     employees: EmployeeListItem[];
@@ -43,10 +44,11 @@ export const useEmployeeDocuments = (): useEmployeeDocumentssReturn => {
                 if (data.length > 0) {
                      // Não seleciona automaticamente o primeiro, mantém o padrão do Select
                 }
-            } catch (err: any) {
-                setError(err.message);
-                if (err.message.includes("Token")) navigate("/login");
-                toast({ title: "Erro", description: err.message, variant: "destructive" });
+            } catch (err) {
+                const normalized = normalizeServiceError(err);
+                setError(normalized.message);
+                if (isAuthServiceError(normalized)) navigate("/login");
+                toast({ title: "Erro", description: normalized.message, variant: "destructive" });
             } finally {
                 setIsFetchingEmployees(false);
             }
@@ -70,9 +72,11 @@ export const useEmployeeDocuments = (): useEmployeeDocumentssReturn => {
                 title: "Sucesso",
                 description: `${data.length} documentos encontrados para o colaborador.`,
             });
-        } catch (err: any) {
-            setError(err.message);
-            toast({ title: "Erro", description: err.message || "Falha ao carregar documentos.", variant: "destructive" });
+        } catch (err) {
+            const normalized = normalizeServiceError(err);
+            setError(normalized.message);
+            toast({ title: "Erro", description: normalized.message || "Falha ao carregar documentos.", variant: "destructive" });
+            if (isAuthServiceError(normalized)) navigate("/login");
         } finally {
             setIsLoading(false);
         }
@@ -82,12 +86,14 @@ export const useEmployeeDocuments = (): useEmployeeDocumentssReturn => {
         try {
             await downloadDocument(documentId, documentName);
             toast({ title: "Sucesso", description: `Download de "${documentName}" iniciado.` });
-        } catch (err: any) {
+        } catch (err) {
+            const normalized = normalizeServiceError(err);
             toast({
                 title: "Erro",
-                description: err.message || "Falha ao iniciar o download do documento.",
+                description: normalized.message || "Falha ao iniciar o download do documento.",
                 variant: "destructive",
             });
+            if (isAuthServiceError(normalized)) navigate("/login");
         }
     }, [toast]);
     

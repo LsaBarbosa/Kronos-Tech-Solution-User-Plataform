@@ -323,6 +323,9 @@ Alternativas:
 
 ---
 
+
+
+
 ## 4.2 P1 — Ajustes importantes
 
 ### P1.1 Remover heurística de autenticação baseada em texto de erro

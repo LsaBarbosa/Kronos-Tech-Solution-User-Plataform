@@ -15,6 +15,7 @@ import { useNavigate } from "react-router-dom";
 
 // 💡 NOVO: Importa o hook customizado com toda a lógica e estado
 import { useUpdateCompanyForm } from "@/hooks/useUpdateCompanyForm";
+import { APP_PATHS } from "@/config/app-routes";
 
 const AtualizarEmpresa = () => {
     // 💡 ESTADO DE UI (Sidebar) é o único estado mantido localmente
@@ -92,7 +93,7 @@ const AtualizarEmpresa = () => {
       <main className="pt-16 mobile-container py-4 sm:py-20 space-y-6 sm:space-y-8 relative z-10">
                     <div className="max-w-4xl mx-auto py-8">
                         <div className="flex items-center gap-4 mb-6">
-                            <Button variant="ghost" size="icon" onClick={() => navigate("/empresa")} aria-label="Voltar">
+                            <Button variant="ghost" size="icon" onClick={() => navigate(APP_PATHS.empresa)} aria-label="Voltar">
                                 <ArrowLeft className="h-6 w-6 text-foreground" />
                             </Button>
                             <div>

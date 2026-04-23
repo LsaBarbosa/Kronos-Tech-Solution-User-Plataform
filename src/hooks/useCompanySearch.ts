@@ -16,9 +16,11 @@ import {
 } from "@/types/company";
 import { 
     fetchCompanyList, 
+    fetchCompanyDetails,
     updateCompany, 
     toggleCompanyStatus
 } from "@/service/company.service";
+import { isAuthServiceError, normalizeServiceError } from "@/service/helpers/service-error.helper";
 
 // --- SCHEMAS DE VALIDAÇÃO ---
 const editEmpresaSchema = z.object({
@@ -50,8 +52,8 @@ interface UseCompanySearchReturn {
     editForm: UseFormReturn<EditFormData>;
     // Handlers
     setSearchTerm: React.Dispatch<React.SetStateAction<string>>;
-    handleEditEmpresa: (empresa: CompanyData) => void;
-    handleViewEmpresa: (empresa: CompanyData) => void;
+    handleEditEmpresa: (empresa: CompanyListItem) => Promise<void>;
+    handleViewEmpresa: (empresa: CompanyListItem) => Promise<void>;
     setIsEditDialogOpen: React.Dispatch<React.SetStateAction<boolean>>;
     setIsViewDialogOpen: React.Dispatch<React.SetStateAction<boolean>>;
     handleToggleStatus: (empresa: CompanyListItem) => Promise<void>;
@@ -98,10 +100,11 @@ export const useCompanySearch = (): UseCompanySearchReturn => {
             const data = await fetchCompanyList();
             setEmpresas(data);
         } catch (err: any) {
-            console.error("Falha ao buscar empresas:", err);
-            setError(err.message || "Falha ao carregar as empresas. Tente novamente.");
-            if (err.message.includes("Token")) {
-                navigate("/login"); 
+            const normalized = normalizeServiceError(err);
+            console.error("Falha ao buscar empresas:", normalized);
+            setError(normalized.message || "Falha ao carregar as empresas. Tente novamente.");
+            if (isAuthServiceError(normalized)) {
+                navigate("/login");
             }
         } finally {
             setLoading(false);
@@ -122,26 +125,48 @@ export const useCompanySearch = (): UseCompanySearchReturn => {
 
     // --- HANDLERS DE UI/MODAL ---
 
-    const handleEditEmpresa = useCallback((empresa: CompanyData) => {
-        // Assume que a empresa passada tem os dados completos para a edição
-        setEditingEmpresa(empresa);
-        editForm.reset({
-            name: empresa.name,
-            email: empresa.email,
-            active: empresa.active,
-            address: {
-                postalCode: cleanCEP(empresa.address.postalCode),
-                number: empresa.address.number,
-            },
-        });
-        setIsEditDialogOpen(true);
-    }, [editForm]);
+    const loadCompanyDetails = useCallback(async (empresa: CompanyListItem, mode: "edit" | "view") => {
+        try {
+            const companyDetails = await fetchCompanyDetails(empresa.cnpj);
 
-    const handleViewEmpresa = useCallback((empresa: CompanyData) => {
-        // Assume que a empresa passada tem os dados completos para visualização
-        setViewingEmpresa(empresa);
-        setIsViewDialogOpen(true);
-    }, []);
+            if (mode === "edit") {
+                setEditingEmpresa(companyDetails);
+                editForm.reset({
+                    name: companyDetails.name,
+                    email: companyDetails.email,
+                    active: companyDetails.active,
+                    address: {
+                        postalCode: cleanCEP(companyDetails.address.postalCode),
+                        number: companyDetails.address.number,
+                    },
+                });
+                setIsEditDialogOpen(true);
+                return;
+            }
+
+            setViewingEmpresa(companyDetails);
+            setIsViewDialogOpen(true);
+        } catch (err) {
+            const normalized = normalizeServiceError(err);
+            toast({
+                title: "Erro",
+                description: normalized.message,
+                variant: "destructive",
+            });
+
+            if (isAuthServiceError(normalized)) {
+                navigate("/login");
+            }
+        }
+    }, [editForm, navigate, toast]);
+
+    const handleEditEmpresa = useCallback(async (empresa: CompanyListItem) => {
+        await loadCompanyDetails(empresa, "edit");
+    }, [loadCompanyDetails]);
+
+    const handleViewEmpresa = useCallback(async (empresa: CompanyListItem) => {
+        await loadCompanyDetails(empresa, "view");
+    }, [loadCompanyDetails]);
 
     // --- HANDLERS DE AÇÃO DE API ---
 
@@ -158,15 +183,19 @@ export const useCompanySearch = (): UseCompanySearchReturn => {
             // Recarrega os dados após a alteração
             await fetchCompanies();
         } catch (error: any) {
+            const normalized = normalizeServiceError(error);
             toast({
                 title: 'Erro',
-                description: error.message,
+                description: normalized.message,
                 variant: 'destructive',
             });
+            if (isAuthServiceError(normalized)) {
+                navigate("/login");
+            }
         } finally {
             setIsSubmitting(false);
         }
-    }, [toast, fetchCompanies]);
+    }, [toast, fetchCompanies, navigate]);
 
     const onSubmitEdit = useCallback(async (data: EditFormData) => {
         if (!editingEmpresa) return;
@@ -197,24 +226,28 @@ export const useCompanySearch = (): UseCompanySearchReturn => {
             // Recarrega os dados após a alteração
             await fetchCompanies();
         } catch (error: any) {
-            console.error("Erro ao atualizar a empresa:", error);
+            const normalized = normalizeServiceError(error);
+            console.error("Erro ao atualizar a empresa:", normalized);
             toast({
                 title: "Erro ao atualizar",
-                description: error.message,
+                description: normalized.message,
                 variant: "destructive",
             });
+            if (isAuthServiceError(normalized)) {
+                navigate("/login");
+            }
         } finally {
             setIsSubmitting(false);
         }
-    }, [editingEmpresa, toast, fetchCompanies]);
+    }, [editingEmpresa, toast, fetchCompanies, navigate]);
 
 
     return {
         empresas,
         filteredEmpresas,
         searchTerm,
-        editingEmpresa: editingEmpresa as CompanyData | null, // Casting seguro para uso no componente
-        viewingEmpresa: viewingEmpresa as CompanyData | null, // Casting seguro para uso no componente
+        editingEmpresa,
+        viewingEmpresa,
         loading,
         error,
         isSubmitting,

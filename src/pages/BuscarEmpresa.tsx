@@ -14,12 +14,9 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../components/ui/select";
 import { ArrowLeft, Search, Building2, Mail, MapPin, Hash, Eye, Edit, Power, Loader2, Info, Users, UserX } from "lucide-react";
 import { useNavigate } from "react-router-dom";
-import { Separator } from "../components/ui/separator";
 
-// 💡 NOVO: Importa o hook customizado com toda a lógica e estado
 import { useCompanySearch } from "@/hooks/useCompanySearch"; 
-// 💡 NOVO: Importa a função de limpeza do CEP
-import { cleanCEP } from "@/types/company"; 
+import { APP_PATHS } from "@/config/app-routes";
 
 
 const BuscarEmpresa = () => {
@@ -51,12 +48,6 @@ const BuscarEmpresa = () => {
     formatCEP,
   } = useCompanySearch();
 
-  // 💡 Funções utilitárias puras (formatCNPJ, formatCEP, cleanCEP) são importadas diretamente do hook/types.
-  
-  // A função handleEditEmpresa agora requer um casting para CompanyData, 
-  // mas como o hook já retorna a CompanyData, podemos simplificar a tipagem na chamada:
-  // onClick={() => handleEditEmpresa(empresa as CompanyData)}
-  
   return (
     <div className="min-h-screen bg-background relative  overflow-hidden">
       {/* Animated Background and Header/Sidebar components */}
@@ -106,7 +97,7 @@ const BuscarEmpresa = () => {
       <main className="pt-16 mobile-container py-4 sm:py-20 space-y-6 sm:space-y-8 relative z-10">
         <div className="max-w-6xl mx-auto py-8">
           <div className="flex items-center gap-4 mb-6">
-            <Button variant="outline" size="sm" onClick={() => navigate("/empresa")}>
+            <Button variant="outline" size="sm" onClick={() => navigate(APP_PATHS.empresa)}>
               <ArrowLeft className="h-4 w-4 mr-2" />
               Voltar
             </Button>
@@ -192,7 +183,7 @@ const BuscarEmpresa = () => {
                               <Building2 className="h-4 w-4 text-primary" />
                               {/* 💡 Ação chama o handler do hook, passando a empresa */}
                               <button
-                                onClick={() => handleEditEmpresa(empresa as any)}
+                                onClick={() => void handleEditEmpresa(empresa)}
                                 className="hover:text-primary transition-colors"
                               >
                                 {empresa.name}
@@ -236,7 +227,7 @@ const BuscarEmpresa = () => {
                             </div>
                           </TableCell>
                           <TableCell className="text-right">
-                          <Button variant="outline" size="sm" onClick={() => handleViewEmpresa(empresa as any)}>
+                          <Button variant="outline" size="sm" onClick={() => void handleViewEmpresa(empresa)}>
                               <Eye className="h-3 w-3 mr-1" />
                               Ver
                             </Button>

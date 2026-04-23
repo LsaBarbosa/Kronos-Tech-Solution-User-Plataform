@@ -138,7 +138,7 @@ export default function AuditoriaFiscal() {
               <RadioGroup 
                 defaultValue="AEJ" 
                 value={reportType} 
-                onValueChange={(v) => setReportType(v as any)}
+                onValueChange={(v) => setReportType(v as "AFD" | "AEJ" | "ATESTADO")}
                 className="grid grid-cols-1 md:grid-cols-3 gap-4"
               >
                 {/* Opção AEJ */}

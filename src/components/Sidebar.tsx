@@ -18,6 +18,7 @@ import { useNavigate } from "react-router-dom";
 import { FiscalService } from "@/service/fiscal.service"; // Ajuste o caminho conforme criou o arquivo acima
 import { useToast } from "@/components/ui/use-toast"; // Assumindo que você tem um toast (opcional)
 import { useAuth } from "@/context/AuthContext";
+import { APP_PATHS, APP_ROUTE_META } from "@/config/app-routes";
 
 interface SidebarProps {
   isOpen: boolean;
@@ -37,10 +38,14 @@ const Sidebar = ({ isOpen, toggleSidebar }: SidebarProps) => {
   const navigate = useNavigate();
   const { toast } = useToast(); // Opcional, apenas para feedback visual
   const { logout, role } = useAuth();
+  const goTo = (path: string) => {
+    navigate(path);
+    toggleSidebar();
+  };
 
   const handleLogout = () => {
     logout();
-    navigate("/login", { replace: true });
+    navigate(APP_PATHS.login, { replace: true });
     toggleSidebar();
   };
 
@@ -132,29 +137,29 @@ const Sidebar = ({ isOpen, toggleSidebar }: SidebarProps) => {
             <Button
               variant="ghost"
               className="w-full justify-start sidebar-fixed-height px-4 text-left hover:bg-primary/10 hover:text-foreground transition-colors group"
-              onClick={() => { navigate("/dashboard"); toggleSidebar(); }}
+              onClick={() => goTo(APP_PATHS.dashboard)}
             >
               <Home className="mr-3 sidebar-icon-sm text-primary group-hover:text-primary transition-colors" />
-              <span className="font-medium sidebar-text-sm">Início</span>
+              <span className="font-medium sidebar-text-sm">{APP_ROUTE_META.dashboard.label}</span>
             </Button>
 
             {/* Relatório de Horas */}
             <Button
               variant="ghost"
               className="w-full justify-start sidebar-fixed-height px-4 text-left hover:bg-primary/10 hover:text-foreground transition-colors group"
-              onClick={() => { navigate("/relatorio-detalhado"); toggleSidebar(); }}
+              onClick={() => goTo(APP_PATHS.relatorioDetalhado)}
             >
               <BarChart3 className="mr-3 sidebar-icon-sm text-primary group-hover:text-primary transition-colors" />
-              <span className="font-medium sidebar-text-sm">Relatório de Horas</span>
+              <span className="font-medium sidebar-text-sm">{APP_ROUTE_META.relatorioDetalhado.label}</span>
             </Button>
 
             <Button
               variant="ghost"
               className="w-full justify-start sidebar-fixed-height px-4 text-left hover:bg-primary/10 hover:text-foreground transition-colors group"
-              onClick={() => { navigate("/espelho-ponto"); toggleSidebar(); }}
+              onClick={() => goTo(APP_PATHS.espelhoPonto)}
             >
               <CalendarRange className="mr-3 sidebar-icon-sm text-primary group-hover:text-primary transition-colors" />
-              <span className="font-medium sidebar-text-sm">Espelho de Ponto</span>
+              <span className="font-medium sidebar-text-sm">{APP_ROUTE_META.espelhoPonto.label}</span>
             </Button>
        
        
@@ -162,10 +167,10 @@ const Sidebar = ({ isOpen, toggleSidebar }: SidebarProps) => {
             <Button
               variant="ghost"
               className="w-full justify-start sidebar-fixed-height px-4 text-left hover:bg-primary/10 hover:text-foreground transition-colors group"
-              onClick={() => { navigate("/usuario"); toggleSidebar(); }}
+              onClick={() => goTo(APP_PATHS.usuario)}
             >
               <User className="mr-3 sidebar-icon-sm text-primary group-hover:text-primary transition-colors" />
-              <span className="font-medium sidebar-text-sm">Usuário</span>
+              <span className="font-medium sidebar-text-sm">{APP_ROUTE_META.usuario.label}</span>
             </Button>
 
             {/* Empresa (CTO) */}
@@ -173,10 +178,10 @@ const Sidebar = ({ isOpen, toggleSidebar }: SidebarProps) => {
               <Button
                 variant="ghost"
                 className="w-full justify-start sidebar-fixed-height px-4 text-left hover:bg-primary/10 hover:text-foreground transition-colors group"
-                onClick={() => { navigate("/empresa"); toggleSidebar(); }}
+                onClick={() => goTo(APP_PATHS.empresa)}
               >
                 <Building2 className="mr-3 sidebar-icon-sm text-primary group-hover:text-primary transition-colors" />
-                <span className="font-medium sidebar-text-sm">Empresa</span>
+                <span className="font-medium sidebar-text-sm">{APP_ROUTE_META.empresa.label}</span>
               </Button>
             )}
 
@@ -184,28 +189,28 @@ const Sidebar = ({ isOpen, toggleSidebar }: SidebarProps) => {
             <Button
               variant="ghost"
               className="w-full justify-start sidebar-fixed-height px-4 text-left hover:bg-primary/10 hover:text-foreground transition-colors group"
-              onClick={() => { navigate("/solicitar-ferias"); toggleSidebar(); }}
+              onClick={() => goTo(APP_PATHS.solicitarFerias)}
             >
               <TreePalm className="mr-3 sidebar-icon-sm text-primary group-hover:text-primary transition-colors" />
-              <span className="font-medium sidebar-text-sm">Férias</span>
+              <span className="font-medium sidebar-text-sm">{APP_ROUTE_META.solicitarFerias.label}</span>
             </Button>
              
             <Button
               variant="ghost"
               className="w-full justify-start sidebar-fixed-height px-4 text-left hover:bg-primary/10 hover:text-foreground transition-colors group"
-              onClick={() => { navigate("/solicitar-abono"); toggleSidebar(); }}
+              onClick={() => goTo(APP_PATHS.solicitarAbono)}
             >
               <TimerReset className="mr-3 sidebar-icon-sm text-primary group-hover:text-primary transition-colors" />
-              <span className="font-medium sidebar-text-sm">Registro Manual</span>
+              <span className="font-medium sidebar-text-sm">{APP_ROUTE_META.solicitarAbono.label}</span>
             </Button>
 
             <Button
               variant="ghost"
               className="w-full justify-start sidebar-fixed-height px-4 text-left hover:bg-primary/10 hover:text-foreground transition-colors group"
-              onClick={() => { navigate("/avisos"); toggleSidebar(); }}
+              onClick={() => goTo(APP_PATHS.avisos)}
             >
               <BellMinus className="mr-3 sidebar-icon-sm text-primary group-hover:text-primary transition-colors" />
-              <span className="font-medium sidebar-text-sm">Mural de Avisos</span>
+              <span className="font-medium sidebar-text-sm">{APP_ROUTE_META.avisos.label}</span>
             </Button>
 
             {/* Documentos */}
@@ -228,18 +233,18 @@ const Sidebar = ({ isOpen, toggleSidebar }: SidebarProps) => {
                 <Button
                   variant="ghost"
                   className="w-full justify-start sidebar-fixed-height-sm px-4 pl-12 text-left sidebar-text-sm hover:bg-primary/10 hover:text-foreground transition-colors"
-                  onClick={() => { navigate("/documentos"); toggleSidebar(); }}
+                  onClick={() => goTo(APP_PATHS.documentos)}
                 >
                   <FolderOpen className="mr-2 sidebar-icon-xs" />
-                  <span>Buscar Documentos</span>
+                  <span>{APP_ROUTE_META.documentos.label}</span>
                 </Button>
                 <Button
                   variant="ghost"
                   className="w-full justify-start sidebar-fixed-height-sm px-4 pl-12 text-left sidebar-text-sm hover:bg-primary/10 hover:text-foreground transition-colors"
-                  onClick={() => { navigate("/enviar-documento-colaborador"); toggleSidebar(); }}
+                  onClick={() => goTo(APP_PATHS.enviarDocumentoColaborador)}
                 >
                   <FilePlus className="mr-2 sidebar-icon-xs" />
-                  <span>Enviar Documentos</span>
+                  <span>{APP_ROUTE_META.enviarDocumentoColaborador.label}</span>
                 </Button>
               </CollapsibleContent>
             </Collapsible>
@@ -284,18 +289,18 @@ const Sidebar = ({ isOpen, toggleSidebar }: SidebarProps) => {
                       <Button
                         variant="ghost"
                         className="w-full justify-start sidebar-fixed-height-xs px-4 pl-20 text-left sidebar-text-xs hover:bg-primary/10 hover:text-foreground transition-colors"
-                        onClick={() => { navigate("/lista-colaboradores"); toggleSidebar(); }}
+                        onClick={() => goTo(APP_PATHS.listaColaboradores)}
                       >
                         <UserCheck className="mr-2 sidebar-icon-xxs" />
-                        <span>Lista de Colaboradores</span>
+                        <span>{APP_ROUTE_META.listaColaboradores.label}</span>
                       </Button>
                       <Button
                         variant="ghost"
                         className="w-full justify-start sidebar-fixed-height-xs px-4 pl-20 text-left sidebar-text-xs hover:bg-primary/10 hover:text-foreground transition-colors"
-                        onClick={() => { navigate("/criar-colaborador"); toggleSidebar(); }}
+                        onClick={() => goTo(APP_PATHS.criarColaborador)}
                       >
                         <UserPlus className="mr-2 sidebar-icon-xxs" />
-                        <span>Criar Colaborador</span>
+                        <span>{APP_ROUTE_META.criarColaborador.label}</span>
                       </Button>
                     </CollapsibleContent>
                   </Collapsible>
@@ -320,18 +325,18 @@ const Sidebar = ({ isOpen, toggleSidebar }: SidebarProps) => {
                       <Button
                         variant="ghost"
                         className="w-full justify-start sidebar-fixed-height-xs px-4 pl-20 text-left sidebar-text-xs hover:bg-primary/10 hover:text-foreground transition-colors"
-                        onClick={() => { navigate("/apuracao-horas"); toggleSidebar(); }}
+                        onClick={() => goTo(APP_PATHS.apuracaoHoras)}
                       >
                         <Calculator className="mr-2 sidebar-icon-xxs" />
-                        <span>Apuração de Horas</span>
+                        <span>{APP_ROUTE_META.apuracaoHoras.label}</span>
                       </Button>
                       <Button
                         variant="ghost"
                         className="w-full justify-start sidebar-fixed-height-xs px-4 pl-20 text-left sidebar-text-xs hover:bg-primary/10 hover:text-foreground transition-colors"
-                        onClick={() => { navigate("/status-do-registro"); toggleSidebar(); }}
+                        onClick={() => goTo(APP_PATHS.statusDoRegistro)}
                       >
                         <ClipboardCheck className="mr-2 sidebar-icon-xxs" />
-                        <span>Status do Registro</span>
+                        <span>{APP_ROUTE_META.statusDoRegistro.label}</span>
                       </Button>
                     </CollapsibleContent>
                   </Collapsible>
@@ -356,10 +361,10 @@ const Sidebar = ({ isOpen, toggleSidebar }: SidebarProps) => {
                       <Button
                         variant="ghost"
                         className="w-full justify-start sidebar-fixed-height-xs px-4 pl-20 text-left sidebar-text-xs hover:bg-primary/10 hover:text-foreground transition-colors"
-                        onClick={() => { navigate("/ferias"); toggleSidebar(); }}
+                        onClick={() => goTo(APP_PATHS.ferias)}
                       >
                         <TreePalm className="mr-2 sidebar-icon-xxs" />
-                        <span>Gestão de Férias</span>
+                        <span>{APP_ROUTE_META.ferias.label}</span>
                       </Button>
                     </CollapsibleContent>
                   </Collapsible>
@@ -384,10 +389,10 @@ const Sidebar = ({ isOpen, toggleSidebar }: SidebarProps) => {
                       <Button
                         variant="ghost"
                         className="w-full justify-start sidebar-fixed-height-xs px-4 pl-20 text-left sidebar-text-xs hover:bg-primary/10 hover:text-foreground transition-colors"
-                        onClick={() => { navigate("/aprovacoes-abono"); toggleSidebar(); }}
+                        onClick={() => goTo(APP_PATHS.aprovacoesAbono)}
                       >
                         <Activity className="mr-2 sidebar-icon-xxs" />
-                        <span>Gestão de Horas Manuais</span>
+                        <span>{APP_ROUTE_META.aprovacoesAbono.label}</span>
                       </Button>
                     </CollapsibleContent>
                   </Collapsible>
@@ -409,13 +414,13 @@ const Sidebar = ({ isOpen, toggleSidebar }: SidebarProps) => {
                       </Button>
                     </CollapsibleTrigger>
                     <CollapsibleContent className="space-y-1">
-                       <Button
+                      <Button
                         variant="ghost"
                         className="w-full justify-start sidebar-fixed-height-xs px-4 pl-20 text-left sidebar-text-xs hover:bg-primary/10 hover:text-foreground transition-colors"
-                        onClick={() => { navigate("/auditoria"); toggleSidebar(); }}
+                        onClick={() => goTo(APP_PATHS.auditoria)}
                       >
                         <ScaleIcon className="mr-2 sidebar-icon-xxs" />
-                        <span>Auditoria</span>
+                        <span>{APP_ROUTE_META.auditoria.label}</span>
                       </Button>
                     </CollapsibleContent>
                   </Collapsible>

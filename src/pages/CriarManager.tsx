@@ -1,12 +1,7 @@
-import { useState, useEffect, useCallback } from "react";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import * as z from "zod";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { toast } from "@/hooks/use-toast";
 import { ArrowLeft, User, Shield, Loader2, MapPin, CheckCircle, Building2, CalendarDays } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import Header from "@/components/Header";
@@ -19,410 +14,34 @@ import {
     SelectValue,
 } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
-import { fetchCompanyList } from "@/service/company.service";
-import {
-    checkCpfAvailability,
-    checkUsernameAvailability,
-    createManager,
-    createUser,
-} from "@/service/collaborator-management.service";
-
-const SCHEDULE_TYPES = [
-    { value: "TRADITIONAL_5X2", label: "Tradicional 5x2 (Seg-Sex)" },
-    { value: "SIX_BY_ONE_FIXED", label: "6x1 com Folga Fixa" },
-    { value: "ROTATING_12X36", label: "Plantão 12x36" },
-    { value: "ROTATING_24X72", label: "Plantão 24x72" },
-    { value: "SIX_BY_ONE_TWO_WEEKENDS", label: "6x1 + 2 Finais de Semana" },
-    { value: "SIX_BY_ONE_ONE_WEEKEND", label: "6x1 + 1 Final de Semana" }
-];
-
-const DAYS_OF_WEEK = [
-    { value: "MONDAY", label: "Segunda-feira" },
-    { value: "TUESDAY", label: "Terça-feira" },
-    { value: "WEDNESDAY", label: "Quarta-feira" },
-    { value: "THURSDAY", label: "Quinta-feira" },
-    { value: "FRIDAY", label: "Sexta-feira" },
-    { value: "SATURDAY", label: "Sábado" },
-    { value: "SUNDAY", label: "Domingo" }
-];
-
-// --- NOVAS INTERFACES ---
-interface Company {
-    companyId: string; // Agora armazena o UUID (campo 'id' da API)
-    name: string;
-}
-
-// --- ESQUEMAS DE VALIDAÇÃO REVISADOS ---
-
-// Esquema para validação rigorosa dos campos do Passo 1 (Employee)
-const employeeSchema = z.object({
-    companyId: z.string().min(1, "Selecione a empresa do colaborador"),
-    nomeCompleto: z.string().min(2, "Nome deve ter pelo menos 2 caracteres"),
-    cpf: z.string().length(14, "CPF deve ter 11 dígitos"),
-    cargo: z.string().min(2, "Cargo deve ter pelo menos 2 caracteres"),
-    email: z.string().email("Email inválido"),
-    salario: z.string().min(1, "Salário é obrigatório"),
-    telefone: z.string().length(15, "Telefone deve ter 11 dígitos"),
-    cep: z.string().length(9, "CEP deve ter 8 dígitos"),
-    numero: z.string().min(1, "Número é obrigatório"),
-    scheduleType: z.string().min(1, "Tipo de escala é obrigatório"),
-    scaleStartDate: z.string().optional(),
-    preferredDayOff: z.string().optional(),
-    weekendOffIndex: z.string().optional(),
-    fixedWorkDays: z.array(z.string()).optional()
-});
-
-// Esquema para validação rigorosa dos campos do Passo 2 (User)
-const userSchema = z.object({
-    username: z.string().min(4, "Usuário deve ter pelo menos 4 caracteres"),
-    password: z.string().min(6, "Senha deve ter pelo menos 6 caracteres"),
-    role: z.enum(["MANAGER", "PARTNER"]),
-});
-
-// Esquema de Formulário Completo (Usado no useForm)
-const formSchema = employeeSchema.extend({
-    username: z.string().optional(),
-    password: z.string().optional(),
-    role: z.enum(["MANAGER", "PARTNER"]).optional(),
-});
-
-// Tipagem unificada para o formulário
-type FormData = z.infer<typeof employeeSchema> & z.infer<typeof userSchema>;
+import { useCreateManager } from "@/hooks/useCreateManager";
 
 const CriarManager = () => {
     const navigate = useNavigate();
-    const [isSubmitting, setIsSubmitting] = useState(false);
-    const [sidebarOpen, setSidebarOpen] = useState(false);
-    const handleToggleSidebar = useCallback(() => setSidebarOpen((prev) => !prev), []);
-    // --- ESTADOS PARA EMPRESAS ---
-    const [companies, setCompanies] = useState<Company[]>([]);
-    const [isFetchingCompanies, setIsFetchingCompanies] = useState(true);
-    
-    // Estados para controle de fluxo
-    const [savedEmployeeId, setSavedEmployeeId] = useState<string | null>(null);
-    const [stepCompleted, setStepCompleted] = useState(false);
-
-    // Estados para verificação de username
-    const [usernameAvailability, setUsernameAvailability] = useState<'available' | 'unavailable' | 'checking' | null>(null);
-    const [isCheckingUsername, setIsCheckingUsername] = useState(false);
-    
-    // --- NOVOS ESTADOS PARA VERIFICAÇÃO DE CPF ---
-    const [cpfAvailability, setCpfAvailability] = useState<'available' | 'unavailable' | 'checking' | null>(null);
-    const [isCheckingCPF, setIsCheckingCPF] = useState(false);
-    // ----------------------------------------------
-
-
-    const form = useForm<FormData>({
-        resolver: zodResolver(formSchema),
-        defaultValues: {
-            companyId: "",
-            nomeCompleto: "",
-            cpf: "",
-            cargo: "",
-            email: "",
-            salario: "",
-            telefone: "",
-            cep: "",
-            numero: "",
-            scheduleType: "TRADITIONAL_5X2",
-            fixedWorkDays: ["MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY"],
-            username: "",
-            password: "",
-            role: "PARTNER",
-        },
-    });
-
-    // --- FUNÇÃO PARA BUSCAR EMPRESAS ---
-    const fetchCompanies = useCallback(async () => {
-        setIsFetchingCompanies(true);
-        try {
-            const data = await fetchCompanyList();
-            setCompanies(data);
-        } catch (error) {
-            console.error("Erro ao buscar empresas:", error);
-            toast({ title: "Erro", description: "Não foi possível carregar a lista de empresas.", variant: "destructive" });
-        } finally {
-            setIsFetchingCompanies(false);
-        }
-    }, [toast]);
-
-    useEffect(() => {
-        fetchCompanies();
-    }, [fetchCompanies]);
-    // -----------------------------------
-const selectedScheduleType = form.watch("scheduleType");
-
-    // --- Mask functions (Mantidas) ---
-    const maskCPF = (value: string) => {
-        return value
-            .replace(/\D/g, "")
-            .replace(/(\d{3})(\d)/, "$1.$2")
-            .replace(/(\d{3})(\d)/, "$1.$2")
-            .replace(/(\d{3})(\d{1,2})/, "$1-$2")
-            .replace(/(-\d{2})\d+?$/, "$1");
-    };
-
-    const maskPhone = (value: string) => {
-        return value
-            .replace(/\D/g, "")
-            .replace(/(\d{2})(\d)/, "($1) $2")
-            .replace(/(\d{4,5})(\d)/, "$1-$2")
-            .replace(/(-\d{4})\d+?$/, "$1");
-    };
-
-    const maskCEP = (value: string) => {
-        return value
-            .replace(/\D/g, "")
-            .replace(/(\d{5})(\d)/, "$1-$2")
-            .replace(/(-\d{3})\d+?$/, "$1");
-    };
-
-    const maskCurrency = (value: string) => {
-        const numericValue = value.replace(/\D/g, "");
-        const formattedValue = (parseFloat(numericValue) / 100).toLocaleString("pt-BR", {
-            style: "currency",
-            currency: "BRL",
-        });
-        return formattedValue;
-    };
-    // -----------------------
-    
-    // --- FUNÇÃO PARA VERIFICAR CPF (NOVA) ---
-    const handleCheckCPF = async () => {
-        const cpfWithMask = form.getValues('cpf');
-        const cpf = cpfWithMask.replace(/\D/g, "");
-
-        // Validação básica de comprimento sem a máscara (11 dígitos)
-        if (cpf.length !== 11) {
-            toast({
-                title: "Erro de validação",
-                description: "O CPF deve ter 11 dígitos.",
-                variant: "destructive",
-            });
-            setCpfAvailability(null);
-            return;
-        }
-
-        setIsCheckingCPF(true);
-        setCpfAvailability('checking');
-
-        try {
-            const available = await checkCpfAvailability(cpf);
-
-            if (!available) {
-                // Se o status for 200/OK, o CPF existe (indisponível)
-                toast({ title: "CPF indisponível", description: "Este CPF já está cadastrado no sistema.", variant: "destructive" });
-                setCpfAvailability('unavailable');
-            } else {
-                toast({ title: "CPF disponível!", description: "Você pode usar este CPF para o registro." });
-                setCpfAvailability('available');
-            }
-        } catch (error) {
-            console.error("Erro na comunicação com a API:", error);
-            toast({ title: "Erro de rede", description: "Falha ao conectar com o servidor.", variant: "destructive" });
-            setCpfAvailability(null);
-        } finally {
-            setIsCheckingCPF(false);
-        }
-    };
-    // ------------------------------------------
-
-    const handleCheckUsername = async () => {
-        // Bloqueia se o Passo 1 não estiver completo
-        if (!stepCompleted) {
-            toast({
-                title: "Passo Incompleto",
-                description: "Por favor, conclua primeiro o cadastro do Colaborador (Passo 1).",
-                variant: "destructive",
-            });
-            setUsernameAvailability(null);
-            return;
-        }
-
-        const username = form.getValues('username');
-        const usernameValidation = userSchema.pick({ username: true }).safeParse({ username });
-
-        if (!usernameValidation.success) {
-            toast({
-                title: "Erro de validação",
-                description: "O nome de usuário deve ter pelo menos 4 caracteres.",
-                variant: "destructive",
-            });
-            setUsernameAvailability(null);
-            return;
-        }
-
-        setIsCheckingUsername(true);
-        setUsernameAvailability('checking');
-
-        try {
-            const available = await checkUsernameAvailability(username);
-
-            if (!available) {
-                toast({ title: "Nome de usuário indisponível", description: "Este nome de usuário já está em uso.", variant: "destructive" });
-                setUsernameAvailability('unavailable');
-            } else {
-                toast({ title: "Nome de usuário disponível!", description: "Você pode usar este nome de usuário para o registro." });
-                setUsernameAvailability('available');
-            }
-        } catch (error) {
-            console.error("Erro na comunicação com a API:", error);
-            toast({ title: "Erro de rede", description: "Falha ao conectar com o servidor.", variant: "destructive" });
-            setUsernameAvailability(null);
-        } finally {
-            setIsCheckingUsername(false);
-        }
-    };
-
-    const handleCreateEmployee = async (data: FormData) => {
-        setIsSubmitting(true);
-
-        const employeeValidation = employeeSchema.safeParse(data);
-        if (!employeeValidation.success) {
-            toast({
-                title: "Erro de validação",
-                description: "Preencha corretamente os Dados do Colaborador (Passo 1).",
-                variant: "destructive",
-            });
-            setIsSubmitting(false);
-            return;
-        }
-        
-        // --- VALIDAÇÃO DE CHECK NO CPF (NOVA) ---
-        if (cpfAvailability !== 'available') {
-            toast({
-                title: "Ação Pendente",
-                description: "É necessário verificar a disponibilidade do CPF antes de continuar.",
-                variant: "destructive",
-            });
-            setIsSubmitting(false);
-            return;
-        }
-        // -----------------------------------------
-
-        try {
-            // Removendo máscaras para envio ao backend
-            const employeePayload = {
-                companyId: data.companyId, 
-                fullName: data.nomeCompleto,
-                cpf: data.cpf.replace(/\D/g, ""),
-                jobPosition: data.cargo,
-                email: data.email,
-                salary: parseFloat(data.salario.replace(/[R$\s.]/g, "").replace(",", ".")),
-                phone: data.telefone.replace(/\D/g, ""),
-                address: {
-                    postalCode: data.cep.replace(/\D/g, ""),
-                    number: data.numero,
-                },
-                scheduleType: data.scheduleType,
-                scaleStartDate: data.scaleStartDate || null,
-                preferredDayOff: data.preferredDayOff || null,
-                weekendOffIndex: data.weekendOffIndex ? parseInt(data.weekendOffIndex) : null,
-                fixedWorkDays: data.fixedWorkDays || []
-            };
-            const employeeData = await createManager(employeePayload);
-            const employeeId = employeeData.employeeId;
-
-            // SUCESSO DO PASSO 1: Salva o ID e avança o passo
-            setSavedEmployeeId(employeeId);
-            setStepCompleted(true);
-
-            toast({
-                title: "Colaborador criado!",
-                description: `O registro de ${data.nomeCompleto} foi salvo. Prossiga para as credenciais de usuário.`,
-            });
-
-        } catch (error) {
-            console.error("Erro no Passo 1 (Colaborador):", error);
-            toast({
-                title: "Erro ao cadastrar colaborador",
-                description: (error instanceof Error) ? error.message : "Tente novamente mais tarde.",
-                variant: "destructive",
-            });
-        } finally {
-            setIsSubmitting(false);
-        }
-    };
-
-    const handleCreateUser = async (data: FormData) => {
-        setIsSubmitting(true);
-
-        const userValidation = userSchema.safeParse(data);
-        if (!userValidation.success) {
-            toast({
-                title: "Erro de validação",
-                description: "Preencha corretamente os Dados de Usuário (Passo 2).",
-                variant: "destructive",
-            });
-            setIsSubmitting(false);
-            return;
-        }
-
-        // Validação da checagem do username (mantida)
-        if (usernameAvailability !== 'available') {
-            toast({
-                title: "Ação Pendente",
-                description: "É necessário verificar a disponibilidade do nome de usuário.",
-                variant: "destructive",
-            });
-            setIsSubmitting(false);
-            return;
-        }
-
-        if (!savedEmployeeId) {
-            toast({
-                title: "Erro de Fluxo",
-                description: "O ID do Colaborador não foi encontrado. Por favor, reinicie o cadastro.",
-                variant: "destructive",
-            });
-            setIsSubmitting(false);
-            return;
-        }
-
-        try {
-            const userPayload = {
-                username: data.username,
-                password: data.password,
-                role: data.role,
-                employeeId: savedEmployeeId,
-            };
-            await createUser(userPayload);
-
-            // SUCESSO FINAL
-            toast({
-                title: "Cadastro Concluído!",
-                description: `O colaborador e usuário (${data.username}) foram criados com sucesso!`,
-            });
-
-            // Reset
-            form.reset();
-            setSavedEmployeeId(null);
-            setStepCompleted(false);
-            setUsernameAvailability(null);
-            setCpfAvailability(null); // Resetar CPF também
-
-            navigate("/empresa");
-
-        } catch (error) {
-            console.error("Erro no Passo 2 (Usuário):", error);
-            toast({
-                title: "Erro ao criar usuário",
-                description: (error instanceof Error) ? error.message : "Tente novamente mais tarde.",
-                variant: "destructive",
-            });
-        } finally {
-            setIsSubmitting(false);
-        }
-    };
-
-    // Roteador de submissão
-    const onSubmit = (data: FormData) => {
-        if (!stepCompleted) {
-            handleCreateEmployee(data);
-        } else {
-            handleCreateUser(data);
-        }
-    };
+    const {
+        form,
+        isSubmitting,
+        sidebarOpen,
+        handleToggleSidebar,
+        companies,
+        isFetchingCompanies,
+        savedEmployeeId,
+        stepCompleted,
+        usernameAvailability,
+        isCheckingUsername,
+        cpfAvailability,
+        isCheckingCPF,
+        selectedScheduleType,
+        maskCPF,
+        maskPhone,
+        maskCEP,
+        maskCurrency,
+        handleCheckCPF,
+        handleCheckUsername,
+        onSubmit,
+        scheduleTypes,
+        daysOfWeek,
+    } = useCreateManager();
 
     return (
         <div className="min-h-screen bg-background relative overflow-hidden">
@@ -765,27 +384,28 @@ const selectedScheduleType = form.watch("scheduleType");
 
                                         <FormField control={form.control} name="password" render={({ field }) => (
                                             <FormItem>
-                                                <FormLabel className="text-base font-semibold">Senha</FormLabel>
-                                                <FormControl><Input type="password" placeholder="Digite a senha" className="h-12 text-base" {...field} /></FormControl>
+                                                <FormLabel className="text-base font-semibold">Senha inicial</FormLabel>
+                                                <FormControl><Input type="password" placeholder="Opcional na criação inicial" className="h-12 text-base" {...field} /></FormControl>
                                                 <FormMessage />
+                                                <p className="text-xs text-muted-foreground">Se o backend não exigir senha neste fluxo, o campo pode permanecer vazio.</p>
                                             </FormItem>
                                         )} />
 
-                                        <FormField control={form.control} name="role" render={({ field }) => (
+                                        <FormField control={form.control} name="role" render={() => (
                                             <FormItem className="md:col-span-2">
                                                 <FormLabel className="text-base font-semibold">Perfil</FormLabel>
-                                                <Select onValueChange={field.onChange} defaultValue={field.value} disabled={!stepCompleted}>
+                                                <Select value="MANAGER" disabled>
                                                     <FormControl>
                                                         <SelectTrigger className="h-12 text-base">
-                                                            <SelectValue placeholder="Selecione o perfil" />
+                                                            <SelectValue placeholder="Administrador (MANAGER)" />
                                                         </SelectTrigger>
                                                     </FormControl>
                                                     <SelectContent>
-                                                        <SelectItem value="PARTNER">Colaborador (Acesso Padrão)</SelectItem>
                                                         <SelectItem value="MANAGER">Administrador (Acesso Total)</SelectItem>
                                                     </SelectContent>
                                                 </Select>
                                                 <FormMessage />
+                                                <p className="text-xs text-muted-foreground">O papel é fixo nesta tela e sempre será criado como administrador.</p>
                                             </FormItem>
                                         )} />
                                     </div>
@@ -798,7 +418,7 @@ const selectedScheduleType = form.watch("scheduleType");
                                                 variant="login"
                                                 size="lg"
                                                 className="w-full h-14 text-lg font-semibold shadow-button hover:shadow-xl transition-all duration-300 hover:scale-[1.02]"
-                                                // Botão Final exige submissão, checagem de username e validação de password.
+                                                // Botão Final exige submissão e checagem de username.
                                                 disabled={isSubmitting || usernameAvailability !== 'available'}
                                             >
                                                 {isSubmitting ? <Loader2 className="h-6 w-6 animate-spin mr-2" /> : "Concluir Cadastro"}

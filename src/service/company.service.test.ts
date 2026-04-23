@@ -2,6 +2,8 @@ import { HttpResponse, http } from "msw";
 import { describe, expect, it } from "vitest";
 import { server } from "@/test/mocks/server";
 import {
+  checkCompanyCnpjAvailability,
+  createCompany,
   fetchCompanyDetails,
   fetchCompanyList,
   toggleCompanyStatus,
@@ -60,6 +62,43 @@ describe("company.service", () => {
     await expect(fetchCompanyDetails("12345678000190")).resolves.toEqual(
       companyDetails
     );
+  });
+
+  it("verifica disponibilidade de CNPJ pelo endpoint oficial", async () => {
+    server.use(
+      http.get("*/companies/check-cnpj", ({ request }) => {
+        const url = new URL(request.url);
+        expect(url.searchParams.get("cnpj")).toBe("12345678000190");
+        return new HttpResponse(null, { status: 404 });
+      })
+    );
+
+    await expect(checkCompanyCnpjAvailability("12345678000190")).resolves.toBe(true);
+  });
+
+  it("cria empresa com payload oficial", async () => {
+    const payload = {
+      name: "Kronos Tech",
+      cnpj: "12345678000190",
+      email: "contato@kronos.test",
+      address: {
+        postalCode: "01001000",
+        number: "100",
+      },
+      location: {
+        latitude: -23.55,
+        longitude: -46.63,
+      },
+    };
+
+    server.use(
+      http.post("*/companies", async ({ request }) => {
+        await expect(request.json()).resolves.toEqual(payload);
+        return new HttpResponse(null, { status: 201 });
+      })
+    );
+
+    await expect(createCompany(payload)).resolves.toBeUndefined();
   });
 
   it("atualiza empresa com payload correto", async () => {

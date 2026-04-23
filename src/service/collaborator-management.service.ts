@@ -2,7 +2,7 @@ import { api } from "@/config/api";
 import { API_ROUTES, buildRoute } from "@/config/api-routes";
 import { normalizeServiceError } from "@/service/helpers/service-error.helper";
 import { extractArray, extractObject } from "@/service/helpers/response-normalizer.helper";
-import { CompanyListItem, EmployeeData } from "@/types/employee";
+import { EmployeeData } from "@/types/employee";
 
 export interface CollaboratorAddressPayload {
   postalCode: string;
@@ -120,16 +120,6 @@ export const createManager = async (
   }
 
   return data;
-};
-
-export const fetchCompanyList = async (): Promise<CompanyListItem[]> => {
-  const response = await api.get<{ companies?: Array<{ id?: string; companyId?: string; name?: string }> }>(`/${API_ROUTES.COMPANIES}`);
-  const companies = extractArray<{ id?: string; companyId?: string; name?: string }>(response.data, ["companies"]);
-
-  return companies.map((company) => ({
-    companyId: company.companyId ?? company.id ?? "",
-    name: company.name ?? "",
-  }));
 };
 
 export const fetchEmployeeList = async (active: boolean | null = true): Promise<EmployeeData[]> => {

@@ -9,6 +9,7 @@ import {
     downloadDocument,
     fetchUserDocuments,
 } from "@/service/document.service";
+import { isAuthServiceError, normalizeServiceError } from "@/service/helpers/service-error.helper";
 
 interface UseMyDocumentsReturn {
     documents: Document[];
@@ -35,10 +36,11 @@ export const useMyDocuments = (): UseMyDocumentsReturn => {
         try {
             const data = await fetchUserDocuments(); // 💡 Chama o Serviço
             setDocuments(data);
-        } catch (err: any) {
-            setError(err.message);
-            if (err.message.includes("Token")) navigate("/login");
-            toast({ title: "Erro", description: err.message, variant: "destructive" });
+        } catch (err) {
+            const normalized = normalizeServiceError(err);
+            setError(normalized.message);
+            if (isAuthServiceError(normalized)) navigate("/login");
+            toast({ title: "Erro", description: normalized.message, variant: "destructive" });
         } finally {
             setIsLoading(false);
         }
@@ -67,9 +69,11 @@ export const useMyDocuments = (): UseMyDocumentsReturn => {
             setDocuments(prev => prev.filter(doc => doc.id !== documentId));
 
             toast({ title: "Sucesso", description: `Documento "${documentName}" excluído.` });
-        } catch (err: any) {
-            console.error("Erro ao deletar:", err);
-            toast({ title: "Erro", description: err.message || "Falha ao excluir o documento.", variant: "destructive" });
+        } catch (err) {
+            const normalized = normalizeServiceError(err);
+            console.error("Erro ao deletar:", normalized);
+            toast({ title: "Erro", description: normalized.message || "Falha ao excluir o documento.", variant: "destructive" });
+            if (isAuthServiceError(normalized)) navigate("/login");
         } finally {
             setIsDeleting(false);
         }
@@ -79,12 +83,14 @@ export const useMyDocuments = (): UseMyDocumentsReturn => {
         try {
             await downloadDocument(documentId, documentName);
             toast({ title: "Sucesso", description: `Download de "${documentName}" iniciado.` });
-        } catch (err: any) {
+        } catch (err) {
+            const normalized = normalizeServiceError(err);
             toast({
                 title: "Erro",
-                description: err.message || "Falha ao iniciar o download do documento.",
+                description: normalized.message || "Falha ao iniciar o download do documento.",
                 variant: "destructive",
             });
+            if (isAuthServiceError(normalized)) navigate("/login");
         }
     }, [toast]);
 

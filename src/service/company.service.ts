@@ -1,11 +1,28 @@
 // src/services/companyService.ts
 
 import { api } from "@/config/api";
-import { CompanyListItem, CompanyData, Location, CompanyUpdatePayload, cleanCEP } from "@/types/company";
+import {
+    CompanyListItem,
+    CompanyData,
+    Location,
+    CompanyUpdatePayload,
+} from "@/types/company";
 import { extractArray, extractObject } from "@/service/helpers/response-normalizer.helper";
 import { API_ROUTES, buildRoute } from "@/config/api-routes";
+import { normalizeServiceError } from "@/service/helpers/service-error.helper";
 
 const HERE_API_KEY = import.meta.env.VITE_HERE_API_KEY ?? "";
+
+export interface CompanyCreationPayload {
+    name: string;
+    cnpj: string;
+    email: string;
+    address: {
+        postalCode: string;
+        number: string;
+    };
+    location: Location;
+}
 
 // --- Serviços de API ---
 
@@ -23,6 +40,27 @@ export const fetchCompanyList = async (): Promise<CompanyListItem[]> => {
 export const fetchCompanyDetails = async (cnpj: string): Promise<CompanyData> => {
     const response = await api.get<CompanyData>(buildRoute(API_ROUTES.COMPANIES, cnpj));
     return extractObject<CompanyData>(response.data) as CompanyData;
+};
+
+export const checkCompanyCnpjAvailability = async (cnpj: string): Promise<boolean> => {
+    try {
+        await api.get(buildRoute(API_ROUTES.COMPANIES, "check-cnpj"), {
+            params: { cnpj },
+        });
+        return false;
+    } catch (error) {
+        const normalized = normalizeServiceError(error);
+
+        if (normalized.status === 404) {
+            return true;
+        }
+
+        throw normalized;
+    }
+};
+
+export const createCompany = async (payload: CompanyCreationPayload): Promise<void> => {
+    await api.post(buildRoute(API_ROUTES.COMPANIES), payload);
 };
 
 /**

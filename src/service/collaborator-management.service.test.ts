@@ -6,7 +6,6 @@ import {
   checkUsernameAvailability,
   createCollaborator,
   createManager,
-  fetchCompanyList,
   fetchEmployeeList,
   createUser,
   toggleUserStatus,
@@ -140,22 +139,6 @@ describe("collaborator-management.service", () => {
     await expect(createManager(managerPayload)).resolves.toEqual({
       employeeId: "emp-manager",
     });
-  });
-
-  it("lista empresas no formato oficial", async () => {
-    server.use(
-      http.get("*/companies", () =>
-        HttpResponse.json({
-          companies: [
-            { id: "cmp-1", name: "Kronos" },
-          ],
-        })
-      )
-    );
-
-    await expect(fetchCompanyList()).resolves.toEqual([
-      { companyId: "cmp-1", name: "Kronos" },
-    ]);
   });
 
   it("lista colaboradores e permite alternar ou excluir status", async () => {

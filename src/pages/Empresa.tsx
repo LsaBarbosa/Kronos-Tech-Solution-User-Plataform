@@ -5,6 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Building2, Plus, Search, User, Edit } from "lucide-react"; // 💡 Importamos o ícone Edit
 import { useNavigate } from "react-router-dom";
+import { APP_PATHS } from "@/config/app-routes";
 
 const Empresa = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -73,7 +74,7 @@ const Empresa = () => {
             <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
 
               {/* CARD 1: CRIAR EMPRESA */}
-              <Card className="hover:shadow-lg transition-shadow cursor-pointer" onClick={() => navigate("/empresa/criar")}>
+              <Card className="hover:shadow-lg transition-shadow cursor-pointer" onClick={() => navigate(APP_PATHS.empresaCriar)}>
                 <CardHeader>
                   <div className="flex items-center gap-3">
                     <Plus className="h-8 w-8 text-green-600" />
@@ -94,7 +95,7 @@ const Empresa = () => {
               </Card>
 
               {/* CARD 2: ADICIONAR COLABORADOR */}
-              <Card className="hover:shadow-lg transition-shadow cursor-pointer" onClick={() => navigate("/criar-administrador")}>
+              <Card className="hover:shadow-lg transition-shadow cursor-pointer" onClick={() => navigate(APP_PATHS.criarAdministrador)}>
                 <CardHeader>
                   <div className="flex items-center gap-3">
                     <User className="h-8 w-8 text-indigo-600" />
@@ -115,7 +116,7 @@ const Empresa = () => {
               </Card>
 
               {/* CARD 3: BUSCAR EMPRESA */}
-              <Card className="hover:shadow-lg transition-shadow cursor-pointer" onClick={() => navigate("/empresa/buscar")}>
+              <Card className="hover:shadow-lg transition-shadow cursor-pointer" onClick={() => navigate(APP_PATHS.empresaBuscar)}>
                 <CardHeader>
                   <div className="flex items-center gap-3">
                     <Search className="h-8 w-8 text-blue-600" />
@@ -136,7 +137,7 @@ const Empresa = () => {
               </Card>
 
               {/* 🆕 CARD 4: ATUALIZAR EMPRESA */}
-              <Card className="hover:shadow-lg transition-shadow cursor-pointer" onClick={() => navigate("/empresa/atualizar")}>
+              <Card className="hover:shadow-lg transition-shadow cursor-pointer" onClick={() => navigate(APP_PATHS.empresaAtualizar)}>
                 <CardHeader>
                   <div className="flex items-center gap-3">
                     <Edit className="h-8 w-8 text-orange-500" /> {/* Ícone para Edição */}

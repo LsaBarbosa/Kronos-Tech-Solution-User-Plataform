@@ -5,6 +5,7 @@ import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { EmployeeListItem, MAX_UPLOAD_SIZE_BYTES, ALLOWED_MIME_TYPES } from "@/types/document";
 import { fetchEmployeesForSelection, uploadDocument } from "@/service/document.service";
+import { isAuthServiceError, normalizeServiceError } from "@/service/helpers/service-error.helper";
 
 const DEFAULT_DOCUMENT_TYPE = "EMPLOYEE_DOCUMENTS";
 
@@ -105,10 +106,11 @@ export const useDocumentUpload = (): UseDocumentUploadReturn => {
             try {
                 const data = await fetchEmployeesForSelection();
                 setEmployees(data);
-            } catch (err: any) {
-                setError(err.message);
-                if (err.message.includes("Token")) navigate("/login");
-                toast({ title: "Erro", description: err.message, variant: "destructive" });
+            } catch (err) {
+                const normalized = normalizeServiceError(err);
+                setError(normalized.message);
+                if (isAuthServiceError(normalized)) navigate("/login");
+                toast({ title: "Erro", description: normalized.message, variant: "destructive" });
             } finally {
                 setIsFetchingEmployees(false);
             }

@@ -52,36 +52,9 @@ const formatMinutesToTime = (totalMinutes: number): string => {
 };
 // --- FIM FUNÇÕES AUXILIARES ---
 
-const getAddressFromCoordinates = async (latitude: number, longitude: number): Promise<string> => {
-    if (!latitude || !longitude) return "Localização indisponível";
-
-    try {
-        const url = `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}`;
-        
-        const response = await fetch(url, {
-            headers: {
-                'User-Agent': 'KronosSystem/1.0',
-                'Accept-Language': 'pt-BR'
-            }
-        });
-
-        if (!response.ok) throw new Error('Erro na geocodificação');
-
-        const data = await response.json();
-        
-        if (data.address) {
-            const { road, village, municipality, state, postcode } = data.address;
-            const addressParts = [road, village, municipality, state, postcode];
-            const formattedAddress = addressParts.filter(Boolean).join(", ");
-            return formattedAddress || data.display_name;
-        }
-
-        return data.display_name || "Endereço não encontrado";
-
-    } catch (error) {
-        console.error("Erro ao buscar endereço:", error);
-        return "Erro ao carregar endereço";
-    }
+const formatCoordinates = (latitude?: number | null, longitude?: number | null) => {
+    if (latitude == null || longitude == null) return "Localização indisponível";
+    return `${latitude.toFixed(6)}, ${longitude.toFixed(6)}`;
 };
 
 interface ResultadosDetalhadoProps {
@@ -112,9 +85,6 @@ export const ResultadosRelatorioDetalhado: React.FC<ResultadosDetalhadoProps> = 
     const cardHeaderRef = useRef<HTMLDivElement>(null);
     const isInitialMount = useRef(true); 
     
-    type AddressPair = { entry?: string; exit?: string };
-    const [addressMap, setAddressMap] = useState<Record<number, AddressPair>>({});
-
     // --- CÁLCULOS DE TOTAIS DO PERÍODO (Memoized) ---
     const { totalPeriodBalance, totalPeriodHours } = useMemo(() => {
         const uniqueDays = new Set<string>();
@@ -179,63 +149,6 @@ export const ResultadosRelatorioDetalhado: React.FC<ResultadosDetalhadoProps> = 
         setCurrentPage(0);
     }
 
-    // --- BUSCA DE ENDEREÇOS ---
-    useEffect(() => {
-        const fetchAddresses = async () => {
-            const newAddresses: Record<number, AddressPair> = {};
-            let hasNewAddress = false;
-
-            const recordsToFetch = currentRecords.filter(item => {
-                if (item.statusRecord !== 'CREATED' && 
-                    item.statusRecord !== 'UPDATED' && 
-                    item.statusRecord !== 'PENDING' && 
-                    item.statusRecord !== 'UPDATE_REJECTED' && 
-                    item.statusRecord !== 'PENDING_APPROVAL') return false;
-
-                const current = addressMap[item.timeRecordId] || {};
-                const needEntry = item.latitude && item.longitude && !current.entry;
-                const needExit = item.endLatitude && item.endLongitude && !current.exit;
-
-                return needEntry || needExit;
-            });
-
-            if (recordsToFetch.length === 0) return;
-
-            await Promise.all(recordsToFetch.map(async (record) => {
-                const current = addressMap[record.timeRecordId] || {};
-                let entryAddr = current.entry;
-                let exitAddr = current.exit;
-
-                if (record.latitude && record.longitude && !entryAddr) {
-                    entryAddr = await getAddressFromCoordinates(record.latitude, record.longitude);
-                    hasNewAddress = true;
-                }
-
-                if (record.endLatitude && record.endLongitude && !exitAddr) {
-                    exitAddr = await getAddressFromCoordinates(record.endLatitude, record.endLongitude);
-                    hasNewAddress = true;
-                }
-
-                if (hasNewAddress) {
-                    newAddresses[record.timeRecordId] = { entry: entryAddr, exit: exitAddr };
-                }
-            }));
-
-            if (hasNewAddress) {
-                setAddressMap(prev => ({ 
-                    ...prev, 
-                    ...Object.keys(newAddresses).reduce((acc, key) => {
-                        const id = Number(key);
-                        acc[id] = { ...prev[id], ...newAddresses[id] };
-                        return acc;
-                    }, {} as Record<number, AddressPair>)
-                }));
-            }
-        };
-
-        fetchAddresses();
-    }, [currentRecords, addressMap]);
-    
     // --- DOWNLOAD DE DOCUMENTOS ---
     const handleDocumentDownload = async (documentId: string, employeeId: string, employeeName: string) => {
         if (!documentId || !employeeId) {
@@ -396,8 +309,6 @@ export const ResultadosRelatorioDetalhado: React.FC<ResultadosDetalhadoProps> = 
                                 <div className="p-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                                     {dayRecords.map((item, index) => {
                                         const isBreak = item.statusRecord === 'IMPLICIT_BREAK';
-                                        const addresses = addressMap[item.timeRecordId] || {};
-                                        
                                         return (
                                             <Card
                                                 key={item.timeRecordId || index}
@@ -438,16 +349,16 @@ export const ResultadosRelatorioDetalhado: React.FC<ResultadosDetalhadoProps> = 
                                                             {item.latitude && (
                                                                 <div className="flex items-start gap-1.5">
                                                                     <MapPin className="h-3 w-3 mt-0.5 text-green-600 shrink-0" />
-                                                                    <span className="text-muted-foreground line-clamp-2" title={addresses.entry}>
-                                                                        {addresses.entry || "Carregando..."}
+                                                                    <span className="text-muted-foreground line-clamp-2">
+                                                                        {formatCoordinates(item.latitude, item.longitude)}
                                                                     </span>
                                                                 </div>
                                                             )}
                                                             {item.endLatitude && (
                                                                 <div className="flex items-start gap-1.5">
                                                                     <MapPin className="h-3 w-3 mt-0.5 text-red-500 shrink-0" />
-                                                                    <span className="text-muted-foreground line-clamp-2" title={addresses.exit}>
-                                                                        {addresses.exit || "Carregando..."}
+                                                                    <span className="text-muted-foreground line-clamp-2">
+                                                                        {formatCoordinates(item.endLatitude, item.endLongitude)}
                                                                     </span>
                                                                 </div>
                                                             )}

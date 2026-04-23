@@ -11,6 +11,7 @@ import {
   fetchPendingApprovals,
   fetchPendingVacationCount,
   fetchVacationRequests,
+  fetchReportEmployees,
   listTimeOffRequests,
   rejectTimeRecordChange,
   rejectTimeOff,
@@ -146,6 +147,81 @@ describe("records.service", () => {
         managerId: "manager-1",
       })
     ).resolves.toBeUndefined();
+  });
+
+  it("lista gestores ativos para seleção de aprovadores", async () => {
+    server.use(
+      http.get("*/users/search", ({ request }) => {
+        const url = new URL(request.url);
+        expect(url.searchParams.get("active")).toBe("true");
+
+        return HttpResponse.json({
+          users: [
+            {
+              userId: "manager-1",
+              username: "gestor",
+              role: "MANAGER",
+            },
+            {
+              userId: "partner-1",
+              username: "colaborador",
+              role: "PARTNER",
+            },
+          ],
+        });
+      })
+    );
+
+    await expect(fetchManagerOptions()).resolves.toEqual([
+      {
+        userId: "manager-1",
+        username: "gestor",
+      },
+    ]);
+  });
+
+  it("conta pendencias de ferias com o endpoint paginado", async () => {
+    server.use(
+      http.get("*/records/vacation-request", ({ request }) => {
+        const url = new URL(request.url);
+        expect(url.searchParams.get("page")).toBe("0");
+        expect(url.searchParams.get("size")).toBe("500");
+        expect(url.searchParams.get("status")).toBe("PENDING");
+
+        return HttpResponse.json([
+          { id: 1 },
+          { id: 2 },
+          { id: 3 },
+        ]);
+      })
+    );
+
+    await expect(fetchPendingVacationCount()).resolves.toBe(3);
+  });
+
+  it("lista colaboradores ativos para relatorios", async () => {
+    server.use(
+      http.get("*/employee", ({ request }) => {
+        const url = new URL(request.url);
+        expect(url.searchParams.get("active")).toBe("true");
+
+        return HttpResponse.json({
+          employees: [
+            {
+              employeeId: "emp-1",
+              fullName: "Maria",
+            },
+          ],
+        });
+      })
+    );
+
+    await expect(fetchReportEmployees()).resolves.toEqual([
+      {
+        employeeId: "emp-1",
+        fullName: "Maria",
+      },
+    ]);
   });
 
   it("solicita abono com multipart no endpoint correto", async () => {

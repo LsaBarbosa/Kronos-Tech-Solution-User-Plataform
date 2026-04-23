@@ -7,6 +7,8 @@ import {
   downloadDocument,
   fetchDocuments,
   fetchEmployeesForSelection,
+  fetchEmployeeDocuments,
+  fetchUserDocuments,
   uploadDocument,
 } from "./document.service";
 
@@ -54,6 +56,48 @@ describe("document.service", () => {
       {
         id: "doc-1",
         name: "contracheque.pdf",
+        createdAt: "2026-04-23T10:00:00Z",
+        type: "PAYSLIP",
+      },
+    ]);
+  });
+
+  it("lista documentos do usuario e do colaborador usando wrappers oficiais", async () => {
+    server.use(
+      http.get("*/documents", ({ request }) => {
+        const url = new URL(request.url);
+        const employeeId = url.searchParams.get("employeeId");
+
+        if (employeeId) {
+          expect(employeeId).toBe("emp-1");
+        }
+
+        return HttpResponse.json({
+          documents: [
+            {
+              id: employeeId ? "doc-1" : "doc-2",
+              name: employeeId ? "holerite.pdf" : "documento-geral.pdf",
+              createdAt: "2026-04-23T10:00:00Z",
+              type: "PAYSLIP",
+            },
+          ],
+        });
+      })
+    );
+
+    await expect(fetchUserDocuments()).resolves.toEqual([
+      {
+        id: "doc-2",
+        name: "documento-geral.pdf",
+        createdAt: "2026-04-23T10:00:00Z",
+        type: "PAYSLIP",
+      },
+    ]);
+
+    await expect(fetchEmployeeDocuments("emp-1")).resolves.toEqual([
+      {
+        id: "doc-1",
+        name: "holerite.pdf",
         createdAt: "2026-04-23T10:00:00Z",
         type: "PAYSLIP",
       },
