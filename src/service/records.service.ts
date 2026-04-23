@@ -1,6 +1,7 @@
 import { api } from "@/config/api";
 import { API_ROUTES, buildRoute } from "@/config/api-routes";
 import { extractArray, extractObject } from "@/service/helpers/response-normalizer.helper";
+import { DetailedReportItem, Employee } from "@/utils/report-utils";
 import {
   IManagerOption,
   IRequestTimeOffData,
@@ -18,6 +19,26 @@ import {
 
 const RECORDS_BASE_URL = `/${API_ROUTES.RECORDS}`;
 
+export interface DetailedReportQueryParams {
+  reference: string;
+  active: boolean;
+  dates: string[];
+  statuses?: string[];
+  employeeId?: string;
+}
+
+export interface RecordStatusUpdatePayload {
+  statusRecord: string;
+}
+
+export interface TimeRecordUpdatePayload {
+  startDate: string;
+  endDate: string;
+  startHour: string;
+  endHour: string;
+  managerId: string;
+}
+
 export const fetchPendingApprovals = async (
   params: IPendingApprovalQueryParams
 ): Promise<ITimeRecordApprovalPageResponse> => {
@@ -34,12 +55,49 @@ export const fetchPendingApprovals = async (
   return extractObject<ITimeRecordApprovalPageResponse>(response.data) as ITimeRecordApprovalPageResponse;
 };
 
+export const fetchDetailedReport = async (
+  params: DetailedReportQueryParams
+): Promise<DetailedReportItem[]> => {
+  const { employeeId, ...body } = params;
+  const response = await api.post<DetailedReportItem[]>(
+    `${RECORDS_BASE_URL}/report`,
+    body,
+    {
+      params: employeeId ? { employeeId } : undefined,
+    }
+  );
+
+  return extractArray<DetailedReportItem>(response.data, ["report", "records", "timeRecords"]);
+};
+
 export const approveTimeRecordChange = async (timeRecordId: number): Promise<void> => {
   await api.patch(`${RECORDS_BASE_URL}/approve/${timeRecordId}`);
 };
 
 export const rejectTimeRecordChange = async (timeRecordId: number): Promise<void> => {
   await api.patch(`${RECORDS_BASE_URL}/reject/${timeRecordId}`);
+};
+
+export const updateRecordStatus = async (
+  employeeId: string,
+  timeRecordId: string,
+  payload: RecordStatusUpdatePayload
+): Promise<void> => {
+  await api.put(`${RECORDS_BASE_URL}/update/status/${employeeId}/${timeRecordId}`, payload);
+};
+
+export const toggleRecordActivate = async (
+  employeeId: string,
+  timeRecordId: string
+): Promise<void> => {
+  await api.put(`${RECORDS_BASE_URL}/toggle-activate/${employeeId}/${timeRecordId}`);
+};
+
+export const updateTimeRecord = async (
+  timeRecordId: number | string,
+  payload: TimeRecordUpdatePayload
+): Promise<void> => {
+  await api.put(`${RECORDS_BASE_URL}/update/time-record/${timeRecordId}`, payload);
 };
 
 export const requestTimeOff = async (
@@ -137,4 +195,12 @@ export const fetchPendingVacationCount = async (): Promise<number> => {
   });
 
   return extractArray(response.data).length;
+};
+
+export const fetchReportEmployees = async (active = true): Promise<Employee[]> => {
+  const response = await api.get<{ employees?: Employee[] }>(`/${API_ROUTES.EMPLOYEE}`, {
+    params: { active },
+  });
+
+  return extractArray<Employee>(response.data, ["employees"]);
 };

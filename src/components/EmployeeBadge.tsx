@@ -7,8 +7,8 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardHeader } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { toast } from "sonner";
-import { API_BASE_URL } from "@/config/api";
 import { Separator } from "@radix-ui/react-separator";
+import { updateEmail, updatePhone } from "@/service/user.service";
 
 interface UserProfile {
   fullName: string;
@@ -66,27 +66,14 @@ const EmployeeBadge = ({ userData, isLoading, onUpdateSuccess }: EmployeeBadgePr
 
     setIsUpdating(true);
     try {
-      const token = localStorage.getItem("token");
-      if (!token) {
-        throw new Error("Token de autenticação não encontrado.");
-      }
-
       const payload = { 
           [field]: field === 'phone' ? tempData.phone.replace(/\D/g, '') : tempData[field] 
       };
-      
-      const response = await fetch(`${API_BASE_URL}employee/update-own-profile`, {
-        method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-        body: JSON.stringify(payload),
-      });
 
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.detail ||"Falha ao atualizar o perfil.");
+      if (field === "email") {
+        await updateEmail("", payload.email as string);
+      } else {
+        await updatePhone("", payload.phone as string);
       }
 
       toast.success(`Dados do perfil atualizados com sucesso.`);

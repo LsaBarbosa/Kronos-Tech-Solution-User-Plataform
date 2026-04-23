@@ -45,8 +45,14 @@ import { useToast } from "@/hooks/use-toast";
 // Importações adicionais
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
-import { API_BASE_URL } from "@/config/api";
 import { Switch } from "@/components/ui/switch";
+import {
+  fetchEmployeeList,
+  toggleUserStatus,
+  updateCollaborator,
+  updateUser,
+} from "@/service/collaborator-management.service";
+import { listUsers } from "@/service/user.service";
 
 const SCHEDULE_TYPES = [
     { value: "TRADITIONAL_5X2", label: "Tradicional 5x2" },
@@ -135,39 +141,11 @@ const ListaColaboradores = () => {
   const fetchColaboradores = async () => {
     setIsLoading(true);
     try {
-      const token = localStorage.getItem("token");
-      if (!token) {
-        throw new Error("Token de autenticação não encontrado.");
-      }
-
       const isActive = !showInactive;
-
-      const [employeesResponse, usersResponse] = await Promise.all([
-        fetch(`${API_BASE_URL}employee?active=${isActive}`, {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-        }),
-        fetch(`${API_BASE_URL}users/search`, {
-          method: "GET",
-          headers: {
-            "Content-Type": "application/json",
-            Authorization: `Bearer ${token}`,
-          },
-        }),
+      const [employees, users] = await Promise.all([
+        fetchEmployeeList(isActive),
+        listUsers(isActive),
       ]);
-
-      if (!employeesResponse.ok || !usersResponse.ok) {
-        throw new Error("Falha ao buscar os dados dos colaboradores.");
-      }
-
-      const employeesData = await employeesResponse.json();
-      const usersData = await usersResponse.json();
-
-      const employees = employeesData.employees || [];
-      const users = usersData.users || [];
 
       const usersMap = new Map<string, UserData>();
       users.forEach((user: UserData) => usersMap.set(user.employeeId, user));
@@ -391,11 +369,6 @@ const ListaColaboradores = () => {
 
     setIsLoading(true);
     try {
-      const token = localStorage.getItem("token");
-      if (!token) {
-        throw new Error("Token de autenticação não encontrado.");
-      }
-
       const bodyDataEmployee: { [key: string]: any } = {};
       const bodyDataUser: { [key: string]: any } = {};
 
@@ -490,23 +463,11 @@ const ListaColaboradores = () => {
       const promises = [];
 
       if (Object.keys(bodyDataEmployee).length > 0 || faceImageFile) {
-        promises.push(
-          fetch(`${API_BASE_URL}employee/manager/update-employee/${colaboradorId}`, {
-            method: "PATCH",
-            headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-            body: JSON.stringify(bodyDataEmployee),
-          })
-        );
+        promises.push(updateCollaborator(colaboradorId, bodyDataEmployee));
       }
 
       if (Object.keys(bodyDataUser).length > 0) {
-        promises.push(
-          fetch(`${API_BASE_URL}users/search/${originalColaborador.userId}`, {
-            method: "PATCH",
-            headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-            body: JSON.stringify(bodyDataUser),
-          })
-        );
+        promises.push(updateUser(originalColaborador.userId, bodyDataUser));
       }
 
       await Promise.all(promises);
@@ -580,28 +541,7 @@ const ListaColaboradores = () => {
     }
 
     try {
-      const token = localStorage.getItem("token");
-      if (!token) {
-        throw new Error("Token de autenticação não encontrado.");
-      }
-
-      // Chamada à API
-      const response = await fetch(`${API_BASE_URL}users/toggle-activate/${userId}`, {
-        method: "PATCH",
-        headers: {
-          "Content-Type": "application/json",
-          Authorization: `Bearer ${token}`,
-        },
-      });
-
-      if (!response.ok) {
-        let errorMessage = "Falha ao alterar status.";
-        try {
-          const errorData = await response.json();
-          if (errorData.detail) errorMessage = errorData.detail;
-        } catch (e) { }
-        throw new Error(errorMessage);
-      }
+      await toggleUserStatus(userId, currentStatus);
 
       // --- PONTO DA CORREÇÃO ---
       

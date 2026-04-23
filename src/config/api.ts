@@ -16,6 +16,56 @@ const redirectBrowserTo = (url: string) => {
   window.location.assign(url);
 };
 
+const clearContentTypeHeader = (headers: unknown) => {
+  if (!headers || typeof headers !== "object") {
+    return;
+  }
+
+  const typedHeaders = headers as {
+    delete?: (name: string) => void;
+    setContentType?: (value?: string | false) => void;
+    common?: Record<string, unknown>;
+    post?: Record<string, unknown>;
+    put?: Record<string, unknown>;
+    patch?: Record<string, unknown>;
+    [key: string]: unknown;
+  };
+
+  if (typeof typedHeaders.delete === "function") {
+    typedHeaders.delete("Content-Type");
+    typedHeaders.delete("content-type");
+  }
+
+  if (typeof typedHeaders.setContentType === "function") {
+    typedHeaders.setContentType(false);
+  }
+
+  delete typedHeaders["Content-Type"];
+  delete typedHeaders["content-type"];
+
+  for (const bucket of [typedHeaders.common, typedHeaders.post, typedHeaders.put, typedHeaders.patch]) {
+    if (!bucket) {
+      continue;
+    }
+
+    delete bucket["Content-Type"];
+    delete bucket["content-type"];
+  }
+};
+
+const isFormDataPayload = (value: unknown): value is FormData => {
+  if (!value || typeof value !== "object") {
+    return false;
+  }
+
+  const candidate = value as {
+    append?: unknown;
+    get?: unknown;
+  };
+
+  return typeof candidate.append === "function" && typeof candidate.get === "function";
+};
+
 // Cria uma instância do Axios
 export const api = axios.create({
   baseURL: API_BASE_URL,
@@ -29,19 +79,8 @@ api.interceptors.request.use(
   (config) => {
     const token = localStorage.getItem('token'); // Ou onde você guarda o token
 
-    if (typeof FormData !== "undefined" && config.data instanceof FormData) {
-      const headers = config.headers as {
-        delete?: (name: string) => void;
-        [key: string]: unknown;
-      };
-
-      if (typeof headers.delete === "function") {
-        headers.delete("Content-Type");
-        headers.delete("content-type");
-      } else {
-        delete headers["Content-Type"];
-        delete headers["content-type"];
-      }
+    if (isFormDataPayload(config.data)) {
+      clearContentTypeHeader(config.headers);
     }
 
     if (token) {

@@ -6,6 +6,7 @@ import {
   approveTimeRecordChange,
   approveTimeOff,
   approveVacationRequest,
+  fetchDetailedReport,
   fetchManagerOptions,
   fetchPendingApprovals,
   fetchPendingVacationCount,
@@ -14,6 +15,9 @@ import {
   rejectTimeRecordChange,
   rejectTimeOff,
   rejectVacationRequest,
+  toggleRecordActivate,
+  updateRecordStatus,
+  updateTimeRecord,
   requestTimeOff,
   requestVacation,
 } from "./records.service";
@@ -55,6 +59,49 @@ describe("records.service", () => {
     });
   });
 
+  it("gera relatório detalhado pelo endpoint oficial", async () => {
+    server.use(
+      http.post("*/records/report", async ({ request }) => {
+        const body = await request.json();
+        expect(body).toMatchObject({
+          reference: "08:00",
+          active: true,
+          dates: ["10-04-2026"],
+        });
+
+        return HttpResponse.json([
+          {
+            timeRecordId: 1,
+            startWork: "10-04-2026",
+            startHour: "08:00",
+            endHour: "17:00",
+            hoursWork: "09:00",
+            balance: "+01:00",
+            statusRecord: "CREATED",
+            employeeId: "emp-1",
+            employeeData: {
+              employeeName: "Maria",
+              companyName: "Kronos",
+            },
+          },
+        ]);
+      })
+    );
+
+    await expect(
+      fetchDetailedReport({
+        reference: "08:00",
+        active: true,
+        dates: ["10-04-2026"],
+        employeeId: "emp-1",
+      })
+    ).resolves.toEqual([
+      expect.objectContaining({
+        timeRecordId: 1,
+      }),
+    ]);
+  });
+
   it("aprova e rejeita ajustes de ponto", async () => {
     server.use(
       http.patch("*/records/approve/10", () => new HttpResponse(null, { status: 204 })),
@@ -63,6 +110,42 @@ describe("records.service", () => {
 
     await expect(approveTimeRecordChange(10)).resolves.toBeUndefined();
     await expect(rejectTimeRecordChange(10)).resolves.toBeUndefined();
+  });
+
+  it("atualiza status e alterna ativacao do registro", async () => {
+    server.use(
+      http.put("*/records/update/status/emp-1/10", async ({ request }) => {
+        const body = await request.json();
+        expect(body).toEqual({ statusRecord: "ABSENCE" });
+        return new HttpResponse(null, { status: 204 });
+      }),
+      http.put("*/records/toggle-activate/emp-1/10", () => new HttpResponse(null, { status: 204 })),
+      http.put("*/records/update/time-record/10", async ({ request }) => {
+        const body = await request.json();
+        expect(body).toEqual({
+          startDate: "10-04-2026",
+          endDate: "11-04-2026",
+          startHour: "08:00",
+          endHour: "17:00",
+          managerId: "manager-1",
+        });
+        return new HttpResponse(null, { status: 204 });
+      })
+    );
+
+    await expect(
+      updateRecordStatus("emp-1", "10", { statusRecord: "ABSENCE" })
+    ).resolves.toBeUndefined();
+    await expect(toggleRecordActivate("emp-1", "10")).resolves.toBeUndefined();
+    await expect(
+      updateTimeRecord("10", {
+        startDate: "10-04-2026",
+        endDate: "11-04-2026",
+        startHour: "08:00",
+        endHour: "17:00",
+        managerId: "manager-1",
+      })
+    ).resolves.toBeUndefined();
   });
 
   it("solicita abono com multipart no endpoint correto", async () => {

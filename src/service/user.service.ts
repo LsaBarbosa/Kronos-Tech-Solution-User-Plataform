@@ -29,14 +29,14 @@ export const fetchUserData = async (): Promise<UserData> => {
 /**
  * Atualiza o e-mail do usuário.
  */
-export const updateEmail = async (employeeId: string, newEmail: string): Promise<void> => {
+export const updateEmail = async (_employeeId: string, newEmail: string): Promise<void> => {
   await api.patch(buildRoute(API_ROUTES.EMPLOYEE, "update-own-profile"), { email: newEmail });
 };
 
 /**
  * Atualiza o telefone do usuário.
  */
-export const updatePhone = async (employeeId: string, newPhone: string): Promise<void> => {
+export const updatePhone = async (_employeeId: string, newPhone: string): Promise<void> => {
   await api.patch(buildRoute(API_ROUTES.EMPLOYEE, "update-own-profile"), { phone: cleanNumberString(newPhone) });
 };
 

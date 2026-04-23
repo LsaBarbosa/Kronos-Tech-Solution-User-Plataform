@@ -10,7 +10,6 @@ import Header from "@/components/Header";
 import Sidebar from "@/components/Sidebar";
 // 🚀 ADICIONADO Loader2 para o spinner
 import { Info, Save, ZapOff, Loader2 } from "lucide-react"; 
-import { API_BASE_URL } from "@/config/api";
 
 // 💡 NOVO: Componente de Filtros Modular
 import { RelatorioFiltros } from "@/pages/RelatorioFiltros"; 
@@ -26,6 +25,12 @@ import {
     DetailedReportItem,
     Employee
 } from "@/utils/report-utils"; 
+import {
+    fetchDetailedReport,
+    fetchReportEmployees,
+    toggleRecordActivate,
+    updateRecordStatus,
+} from "@/service/records.service";
 
 // O nome do componente foi mantido como StatusRegistro.
 const StatusRegistro = () => {
@@ -113,27 +118,15 @@ const StatusRegistro = () => {
             }
 
             const activeStatus = employeeActive === "active";
-            const url = `${API_BASE_URL}employee?active=${activeStatus}`;
-
-            const response = await fetch(url, {
-                method: "GET",
-                headers: {
-                    "Content-Type": "application/json",
-                    Authorization: `Bearer ${token}`,
-                },
-            });
-
-            if (response.ok) {
-                const data = await response.json();
-                setEmployees(data.employees || []);
-                // 💡 CORREÇÃO: Lógica de verificação de funcionário selecionado
-                if (!employees.some(emp => emp.employeeId === selectedEmployee) && data.employees.length > 0) {
-                    setSelectedEmployee(data.employees[0].employeeId); 
-                } else if (!selectedEmployee && data.employees.length > 0) {
-                    setSelectedEmployee(data.employees[0].employeeId);
-                } else if (!selectedEmployee) {
-                    setSelectedEmployee("");
-                }
+            const data = await fetchReportEmployees(activeStatus);
+            setEmployees(data);
+            // 💡 CORREÇÃO: Lógica de verificação de funcionário selecionado
+            if (!employees.some(emp => emp.employeeId === selectedEmployee) && data.length > 0) {
+                setSelectedEmployee(data[0].employeeId); 
+            } else if (!selectedEmployee && data.length > 0) {
+                setSelectedEmployee(data[0].employeeId);
+            } else if (!selectedEmployee) {
+                setSelectedEmployee("");
             }
         } catch (error) {
             console.error("Erro ao buscar funcionários:", error);
@@ -154,11 +147,6 @@ const StatusRegistro = () => {
         setIsLoading(true); // 🚀 ATIVA O LOADING NO INÍCIO DA BUSCA
 
         try {
-            const token = localStorage.getItem("token");
-            if (!token) {
-                throw new Error("Token de autenticação não encontrado.");
-            }
-
             // A conversão de data é feita aqui. O RelatorioFiltros lida com a seleção.
             const formattedDates = selectedDates.map(date => {
                 const day = String(date.getDate()).padStart(2, '0');
@@ -174,27 +162,10 @@ const StatusRegistro = () => {
                 statuses: status, 
                 dates: formattedDates,
             };
-
-            const apiUrl = new URL(`${API_BASE_URL}records/report`, window.location.origin);
-            if (selectedEmployee) {
-                apiUrl.searchParams.append("employeeId", selectedEmployee);
-            }
-
-            const response = await fetch(apiUrl.toString(), {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                    Authorization: `Bearer ${token}`,
-                },
-                body: JSON.stringify(requestBody),
+            const data = await fetchDetailedReport({
+                ...requestBody,
+                employeeId: selectedEmployee || undefined,
             });
-
-            if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.detail || "Erro ao buscar o relatório. Tente novamente mais tarde.");
-            }
-
-            const data = await response.json();
 
             if (data.length === 0) {
                 setReportData([]);
@@ -254,27 +225,7 @@ const StatusRegistro = () => {
         setIsSavingStatus(true); // 🚀 ATIVA O LOADING DO BOTÃO SALVAR
         
         try {
-            const token = localStorage.getItem("token");
-            if (!token) {
-                throw new Error("Token de autenticação não encontrado.");
-            }
-
-            const endpoint = `${API_BASE_URL}records/update/status/${employeeId}/${timeRecordId}`;
-
-            const response = await fetch(endpoint, {
-                method: "PUT",
-                headers: {
-                    "Content-Type": "application/json",
-                    Authorization: `Bearer ${token}`,
-                },
-                body: JSON.stringify({ statusRecord: statusRecord }),
-            });
-
-
-            if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.detail || "Erro ao atualizar o status do registro.");
-            }
+            await updateRecordStatus(employeeId, timeRecordId, { statusRecord });
 
             toast({
                 title: "Sucesso",
@@ -317,26 +268,7 @@ const StatusRegistro = () => {
         setIsTogglingActivate(true); // 🚀 ATIVA O LOADING DO BOTÃO TOGGLE
 
         try {
-            const token = localStorage.getItem("token");
-            if (!token) {
-                throw new Error("Token de autenticação não encontrado.");
-            }
-
-            // Endpoint conforme informação do backend: PATCH records/toggle-activate/{employeeId}/{timeRecordId}
-            const endpoint = `${API_BASE_URL}records/toggle-activate/${employeeId}/${timeRecordId}`;
-
-            const response = await fetch(endpoint, {
-                method: "PUT", 
-                headers: {
-                    "Content-Type": "application/json",
-                    Authorization: `Bearer ${token}`,
-                },
-            });
-
-            if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.detail || `Erro ao ${currentAction.toLowerCase()} o registro de ponto.`);
-            }
+            await toggleRecordActivate(employeeId, timeRecordId);
 
             toast({
                 title: "Sucesso",

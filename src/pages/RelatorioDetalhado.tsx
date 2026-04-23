@@ -23,7 +23,12 @@ import {
     getTranslatedStatus,
     formatDateWithDayOfWeek,
 } from "@/utils/report-utils";
-import { API_BASE_URL } from "@/config/api";
+import {
+    fetchDetailedReport,
+    fetchManagerOptions,
+    fetchReportEmployees,
+    updateTimeRecord,
+} from "@/service/records.service";
 
 // Sub-componentes
 import { ResultadosRelatorioDetalhado } from "@/components/ResultadosRelatorioDetalhado";
@@ -173,18 +178,9 @@ const RelatorioDetalhado = () => {
             }
 
             const activeStatus = employeeActive === "active";
-            const url = employeeActive ? `${API_BASE_URL}employee?active=${activeStatus}` : `${API_BASE_URL}employee`;
-
-            const response = await fetch(url, {
-                method: "GET",
-                headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-            });
-
-            if (response.ok) {
-                const data = await response.json();
-                setEmployees(data.employees || []);
-                if (!selectedEmployee) setSelectedEmployee("");
-            }
+            const data = await fetchReportEmployees(activeStatus);
+            setEmployees(data);
+            if (!selectedEmployee) setSelectedEmployee("");
         } catch (error) {
             console.error("Erro ao buscar funcionários:", error);
         }
@@ -192,23 +188,10 @@ const RelatorioDetalhado = () => {
 
     const fetchManagers = async () => {
         try {
-            const token = localStorage.getItem("token");
-            if (!token) throw new Error("Token de autenticação não encontrado.");
-
-            const response = await fetch(`${API_BASE_URL}users/search`, {
-                method: "GET",
-                headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-            });
-
-            if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.detail || "Erro ao buscar usuários.");
-            }
-
-            const data = await response.json();
-            const filteredManagers: Manager[] = data.users
-                .filter((user: any) => user.role === "MANAGER")
-                .map((user: any) => ({ id: user.userId, name: user.username }));
+            const filteredManagers: Manager[] = (await fetchManagerOptions()).map((manager) => ({
+                id: manager.userId,
+                name: manager.username,
+            }));
             setManagers(filteredManagers);
         } catch (error) {
             console.error("Erro ao buscar gerentes:", error);
@@ -227,9 +210,6 @@ const RelatorioDetalhado = () => {
         setIsLoading(true);
 
         try {
-            const token = localStorage.getItem("token");
-            if (!token) throw new Error("Token não encontrado.");
-
             const formattedDates = selectedDates.map(date => format(date, "dd-MM-yyyy"));
             const requestBody = {
                 reference: referenceTime,
@@ -238,21 +218,10 @@ const RelatorioDetalhado = () => {
                 ...(status.length > 0 && { statuses: status }),
             };
 
-            const apiUrl = new URL(`${API_BASE_URL}records/report`, window.location.origin);
-            if (selectedEmployee) apiUrl.searchParams.append("employeeId", selectedEmployee);
-
-            const response = await fetch(apiUrl.toString(), {
-                method: "POST",
-                headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-                body: JSON.stringify(requestBody),
+            const data: DetailedReportItem[] = await fetchDetailedReport({
+                ...requestBody,
+                employeeId: selectedEmployee || undefined,
             });
-
-            if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.detail || "Erro ao buscar o relatório.");
-            }
-
-            const data: DetailedReportItem[] = await response.json();
 
             if (data.length === 0) {
                 toast({ title: "Aviso", description: "Não há registros para os filtros selecionados", variant: "default" });
@@ -549,8 +518,6 @@ const RelatorioDetalhado = () => {
 
     const handleSaveRecord = async (data: EditRecordFormData) => {
         try {
-            const token = localStorage.getItem("token");
-            if (!token) throw new Error("Token de autenticação não encontrado.");
             if (!selectedRecord || !selectedRecord.timeRecordId) throw new Error("Registro não encontrado.");
 
             const formatDate = (dateString: string) => {
@@ -566,17 +533,7 @@ const RelatorioDetalhado = () => {
                 managerId: data.managerId,
             };
 
-            const endpoint = `${API_BASE_URL}records/update/time-record/${selectedRecord.timeRecordId}`;
-            const response = await fetch(endpoint, {
-                method: "PUT",
-                headers: { "Content-Type": "application/json", Authorization: `Bearer ${token}` },
-                body: JSON.stringify(requestBody),
-            });
-
-            if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.detail || "Erro ao solicitar a aprovação.");
-            }
+            await updateTimeRecord(selectedRecord.timeRecordId, requestBody);
 
             toast({ title: "Sucesso", description: "Solicitação enviada para aprovação." });
             setEditModalOpen(false);

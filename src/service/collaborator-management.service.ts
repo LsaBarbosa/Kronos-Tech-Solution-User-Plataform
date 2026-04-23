@@ -38,6 +38,23 @@ export interface UserCreationPayload {
   username: string;
   role: "MANAGER" | "PARTNER";
   employeeId: string;
+  password?: string;
+}
+
+export interface ManagerCreationPayload {
+  companyId: string;
+  fullName: string;
+  cpf: string;
+  jobPosition: string;
+  email: string;
+  salary: number;
+  phone: string;
+  address: CollaboratorAddressPayload;
+  scheduleType: string;
+  scaleStartDate: string | null;
+  preferredDayOff: string | null;
+  weekendOffIndex: number | null;
+  fixedWorkDays: string[];
 }
 
 const checkAvailabilityByStatus = async (
@@ -85,6 +102,19 @@ export const createUser = async (payload: UserCreationPayload): Promise<void> =>
   await api.post(`/${API_ROUTES.USERS}`, payload);
 };
 
+export const createManager = async (
+  payload: ManagerCreationPayload
+): Promise<CollaboratorCreationResponse> => {
+  const response = await api.post<CollaboratorCreationResponse>(`/${API_ROUTES.EMPLOYEE}`, payload);
+  const data = extractObject<CollaboratorCreationResponse>(response.data) as CollaboratorCreationResponse;
+
+  if (!data.employeeId) {
+    throw new Error("Resposta de criação de colaborador sem employeeId.");
+  }
+
+  return data;
+};
+
 export const fetchCompanyList = async (): Promise<CompanyListItem[]> => {
   const response = await api.get<{ companies?: Array<{ id?: string; companyId?: string; name?: string }> }>(`/${API_ROUTES.COMPANIES}`);
   const companies = extractArray<{ id?: string; companyId?: string; name?: string }>(response.data, ["companies"]);
@@ -95,9 +125,25 @@ export const fetchCompanyList = async (): Promise<CompanyListItem[]> => {
   }));
 };
 
-export const fetchEmployeeList = async (): Promise<EmployeeData[]> => {
-  const response = await api.get<{ employees?: EmployeeData[] }>(`/${API_ROUTES.EMPLOYEE}`);
+export const fetchEmployeeList = async (active: boolean | null = true): Promise<EmployeeData[]> => {
+  const response = await api.get<{ employees?: EmployeeData[] }>(`/${API_ROUTES.EMPLOYEE}`, {
+    params: active !== null ? { active } : undefined,
+  });
   return extractArray<EmployeeData>(response.data, ["employees"]);
+};
+
+export const updateCollaborator = async (
+  employeeId: string,
+  payload: Record<string, unknown>
+): Promise<void> => {
+  await api.patch(buildRoute(API_ROUTES.EMPLOYEE, "manager", "update-employee", employeeId), payload);
+};
+
+export const updateUser = async (
+  userId: string,
+  payload: Record<string, unknown>
+): Promise<void> => {
+  await api.patch(buildRoute(API_ROUTES.USERS, "search", userId), payload);
 };
 
 export const toggleEmployeeStatus = async (
@@ -111,4 +157,13 @@ export const toggleEmployeeStatus = async (
 
 export const deleteEmployee = async (employeeId: string): Promise<void> => {
   await api.delete(buildRoute(API_ROUTES.EMPLOYEES, employeeId));
+};
+
+export const toggleUserStatus = async (
+  userId: string,
+  currentStatus: boolean
+): Promise<void> => {
+  await api.patch(buildRoute(API_ROUTES.USERS, "toggle-activate", userId), {
+    active: !currentStatus,
+  });
 };
