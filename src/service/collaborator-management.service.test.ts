@@ -3,20 +3,19 @@ import { describe, expect, it } from "vitest";
 import { server } from "@/test/mocks/server";
 import {
   checkCpfAvailability,
-  deleteEmployee,
   checkUsernameAvailability,
   createCollaborator,
   createManager,
   fetchCompanyList,
   fetchEmployeeList,
   createUser,
-  toggleEmployeeStatus,
   toggleUserStatus,
   updateCollaborator,
   updateUser,
   type CollaboratorCreationPayload,
   type ManagerCreationPayload,
   type UserCreationPayload,
+  type UserUpdatePayload,
 } from "./collaborator-management.service";
 
 const collaboratorPayload: CollaboratorCreationPayload = {
@@ -46,6 +45,11 @@ const userPayload: UserCreationPayload = {
   username: "maria.silva",
   role: "PARTNER",
   employeeId: "emp-123",
+};
+
+const userUpdatePayload: UserUpdatePayload = {
+  username: "maria.silva",
+  enabled: false,
 };
 
 const managerPayload: ManagerCreationPayload = {
@@ -177,20 +181,14 @@ describe("collaborator-management.service", () => {
       }),
       http.patch("*/users/search/user-1", async ({ request }) => {
         const body = await request.json();
-        expect(body).toMatchObject({ username: "maria.silva" });
+        expect(body).toMatchObject(userUpdatePayload);
         return new HttpResponse(null, { status: 204 });
       }),
       http.patch("*/users/toggle-activate/user-1", async ({ request }) => {
         const body = await request.json();
         expect(body).toEqual({ active: false });
         return new HttpResponse(null, { status: 204 });
-      }),
-      http.patch("*/employees/emp-1/toggle-status", async ({ request }) => {
-        const body = await request.json();
-        expect(body).toEqual({ active: false });
-        return new HttpResponse(null, { status: 204 });
-      }),
-      http.delete("*/employees/emp-1", () => new HttpResponse(null, { status: 204 }))
+      })
     );
 
     await expect(fetchEmployeeList()).resolves.toEqual([
@@ -202,9 +200,7 @@ describe("collaborator-management.service", () => {
     ]);
 
     await expect(updateCollaborator("emp-1", { fullName: "Maria Silva" })).resolves.toBeUndefined();
-    await expect(updateUser("user-1", { username: "maria.silva" })).resolves.toBeUndefined();
+    await expect(updateUser("user-1", userUpdatePayload)).resolves.toBeUndefined();
     await expect(toggleUserStatus("user-1", true)).resolves.toBeUndefined();
-    await expect(toggleEmployeeStatus("emp-1", true)).resolves.toBeUndefined();
-    await expect(deleteEmployee("emp-1")).resolves.toBeUndefined();
   });
 });

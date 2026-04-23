@@ -17,8 +17,7 @@ import {
 import { 
     fetchCompanyList, 
     updateCompany, 
-    toggleCompanyStatus, 
-    getAuthToken
+    toggleCompanyStatus
 } from "@/service/company.service";
 
 // --- SCHEMAS DE VALIDAÇÃO ---

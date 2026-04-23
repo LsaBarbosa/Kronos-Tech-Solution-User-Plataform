@@ -1,152 +1,129 @@
-// src/hooks/useMessages.ts
-
-import { useState, useEffect, useCallback } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { useToast } from "@/hooks/use-toast"; 
+import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
+import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/context/AuthContext";
 import { Message } from "@/types/message";
 import { fetchMessages, deleteMessage } from "@/service/message.service";
 import { getServiceErrorMessage, isAuthServiceError } from "@/service/helpers/service-error.helper";
 
-type UserRole = 'MANAGER' | 'PARTNER' | 'CTO' | '';
+type UserRole = "MANAGER" | "PARTNER" | "CTO" | "";
 
 interface UseMessagesReturn {
-    // Estados de Dados
-    messages: Message[];
-    userRole: UserRole;
-    selectedMessage: Message | null;
-    // Estados de UI
-    isLoading: boolean;
-    isDeleting: boolean;
-    isDialogOpen: boolean;
-    isConfirmDeleteDialogOpen: boolean;
-    error: string | null;
-    // Handlers
-    handleOpenMessage: (message: Message) => void;
-    handleCloseDialog: () => void;
-    handleConfirmDelete: () => void;
-    handleCancelDelete: () => void;
-    handleDeleteMessage: () => Promise<void>;
+  messages: Message[];
+  userRole: UserRole;
+  selectedMessage: Message | null;
+  isLoading: boolean;
+  isDeleting: boolean;
+  isDialogOpen: boolean;
+  isConfirmDeleteDialogOpen: boolean;
+  error: string | null;
+  handleOpenMessage: (message: Message) => void;
+  handleCloseDialog: () => void;
+  handleConfirmDelete: () => void;
+  handleCancelDelete: () => void;
+  handleDeleteMessage: () => Promise<void>;
 }
 
 export const useMessages = (): UseMessagesReturn => {
-    const [messages, setMessages] = useState<Message[]>([]);
-    const [selectedMessage, setSelectedMessage] = useState<Message | null>(null);
-    const [isDialogOpen, setIsDialogOpen] = useState(false);
-    const [isConfirmDeleteDialogOpen, setIsConfirmDeleteDialogOpen] = useState(false); 
-    const [isDeleting, setIsDeleting] = useState(false);
-    const [isLoading, setIsLoading] = useState(true);
-    const [error, setError] = useState<string | null>(null);
-    const [userRole, setUserRole] = useState<UserRole>(''); 
+  const [selectedMessage, setSelectedMessage] = useState<Message | null>(null);
+  const [isDialogOpen, setIsDialogOpen] = useState(false);
+  const [isConfirmDeleteDialogOpen, setIsConfirmDeleteDialogOpen] = useState(false);
 
-    const navigate = useNavigate();
-    const { toast } = useToast();
-    const { role, logout } = useAuth();
+  const navigate = useNavigate();
+  const { toast } = useToast();
+  const { role, logout } = useAuth();
+  const queryClient = useQueryClient();
 
-    // --- FUNÇÕES DE LÓGICA / API ---
-    
-    const loadMessages = useCallback(async () => {
-        setIsLoading(true);
-        setError(null);
-        setUserRole(role as UserRole);
-        
-        try {
-            const data = await fetchMessages();
-            setMessages(data);
-        } catch (err: any) {
-            setError(getServiceErrorMessage(err, "Não foi possível carregar as mensagens."));
-            if (isAuthServiceError(err)) {
-                 logout();
-                 navigate("/login"); 
-            }
-            toast({
-                title: "Erro ao buscar mensagens",
-                description: getServiceErrorMessage(err, "Não foi possível carregar as mensagens."),
-                variant: "destructive",
-            });
-        } finally {
-            setIsLoading(false);
-        }
-    }, [logout, navigate, role, toast]);
+  const messagesQuery = useQuery({
+    queryKey: ["messages"],
+    queryFn: fetchMessages,
+  });
 
+  const deleteMutation = useMutation({
+    mutationFn: deleteMessage,
+    onSuccess: async () => {
+      queryClient.setQueryData<Message[]>(["messages"], (current = []) =>
+        current.filter((message) => message.messageId !== selectedMessage?.messageId)
+      );
+      await queryClient.invalidateQueries({ queryKey: ["messages"] });
+      setIsDialogOpen(false);
+      setIsConfirmDeleteDialogOpen(false);
+      setSelectedMessage(null);
+      toast({
+        title: "Sucesso!",
+        description: "Mensagem deletada com sucesso.",
+      });
+    },
+    onError: (err) => {
+      console.error("Erro ao deletar mensagem:", err);
+      toast({
+        title: "Erro ao deletar mensagem",
+        description: getServiceErrorMessage(err, "Falha ao deletar a mensagem."),
+        variant: "destructive",
+      });
+    },
+  });
 
-    const handleDeleteMessage = useCallback(async () => {
-        if (!selectedMessage) return;
+  const handleOpenMessage = useCallback((message: Message) => {
+    setSelectedMessage(message);
+    setIsDialogOpen(true);
+  }, []);
 
-        try {
-            setIsDeleting(true); 
-            const messageId = selectedMessage.messageId;
-            
-            await deleteMessage(messageId); // 💡 Chama o Serviço Único
+  const handleCloseDialog = useCallback(() => {
+    setIsDialogOpen(false);
+    setSelectedMessage(null);
+    setIsConfirmDeleteDialogOpen(false);
+  }, []);
 
-            setMessages(prevMessages => prevMessages.filter(msg => msg.messageId !== messageId));
-            
-            setIsDialogOpen(false);
-            setIsConfirmDeleteDialogOpen(false);
-            
-            toast({
-                title: "Sucesso!",
-                description: "Mensagem deletada com sucesso.",
-            });
-        } catch (err: any) {
-            console.error("Erro ao deletar mensagem:", err);
-            const message = getServiceErrorMessage(err, "Falha ao deletar a mensagem.");
-            toast({
-                title: "Erro ao deletar mensagem",
-                description: message,
-                variant: "destructive",
-            });
-        } finally {
-            setIsDeleting(false);
-        }
-    }, [selectedMessage, toast]);
+  const handleConfirmDelete = useCallback(() => {
+    if (selectedMessage) {
+      setIsConfirmDeleteDialogOpen(true);
+      setIsDialogOpen(false);
+    }
+  }, [selectedMessage]);
 
+  const handleCancelDelete = useCallback(() => {
+    setIsConfirmDeleteDialogOpen(false);
+    if (selectedMessage) setIsDialogOpen(true);
+  }, [selectedMessage]);
 
-    // --- HANDLERS DE UI ---
-    
-    const handleOpenMessage = useCallback((message: Message) => {
-        setSelectedMessage(message);
-        setIsDialogOpen(true);
-    }, []);
+  const handleDeleteMessage = useCallback(async () => {
+    if (!selectedMessage) return;
 
-    const handleCloseDialog = useCallback(() => {
-        setIsDialogOpen(false);
-        setSelectedMessage(null);
-        setIsConfirmDeleteDialogOpen(false); 
-    }, []);
-    
-    const handleConfirmDelete = useCallback(() => { 
-        if (selectedMessage) {
-            setIsConfirmDeleteDialogOpen(true);
-            setIsDialogOpen(false); 
-        }
-    }, [selectedMessage]);
-    
-    const handleCancelDelete = useCallback(() => { 
-        setIsConfirmDeleteDialogOpen(false);
-        if (selectedMessage) setIsDialogOpen(true);
-    }, [selectedMessage]);
-    
-    
-    // --- EFEITOS ---
-    useEffect(() => {
-        loadMessages();
-    }, [loadMessages]);
+    try {
+      await deleteMutation.mutateAsync(selectedMessage.messageId);
+    } catch (err) {
+      if (isAuthServiceError(err)) {
+        logout();
+        navigate("/login");
+      }
+    }
+  }, [deleteMutation, logout, navigate, selectedMessage]);
 
+  const error = messagesQuery.error
+    ? getServiceErrorMessage(messagesQuery.error, "Não foi possível carregar as mensagens.")
+    : null;
 
-    return {
-        messages,
-        userRole,
-        selectedMessage,
-        isLoading,
-        isDeleting,
-        isDialogOpen,
-        isConfirmDeleteDialogOpen,
-        error,
-        handleOpenMessage,
-        handleCloseDialog, 
-        handleConfirmDelete,
-        handleCancelDelete,
-        handleDeleteMessage,
-    };
+  useEffect(() => {
+    if (!messagesQuery.error || !isAuthServiceError(messagesQuery.error)) return;
+    logout();
+    navigate("/login");
+  }, [messagesQuery.error, logout, navigate]);
+
+  return {
+    messages: messagesQuery.data ?? [],
+    userRole: (role as UserRole) || "",
+    selectedMessage,
+    isLoading: messagesQuery.isLoading,
+    isDeleting: deleteMutation.isPending,
+    isDialogOpen,
+    isConfirmDeleteDialogOpen,
+    error,
+    handleOpenMessage,
+    handleCloseDialog,
+    handleConfirmDelete,
+    handleCancelDelete,
+    handleDeleteMessage,
+  };
 };

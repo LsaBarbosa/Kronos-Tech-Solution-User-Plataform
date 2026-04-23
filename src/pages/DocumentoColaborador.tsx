@@ -10,6 +10,7 @@ import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox"; 
 import { Upload, FileText, X, UserCheck, UserX, Info, MessageSquareWarningIcon, LucideFileWarning, FileWarning } from "lucide-react";
 import { useToast } from "@/hooks/use-toast";
+import { useAuth } from "@/context/AuthContext";
 import {
   fetchEmployeesForSelection,
   uploadDocument,
@@ -26,21 +27,6 @@ const MAX_COMPRESS_SIZE_MB = 3; // 3MB target for image compression
 const ALLOWED_MIME_TYPES = ['.pdf', '.jpg', '.jpeg', '.png', '.docx', '.doc'];
 const ALLOWED_ACCEPT_STRING = ALLOWED_MIME_TYPES.join(', ');
 
-
-// Nova função para decodificar o token JWT
-const decodeToken = (token: string) => {
-  try {
-    const base64Url = token.split('.')[1];
-    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-    const payload = decodeURIComponent(atob(base64).split('').map(function (c) {
-      return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
-    }).join(''));
-    return JSON.parse(payload);
-  } catch (error) {
-    console.error("Falha ao decodificar o token", error);
-    return null;
-  }
-};
 
 // NOVO: Função para compressão de imagem (Target 3MB)
 const compressImage = (file: File, maxSizeMB: number = MAX_COMPRESS_SIZE_MB): Promise<File> => {
@@ -117,23 +103,22 @@ export default function EnviarDocumentos() {
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
   const handleToggleSidebar = useCallback(() => setSidebarOpen((prev) => !prev), []);
+  const { status: authStatus, role, user } = useAuth();
 
   useEffect(() => {
-    const token = localStorage.getItem('token');
-    if (!token) {
+    if (authStatus !== "authenticated") {
       return;
     }
 
-    const decoded = decodeToken(token);
-    const userRole = decoded?.role; 
-    const userId = decoded?.employeeId;
-    const userName = decoded?.fullName;
+    const userRole = role;
+    const userId = user?.profile?.employeeId || user?.account.employeeId || "";
+    const userName = user?.profile?.fullName || "";
 
     const isManager = userRole === 'MANAGER'; 
     
     setIsPartner(userRole === 'PARTNER');
-    setCurrentUserId(userId || "");
-    setCurrentUserName(userName || "");
+    setCurrentUserId(userId);
+    setCurrentUserName(userName);
     setUserRole(userRole || "");
 
     // AJUSTE CRÍTICO: Definir selectedEmployeeId automaticamente para NÃO-MANAGERS
@@ -179,7 +164,7 @@ export default function EnviarDocumentos() {
 
         fetchEmployees();
     }
-  }, [activeEmployeeFilter]);
+  }, [activeEmployeeFilter, authStatus, role, user]);
 
   const handleDragOver = (e: React.DragEvent) => {
     e.preventDefault();

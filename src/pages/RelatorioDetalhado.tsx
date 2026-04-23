@@ -2,8 +2,7 @@
 
 import React, { useState, useEffect, useCallback } from "react";
 import { useToast } from "@/hooks/use-toast";
-import Header from "@/components/Header";
-import Sidebar from "@/components/Sidebar";
+import PageShell from "@/components/PageShell";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { useForm } from "react-hook-form";
@@ -18,7 +17,6 @@ import {
     Manager,
     EditRecordFormData,
     editRecordSchema,
-    decodeToken,
     isHoliday,
     getTranslatedStatus,
     formatDateWithDayOfWeek,
@@ -39,6 +37,7 @@ import { Card } from "@/components/ui/card";
 import { RelatorioFiltros } from "./RelatorioFiltros";
 import { Info } from "lucide-react";
 import { Link } from "react-router-dom";
+import { useAuth } from "@/context/AuthContext";
 
 // === FUNÇÃO UTILITÁRIA PARA GERAÇÃO DE CSV ===
 const generateCSV = (data: any[], headers: string[], fileName: string) => {
@@ -82,6 +81,7 @@ const RelatorioDetalhado = () => {
     const [managers, setManagers] = useState<Manager[]>([]);
     const [isPartner, setIsPartner] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
+    const { status: authStatus, role, user } = useAuth();
 
     // Verifica se há dados para habilitar botões de download
     const hasResults = reportData.length > 0;
@@ -159,14 +159,12 @@ const RelatorioDetalhado = () => {
     };
 
     const fetchEmployees = useCallback(async () => {
-        try {
-            const token = localStorage.getItem("token");
-            if (!token) return;
+        if (authStatus !== "authenticated") return;
 
-            const decoded = decodeToken(token);
-            const userRole = decoded?.role;
-            const userId = decoded?.employeeId;
-            const userName = decoded?.fullName;
+        try {
+            const userRole = role;
+            const userId = user?.profile?.employeeId || user?.account.employeeId || "";
+            const userName = user?.profile?.fullName || "";
 
             if (userRole === "PARTNER") {
                 setIsPartner(true);
@@ -184,7 +182,7 @@ const RelatorioDetalhado = () => {
         } catch (error) {
             console.error("Erro ao buscar funcionários:", error);
         }
-    }, [employeeActive, selectedEmployee]);
+    }, [authStatus, employeeActive, role, selectedEmployee, user]);
 
     const fetchManagers = async () => {
         try {
@@ -549,18 +547,12 @@ const RelatorioDetalhado = () => {
     const handleToggleSidebar = () => setSidebarOpen((prev) => !prev);
 
     return (
-        <div className="min-h-screen bg-background relative overflow-hidden">
-            <div className="fixed inset-0 z-0">
-                <div className="absolute inset-0 opacity-5" style={{ background: 'linear-gradient(-45deg, hsl(var(--black-primary)), hsl(var(--primary)), hsl(var(--black-primary)), hsl(var(--primary)))', backgroundSize: '400% 400%', animation: 'gradient-flow 15s ease-in-out infinite' }} />
-                {/* Background animations (mantidas) */}
-            </div>
-
-            <Sidebar isOpen={sidebarOpen} toggleSidebar={handleToggleSidebar} />
-
-            <div className="flex-1 flex flex-col overflow-hidden">
-                <Header toggleSidebar={handleToggleSidebar} />
-
-                <main className="pt-16 mobile-container py-4 sm:py-20 space-y-6 sm:space-y-8 relative z-10">
+        <PageShell
+            sidebarOpen={sidebarOpen}
+            toggleSidebar={handleToggleSidebar}
+            mainClassName="pt-16 mobile-container py-4 sm:py-20 space-y-6 sm:space-y-8 relative z-10"
+        >
+                <div className="space-y-6 sm:space-y-8 relative z-10">
                     <div className="mb-8">
                         <h1 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-foreground to-primary bg-clip-text text-transparent page-title">
                             Relatório De Horas
@@ -616,9 +608,8 @@ const RelatorioDetalhado = () => {
                             form={form}
                         />
                     </Card>
-                </main>
-            </div>
-        </div>
+                </div>
+        </PageShell>
     );
 };
 

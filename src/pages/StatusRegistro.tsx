@@ -18,7 +18,6 @@ import { ResultadosRelatorioDetalhado } from "@/components/ResultadosRelatorioDe
 
 // 💡 NOVO: Importando utilitários centralizados
 import { 
-    decodeToken, 
     statusOptions, 
     getStatusColor, 
     getTranslatedStatus,
@@ -31,6 +30,7 @@ import {
     toggleRecordActivate,
     updateRecordStatus,
 } from "@/service/records.service";
+import { useAuth } from "@/context/AuthContext";
 
 // O nome do componente foi mantido como StatusRegistro.
 const StatusRegistro = () => {
@@ -55,6 +55,7 @@ const StatusRegistro = () => {
     const [isTogglingActivate, setIsTogglingActivate] = useState(false); // Para o botão Inativar/Ativar
 
     const { toast } = useToast();
+    const { status: authStatus, role, user } = useAuth();
 
     // ESTADOS DO MODAL DE EDIÇÃO DE STATUS (Ação Principal da Página)
     const [editModalOpen, setEditModalOpen] = useState(false);
@@ -99,14 +100,12 @@ const StatusRegistro = () => {
    
     // 1. Busca de Funcionários (Mantida e reutilizada)
     const fetchEmployees = useCallback(async () => {
-        try {
-            const token = localStorage.getItem("token");
-            if (!token) return;
+        if (authStatus !== "authenticated") return;
 
-            const decoded = decodeToken(token);
-            const userRole = decoded?.role;
-            const userId = decoded?.employeeId;
-            const userName = decoded?.fullName;
+        try {
+            const userRole = role;
+            const userId = user?.profile?.employeeId || user?.account.employeeId || "";
+            const userName = user?.profile?.fullName || "";
 
             if (userRole === "PARTNER") {
                 setIsPartner(true);
@@ -131,7 +130,7 @@ const StatusRegistro = () => {
         } catch (error) {
             console.error("Erro ao buscar funcionários:", error);
         }
-    }, [employeeActive, selectedEmployee, employees]);
+    }, [authStatus, employeeActive, role, selectedEmployee, user, employees]);
 
     // 2. Busca de Registros (Lógica de Search Original)
     const handleSearch = async () => {

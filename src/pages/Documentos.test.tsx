@@ -76,6 +76,26 @@ vi.mock("sonner", () => ({
   },
 }));
 
+vi.mock("@/context/AuthContext", () => ({
+  useAuth: () => ({
+    status: "authenticated",
+    role: "PARTNER",
+    user: {
+      account: {
+        userId: "user-1",
+        username: "maria",
+        role: "PARTNER",
+        active: true,
+        employeeId: "emp-1",
+      },
+      profile: {
+        employeeId: "emp-1",
+        fullName: "Maria Silva",
+      },
+    },
+  }),
+}));
+
 vi.mock("@/service/document.service", () => ({
   deleteDocument: vi.fn(),
   downloadDocument: vi.fn(),
@@ -132,7 +152,7 @@ describe("Documentos", () => {
 
     expect(screen.getByRole("button", { name: /Buscar Documentos/i })).toBeDisabled();
 
-    await user.selectOptions(screen.getByRole("combobox"), "PAYSLIP");
+    await user.selectOptions(screen.getAllByRole("combobox")[2], "PAYSLIP");
 
     await user.click(screen.getByRole("button", { name: /Buscar Documentos/i }));
 
@@ -157,7 +177,7 @@ describe("Documentos", () => {
       </MemoryRouter>
     );
 
-    await user.selectOptions(screen.getByRole("combobox"), "PAYSLIP");
+    await user.selectOptions(screen.getAllByRole("combobox")[2], "PAYSLIP");
     await user.click(screen.getByRole("button", { name: /Buscar Documentos/i }));
 
     await waitFor(() => {

@@ -41,6 +41,13 @@ export interface UserCreationPayload {
   password?: string;
 }
 
+export interface UserUpdatePayload {
+  username?: string;
+  password?: string;
+  role?: "MANAGER" | "PARTNER";
+  enabled?: boolean;
+}
+
 export interface ManagerCreationPayload {
   companyId: string;
   fullName: string;
@@ -141,22 +148,9 @@ export const updateCollaborator = async (
 
 export const updateUser = async (
   userId: string,
-  payload: Record<string, unknown>
+  payload: UserUpdatePayload
 ): Promise<void> => {
   await api.patch(buildRoute(API_ROUTES.USERS, "search", userId), payload);
-};
-
-export const toggleEmployeeStatus = async (
-  employeeId: string,
-  currentStatus: boolean
-): Promise<void> => {
-  await api.patch(buildRoute(API_ROUTES.EMPLOYEES, employeeId, "toggle-status"), {
-    active: !currentStatus,
-  });
-};
-
-export const deleteEmployee = async (employeeId: string): Promise<void> => {
-  await api.delete(buildRoute(API_ROUTES.EMPLOYEES, employeeId));
 };
 
 export const toggleUserStatus = async (

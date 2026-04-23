@@ -65,16 +65,10 @@ const downloadFiscalBlob = (
 };
 
 export const FiscalService = {
-  downloadMirror: async (startDate: string, endDate: string, targetEmployeeId?: string) => {
+  downloadMirror: async (startDate: string, endDate: string) => {
     try {
-      const params: Record<string, string> = { startDate, endDate };
-
-      if (targetEmployeeId) {
-        params.targetEmployeeId = targetEmployeeId;
-      }
-
       const response = await api.get(FISCAL_ENDPOINTS.mirror, {
-        params,
+        params: { startDate, endDate },
         responseType: "blob",
       });
 
@@ -96,16 +90,9 @@ export const FiscalService = {
     }
   },
 
-  downloadAfd: async (targetEmployeeId?: string) => {
+  downloadAfd: async () => {
     try {
-      const params: Record<string, string> = {};
-
-      if (targetEmployeeId) {
-        params.targetEmployeeId = targetEmployeeId;
-      }
-
       const response = await api.get(FISCAL_ENDPOINTS.afd, {
-        params,
         responseType: "blob",
       });
 
@@ -115,16 +102,10 @@ export const FiscalService = {
     }
   },
 
-  downloadAej: async (startDate: string, endDate: string, targetEmployeeId?: string) => {
+  downloadAej: async (startDate: string, endDate: string) => {
     try {
-      const params: Record<string, string> = { startDate, endDate };
-
-      if (targetEmployeeId) {
-        params.targetEmployeeId = targetEmployeeId;
-      }
-
       const response = await api.get(FISCAL_ENDPOINTS.aej, {
-        params,
+        params: { startDate, endDate },
         responseType: "blob",
       });
 

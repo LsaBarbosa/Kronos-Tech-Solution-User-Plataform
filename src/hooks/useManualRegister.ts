@@ -1,15 +1,12 @@
-// src/hooks/useRequestTimeOff.ts
-
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { format, isBefore, isSameDay } from "date-fns";
 import { useToast } from "../components/ui/use-toast";
-import { UserAccountData } from "../types/user"; 
 import {
-  RequestTimeOffRequestPayload,
   TimeOffFormState,
+  IManagerOption,
 } from "../types/vacation";
-import { listUsers } from "../service/user.service"; 
-import { requestTimeOff } from "../service/records.service";
+import { requestTimeOff, fetchManagerOptions } from "../service/records.service";
 import { getServiceErrorMessage } from "@/service/helpers/service-error.helper";
 
 type TimeOffFormErrors = Partial<Record<keyof TimeOffFormState, string>>;
@@ -29,30 +26,26 @@ export const useRequestManualRegistration = () => {
   const { toast } = useToast();
   const [formState, setFormState] = useState<TimeOffFormState>(defaultFormState);
   
-  const [managers, setManagers] = useState<UserAccountData[]>([]); 
   const [isLoading, setIsLoading] = useState(false);
-  
   const [errors, setErrors] = useState<TimeOffFormErrors>({});
 
+  const managersQuery = useQuery<IManagerOption[]>({
+    queryKey: ["managerOptions"],
+    queryFn: fetchManagerOptions,
+  });
+
   useEffect(() => {
-    const fetchManagers = async () => {
-      try {
-        const allUsers = await listUsers(true); 
-        setManagers(allUsers.filter((user) => user.role === "MANAGER"));
-      } catch (error) {
-        console.error("Erro ao carregar managers:", error);
-        toast({
-          title: "Erro ao carregar",
-          description: getServiceErrorMessage(
-            error,
-            "Não foi possível carregar a lista de gestores. Tente novamente."
-          ),
-          variant: "destructive",
-        });
-      }
-    };
-    fetchManagers();
-  }, [toast]);
+    if (!managersQuery.error) return;
+    console.error("Erro ao carregar managers:", managersQuery.error);
+    toast({
+      title: "Erro ao carregar",
+      description: getServiceErrorMessage(
+        managersQuery.error,
+        "Não foi possível carregar a lista de gestores. Tente novamente."
+      ),
+      variant: "destructive",
+    });
+  }, [managersQuery.error, toast]);
 
   const validateForm = (): boolean => {
     const newErrors: TimeOffFormErrors = {};
@@ -160,7 +153,7 @@ export const useRequestManualRegistration = () => {
 
   return {
     formState,
-    managers,
+    managers: managersQuery.data ?? [],
     isLoading,
     errors,
     handleChange,

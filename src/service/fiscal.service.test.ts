@@ -33,14 +33,13 @@ describe("fiscal.service", () => {
     } as never);
 
     await expect(
-      FiscalService.downloadMirror("2026-04-01", "2026-04-30", "emp-1")
+      FiscalService.downloadMirror("2026-04-01", "2026-04-30")
     ).resolves.toBe("Espelho_2026-04-01_2026-04-30.pdf");
 
     expect(getSpy).toHaveBeenCalledWith("/legal/espelho-ponto", {
       params: {
         startDate: "2026-04-01",
         endDate: "2026-04-30",
-        targetEmployeeId: "emp-1",
       },
       responseType: "blob",
     });
@@ -59,7 +58,6 @@ describe("fiscal.service", () => {
     await expect(FiscalService.downloadAfd()).resolves.toBe("AFD.txt");
 
     expect(getSpy).toHaveBeenCalledWith("/legal/afd", {
-      params: {},
       responseType: "blob",
     });
   });
@@ -108,7 +106,6 @@ describe("fiscal.service", () => {
     await expect(FiscalService.downloadAfd()).rejects.toThrow("Falha inesperada");
 
     expect(getSpy).toHaveBeenCalledWith("/legal/afd", {
-      params: {},
       responseType: "blob",
     });
   });

@@ -540,7 +540,7 @@ const Dashboard = () => {
                                         variant="outline" 
                                         size="sm" 
                                         className="w-full justify-start text-primary hover:bg-primary/40"
-                                        onClick={(e) => { e.stopPropagation(); navigate("/solicitar-Abono"); }}
+                                        onClick={(e) => { e.stopPropagation(); navigate("/solicitar-abono"); }}
                                     >
                                         <TimerReset className="w-4 h-4 mr-2 text-foreground" /> Solicitar Abono de Horas
                                     </Button>

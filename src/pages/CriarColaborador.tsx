@@ -1,15 +1,9 @@
-import { ChangeEvent, useCallback, useState } from "react";
-import { useForm } from "react-hook-form";
-import { zodResolver } from "@hookform/resolvers/zod";
-import * as z from "zod";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { toast } from "@/hooks/use-toast";
 import { ArrowLeft, User, Shield, Loader2, MapPin, CheckCircle, Clock, CalendarDays } from "lucide-react";
-import Header from "@/components/Header";
-import Sidebar from "@/components/Sidebar";
+import PageShell from "@/components/PageShell";
 import {
     Select,
     SelectContent,
@@ -19,494 +13,42 @@ import {
 } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import { Checkbox } from "@/components/ui/checkbox";
-import {
-    checkCpfAvailability,
-    checkUsernameAvailability,
-    createCollaborator,
-    createUser,
-} from "@/service/collaborator-management.service";
-
-const SCHEDULE_TYPES = [
-    { value: "TRADITIONAL_5X2", label: "Tradicional 5x2 (Seg-Sex)" },
-    { value: "SIX_BY_ONE_FIXED", label: "6x1 com Folga Fixa" },
-    { value: "ROTATING_12X36", label: "Plantão 12x36" },
-    { value: "ROTATING_24X72", label: "Plantão 24x72" },
-    { value: "SIX_BY_ONE_TWO_WEEKENDS", label: "6x1 + 2 Finais de Semana" },
-    { value: "SIX_BY_ONE_ONE_WEEKEND", label: "6x1 + 1 Final de Semana" }
-];
-
-const DAYS_OF_WEEK = [
-    { value: "MONDAY", label: "Segunda-feira" },
-    { value: "TUESDAY", label: "Terça-feira" },
-    { value: "WEDNESDAY", label: "Quarta-feira" },
-    { value: "THURSDAY", label: "Quinta-feira" },
-    { value: "FRIDAY", label: "Sexta-feira" },
-    { value: "SATURDAY", label: "Sábado" },
-    { value: "SUNDAY", label: "Domingo" }
-];
-
-// --- ESQUEMAS DE VALIDAÇÃO REVISADOS ---
-
-// Esquema para validação rigorosa dos campos do Passo 1 (Employee)
-// O campo homeOffice é adicionado como uma string (necessário para o Select)
-const employeeSchema = z.object({
-    nomeCompleto: z.string().min(2, "Nome deve ter pelo menos 2 caracteres"),
-    cpf: z.string().length(14, "CPF deve ter 11 dígitos"), 
-    cargo: z.string().min(2, "Cargo deve ter pelo menos 2 caracteres"),
-    email: z.string().email("Email inválido"),
-    salario: z.string().min(1, "Salário é obrigatório"),
-    telefone: z.string().length(15, "Telefone deve ter 11 dígitos"), 
-    cep: z.string().length(9, "CEP deve ter 8 dígitos"), 
-    numero: z.string().min(1, "Número é obrigatório"),
-    faceImageBase64: z.string().optional(),
-    homeOffice: z.enum(["true", "false"], { // NOVO CAMPO
-        required_error: "O status Home Office é obrigatório.",
-    }),
-    workStartTime: z.string().min(1, "Início da jornada obrigatório"),
-    workEndTime: z.string().min(1, "Fim da jornada obrigatório"),
-    breakStartTime: z.string().min(1, "Início do intervalo obrigatório"),
-    breakEndTime: z.string().min(1, "Fim do intervalo obrigatório"),
-    scheduleType: z.string().min(1, "Tipo de escala é obrigatório"),
-
-    scaleStartDate: z.string().optional(), // Data YYYY-MM-DD
-    preferredDayOff: z.string().optional(),
-    weekendOffIndex: z.string().optional(), // Vem como string do Select, converteremos para number no submit
-    fixedWorkDays: z.array(z.string()).optional()
-});
-
-// Esquema para validação rigorosa dos campos do Passo 2 (User)
-const userSchema = z.object({
-    username: z.string().min(4, "Usuário deve ter pelo menos 4 caracteres"),
-    role: z.enum(["MANAGER", "PARTNER"]),
-});
-
-// Esquema de Formulário Completo (Usado no useForm)
-// Tornamos os campos do Passo 2 opcionais/default para que o form.handleSubmit não falhe no Passo 1
-const formSchema = employeeSchema.extend({
-    username: z.string().optional(),
-    role: z.enum(["MANAGER", "PARTNER"]).optional(),
-});
-
-// Tipagem unificada para o formulário
-type FormData = z.infer<typeof employeeSchema> & z.infer<typeof userSchema>;
+import { useCreateCollaborator } from "@/hooks/useCreateCollaborator";
 
 const CriarColaborador = () => {
-    const [isSubmitting, setIsSubmitting] = useState(false);
-    const [sidebarOpen, setSidebarOpen] = useState(false);
-    const handleToggleSidebar = useCallback(() => setSidebarOpen((prev) => !prev), []);
-    // Estados para controle de fluxo
-    const [savedEmployeeId, setSavedEmployeeId] = useState<string | null>(null);
-    const [stepCompleted, setStepCompleted] = useState(false); 
-    
-    // Estados para verificação de CPF
-    const [cpfAvailability, setCpfAvailability] = useState<'available' | 'unavailable' | 'checking' | null>(null);
-    const [isCheckingCPF, setIsCheckingCPF] = useState(false);
-
-    // Estados para verificação de username
-    const [usernameAvailability, setUsernameAvailability] = useState<'available' | 'unavailable' | 'checking' | null>(null);
-    const [isCheckingUsername, setIsCheckingUsername] = useState(false);
-    const [faceImageBase64, setFaceImageBase64] = useState<string | undefined>(undefined);
-    
-    // NOVO ESTADO: Armazenar o nome do arquivo selecionado para exibir no input
-    const [fileName, setFileName] = useState<string | undefined>(undefined);
-
-    // NOVA FUNÇÃO: Manipular o upload do arquivo de imagem e converter para Base64
-    const handleImageUpload = useCallback((event: ChangeEvent<HTMLInputElement>) => {
-        const file = event.target.files?.[0];
-        if (file) {
-            setFileName(file.name);
-            const reader = new FileReader();
-            reader.onloadend = () => {
-                // A string Base64 completa, incluindo o prefixo (e.g., "data:image/jpeg;base64,")
-                const base64String = reader.result as string; 
-                // Remove o prefixo para enviar apenas a string Base64 pura para o backend
-                const base64Data = base64String.split(',')[1];
-                setFaceImageBase64(base64Data);
-            };
-            reader.readAsDataURL(file);
-        } else {
-            setFileName(undefined);
-            setFaceImageBase64(undefined);
-        }
-    }, []);
-    const form = useForm<FormData>({
-        // O resolver usa o formSchema com os campos de usuário opcionais
-        resolver: zodResolver(formSchema), 
-        defaultValues: {
-            nomeCompleto: "",
-            cpf: "",
-            cargo: "",
-            email: "",
-            salario: "",
-            telefone: "",
-            cep: "",
-            numero: "",
-            homeOffice: "false", // NOVO VALOR PADRÃO
-            workStartTime: "08:00",
-            workEndTime: "17:00",
-            breakStartTime: "12:00",
-            breakEndTime: "13:00",
-            scheduleType: "TRADITIONAL_5X2",
-            fixedWorkDays: ["MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY"],
-            username: "",
-            role: "PARTNER",
-            
-        },
-    });
-         const selectedScheduleType = form.watch("scheduleType")
-    // --- Mask functions (Mantidas) ---
-    const maskCPF = (value: string) => {
-        return value
-            .replace(/\D/g, "")
-            .replace(/(\d{3})(\d)/, "$1.$2")
-            .replace(/(\d{3})(\d)/, "$1.$2")
-            .replace(/(\d{3})(\d{1,2})/, "$1-$2")
-            .replace(/(-\d{2})\d+?$/, "$1");
-    };
-
-    const maskPhone = (value: string) => {
-        return value
-            .replace(/\D/g, "")
-            .replace(/(\d{2})(\d)/, "($1) $2")
-            .replace(/(\d{4,5})(\d)/, "$1-$2")
-            .replace(/(-\d{4})\d+?$/, "$1");
-    };
-
-    const maskCEP = (value: string) => {
-        return value
-            .replace(/\D/g, "")
-            .replace(/(\d{5})(\d)/, "$1-$2")
-            .replace(/(-\d{3})\d+?$/, "$1");
-    };
-
-    const maskCurrency = (value: string) => {
-        const numericValue = value.replace(/\D/g, "");
-        const formattedValue = (parseFloat(numericValue) / 100).toLocaleString("pt-BR", {
-            style: "currency",
-            currency: "BRL",
-        });
-        return formattedValue;
-    };
-    // -----------------------
-
-    const handleCheckCPF = async () => {
-        const cpfWithMask = form.getValues("cpf");
-        const cpf = cpfWithMask.replace(/\D/g, "");
-
-        if (cpf.length !== 11) {
-            toast({
-                title: "Erro de validação",
-                description: "O CPF deve ter 11 dígitos.",
-                variant: "destructive",
-            });
-            setCpfAvailability(null);
-            return;
-        }
-
-        setIsCheckingCPF(true);
-        setCpfAvailability("checking");
-
-        try {
-            const available = await checkCpfAvailability(cpf);
-
-            if (available) {
-                toast({
-                    title: "CPF disponível!",
-                    description: "Você pode usar este CPF para o registro.",
-                });
-                setCpfAvailability("available");
-                return;
-            }
-
-            toast({
-                title: "CPF indisponível",
-                description: "Este CPF já está cadastrado no sistema.",
-                variant: "destructive",
-            });
-            setCpfAvailability("unavailable");
-        } catch (error) {
-            console.error("Erro na comunicação com a API:", error);
-            toast({
-                title: "Erro de rede",
-                description: "Falha ao conectar com o servidor.",
-                variant: "destructive",
-            });
-            setCpfAvailability(null);
-        } finally {
-            setIsCheckingCPF(false);
-        }
-    };
-
-    const handleCheckUsername = async () => {
-        // Bloqueia se o Passo 1 não estiver completo
-        if (!stepCompleted) {
-            toast({
-                title: "Passo Incompleto",
-                description: "Por favor, conclua primeiro o cadastro do Colaborador (Passo 1).",
-                variant: "destructive",
-            });
-            setUsernameAvailability(null);
-            return;
-        }
-        
-        const username = form.getValues('username');
-        // Usamos o userSchema para validar o campo username separadamente.
-        const usernameValidation = userSchema.pick({ username: true }).safeParse({ username });
-
-        if (!usernameValidation.success) {
-            toast({
-                title: "Erro de validação",
-                description: "O nome de usuário deve ter pelo menos 4 caracteres.",
-                variant: "destructive",
-            });
-            setUsernameAvailability(null);
-            return;
-        }
-
-        setIsCheckingUsername(true);
-        setUsernameAvailability('checking');
-
-        try {
-            const available = await checkUsernameAvailability(username);
-
-            if (available) {
-                toast({
-                    title: "Nome de usuário disponível!",
-                    description: "Você pode usar este nome de usuário para o registro.",
-                });
-                setUsernameAvailability('available');
-                return;
-            }
-
-            toast({
-                title: "Nome de usuário indisponível",
-                description: "Este nome de usuário já está em uso.",
-                variant: "destructive",
-            });
-            setUsernameAvailability('unavailable');
-        } catch (error) {
-            console.error("Erro na comunicação com a API:", error);
-            toast({ title: "Erro de rede", description: "Falha ao conectar com o servidor.", variant: "destructive" });
-            setUsernameAvailability(null);
-        } finally {
-            setIsCheckingUsername(false);
-        }
-    };
-
-    const handleCreateEmployee = async (data: FormData) => {
-        setIsSubmitting(true);
-        
-        // 💡 CORREÇÃO APLICADA: Validação explícita dos campos do Passo 1 (Employee)
-        const employeeValidation = employeeSchema.safeParse(data);
-        if (!employeeValidation.success) {
-            // Se falhar, as mensagens de erro do RHF já aparecerão no formulário.
-            toast({
-                title: "Erro de validação",
-                description: "Preencha corretamente os Dados do Colaborador (Passo 1).",
-                variant: "destructive",
-            });
-            setIsSubmitting(false);
-            return;
-        }
-
-        if (cpfAvailability !== "available") {
-            toast({
-                title: "Ação Pendente",
-                description: "É necessário verificar a disponibilidade do CPF antes de continuar.",
-                variant: "destructive",
-            });
-            setIsSubmitting(false);
-            return;
-        }
-        
-        try {
-            // Removendo máscaras e convertendo dados para envio ao backend
-            const employeePayload = {
-                fullName: data.nomeCompleto,
-                cpf: data.cpf.replace(/\D/g, ""),
-                jobPosition: data.cargo,
-                email: data.email,
-                // Garantimos que o salário seja enviado como float/number
-                salary: parseFloat(data.salario.replace(/[R$\s.]/g, "").replace(",", ".")), 
-                phone: data.telefone.replace(/\D/g, ""),
-                homeOffice: data.homeOffice === "true", // NOVO CAMPO: Converte string para boolean
-
-                faceImageBase64: faceImageBase64,
-                address: {
-                    postalCode: data.cep.replace(/\D/g, ""),
-                    number: data.numero,
-                },
-                workStartTime: data.workStartTime, 
-                workEndTime: data.workEndTime,
-                breakStartTime: data.breakStartTime,
-                breakEndTime: data.breakEndTime,
-
-                scheduleType: data.scheduleType,
-                scaleStartDate: data.scaleStartDate || null,
-                preferredDayOff: data.preferredDayOff || null,
-                weekendOffIndex: data.weekendOffIndex ? parseInt(data.weekendOffIndex) : null,
-                fixedWorkDays: data.fixedWorkDays || []
-            };
-
-            const employeeData = await createCollaborator(employeePayload);
-            const employeeId = employeeData.employeeId;
-            
-            // SUCESSO DO PASSO 1: Salva o ID e avança o passo
-            setSavedEmployeeId(employeeId);
-            setStepCompleted(true);
-            
-            toast({
-                title: "Colaborador criado!",
-                description: `O registro de ${data.nomeCompleto} foi salvo. Prossiga para as credenciais de usuário.`,
-            });
-
-        } catch (error) {
-            console.error("Erro no Passo 1 (Colaborador):", error);
-            toast({
-                title: "Erro ao cadastrar colaborador",
-                description: (error instanceof Error) ? error.message : "Tente novamente mais tarde.",
-                variant: "destructive",
-            });
-        } finally {
-            setIsSubmitting(false);
-        }
-    };
-
-    const handleCreateUser = async (data: FormData) => {
-        setIsSubmitting(true);
-        
-        // 💡 CORREÇÃO APLICADA: Validação explícita dos campos do Passo 2 (User)
-        const userValidation = userSchema.safeParse(data);
-        if (!userValidation.success) {
-            toast({
-                title: "Erro de validação",
-                description: "Preencha corretamente os Dados de Usuário (Passo 2).",
-                variant: "destructive",
-            });
-            setIsSubmitting(false);
-            return;
-        }
-
-        // Validação da checagem do username (mantida e necessária para o Passo 2)
-        if (usernameAvailability !== 'available') {
-            toast({
-                title: "Ação Pendente",
-                description: "É necessário verificar a disponibilidade do nome de usuário.",
-                variant: "destructive",
-            });
-            setIsSubmitting(false);
-            return;
-        }
-        
-        if (!savedEmployeeId) {
-             toast({
-                 title: "Erro de Fluxo",
-                 description: "O ID do Colaborador não foi encontrado. Por favor, reinicie o cadastro.",
-                 variant: "destructive",
-             });
-             setIsSubmitting(false);
-             return;
-         }
-
-        try {
-            // Aqui, usamos data.username, data.password e data.role que foram validados pelo userSchema
-            const userPayload = {
-                username: data.username,
-                role: data.role,
-                employeeId: savedEmployeeId, // Usa o ID salvo do Passo 1
-            };
-
-            await createUser(userPayload);
-
-            // SUCESSO FINAL
-            toast({
-                title: "Cadastro Concluído!",
-                description: `O colaborador e usuário (${data.username}) foram criados com sucesso!`,
-            });
-
-            // Reset
-            form.reset();
-            setSavedEmployeeId(null);
-            setStepCompleted(false);
-            setUsernameAvailability(null);
-        } catch (error) {
-            console.error("Erro no Passo 2 (Usuário):", error);
-            toast({
-                title: "Erro ao criar usuário",
-                description: (error instanceof Error) ? error.message : "Tente novamente mais tarde.",
-                variant: "destructive",
-            });
-        } finally {
-            setIsSubmitting(false);
-        }
-    };
-    
-    // Roteador de submissão
-    const onSubmit = (data: FormData) => {
-        // Se o Passo 1 não foi completado, tenta criar o Employee.
-        if (!stepCompleted) {
-            // A validação completa é ignorada graças ao formSchema modificado,
-            // e a validação real do Passo 1 ocorre dentro de handleCreateEmployee.
-            handleCreateEmployee(data);
-        } else {
-            // Se o Passo 1 foi completado, tenta criar o User.
-            handleCreateUser(data);
-        }
-    };
+    const {
+        form,
+        isSubmitting,
+        sidebarOpen,
+        handleToggleSidebar,
+        savedEmployeeId,
+        stepCompleted,
+        cpfAvailability,
+        isCheckingCPF,
+        usernameAvailability,
+        isCheckingUsername,
+        faceImageBase64,
+        fileName,
+        selectedScheduleType,
+        maskCPF,
+        maskPhone,
+        maskCEP,
+        maskCurrency,
+        handleImageUpload,
+        handleCheckCPF,
+        handleCheckUsername,
+        onSubmit,
+        scheduleTypes,
+        daysOfWeek,
+    } = useCreateCollaborator();
 
     return (
-       <div className="min-h-screen bg-background relative  overflow-hidden">
-      {/* Animated Background and Header/Sidebar components */}
-      <div className="fixed inset-0 z-0">
-        <div
-          className="absolute inset-0 opacity-5"
-          style={{
-            background: 'linear-gradient(-45deg, hsl(var(--black-primary)), hsl(var(--primary)), hsl(var(--black-primary)), hsl(var(--primary)))',
-            backgroundSize: '400% 400%',
-            animation: 'gradient-flow 15s ease-in-out infinite'
-          }}
-        />
-        <div className="absolute inset-0">
-          <div
-            className="absolute top-1/4 left-1/4 w-32 h-32 opacity-3"
-            style={{
-              background: 'linear-gradient(135deg, hsl(var(--primary) / 0.50), transparent)',
-              borderRadius: '30% 70% 70% 30% / 30% 30% 70% 70%',
-              animation: 'float-shapes 20s ease-in-out infinite'
-            }}
-          />
-          <div
-            className="absolute top-3/4 right-1/4 w-48 h-48 opacity-2"
-            style={{
-              background: 'linear-gradient(45deg, hsl(var(--black-primary) / 0.50), transparent)',
-              borderRadius: '70% 30% 30% 70% / 70% 70% 30% 30%',
-              animation: 'float-shapes 25s ease-in-out infinite reverse'
-            }}
-          />
-          <div
-            className="absolute top-1/2 right-1/3 w-24 h-24 opacity-4"
-            style={{
-              background: 'radial-gradient(circle, hsl(var(--primary) / 0.50), transparent)',
-              borderRadius: '50%',
-              animation: 'float-shapes 18s ease-in-out infinite 5s'
-            }}
-          />
-        </div>
-      </div>
-
-    <Sidebar isOpen={sidebarOpen} toggleSidebar={handleToggleSidebar} />
-
-      <div className="flex-1 flex flex-col overflow-hidden">
-        {/* 💡 CORREÇÃO: Header usa 'toggleSidebar' */}
-        <Header toggleSidebar={handleToggleSidebar} />
-
-       
-      <div className="flex-1 flex flex-col overflow-hidden">
-        <Header toggleSidebar={handleToggleSidebar} />
-
-            {/* Content */}
-            <div className="relative z-10 min-h-screen flex items-center justify-center p-6 pt-20">
-                <div className="w-full max-w-2xl">
+      <PageShell
+        sidebarOpen={sidebarOpen}
+        toggleSidebar={handleToggleSidebar}
+        mainClassName="relative z-10 min-h-screen flex items-center justify-center p-6 pt-20"
+      >
+        <div className="w-full max-w-2xl">
                     <div className="mb-8 text-center">
                         <h1 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-foreground to-primary bg-clip-text text-transparent page-title">
                             Criar Colaborador
@@ -554,7 +96,6 @@ const CriarColaborador = () => {
                                                             {...field}
                                                             onChange={(e) => {
                                                                 field.onChange(maskCPF(e.target.value));
-                                                                setCpfAvailability(null);
                                                             }}
                                                             maxLength={14}
                                                         />
@@ -663,7 +204,7 @@ const CriarColaborador = () => {
                                                             </SelectTrigger>
                                                         </FormControl>
                                                         <SelectContent>
-                                                            {SCHEDULE_TYPES.map(type => (
+                                                            {scheduleTypes.map(type => (
                                                                 <SelectItem key={type.value} value={type.value}>{type.label}</SelectItem>
                                                             ))}
                                                         </SelectContent>
@@ -690,7 +231,7 @@ const CriarColaborador = () => {
                                                         <Select onValueChange={field.onChange} value={field.value}>
                                                             <FormControl><SelectTrigger><SelectValue placeholder="Selecione o dia" /></SelectTrigger></FormControl>
                                                             <SelectContent>
-                                                                {DAYS_OF_WEEK.map(day => (
+                                                                {daysOfWeek.map(day => (
                                                                     <SelectItem key={day.value} value={day.value}>{day.label}</SelectItem>
                                                                 ))}
                                                             </SelectContent>
@@ -725,7 +266,7 @@ const CriarColaborador = () => {
                                                 <FormItem className="mt-4">
                                                     <FormLabel className="mb-2 block">Dias de Trabalho (Fixo)</FormLabel>
                                                     <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
-                                                        {DAYS_OF_WEEK.map((day) => (
+                                                        {daysOfWeek.map((day) => (
                                                             <FormField key={day.value} control={form.control} name="fixedWorkDays" render={({ field }) => {
                                                                 return (
                                                                     <FormItem key={day.value} className="flex items-center space-x-2 space-y-0">
@@ -863,7 +404,7 @@ const CriarColaborador = () => {
                                             <FormItem>
                                                 <FormLabel className="text-base font-semibold flex items-center">Nome de Usuário</FormLabel>
                                                 <div className="flex space-x-2">
-                                                    <FormControl><Input placeholder="Digite o nome de usuário" className="h-12 text-base" {...field} onChange={(e) => { field.onChange(e); setUsernameAvailability(null); }} /></FormControl>
+                                                    <FormControl><Input placeholder="Digite o nome de usuário" className="h-12 text-base" {...field} onChange={(e) => { field.onChange(e); }} /></FormControl>
                                                     
                                                     {/* BLOQUEIO DO BOTÃO DE VERIFICAR */}
                                                     <Button 
@@ -925,11 +466,8 @@ const CriarColaborador = () => {
                         </form>
                     </Form>
  
-</div>
-</div>
-                </div>
-            </div>
         </div>
+      </PageShell>
     );
 };
 

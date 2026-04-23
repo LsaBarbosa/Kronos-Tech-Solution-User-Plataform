@@ -13,7 +13,7 @@ import {
 import { Button } from "@/components/ui/button";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { cn } from "@/lib/utils";
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { FiscalService } from "@/service/fiscal.service"; // Ajuste o caminho conforme criou o arquivo acima
 import { useToast } from "@/components/ui/use-toast"; // Assumindo que você tem um toast (opcional)
@@ -23,20 +23,6 @@ interface SidebarProps {
   isOpen: boolean;
   toggleSidebar: () => void; 
 }
-
-const decodeToken = (token: string) => {
-  try {
-    const base64Url = token.split('.')[1];
-    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-    const payload = decodeURIComponent(atob(base64).split('').map(function(c) {
-      return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
-    }).join(''));
-    return JSON.parse(payload);
-  } catch (error) {
-    console.error("Falha ao decodificar o token", error);
-    return null;
-  }
-};
 
 const Sidebar = ({ isOpen, toggleSidebar }: SidebarProps) => {
   const [documentosOpen, setDocumentosOpen] = useState(false);
@@ -48,18 +34,9 @@ const Sidebar = ({ isOpen, toggleSidebar }: SidebarProps) => {
   // 🆕 Estado para o novo subgrupo Auditoria
   const [auditoriaOpen, setAuditoriaOpen] = useState(false);
   
-  const [userRole, setUserRole] = useState("");
   const navigate = useNavigate();
   const { toast } = useToast(); // Opcional, apenas para feedback visual
-  const { logout } = useAuth();
-
-  useEffect(() => {
-    const token = localStorage.getItem("token");
-    if (token) {
-      const decoded = decodeToken(token);
-      setUserRole(decoded?.role || "");
-    }
-  }, []);
+  const { logout, role } = useAuth();
 
   const handleLogout = () => {
     logout();
@@ -67,8 +44,8 @@ const Sidebar = ({ isOpen, toggleSidebar }: SidebarProps) => {
     toggleSidebar();
   };
 
-  const isManager = userRole === "MANAGER";
-  const isCto = userRole === "CTO";
+  const isManager = role === "MANAGER";
+  const isCto = role === "CTO";
 
   // --- Funções Auxiliares de Download ---
   const getCurrentMonthDates = () => {
@@ -216,7 +193,7 @@ const Sidebar = ({ isOpen, toggleSidebar }: SidebarProps) => {
             <Button
               variant="ghost"
               className="w-full justify-start sidebar-fixed-height px-4 text-left hover:bg-primary/10 hover:text-foreground transition-colors group"
-              onClick={() => { navigate("/solicitar-Abono"); toggleSidebar(); }}
+              onClick={() => { navigate("/solicitar-abono"); toggleSidebar(); }}
             >
               <TimerReset className="mr-3 sidebar-icon-sm text-primary group-hover:text-primary transition-colors" />
               <span className="font-medium sidebar-text-sm">Registro Manual</span>

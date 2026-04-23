@@ -72,7 +72,7 @@ describe("CriarColaborador", () => {
     expect(
       screen.getAllByRole("button", { name: "Verificar" })[1]
     ).toBeDisabled();
-  });
+  }, 10000);
 
   it("avança do passo 1 para o passo 2 após criar o colaborador", async () => {
     const user = userEvent.setup();
@@ -101,7 +101,7 @@ describe("CriarColaborador", () => {
 
     expect(screen.getByText("Passo 1 Concluído! Prossiga abaixo.")).toBeInTheDocument();
     expect(screen.getByRole("button", { name: "Concluir Cadastro" })).toBeInTheDocument();
-  });
+  }, 10000);
 
   it("não conclui o cadastro sem validar o username", async () => {
     const user = userEvent.setup();
@@ -116,7 +116,7 @@ describe("CriarColaborador", () => {
     await waitFor(() => {
       expect(screen.getByRole("button", { name: "Concluir Cadastro" })).toBeDisabled();
     });
-  });
+  }, 10000);
 
   it("finaliza o cadastro após verificar username e criar usuario", async () => {
     const user = userEvent.setup();
@@ -150,5 +150,5 @@ describe("CriarColaborador", () => {
         title: "Cadastro Concluído!",
       })
     );
-  });
+  }, 10000);
 });

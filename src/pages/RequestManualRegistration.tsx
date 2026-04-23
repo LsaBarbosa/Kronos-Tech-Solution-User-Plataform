@@ -38,8 +38,7 @@ import { cn } from "../lib/utils";
 import { useRequestManualRegistration } from "../hooks/useManualRegister";
 import { Separator } from "../components/ui/separator";
 import { useCallback, useState } from "react";
-import Sidebar from "@/components/Sidebar";
-import Header from "@/components/Header";
+import PageShell from "@/components/PageShell";
 import { ALLOWED_ACCEPT_STRING, MAX_UPLOAD_SIZE_BYTES, ALLOWED_MIME_TYPES } from "../types/document"; 
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"; // Importe o RadioGroup
 
@@ -178,19 +177,12 @@ export function RequestManualRegistration() {
   const selectedFile = formState.document as File | null;
 
   return (
-    <div className="min-h-screen bg-background relative overflow-hidden">
-      {/* Background animations */}
-      <div className="fixed inset-0 z-0">
-        <div className="absolute inset-0 opacity-5" style={{ background: 'linear-gradient(-45deg, hsl(var(--black-primary)), hsl(var(--primary)), hsl(var(--black-primary)), hsl(var(--primary)))', backgroundSize: '400% 400%', animation: 'gradient-flow 15s ease-in-out infinite' }} />
-      </div>
-
-      <Sidebar isOpen={sidebarOpen} toggleSidebar={handleToggleSidebar} />
-
-      <div className="flex-1 flex flex-col overflow-hidden">
-        <Header toggleSidebar={handleToggleSidebar} />
-
-        <main className="pt-16 mobile-container py-4 sm:py-20 space-y-6 sm:space-y-8 relative z-10">
-          <div className="max-w-4xl mx-auto">
+    <PageShell
+      sidebarOpen={sidebarOpen}
+      toggleSidebar={handleToggleSidebar}
+      mainClassName="pt-16 mobile-container py-4 sm:py-20 space-y-6 sm:space-y-8 relative z-10"
+    >
+      <div className="max-w-4xl mx-auto">
             <div className="mb-6 sm:mb-8">
               <h1 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-foreground to-primary bg-clip-text text-transparent page-title">
                 Solicitação de Ajuste
@@ -546,10 +538,8 @@ export function RequestManualRegistration() {
                 </CardContent>
               </Card>
             </Card>
-          </div>
-        </main>
       </div>
-    </div>
+    </PageShell>
   );
 }
 

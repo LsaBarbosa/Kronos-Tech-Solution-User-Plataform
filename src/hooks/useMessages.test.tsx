@@ -1,6 +1,7 @@
 import { renderHook, waitFor, act } from "@testing-library/react";
 import type { ReactNode } from "react";
 import { MemoryRouter } from "react-router-dom";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { useAuth } from "@/context/AuthContext";
 import { useToast } from "@/hooks/use-toast";
@@ -10,6 +11,12 @@ import { useMessages } from "./useMessages";
 const navigateMock = vi.fn();
 const toastMock = vi.fn();
 const logoutMock = vi.fn();
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: { retry: false },
+    mutations: { retry: false },
+  },
+});
 
 vi.mock("@/context/AuthContext", () => ({
   useAuth: vi.fn(),
@@ -41,12 +48,15 @@ const mockFetchMessages = vi.mocked(fetchMessages);
 const mockDeleteMessage = vi.mocked(deleteMessage);
 
 const wrapper = ({ children }: { children: ReactNode }) => (
-  <MemoryRouter>{children}</MemoryRouter>
+  <QueryClientProvider client={queryClient}>
+    <MemoryRouter>{children}</MemoryRouter>
+  </QueryClientProvider>
 );
 
 describe("useMessages", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    queryClient.clear();
     mockUseToast.mockReturnValue({ toast: toastMock } as any);
     mockUseAuth.mockReturnValue({
       status: "authenticated",
@@ -82,16 +92,18 @@ describe("useMessages", () => {
   });
 
   it("exclui mensagem e atualiza o estado local", async () => {
-    mockFetchMessages.mockResolvedValue([
-      {
-        messageId: "msg-1",
-        title: "Aviso",
-        messageText: "Conteudo",
-        priority: "NORMAL",
-        createdAt: "2026-04-23T10:00:00Z",
-        senderEmployeeId: "emp-1",
-      },
-    ]);
+    mockFetchMessages
+      .mockResolvedValueOnce([
+        {
+          messageId: "msg-1",
+          title: "Aviso",
+          messageText: "Conteudo",
+          priority: "NORMAL",
+          createdAt: "2026-04-23T10:00:00Z",
+          senderEmployeeId: "emp-1",
+        },
+      ])
+      .mockResolvedValueOnce([]);
     mockDeleteMessage.mockResolvedValue(undefined);
 
     const { result } = renderHook(() => useMessages(), { wrapper });
@@ -112,7 +124,7 @@ describe("useMessages", () => {
       await result.current.handleDeleteMessage();
     });
 
-    expect(mockDeleteMessage).toHaveBeenCalledWith("msg-1");
+    expect(mockDeleteMessage).toHaveBeenCalledWith("msg-1", expect.any(Object));
     expect(result.current.messages).toHaveLength(0);
     expect(result.current.isDialogOpen).toBe(false);
     expect(result.current.isConfirmDeleteDialogOpen).toBe(false);

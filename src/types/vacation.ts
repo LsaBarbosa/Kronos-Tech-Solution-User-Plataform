@@ -8,6 +8,11 @@ export interface RequestVacationRequest {
     managerId: string; // UUID
 }
 
+export interface IManagerOption {
+    userId: string;
+    username: string;
+}
+
 // ATUALIZADO: Adicionado requestType opcional
 export interface RequestTimeOffRequestPayload {
     startDate: string; // dd-MM-yyyy

@@ -41,7 +41,7 @@ const AtualizarEmpresa = () => {
     const currentLatitude = form.getValues('latitude');
     const currentLongitude = form.getValues('longitude');
     
-    const isSaveDisabled = isSubmitting || isLoadingDetails || isGeocoding || !originalCompany || currentLatitude === null;
+    const isSaveDisabled = isSubmitting || isLoadingDetails || isGeocoding || !originalCompany;
 
     return (
       <div className="min-h-screen bg-background relative  overflow-hidden">

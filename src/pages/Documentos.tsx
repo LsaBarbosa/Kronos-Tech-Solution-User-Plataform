@@ -15,6 +15,7 @@ import { format } from "date-fns";
 import { cn } from "@/lib/utils";
 import { toast } from "sonner";
 import { es } from 'date-fns/locale';
+import { useAuth } from "@/context/AuthContext";
 import {
   deleteDocument,
   downloadDocument,
@@ -34,21 +35,6 @@ interface Document {
   type: string;
 }
 
-// New function to decode the JWT token
-const decodeToken = (token: string) => {
-  try {
-    const base64Url = token.split('.')[1];
-    const base64 = base64Url.replace(/-/g, '+').replace(/_/g, '/');
-    const payload = decodeURIComponent(atob(base64).split('').map(function (c) {
-      return '%' + ('00' + c.charCodeAt(0).toString(16)).slice(-2);
-    }).join(''));
-    return JSON.parse(payload);
-  } catch (error) {
-    console.error("Falha ao decodificar o token", error);
-    return null;
-  }
-};
-
 const Documentos = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [employees, setEmployees] = useState<Employee[]>([]);
@@ -64,21 +50,20 @@ const Documentos = () => {
   const [isPartner, setIsPartner] = useState(false);
   const [currentUserId, setCurrentUserId] = useState("");
   const [currentUserName, setCurrentUserName] = useState("");
+  const { status: authStatus, role, user } = useAuth();
 
   useEffect(() => {
-    const token = localStorage.getItem('token');
-    if (!token) {
+    if (authStatus !== "authenticated") {
       return;
     }
 
-    const decoded = decodeToken(token);
-    const userRole = decoded?.role;
-    const userId = decoded?.employeeId;
-    const userName = decoded?.fullName;
+    const userRole = role;
+    const userId = user?.profile?.employeeId || user?.account.employeeId || "";
+    const userName = user?.profile?.fullName || "";
 
     setIsPartner(userRole === 'PARTNER');
-    setCurrentUserId(userId || "");
-    setCurrentUserName(userName || "");
+    setCurrentUserId(userId);
+    setCurrentUserName(userName);
 
     if (userRole === 'PARTNER') {
       setEmployees([{ id: userId, name: userName }]);
@@ -105,7 +90,7 @@ const Documentos = () => {
     };
 
     fetchEmployees();
-  }, [activeEmployeeFilter]);
+  }, [activeEmployeeFilter, authStatus, role, user]);
 
   const handleSearch = async () => {
     if (!selectedEmployeeId || !selectedDocumentType) {

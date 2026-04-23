@@ -1,7 +1,7 @@
 // src/services/companyService.ts
 
 import { api } from "@/config/api";
-import { CompanyListItem, CompanyData, Location, CompanyUpdatePayload, cleanCEP, getAuthToken } from "@/types/company";
+import { CompanyListItem, CompanyData, Location, CompanyUpdatePayload, cleanCEP } from "@/types/company";
 import { extractArray, extractObject } from "@/service/helpers/response-normalizer.helper";
 import { API_ROUTES, buildRoute } from "@/config/api-routes";
 
@@ -87,5 +87,3 @@ export const toggleCompanyStatus = async (cnpj: string, currentStatus: boolean):
 
 // Função utilitária para formatar CNPJ (Mantida como pura)
 export const formatCNPJ = (cnpj: string) => cnpj.replace(/^(\d{2})(\d{3})(\d{3})(\d{4})(\d{2})$/, "$1.$2.$3/$4-$5");
-
-export { getAuthToken };

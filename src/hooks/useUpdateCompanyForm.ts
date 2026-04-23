@@ -1,6 +1,6 @@
 // src/hooks/useUpdateCompanyForm.ts
 
-import { useState, useCallback, useEffect } from "react";
+import { useState, useCallback, useEffect, useMemo } from "react";
 import { useForm, UseFormReturn } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
@@ -75,6 +75,12 @@ export const useUpdateCompanyForm = (): UseUpdateCompanyFormReturn => {
     const selectedCnpj = form.watch("selectedCnpj");
     const watchedPostalCode = form.watch("address.postalCode");
     const watchedNumber = form.watch("address.number");
+    const normalizedWatchedPostalCode = cleanCEP(watchedPostalCode || "");
+    const hasAddressChanged = useMemo(() => {
+        if (!originalCompany) return false;
+        return normalizedWatchedPostalCode !== originalCompany.address.postalCode ||
+            watchedNumber !== originalCompany.address.number;
+    }, [normalizedWatchedPostalCode, watchedNumber, originalCompany]);
 
     // --- FUNÇÕES DE API ORQUESTRADAS ---
 
@@ -135,50 +141,18 @@ export const useUpdateCompanyForm = (): UseUpdateCompanyFormReturn => {
         }
     }, [toast, form]);
     
-    // --- LÓGICA DE GEOCÓDIGO ---
-    const handleGeocode = useCallback(async () => {
-        const cep = cleanCEP(watchedPostalCode);
-        const number = watchedNumber;
-        
-        if (!originalCompany || cep.length !== 8 || number.length < 1) {
-            form.setValue("latitude", originalCompany?.location.latitude || null);
-            form.setValue("longitude", originalCompany?.location.longitude || null);
+    useEffect(() => {
+        if (!originalCompany) return;
+
+        if (hasAddressChanged) {
+            form.setValue("latitude", null, { shouldDirty: true, shouldValidate: false });
+            form.setValue("longitude", null, { shouldDirty: true, shouldValidate: false });
             return;
         }
-        
-        const cepChanged = cep !== originalCompany.address.postalCode;
-        const numberChanged = number !== originalCompany.address.number;
-        
-        if (cepChanged || numberChanged) {
-             setIsGeocoding(true);
-             form.setValue("latitude", null);
-             form.setValue("longitude", null);
 
-             try {
-                const newLocation = await getGeolocationFromCEP(cep, number);
-                
-                form.setValue("latitude", newLocation.latitude);
-                form.setValue("longitude", newLocation.longitude);
-                toast({ title: "Geolocalização atualizada", description: "Novas coordenadas obtidas com sucesso." });
-             } catch (error: any) {
-                console.error("Erro de Geocodificação:", error);
-                toast({ 
-                    title: "Erro de Geocodificação", 
-                    description: error.message || "Não foi possível obter as coordenadas. Verifique o CEP/Número.", 
-                    variant: "destructive" 
-                });
-                form.setValue("latitude", null); 
-                form.setValue("longitude", null);
-             } finally {
-                setIsGeocoding(false);
-             }
-        } else {
-             // Se nada mudou, garante que os valores originais estão no form (caso contrário, o useForm pode perdê-los)
-             form.setValue("latitude", originalCompany.location.latitude);
-             form.setValue("longitude", originalCompany.location.longitude);
-        }
-        
-    }, [watchedPostalCode, watchedNumber, originalCompany, form, toast]);
+        form.setValue("latitude", originalCompany.location.latitude, { shouldDirty: false, shouldValidate: false });
+        form.setValue("longitude", originalCompany.location.longitude, { shouldDirty: false, shouldValidate: false });
+    }, [form, hasAddressChanged, originalCompany]);
 
 
     // --- FUNÇÃO DE SUBMISSÃO (Chamada pelo form.handleSubmit) ---
@@ -188,24 +162,22 @@ export const useUpdateCompanyForm = (): UseUpdateCompanyFormReturn => {
         const isAddressChanged = cleanCEP(values.address.postalCode) !== originalCompany.address.postalCode ||
                                 values.address.number !== originalCompany.address.number;
 
-        if (isAddressChanged && (values.latitude === null || values.longitude === null)) {
-            toast({ 
-                title: "Ação Necessária", 
-                description: "O endereço foi alterado, mas as coordenadas geográficas (Latitude/Longitude) não puderam ser obtidas. Por favor, corrija o CEP/Número.", 
-                variant: "destructive" 
-            });
-            return;
-        }
-
         setIsSubmitting(true);
+        setIsGeocoding(false);
 
         try {
             let finalLocation: Location = originalCompany.location;
-            if(isAddressChanged && values.latitude !== null && values.longitude !== null) {
-                finalLocation = {
-                    latitude: values.latitude,
-                    longitude: values.longitude,
-                };
+            if (isAddressChanged) {
+                setIsGeocoding(true);
+                const resolvedLocation = await getGeolocationFromCEP(
+                    cleanCEP(values.address.postalCode),
+                    values.address.number
+                );
+
+                finalLocation = resolvedLocation;
+                form.setValue("latitude", resolvedLocation.latitude, { shouldDirty: false, shouldValidate: false });
+                form.setValue("longitude", resolvedLocation.longitude, { shouldDirty: false, shouldValidate: false });
+                toast({ title: "Geolocalização atualizada", description: "Novas coordenadas obtidas com sucesso." });
             }
             
             const updatePayload: CompanyUpdatePayload = {
@@ -240,8 +212,9 @@ export const useUpdateCompanyForm = (): UseUpdateCompanyFormReturn => {
             });
         } finally {
             setIsSubmitting(false);
+            setIsGeocoding(false);
         }
-    }, [originalCompany, fetchList, form, toast]);
+    }, [fetchList, form, hasAddressChanged, originalCompany, toast]);
 
 
     // --- EFEITOS DE ORQUESTRAÇÃO ---
@@ -256,12 +229,6 @@ export const useUpdateCompanyForm = (): UseUpdateCompanyFormReturn => {
         }
     }, [selectedCnpj, originalCompany, isLoadingDetails, fetchDetails]);
 
-    useEffect(() => {
-        if (originalCompany && cleanCEP(watchedPostalCode).length === 8 && watchedNumber.length >= 1) {
-            handleGeocode();
-        }
-    }, [watchedPostalCode, watchedNumber, originalCompany, handleGeocode]);
-    
     // --- HANDLER DE CANCELAMENTO ---
     const handleCancel = useCallback(() => {
         form.reset({ selectedCnpj: "" });
