@@ -17,6 +17,7 @@ import { useState, useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import { FiscalService } from "@/service/fiscal.service"; // Ajuste o caminho conforme criou o arquivo acima
 import { useToast } from "@/components/ui/use-toast"; // Assumindo que você tem um toast (opcional)
+import { useAuth } from "@/context/AuthContext";
 
 interface SidebarProps {
   isOpen: boolean;
@@ -50,6 +51,7 @@ const Sidebar = ({ isOpen, toggleSidebar }: SidebarProps) => {
   const [userRole, setUserRole] = useState("");
   const navigate = useNavigate();
   const { toast } = useToast(); // Opcional, apenas para feedback visual
+  const { logout } = useAuth();
 
   useEffect(() => {
     const token = localStorage.getItem("token");
@@ -60,8 +62,8 @@ const Sidebar = ({ isOpen, toggleSidebar }: SidebarProps) => {
   }, []);
 
   const handleLogout = () => {
-    localStorage.removeItem("token");
-    navigate("/");
+    logout();
+    navigate("/login", { replace: true });
     toggleSidebar();
   };
 

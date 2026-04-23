@@ -4,7 +4,9 @@ import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogDescription } from "@/components/ui/dialog";
 import { Card, CardContent } from "@/components/ui/card";
 import { toast } from "sonner";
-import { API_BASE_URL } from "@/config/api";
+import { useNavigate } from "react-router-dom";
+import { loginWithFace } from "@/service/auth.Service";
+import { useAuth } from "@/context/AuthContext";
 
 interface FaceLoginModalProps {
     isOpen: boolean;
@@ -19,6 +21,8 @@ const FaceLoginModal = ({ isOpen, onOpenChange }: FaceLoginModalProps) => {
     
     const videoRef = useRef<HTMLVideoElement>(null);
     const canvasRef = useRef<HTMLCanvasElement>(null);
+    const navigate = useNavigate();
+    const { login } = useAuth();
 
     const stopWebcam = useCallback(() => {
         const videoElement = videoRef.current;
@@ -58,8 +62,9 @@ const FaceLoginModal = ({ isOpen, onOpenChange }: FaceLoginModalProps) => {
                 videoRef.current?.play().catch(e => console.error("Erro ao reproduzir vídeo:", e));
             };
 
-        } catch (error: any) {
-            if (error.name !== 'AbortError') { 
+        } catch (error: unknown) {
+            const errorName = error instanceof DOMException || error instanceof Error ? error.name : "";
+            if (errorName !== 'AbortError') { 
                  console.error("Erro ao acessar a webcam:", error); 
                  toast.error("Erro ao acessar a webcam. Verifique as permissões.");
             }
@@ -119,36 +124,20 @@ const FaceLoginModal = ({ isOpen, onOpenChange }: FaceLoginModalProps) => {
         const base64Data = imageSrc.split(',')[1]; 
 
         try {
-            const response = await fetch(`${API_BASE_URL}auth/login-face`, {
-                method: "POST",
-                headers: {
-                    "Content-Type": "application/json",
-                },
-                body: JSON.stringify({ faceImageBase64: base64Data }),
-            });
-
-            if (!response.ok) {
-                const errorData = await response.json();
-                throw new Error(errorData.detail || "Falha no reconhecimento facial.");
-            }
-
-            const data = await response.json();
-
-            // Login bem-sucedido
-            localStorage.setItem("token", data.token);
+            const data = await loginWithFace({ faceImageBase64: base64Data });
+            await login(data.token);
             
             toast.success("Identidade confirmada! Acessando plataforma...", {
                 duration: 2000,
             });
+            stopWebcam();
+            onOpenChange(false);
+            navigate("/dashboard", { replace: true });
 
-            setTimeout(() => {
-                // Força refresh para limpar a memória da câmera e garantir estado limpo
-                window.location.href = "/dashboard";
-            }, 1000);
-
-        } catch (error: any) {
+        } catch (error: unknown) {
             console.error(error);
-            toast.error(error.message || "Rosto não reconhecido ou não cadastrado.");
+            const errorMessage = error instanceof Error ? error.message : "Rosto não reconhecido ou não cadastrado.";
+            toast.error(errorMessage);
             setImageSrc(null);
             setIsSubmitting(false);
             startWebcam(); // Reinicia câmera automaticamente em caso de erro

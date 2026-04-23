@@ -6,11 +6,10 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import Clock from "@/components/Clock";
 import { Eye, EyeOff, ScanFace } from "lucide-react"; // Adicionado ScanFace
 import { toast } from "sonner"; // Ajustado import para sonner padrão se necessário, ou "@/components/ui/sonner"
-import { API_BASE_URL } from "@/config/api";
 import FaceLoginModal from "@/components/FaceLoginModal"; // Import do novo modal
 import { useNavigate } from "react-router-dom";
-
-const API_URL = `${API_BASE_URL}auth/login`;
+import { loginWithPassword } from "@/service/auth.Service";
+import { useAuth } from "@/context/AuthContext";
 
 const LoginForm = () => {
   const [showPassword, setShowPassword] = useState(false);
@@ -19,37 +18,19 @@ const LoginForm = () => {
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isFaceLoginOpen, setIsFaceLoginOpen] = useState(false); // Estado do modal facial
 
-  const navigate = useNavigate(); 
+  const navigate = useNavigate();
+  const { login } = useAuth();
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
 
     try {
-      const response = await fetch(API_URL, {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({ username, password }),
-      });
-
-      if (!response.ok) {
-        const errorData = await response.json();
-        throw new Error(errorData.detail || "Usuário ou senha inválidos.");
-      }
-
-      const data = await response.json();
-
-      localStorage.setItem("token", data.token);
+      const data = await loginWithPassword({ username, password });
+      await login(data.token);
 
       toast.success("Login realizado com sucesso!");
-
-      // Pequeno delay para o usuário ver o feedback
-      setTimeout(() => {
-        // Redirecionamento com refresh para garantir limpeza de memória/cache
-        window.location.href = "/dashboard";
-      }, 800);
+      navigate("/dashboard", { replace: true });
 
     } catch (error) {
       const errorMessage = error instanceof Error ? error.message : "Erro desconhecido ao tentar fazer login.";
@@ -93,10 +74,8 @@ const LoginForm = () => {
 
       <Card className="w-full max-w-md shadow-card border-0 relative z-10">
         <CardHeader className="space-y-1 text-center pb-8">
-          <CardTitle className="text-3xl font-semibold bg-gradient-to-r from-foreground to-primary bg-clip-text text-transparent">
-            <h1 className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-foreground to-primary bg-clip-text text-transparent px-2">
-              Kronos Plataform
-            </h1>
+          <CardTitle className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-foreground to-primary bg-clip-text text-transparent px-2">
+            Kronos Plataform
           </CardTitle>
         </CardHeader>
         <CardContent className="space-y-6">

@@ -1,20 +1,25 @@
-// src/components/ProtectedRoute.tsx
-import React from 'react';
-import { Navigate, Outlet } from 'react-router-dom';
-
-const isAuthenticated = () => {
-  // A verificação é a existência de um token em localStorage.
-  // Este é o token persistido no LoginForm.tsx após o login com sucesso.
-  return localStorage.getItem('token') !== null;
-};
+import { Navigate, Outlet } from "react-router-dom";
+import { useAuth } from "@/context/AuthContext";
 
 const ProtectedRoute = () => {
-  // Se o usuário não estiver autenticado, redireciona para a página de login.
-  if (!isAuthenticated()) {
-    return <Navigate to="/" replace />;
+  const { status } = useAuth();
+
+  if (status === "checking") {
+    return (
+      <div
+        role="status"
+        aria-live="polite"
+        className="min-h-screen bg-background flex items-center justify-center text-muted-foreground"
+      >
+        Carregando sessão...
+      </div>
+    );
   }
 
-  // Se estiver autenticado, renderiza as rotas filhas (Outlet).
+  if (status === "unauthenticated") {
+    return <Navigate to="/login" replace />;
+  }
+
   return <Outlet />;
 };
 
