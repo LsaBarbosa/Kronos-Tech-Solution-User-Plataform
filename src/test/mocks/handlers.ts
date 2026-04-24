@@ -32,6 +32,12 @@ export const handlers = [
   http.post("*/companies", () => new HttpResponse(null, { status: 201 })),
   http.patch("*/companies/:cnpj", () => new HttpResponse(null, { status: 204 })),
   http.patch("*/companies/:cnpj/toggle-activate", () => new HttpResponse(null, { status: 204 })),
+  http.post("*/geolocation/resolve", () =>
+    HttpResponse.json({
+      latitude: -23.55052,
+      longitude: -46.633308,
+    })
+  ),
 
   http.get("*/terms/status", () => HttpResponse.json(false)),
   http.post("*/terms/accept-biometric", () =>

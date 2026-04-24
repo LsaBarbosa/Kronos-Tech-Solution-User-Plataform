@@ -132,6 +132,7 @@ export const APP_ROUTE_META = {
     breadcrumbs: [{ label: "Início", path: APP_PATHS.dashboard }, { label: "Avisos", path: APP_PATHS.avisos }],
   }),
   criarAviso: defineRoute(APP_PATHS.criarAviso, "Criar Aviso", {
+    allowedRoles: ["MANAGER"],
     showInMenu: false,
     breadcrumbs: [
       { label: "Início", path: APP_PATHS.dashboard },
@@ -146,7 +147,7 @@ export const APP_ROUTE_META = {
     breadcrumbs: [{ label: "Início", path: APP_PATHS.dashboard }, { label: "Solicitar Abono", path: APP_PATHS.solicitarAbono }],
   }),
   auditoria: defineRoute(APP_PATHS.auditoria, "Auditoria Fiscal", {
-    allowedRoles: ["MANAGER"],
+    allowedRoles: ["MANAGER", "CTO"],
     breadcrumbs: [{ label: "Início", path: APP_PATHS.dashboard }, { label: "Auditoria Fiscal", path: APP_PATHS.auditoria }],
   }),
   criarColaborador: defineRoute(APP_PATHS.criarColaborador, "Criar Colaborador", {

@@ -3,6 +3,7 @@ export const API_ROUTES = {
   COMPANIES: "companies",
   DOCUMENTS: "documents",
   EMPLOYEE: "employee",
+  GEOLOCATION: "geolocation",
   LEGAL: "legal",
   MESSAGES: "messages",
   RECORDS: "records",

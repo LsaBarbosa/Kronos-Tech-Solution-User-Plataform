@@ -18,6 +18,7 @@ import { useDashboardData } from "@/hooks/useDashboardData";
 import { useVacationCount } from "@/hooks/useVacationCount"; 
 import { useTimeOffCount } from "@/hooks/useTimeOffCount"; 
 import PageShell from "@/components/PageShell";
+import { APP_PATHS } from "@/config/app-routes";
 import { getRoleDisplayName } from "@/types/dashboard";
 import {
     formatPhone,
@@ -60,25 +61,25 @@ const Dashboard = () => {
   const { pendingTimeOffCount } = useTimeOffCount(hasApprovalPermission);
   // Handlers de Navegação
   const handleApprovalClick = useCallback(() => {
-    navigate("/apuracao-horas"); // Pendências de TimeRecord
+    navigate(APP_PATHS.apuracaoHoras); // Pendências de TimeRecord
   }, [navigate]);
 
   // NOVO HANDLER para Férias (usado nos botões de detalhe)
   const handleVacationApprovalClick = useCallback(() => {
-    navigate("/ferias"); // Rota para a nova tela de aprovação de férias
+    navigate(APP_PATHS.ferias); // Rota para a nova tela de aprovação de férias
   }, [navigate]);
 
   const handleTimeOffApprovalClick = useCallback(() => {
-    navigate("/aprovacoes-abono"); // Rota para a tela de aprovação de abonos (TimeOffApprovals.tsx)
+    navigate(APP_PATHS.aprovacoesAbono); // Rota para a tela de aprovação de abonos (TimeOffApprovals.tsx)
   }, [navigate]);
 
   const handleClockCardClick = useCallback(() => { // Card Controle de Ponto
-    navigate("/relatorio-detalhado"); 
+    navigate(APP_PATHS.relatorioDetalhado); 
   }, [navigate]);
 
   // Redirecionamento do Card de Detalhes do Usuário
   const handleDetailsCardClick = useCallback(() => {
-    navigate("/usuario");
+    navigate(APP_PATHS.usuario);
   }, [navigate]);
   
   const isCto = useMemo(() => userData?.role === 'CTO', [userData?.role]);
@@ -88,7 +89,7 @@ const Dashboard = () => {
   const handleCompanyLinkClick = useCallback((event: React.MouseEvent<HTMLSpanElement, MouseEvent>) => {
     event.stopPropagation(); // Impede que o clique suba para o Card e navegue para /usuario
     if (isCto) {
-      navigate("/empresa");
+      navigate(APP_PATHS.empresa);
     }
   }, [isCto, navigate]);
 
@@ -96,7 +97,7 @@ const Dashboard = () => {
   const handleCompanyButtonClick = useCallback((event: React.MouseEvent<HTMLButtonElement, MouseEvent>) => {
     event.stopPropagation(); // Impede que o clique suba para o Card e navegue para /usuario
     if (isCto) {
-      navigate("/empresa");
+      navigate(APP_PATHS.empresa);
     }
   }, [isCto, navigate]);
 
@@ -420,8 +421,8 @@ const Dashboard = () => {
                             /* Card de Acesso Rápido */
                              <Card
                                className={getThemeCardClasses('primary', true)}
-                               onClick={() => navigate("/meus-documentos")}
-                               onKeyDown={getCardKeyDownHandler(() => navigate("/meus-documentos"))}
+                               onClick={() => navigate(APP_PATHS.meusDocumentos)}
+                               onKeyDown={getCardKeyDownHandler(() => navigate(APP_PATHS.meusDocumentos))}
                                role="button"
                                aria-label="Abrir acesso rápido para meus documentos"
                                tabIndex={0}
@@ -435,7 +436,7 @@ const Dashboard = () => {
                                         variant="outline" 
                                         size="sm" 
                                         className="w-full justify-start text-primary hover:bg-primary/40"
-                                        onClick={(e) => { e.stopPropagation(); navigate("/enviar-documento-colaborador"); }}
+                                        onClick={(e) => { e.stopPropagation(); navigate(APP_PATHS.enviarDocumentoColaborador); }}
                                     >
                                         <FileCheck className="w-4 h-4 mr-2 text-foreground " /> Enviar Documentos
                                     </Button>
@@ -443,7 +444,7 @@ const Dashboard = () => {
                                         variant="outline" 
                                         size="sm" 
                                         className="w-full justify-start text-primary hover:bg-primary/40"
-                                        onClick={(e) => { e.stopPropagation(); navigate("/solicitar-ferias"); }}
+                                        onClick={(e) => { e.stopPropagation(); navigate(APP_PATHS.solicitarFerias); }}
                                     >
                                         <TreePalm className="w-4 h-4 mr-2 text-foreground" /> Solicitar Férias
                                     </Button>
@@ -451,7 +452,7 @@ const Dashboard = () => {
                                         variant="outline" 
                                         size="sm" 
                                         className="w-full justify-start text-primary hover:bg-primary/40"
-                                        onClick={(e) => { e.stopPropagation(); navigate("/solicitar-abono"); }}
+                                        onClick={(e) => { e.stopPropagation(); navigate(APP_PATHS.solicitarAbono); }}
                                     >
                                         <TimerReset className="w-4 h-4 mr-2 text-foreground" /> Solicitar Abono de Horas
                                     </Button>

@@ -83,14 +83,15 @@ const App = () => (
                     <Route path={APP_PATHS.relatorioDetalhado} element={<RelatorioDetalhado />} />
                     <Route path={APP_PATHS.espelhoPonto} element={<EspelhoPonto />} />
                     <Route path={APP_PATHS.documentos} element={<Documentos />} />
+                    <Route path={APP_PATHS.meusDocumentos} element={<Documentos />} />
                     <Route path={APP_PATHS.enviarDocumentos} element={<EnviarDocumentos />} />
                     <Route path={APP_PATHS.enviarDocumentoColaborador} element={<DocumentoColaborador />} />
                     <Route path={APP_PATHS.usuario} element={<Usuario />} />
                     <Route path={APP_PATHS.avisos} element={<Avisos />} />
-                    <Route path={APP_PATHS.criarAviso} element={<CriarAviso />} />
                     <Route path={APP_PATHS.solicitarFerias} element={<RequestVacation />} />
                     <Route path={APP_PATHS.solicitarAbono} element={<RequestManualRegistration />} />
 
+                    {renderProtectedRoleRoute({ routeKey: "criarAviso", element: <CriarAviso /> })}
                     {renderProtectedRoleRoute({ routeKey: "empresa", element: <Empresa /> })}
                     {renderProtectedRoleRoute({ routeKey: "empresaCriar", element: <CriarEmpresa /> })}
                     {renderProtectedRoleRoute({ routeKey: "empresaBuscar", element: <BuscarEmpresa /> })}

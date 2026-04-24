@@ -28,7 +28,6 @@ Copie os valores de [.env.example](/home/kronos/Documentos/Codigin/Kronos-Tech-S
 | Variável | Obrigatória | Descrição |
 |---|---|---|
 | `VITE_API_BASE_URL` | Sim | URL base do backend Kronos. Em desenvolvimento local o fallback é `http://localhost:8080`. |
-| `VITE_HERE_API_KEY` | Não | Chave temporária para geolocalização no navegador até existir endpoint backend dedicado. |
 
 ## Como rodar localmente
 
@@ -100,5 +99,5 @@ npm run build
 
 - `npm` fora do `PATH`: garanta que o Node instalado pelo `nvm` esteja carregado no shell.
 - `401/403` na navegação: verifique `VITE_API_BASE_URL` e o token salvo no storage.
-- erro de geolocalização: a criação/edição de empresa depende de `VITE_HERE_API_KEY` até existir endpoint backend dedicado.
+- erro de geolocalização: a criação/edição de empresa depende do endpoint backend `POST /geolocation/resolve`.
 - teste falhando por rota não mockada: adicione ou atualize o handler em `src/test/mocks/handlers.ts`.

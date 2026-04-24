@@ -20,7 +20,7 @@ Quando o backend não tem validação clara para CTO em fluxos gerenciais, o fro
 | Enviar documentos próprios | `/enviar-documentos` | Sim | Sim | Sim | Uso geral |
 | Documento de colaborador | `/enviar-documento-colaborador` | Sim | Sim | Sim | Tela segue ativa conforme fluxo atual |
 | Empresas | `/empresa` e subrotas | Não | Não | Sim | Gestão enterprise |
-| Auditoria fiscal | `/auditoria` | Não | Sim | Não | Exposição conservadora até validação backend para CTO |
+| Auditoria fiscal | `/auditoria` | Não | Sim | Sim | Aderente ao backend nos endpoints `/legal/*` |
 | Colaboradores | `/lista-colaboradores` | Não | Sim | Não | Gestão de equipe |
 | Criar colaborador | `/criar-colaborador` | Não | Sim | Não | Gestão de equipe |
 | Criar administrador | `/criar-administrador` | Não | Sim | Sim | CTO e MANAGER |
@@ -41,7 +41,7 @@ Quando o backend não tem validação clara para CTO em fluxos gerenciais, o fro
 | Records | `GET /records/vacation-request` | Não | Sim | Não | Gestão de férias |
 | Records | `GET /records/time-off/requests` | Não | Sim | Não | Gestão de abonos |
 | Companies | `GET /companies` | Não | Não | Sim | Gestão enterprise |
-| Legal | `GET /legal/*` | Não | Sim | Não | Fluxo conservador até validação explícita para CTO |
+| Legal | `GET /legal/*` | Não | Sim | Sim | Aderente ao backend para auditoria fiscal |
 
 ## Notas
 

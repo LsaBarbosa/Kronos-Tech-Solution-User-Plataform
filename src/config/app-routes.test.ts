@@ -7,6 +7,7 @@ describe("app-routes metadata", () => {
     expect(APP_ROUTE_META.dashboard.label).toBe("Início");
     expect(APP_ROUTE_META.empresa.path).toBe(APP_PATHS.empresa);
     expect(APP_ROUTE_META.empresa.allowedRoles).toEqual(["CTO"]);
+    expect(APP_ROUTE_META.auditoria.allowedRoles).toEqual(["MANAGER", "CTO"]);
   });
 
   it("expõe breadcrumbs e visibilidade de menu para rotas secundárias", () => {
@@ -17,5 +18,7 @@ describe("app-routes metadata", () => {
       { label: "Criar Empresa", path: APP_PATHS.empresaCriar },
     ]);
     expect(APP_ROUTE_META.criarAdministrador.allowedRoles).toEqual(["CTO", "MANAGER"]);
+    expect(APP_ROUTE_META.criarAviso.allowedRoles).toEqual(["MANAGER"]);
+    expect(APP_ROUTE_META.meusDocumentos.path).toBe(APP_PATHS.meusDocumentos);
   });
 });

@@ -22,6 +22,7 @@
 | Companies | POST | `/companies` | `company.service.ts` | `CriarEmpresa`, `useCreateCompany` | onboarding de empresa | `201/204` | Aderente |
 | Companies | PATCH | `/companies/:cnpj` | `company.service.ts` | `AtualizarEmpresa`, `useUpdateCompanyForm` | atualização parcial | `204/200` | Aderente |
 | Companies | PATCH | `/companies/:cnpj/toggle-activate` | `company.service.ts` | gestão de empresa | `{ active }` | `204/200` | Aderente |
+| Geolocation | POST | `/geolocation/resolve` | `geolocation.service.ts` | `CriarEmpresa`, `AtualizarEmpresa` | `{ postalCode, number }` | `{ latitude, longitude }` | Aderente |
 | Documents | GET | `/documents` | `document.service.ts` | `Documentos`, `useDocumentsPage`, `useMyDocuments` | `employeeId`, `type`, `date` | lista de documentos | Aderente |
 | Documents | POST | `/documents` | `document.service.ts` | `EnviarDocumentos`, `DocumentoColaborador` | `multipart/form-data` com `file`, `employeeId`, `type` | `201/204` | Aderente |
 | Documents | GET | `/documents/:documentId` | `document.service.ts` | `Documentos`, `ResultadosRelatorioDetalhado` | sem payload | blob + `Content-Disposition` | Aderente |
@@ -35,7 +36,7 @@
 | Records | POST | `/records/report` | `records.service.ts` | `RelatorioDetalhado` | `{ reference, active, dates, statuses }` + `employeeId` opcional | lista detalhada | Aderente |
 | Records | POST | `/records/report/simple` | `records.service.ts` | `RelatorioDetalhado` | `{ reference, active, dates, statuses }` + `employeeId` opcional | resumo simples | Aderente |
 | Records | POST | `/records/vacation-request` | `records.service.ts` | `RequestVacation` | `{ startDate, endDate, managerId }` | `number[]` | Aderente |
-| Records | GET | `/records/vacation-request` | `records.service.ts` | `VacationApprovals`, `useVacationCount` | paginação, status, `employeeName` | array direto ou envelope paginado | Divergência tolerada no front |
+| Records | GET | `/records/vacation-request` | `records.service.ts` | `VacationApprovals`, `useVacationCount` | paginação, status, `employeeName` | array direto ou envelope paginado normalizado pelo front | Aderente |
 | Records | PATCH | `/records/vacation-request/approve` | `records.service.ts` | `VacationApprovals` | `{ timeRecordIds }` | `204/200` | Aderente |
 | Records | PATCH | `/records/vacation-request/reject` | `records.service.ts` | `VacationApprovals` | `{ timeRecordIds }` | `204/200` | Aderente |
 | Records | POST | `/records/time-off/request` | `records.service.ts` | `RequestManualRegistration` | multipart com parte `request` e `document` opcional | id numérico | Aderente |

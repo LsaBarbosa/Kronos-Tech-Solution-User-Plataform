@@ -18,8 +18,7 @@ Mapear as chamadas HTTP ativas do front-end e classificar aderência ao backend 
 | `src/service/company.service.ts` | `POST` | `/companies` | empresas | sim | não | sim | válida |
 | `src/service/company.service.ts` | `PATCH` | `/companies/{cnpj}` | empresas | sim | não | sim | válida |
 | `src/service/company.service.ts` | `PATCH` | `/companies/{cnpj}/toggle-activate` | empresas | sim | não | sim | válida |
-| `src/service/company.service.ts` | `GET` | `https://viacep.com.br/ws/{cep}/json/` | empresas | não | sim | não | válida externa |
-| `src/service/company.service.ts` | `GET` | `https://geocode.search.hereapi.com/v1/geocode` | empresas | não | sim | não | válida externa |
+| `src/service/geolocation.service.ts` | `POST` | `/geolocation/resolve` | empresas | sim | não | sim | válida |
 | `src/service/collaborator-management.service.ts` | `GET` | `/employee/check-cpf` | colaboradores | sim | não | sim | válida |
 | `src/service/collaborator-management.service.ts` | `POST` | `/employee` | colaboradores | sim | não | sim | válida |
 | `src/service/collaborator-management.service.ts` | `GET` | `/employee` | colaboradores | sim | não | sim | válida |
@@ -73,6 +72,6 @@ Não há uso ativo no código atual para:
 
 ## Observações
 
-- `fetch` permanece apenas para integrações externas explícitas de geocodificação.
+- Não há uso ativo de `fetch` em `src` para integrações de produção.
 - Todas as chamadas internas ao backend passam por `api.ts`.
 - As integrações críticas do sistema estão cobertas por testes unitários com MSW.

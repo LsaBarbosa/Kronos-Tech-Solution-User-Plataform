@@ -159,6 +159,27 @@ describe("company.service", () => {
     await expect(toggleCompanyStatus("12345678000190", true)).resolves.toBeUndefined();
   });
 
+  it("resolve geolocalização pelo endpoint interno do backend", async () => {
+    server.use(
+      http.post("*/geolocation/resolve", async ({ request }) => {
+        await expect(request.json()).resolves.toEqual({
+          postalCode: "01001000",
+          number: "100",
+        });
+
+        return HttpResponse.json({
+          latitude: -23.55052,
+          longitude: -46.633308,
+        });
+      })
+    );
+
+    await expect(getGeolocationFromCEP("01001000", "100")).resolves.toEqual({
+      latitude: -23.55052,
+      longitude: -46.633308,
+    });
+  });
+
   it("propaga erro padronizado quando empresa nao existe", async () => {
     server.use(
       http.get("*/companies/:cnpj", () =>
@@ -180,9 +201,18 @@ describe("company.service", () => {
     });
   });
 
-  it("falha ao resolver geolocalização sem chave configurada", async () => {
-    await expect(getGeolocationFromCEP("01001000", "100")).rejects.toThrow(
-      "A chave VITE_HERE_API_KEY não foi definida."
+  it("falha ao resolver geolocalização com CEP inválido", async () => {
+    server.use(
+      http.post("*/geolocation/resolve", () =>
+        HttpResponse.json(
+          { detail: "CEP não encontrado ou inválido." },
+          { status: 404 }
+        )
+      )
+    );
+
+    await expect(getGeolocationFromCEP("00000000", "100")).rejects.toThrow(
+      "CEP não encontrado ou inválido."
     );
   });
 });

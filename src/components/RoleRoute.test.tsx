@@ -64,6 +64,23 @@ describe("RoleRoute", () => {
     expect(screen.getByText("Admin protegido")).toBeInTheDocument();
   });
 
+  it("libera acesso para CTO quando a rota aceita CTO e MANAGER", () => {
+    mockUseAuth.mockReturnValue({
+      status: "authenticated",
+      user: null,
+      role: "CTO",
+      token: null,
+      isAuthenticated: true,
+      checkSession: vi.fn(),
+      login: vi.fn(),
+      logout: vi.fn(),
+    });
+
+    renderRoleRoute(["MANAGER", "CTO"]);
+
+    expect(screen.getByText("Admin protegido")).toBeInTheDocument();
+  });
+
   it("libera acesso quando nao ha roles restritas", () => {
     mockUseAuth.mockReturnValue({
       status: "authenticated",
