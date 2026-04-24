@@ -24,7 +24,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from '.
 import { Loader2, Search, Check, X, Download, Clock, User, CalendarCheck } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "../components/ui/alert";
 import { PaginationComponent } from "../components/ui/PaginationComponent";
-import { StatusRecord } from '../types/recordApproval';
+import type { StatusRecord, TimeRecordResponse } from '../types/recordApproval';
 import { cn } from '../lib/utils';
 import { downloadDocument } from '@/service/document.service';
 
@@ -32,7 +32,11 @@ import { downloadDocument } from '@/service/document.service';
 // --- 1. FUNÇÕES DE UTILIDADE E TIPOS
 // ---------------------------------------------------------------------
 
-const formatBackendDate = (dateString: string): string => {
+const formatBackendDate = (dateString: string | null): string => {
+    if (!dateString) {
+        return "N/A";
+    }
+
     const dateOnly = dateString.split(' ')[0];
     const parts = dateOnly.split(/[-/.]/); 
 
@@ -70,8 +74,7 @@ const statusOptions: { value: StatusFilterType, label: string }[] = [
 ];
 
 type StatusFilterType = 'PENDING' | 'APPROVED' | 'REJECTED' | 'ALL';
-// Hack para inferir o tipo do registro a partir do hook, caso não queira importar a interface explicitamente
-type ITimeOffRecord = typeof useTimeOffApprovals extends () => { approvalsData: { records: infer R } | undefined } ? R extends (infer T)[] ? T : never : never;
+type ITimeOffRecord = TimeRecordResponse;
 
 const renderStatusBadge = (status: StatusRecord) => {
     const baseClasses = 'px-2.5 py-0.5 rounded-full text-xs font-medium border';

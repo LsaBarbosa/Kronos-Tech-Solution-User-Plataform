@@ -36,14 +36,15 @@ describe("document.service", () => {
         const url = new URL(request.url);
         expect(url.searchParams.get("employeeId")).toBe("emp-1");
         expect(url.searchParams.get("type")).toBe("PAYSLIP");
+        expect(url.searchParams.get("date")).toBe("2026-04-23");
 
         return HttpResponse.json({
           documents: [
             {
-              id: "doc-1",
+              documentId: "doc-1",
               fileName: "contracheque.pdf",
               uploadedAt: "2026-04-23T10:00:00Z",
-              type: "PAYSLIP",
+              documentType: "PAYSLIP",
             },
           ],
         });
@@ -51,7 +52,7 @@ describe("document.service", () => {
     );
 
     await expect(
-      fetchDocuments({ employeeId: "emp-1", type: "PAYSLIP" })
+      fetchDocuments({ employeeId: "emp-1", type: "PAYSLIP", date: "2026-04-23" })
     ).resolves.toEqual([
       {
         id: "doc-1",
@@ -127,6 +128,20 @@ describe("document.service", () => {
     const file = (formData as FormData).get("file");
     expect(file).toBeInstanceOf(File);
     expect((file as File).name).toBe("arquivo.pdf");
+  });
+
+  it("bloqueia upload com tipo de arquivo inválido antes da chamada HTTP", async () => {
+    const postSpy = vi.spyOn(api, "post").mockResolvedValue({} as never);
+
+    await expect(
+      uploadDocument(
+        new File(["conteudo"], "arquivo.exe", { type: "application/octet-stream" }),
+        "emp-1",
+        "PAYSLIP"
+      )
+    ).rejects.toThrow("Tipo de arquivo não permitido.");
+
+    expect(postSpy).not.toHaveBeenCalled();
   });
 
   it("baixa documento respeitando o nome do arquivo retornado", async () => {

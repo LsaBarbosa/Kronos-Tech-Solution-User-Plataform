@@ -1,15 +1,17 @@
 // src/hooks/useCompanySearch.ts
 
 import { useState, useEffect, useCallback } from "react";
-import { useForm, UseFormReturn } from "react-hook-form";
+import type { UseFormReturn } from "react-hook-form";
+import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast"; 
-import { 
+import type { 
     CompanyListItem, 
     CompanyData, 
-    CompanyUpdatePayload, 
+    CompanyUpdatePayload} from "@/types/company";
+import { 
     formatCNPJ, 
     formatCEP, 
     cleanCEP 

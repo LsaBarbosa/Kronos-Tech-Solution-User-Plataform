@@ -5,7 +5,7 @@ import { toast } from '@/hooks/use-toast';
 import { useState } from 'react';
 import { format } from 'date-fns';
 import * as z from 'zod';
-import { VacationRequestPayload } from '@/types/vacation';
+import type { VacationRequestPayload } from '@/types/vacation';
 import { requestVacation, fetchManagerOptions } from '@/service/records.service';
 import { getServiceErrorMessage } from '@/service/helpers/service-error.helper';
 

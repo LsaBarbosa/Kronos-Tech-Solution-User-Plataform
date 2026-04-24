@@ -2,7 +2,7 @@ import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { format, isBefore, isSameDay } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
-import {
+import type {
   TimeOffFormState,
   IManagerOption,
   RequestTimeOffRequestPayload,

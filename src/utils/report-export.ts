@@ -1,3 +1,5 @@
+import type { jsPDF as JsPdfConstructor } from "jspdf";
+
 type CsvCell = string | number | boolean | null | undefined;
 
 const escapeCsvCell = (value: CsvCell) => {
@@ -29,7 +31,7 @@ export const downloadCsvFile = (rows: readonly (readonly CsvCell[])[], headers: 
 };
 
 type PdfLibraries = {
-  jsPDF: typeof import("jspdf").default;
+  jsPDF: typeof JsPdfConstructor;
   autoTable: (...args: unknown[]) => void;
 };
 

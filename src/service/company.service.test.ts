@@ -6,6 +6,7 @@ import {
   createCompany,
   fetchCompanyDetails,
   fetchCompanyList,
+  getGeolocationFromCEP,
   toggleCompanyStatus,
   updateCompany,
 } from "./company.service";
@@ -177,5 +178,11 @@ describe("company.service", () => {
         data: { detail: "Empresa nao encontrada." },
       },
     });
+  });
+
+  it("falha ao resolver geolocalização sem chave configurada", async () => {
+    await expect(getGeolocationFromCEP("01001000", "100")).rejects.toThrow(
+      "A chave VITE_HERE_API_KEY não foi definida."
+    );
   });
 });

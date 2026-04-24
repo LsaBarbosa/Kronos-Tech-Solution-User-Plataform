@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import * as RecordsService from "@/service/records.service";
-import { TimeOffQueryParams, TimeRecordPageResponse } from "@/types/recordApproval";
+import type { TimeOffQueryParams, TimeRecordPageResponse } from "@/types/recordApproval";
 
 export interface UseTimeOffCountReturn {
   pendingTimeOffCount: number;
@@ -18,9 +18,10 @@ const EMPTY_TIME_OFF_PAGE: TimeRecordPageResponse = {
   isLast: true,
 };
 
-export const useTimeOffCount = (): UseTimeOffCountReturn => {
+export const useTimeOffCount = (enabled = true): UseTimeOffCountReturn => {
   const query = useQuery<TimeRecordPageResponse, Error, number>({
     queryKey: TIME_OFF_COUNT_QUERY_KEY,
+    enabled,
     queryFn: () =>
       RecordsService.listTimeOffRequests({
         page: 0,
@@ -37,6 +38,8 @@ export const useTimeOffCount = (): UseTimeOffCountReturn => {
   return {
     pendingTimeOffCount: query.data ?? 0,
     isLoadingTimeOffCount: query.isLoading,
-    refetchTimeOffCount: () => void query.refetch(),
+    refetchTimeOffCount: () => {
+      void query.refetch();
+    },
   };
 };

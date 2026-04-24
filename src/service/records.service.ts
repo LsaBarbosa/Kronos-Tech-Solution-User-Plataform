@@ -1,24 +1,25 @@
 import { api } from "@/config/api";
 import { API_ROUTES, buildRoute } from "@/config/api-routes";
 import { extractArray, extractObject } from "@/service/helpers/response-normalizer.helper";
-import { DetailedReportItem, Employee } from "@/utils/report-utils";
-import {
+import type { DetailedReportItem, Employee } from "@/utils/report-utils";
+import type {
   PendingApprovalQueryParams,
   TimeOffQueryParams,
   TimeRecordApprovalPageResponse,
   TimeRecordPageResponse,
 } from "@/types/recordApproval";
-import {
-  EMPTY_VACATION_REQUEST_PAGE,
+import type {
   ManagerOption,
   VacationRequestPayload,
   RequestTimeOffRequestPayload,
   VacationApprovalRequest,
   VacationQueryParams,
   VacationRequestPageResponse,
-  VacationRequestResponse,
+  VacationRequestResponse} from "@/types/vacation";
+import {
+  EMPTY_VACATION_REQUEST_PAGE
 } from "@/types/vacation";
-import { UserSearchListItem, UserSearchListResponse } from "@/types/user";
+import type { UserSearchListItem, UserSearchListResponse } from "@/types/user";
 
 const RECORDS_BASE_URL = `/${API_ROUTES.RECORDS}`;
 
@@ -57,6 +58,24 @@ export interface TimeRecordUpdatePayload {
   endHour: string;
   managerId: string;
 }
+
+const REPORT_REFERENCE_REGEX = /^([01]\d|2[0-3]):[0-5]\d$/;
+
+const validateReportParams = (
+  params: DetailedReportQueryParams | SimpleReportQueryParams
+) => {
+  if (!REPORT_REFERENCE_REGEX.test(params.reference)) {
+    throw new Error("O campo reference deve estar no formato HH:mm.");
+  }
+
+  if (!Array.isArray(params.dates) || params.dates.length === 0) {
+    throw new Error("Informe pelo menos uma data para gerar o relatório.");
+  }
+
+  if (params.dates.some((date) => typeof date !== "string" || !date.trim())) {
+    throw new Error("As datas do relatório são inválidas.");
+  }
+};
 
 const extractVacationRequestPage = (
   payload: unknown
@@ -97,6 +116,7 @@ export const fetchPendingApprovals = async (
 export const fetchDetailedReport = async (
   params: DetailedReportQueryParams
 ): Promise<DetailedReportItem[]> => {
+  validateReportParams(params);
   const { employeeId, ...body } = params;
   const response = await api.post<DetailedReportItem[]>(
     `${RECORDS_BASE_URL}/report`,
@@ -112,6 +132,7 @@ export const fetchDetailedReport = async (
 export const fetchSimpleReport = async (
   params: SimpleReportQueryParams
 ): Promise<SimpleReportResponse> => {
+  validateReportParams(params);
   const { employeeId, ...body } = params;
   const response = await api.post<SimpleReportResponse>(
     `${RECORDS_BASE_URL}/report/simple`,

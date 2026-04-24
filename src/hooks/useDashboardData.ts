@@ -3,9 +3,10 @@
 import { useState, useEffect, useCallback, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { fetchUserProfile, fetchPendingApprovalsCount, fetchAllWarnings, updateLastSeenMessageTimestamp } from "@/service/dashboard.service";
-import { ITimeRecordApprovalPageResponse } from "@/types/recordApproval"; 
-import { WarningMessage, hasApprovalPermission } from "@/types/dashboard";
-import { UserData } from "@/types/user"; 
+import type { ITimeRecordApprovalPageResponse } from "@/types/recordApproval"; 
+import type { WarningMessage} from "@/types/dashboard";
+import { hasApprovalPermission } from "@/types/dashboard";
+import type { UserData } from "@/types/user"; 
 import { isAuthServiceError, normalizeServiceError } from "@/service/helpers/service-error.helper";
 import { getCurrentLocationHref, redirectBrowserTo } from "@/lib/browser";
 import { showErrorToast } from "@/lib/feedback";
@@ -58,7 +59,7 @@ export const useDashboardData = (): UseDashboardDataReturn => {
             });
             
             const [approvals, warnings] = await Promise.all([
-                fetchApprovalsCount(profile.role),
+                fetchApprovalsCount(profile.role ?? ""),
                 fetchAllWarnings(),
             ]);
 

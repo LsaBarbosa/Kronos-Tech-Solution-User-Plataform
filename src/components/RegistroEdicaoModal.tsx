@@ -7,8 +7,8 @@ import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Edit } from "lucide-react";
-import { UseFormReturn } from "react-hook-form";
-import { EditRecordFormData, DetailedReportItem, Manager } from "@/utils/report-utils";
+import type { UseFormReturn } from "react-hook-form";
+import type { EditRecordFormData, DetailedReportItem, Manager } from "@/utils/report-utils";
 
 
 interface RegistroEdicaoModalProps {

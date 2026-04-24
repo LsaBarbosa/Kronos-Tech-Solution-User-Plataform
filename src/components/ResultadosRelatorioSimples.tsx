@@ -4,8 +4,7 @@ import React from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
 import { CalendarIcon } from "lucide-react";
-// Usando ReportDataSimple do utils, mas estendemos a tipagem aqui para os novos campos
-import { ReportDataSimple, isHoliday, formatDateWithDayOfWeek } from "@/utils/report-utils"; // <--- ALTERADO
+import { formatDateWithDayOfWeek, isHoliday } from "@/utils/report-utils";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { useToast } from "@/hooks/use-toast";
@@ -157,7 +156,17 @@ export const ResultadosRelatorioSimples: React.FC<ResultadosSimplesProps> = ({
                         halign: 'center'
                     }
                 },
-                didParseCell: function (data) {
+                didParseCell: function (data: {
+                    column: { index: number };
+                    section: string;
+                    cell: {
+                        text: string[];
+                        styles: {
+                            textColor?: number[];
+                            fontStyle?: string;
+                        };
+                    };
+                }) {
                     // 💡 ESTILO: Destaque Colorido para Feriado (Primeira Coluna)
                     if (data.column.index === 0 && data.section === 'body') {
                         const cellContent = data.cell.text[0];

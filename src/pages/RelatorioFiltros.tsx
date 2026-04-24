@@ -13,7 +13,8 @@ import { Command, CommandInput, CommandItem, CommandList, CommandEmpty } from "@
 import { Check, CalendarIcon, Search, Download, FileText, CalendarCheck, CalendarX, ChevronDown, Loader2 } from "lucide-react"; 
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, startOfDay, isSameDay } from "date-fns"; 
 import { ptBR } from "date-fns/locale";
-import { Employee, statusOptions, allHolidays } from "@/utils/report-utils";
+import type { Employee} from "@/utils/report-utils";
+import { statusOptions, allHolidays } from "@/utils/report-utils";
 import { cn } from "@/lib/utils";
 
 interface RelatorioFiltrosProps {

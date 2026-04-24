@@ -3,7 +3,8 @@
 import { useState, useEffect, useCallback } from "react";
 import { useToast } from "@/hooks/use-toast";
 import { useNavigate } from "react-router-dom";
-import { UserAccountData, UserData, ChangePasswordData, cleanNumberString } from "@/types/user";
+import type { UserAccountData, UserData, ChangePasswordData} from "@/types/user";
+import { cleanNumberString } from "@/types/user";
 import { updateEmail, updatePhone, changePassword } from "@/service/user.service";
 import { loadSessionProfile } from "@/service/session-profile.service";
 import { getServiceErrorMessage, isAuthServiceError } from "@/service/helpers/service-error.helper";

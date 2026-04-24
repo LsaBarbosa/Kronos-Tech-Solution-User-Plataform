@@ -8,11 +8,12 @@ import { ptBR } from "date-fns/locale";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 
-import {
+import type {
     DetailedReportItem,
     Employee,
     Manager,
-    EditRecordFormData,
+    EditRecordFormData} from "@/utils/report-utils";
+import {
     editRecordSchema,
     isHoliday,
     getTranslatedStatus,

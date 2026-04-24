@@ -8,7 +8,6 @@ export interface Document {
   name: string;
   createdAt: string;
   type: string;
-  // A URL de download não é mantida no estado, mas sim gerada pela API
 }
 
 /**
@@ -25,21 +24,36 @@ export interface EmployeeListItem {
 export interface UploadData {
   file: File | null;
   selectedEmployeeId: string;
-  // Outros campos de metadados se necessário (ex: tipo de documento)
 }
 
-// --- Funções Utilitárias Puras ---
-
 export const MAX_UPLOAD_SIZE_BYTES = 5 * 1024 * 1024; // 5MB
-export const ALLOWED_MIME_TYPES = ['.pdf', '.jpg', '.jpeg', '.png', '.docx', '.doc'];
-export const ALLOWED_ACCEPT_STRING = ALLOWED_MIME_TYPES.join(', ');
+export const ALLOWED_MIME_TYPES = [".pdf", ".jpg", ".jpeg", ".png", ".docx", ".doc"];
+export const ALLOWED_ACCEPT_STRING = ALLOWED_MIME_TYPES.join(", ");
+
+const ALLOWED_FILE_MIME_TYPES = [
+  "application/pdf",
+  "image/jpeg",
+  "image/png",
+  "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
+  "application/msword",
+];
+
+export const isAllowedDocumentFile = (file: File) => {
+  const extension = file.name.split(".").pop()?.toLowerCase();
+  const normalizedExtension = extension ? `.${extension}` : "";
+
+  return (
+    ALLOWED_MIME_TYPES.includes(normalizedExtension) ||
+    ALLOWED_FILE_MIME_TYPES.includes(file.type)
+  );
+};
 
 export const formatDate = (dateString: string): string => {
   if (!dateString) return "N/A";
+
   try {
-      // Formata para DD/MM/AAAA
-      return new Date(dateString).toLocaleDateString('pt-BR');
-  } catch (e) {
-      return "Data Inválida";
+    return new Date(dateString).toLocaleDateString("pt-BR");
+  } catch {
+    return "Data Inválida";
   }
 };

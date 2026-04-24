@@ -5,6 +5,7 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { ThemeProvider } from "@/hooks/useTheme";
 import { AuthProvider } from "@/context/AuthContext";
+import AppErrorBoundary from "@/components/AppErrorBoundary";
 import ProtectedRoute from "./components/ProtectedRoute";
 import RoleRoute from "./components/RoleRoute";
 import { APP_PATHS, APP_ROUTE_META } from "@/config/app-routes";
@@ -50,56 +51,65 @@ const PageFallback = () => (
 
 const queryClient = new QueryClient();
 
+const renderProtectedRoleRoute = ({
+  routeKey,
+  element,
+}: {
+  routeKey: keyof typeof APP_ROUTE_META;
+  element: JSX.Element;
+}) => (
+  <Route element={<RoleRoute allowedRoles={APP_ROUTE_META[routeKey].allowedRoles ?? []} />}>
+    <Route path={APP_ROUTE_META[routeKey].path} element={element} />
+  </Route>
+);
+
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <ThemeProvider>
       <AuthProvider>
         <TooltipProvider>
           <Toaster />
-          <BrowserRouter>
-            <Suspense fallback={<PageFallback />}>
-              <Routes>
-                <Route path={APP_PATHS.root} element={<TokenRedirect />} />
-                <Route path={APP_PATHS.login} element={<Login />} />
-                <Route path={APP_PATHS.senhaPrimeiroAcesso} element={<EsqueciSenha />} />
-                <Route path={APP_PATHS.resetarSenha} element={<ResetPassword />} />
+          <AppErrorBoundary>
+            <BrowserRouter>
+              <Suspense fallback={<PageFallback />}>
+                <Routes>
+                  <Route path={APP_PATHS.root} element={<TokenRedirect />} />
+                  <Route path={APP_PATHS.login} element={<Login />} />
+                  <Route path={APP_PATHS.senhaPrimeiroAcesso} element={<EsqueciSenha />} />
+                  <Route path={APP_PATHS.resetarSenha} element={<ResetPassword />} />
 
-                <Route element={<ProtectedRoute />}>
-                  <Route path={APP_PATHS.dashboard} element={<Dashboard />} />
-                  <Route path={APP_PATHS.relatorioDetalhado} element={<RelatorioDetalhado />} />
-                  <Route path={APP_PATHS.espelhoPonto} element={<EspelhoPonto />} />
-                  <Route path={APP_PATHS.documentos} element={<Documentos />} />
-                  <Route path={APP_PATHS.enviarDocumentos} element={<EnviarDocumentos />} />
-                  <Route path={APP_PATHS.enviarDocumentoColaborador} element={<DocumentoColaborador />} />
-                  <Route path={APP_PATHS.usuario} element={<Usuario />} />
-                  <Route path={APP_PATHS.avisos} element={<Avisos />} />
-                  <Route path={APP_PATHS.criarAviso} element={<CriarAviso />} />
-                  <Route path={APP_PATHS.solicitarFerias} element={<RequestVacation />} />
-                  <Route path={APP_PATHS.solicitarAbono} element={<RequestManualRegistration />} />
+                  <Route element={<ProtectedRoute />}>
+                    <Route path={APP_PATHS.dashboard} element={<Dashboard />} />
+                    <Route path={APP_PATHS.relatorioDetalhado} element={<RelatorioDetalhado />} />
+                    <Route path={APP_PATHS.espelhoPonto} element={<EspelhoPonto />} />
+                    <Route path={APP_PATHS.documentos} element={<Documentos />} />
+                    <Route path={APP_PATHS.enviarDocumentos} element={<EnviarDocumentos />} />
+                    <Route path={APP_PATHS.enviarDocumentoColaborador} element={<DocumentoColaborador />} />
+                    <Route path={APP_PATHS.usuario} element={<Usuario />} />
+                    <Route path={APP_PATHS.avisos} element={<Avisos />} />
+                    <Route path={APP_PATHS.criarAviso} element={<CriarAviso />} />
+                    <Route path={APP_PATHS.solicitarFerias} element={<RequestVacation />} />
+                    <Route path={APP_PATHS.solicitarAbono} element={<RequestManualRegistration />} />
 
-                  <Route element={<RoleRoute allowedRoles={APP_ROUTE_META.empresa.allowedRoles ?? []} />}>
-                    <Route path={APP_PATHS.empresa} element={<Empresa />} />
-                    <Route path={APP_PATHS.empresaCriar} element={<CriarEmpresa />} />
-                    <Route path={APP_PATHS.empresaBuscar} element={<BuscarEmpresa />} />
-                    <Route path={APP_PATHS.empresaAtualizar} element={<AtualizarEmpresa />} />
+                    {renderProtectedRoleRoute({ routeKey: "empresa", element: <Empresa /> })}
+                    {renderProtectedRoleRoute({ routeKey: "empresaCriar", element: <CriarEmpresa /> })}
+                    {renderProtectedRoleRoute({ routeKey: "empresaBuscar", element: <BuscarEmpresa /> })}
+                    {renderProtectedRoleRoute({ routeKey: "empresaAtualizar", element: <AtualizarEmpresa /> })}
+                    {renderProtectedRoleRoute({ routeKey: "auditoria", element: <AuditoriaFiscal /> })}
+                    {renderProtectedRoleRoute({ routeKey: "criarColaborador", element: <CriarColaborador /> })}
+                    {renderProtectedRoleRoute({ routeKey: "criarAdministrador", element: <CriarManager /> })}
+                    {renderProtectedRoleRoute({ routeKey: "listaColaboradores", element: <ListaColaboradores /> })}
+                    {renderProtectedRoleRoute({ routeKey: "apuracaoHoras", element: <PendingApprovals /> })}
+                    {renderProtectedRoleRoute({ routeKey: "statusDoRegistro", element: <StatusRegistro /> })}
+                    {renderProtectedRoleRoute({ routeKey: "ferias", element: <VacationApprovals /> })}
+                    {renderProtectedRoleRoute({ routeKey: "aprovacoesAbono", element: <ManualRegisterApprovals /> })}
                   </Route>
 
-                  <Route element={<RoleRoute allowedRoles={APP_ROUTE_META.auditoria.allowedRoles ?? []} />}>
-                    <Route path={APP_PATHS.auditoria} element={<AuditoriaFiscal />} />
-                    <Route path={APP_PATHS.criarColaborador} element={<CriarColaborador />} />
-                    <Route path={APP_PATHS.criarAdministrador} element={<CriarManager />} />
-                    <Route path={APP_PATHS.listaColaboradores} element={<ListaColaboradores />} />
-                    <Route path={APP_PATHS.apuracaoHoras} element={<PendingApprovals />} />
-                    <Route path={APP_PATHS.statusDoRegistro} element={<StatusRegistro />} />
-                    <Route path={APP_PATHS.ferias} element={<VacationApprovals />} />
-                    <Route path={APP_PATHS.aprovacoesAbono} element={<ManualRegisterApprovals />} />
-                  </Route>
-                </Route>
-
-                <Route path="*" element={<NotFound />} />
-              </Routes>
-            </Suspense>
-          </BrowserRouter>
+                  <Route path="*" element={<NotFound />} />
+                </Routes>
+              </Suspense>
+            </BrowserRouter>
+          </AppErrorBoundary>
         </TooltipProvider>
       </AuthProvider>
     </ThemeProvider>

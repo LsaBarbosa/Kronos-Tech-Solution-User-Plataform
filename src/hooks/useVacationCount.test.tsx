@@ -37,4 +37,14 @@ describe("useVacationCount", () => {
 
     expect(mockFetchPendingVacationCount).toHaveBeenCalledTimes(1);
   });
+
+  it("não consulta férias pendentes quando o hook está desabilitado", async () => {
+    const { result } = renderHook(() => useVacationCount(false), { wrapper: createWrapper() });
+
+    await waitFor(() => {
+      expect(result.current.pendingVacationCount).toBe(0);
+    });
+
+    expect(mockFetchPendingVacationCount).not.toHaveBeenCalled();
+  });
 });

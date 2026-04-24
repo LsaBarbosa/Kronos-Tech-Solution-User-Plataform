@@ -92,6 +92,7 @@ export const useDocumentsPage = () => {
       const data = await fetchDocuments({
         employeeId: selectedEmployeeId,
         type: selectedDocumentType,
+        ...(searchDate ? { date: searchDate } : {}),
       });
 
       setDocuments(data);
@@ -106,7 +107,7 @@ export const useDocumentsPage = () => {
     } finally {
       setIsSearching(false);
     }
-  }, [getDocumentTypeLabel, selectedEmployeeId, selectedDocumentType]);
+  }, [getDocumentTypeLabel, searchDate, selectedEmployeeId, selectedDocumentType]);
 
   const normalizedDocuments = useMemo(() => documents, [documents]);
 

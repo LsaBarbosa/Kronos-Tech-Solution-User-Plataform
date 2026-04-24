@@ -138,6 +138,34 @@ describe("records.service", () => {
     });
   });
 
+  it("retorna lista vazia em relatório detalhado sem registros", async () => {
+    server.use(
+      http.post("*/records/report", () => HttpResponse.json([]))
+    );
+
+    await expect(
+      fetchDetailedReport({
+        reference: "08:00",
+        active: true,
+        dates: ["10-04-2026"],
+      })
+    ).resolves.toEqual([]);
+  });
+
+  it("valida o formato da referência antes de chamar o relatório", async () => {
+    const postSpy = vi.spyOn(api, "post");
+
+    await expect(
+      fetchSimpleReport({
+        reference: "8:00",
+        active: true,
+        dates: ["10-04-2026"],
+      })
+    ).rejects.toThrow("O campo reference deve estar no formato HH:mm.");
+
+    expect(postSpy).not.toHaveBeenCalled();
+  });
+
   it("aprova e rejeita ajustes de ponto", async () => {
     server.use(
       http.patch("*/records/approve/10", () => new HttpResponse(null, { status: 204 })),

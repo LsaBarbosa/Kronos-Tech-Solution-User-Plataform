@@ -1,10 +1,11 @@
 // ARQUIVO: src/hooks/useVacationApprovals.ts
 
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import {
-  EMPTY_VACATION_REQUEST_PAGE,
+import type {
   VacationQueryParams,
-  VacationRequestPageResponse,
+  VacationRequestPageResponse} from "@/types/vacation";
+import {
+  EMPTY_VACATION_REQUEST_PAGE
 } from "@/types/vacation";
 import { toast } from "@/hooks/use-toast";
 import { fetchVacationRequests, approveVacationRequest, rejectVacationRequest } from "@/service/records.service";

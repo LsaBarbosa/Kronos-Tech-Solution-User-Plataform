@@ -8,27 +8,30 @@ export interface BiometricTermsStatusResponse {
 
 export interface BiometricTermsAcceptResponse {
   accepted: boolean;
-  token?: string;
+  token: string;
 }
 
 export const getBiometricTermStatus = async (): Promise<BiometricTermsStatusResponse> => {
-  const response = await api.get<BiometricTermsStatusResponse>(buildRoute(API_ROUTES.TERMS, "status"));
-  const data = extractObject<BiometricTermsStatusResponse>(response.data) as Partial<BiometricTermsStatusResponse>;
+  const response = await api.get<boolean>(buildRoute(API_ROUTES.TERMS, "status"));
 
   return {
-    accepted: Boolean(data.accepted),
+    accepted: response.data === true,
   };
 };
 
 export const acceptBiometricTerms = async (): Promise<BiometricTermsAcceptResponse> => {
-  const response = await api.post<BiometricTermsAcceptResponse>(
+  const response = await api.post<{ token?: string }>(
     buildRoute(API_ROUTES.TERMS, "accept-biometric")
   );
 
-  const data = extractObject<BiometricTermsAcceptResponse>(response.data) as Partial<BiometricTermsAcceptResponse>;
+  const data = extractObject<{ token?: string }>(response.data) as { token?: string };
+
+  if (!data.token) {
+    throw new Error("Resposta de aceite biométrico sem token.");
+  }
 
   return {
-    accepted: Boolean(data.accepted ?? true),
-    ...(data.token ? { token: data.token } : {}),
+    accepted: true,
+    token: data.token,
   };
 };

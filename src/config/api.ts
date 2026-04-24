@@ -2,7 +2,10 @@ import axios from "axios";
 import { normalizeServiceError } from "@/service/helpers/service-error.helper";
 import { getCurrentLocationHref, readStoredValue, redirectBrowserTo } from "@/lib/browser";
 
-export const API_BASE_URL = "http://localhost:8080/";
+const DEFAULT_LOCAL_API_BASE_URL = ["http://localhost", "8080"].join(":");
+
+export const API_BASE_URL =
+  import.meta.env.VITE_API_BASE_URL?.trim() || DEFAULT_LOCAL_API_BASE_URL;
 
 export const buildTermsRedirectUrl = (
   redirectBaseUrl: string,
@@ -63,7 +66,7 @@ const isFormDataPayload = (value: unknown): value is FormData => {
 export const api = axios.create({
   baseURL: API_BASE_URL,
   headers: {
-    'Content-Type': 'application/json',
+    "Content-Type": "application/json",
   },
 });
 
@@ -79,6 +82,7 @@ api.interceptors.request.use(
     if (token) {
       config.headers.Authorization = `Bearer ${token}`;
     }
+
     return config;
   },
   (error) => Promise.reject(normalizeServiceError(error))
@@ -105,15 +109,15 @@ api.interceptors.response.use(
 
         // 4. Força o redirecionamento
         redirectBrowserTo(finalRedirectUrl);
-        
-        return Promise.reject(normalizeServiceError(error)); // Interrompe o fluxo para não quebrar a tela
+
+        return Promise.reject(normalizeServiceError(error));
       }
 
-      // Tratamento genérico de sessão expirada (opcional)
       if (status === 403 && !data?.type) {
-         // console.log("Acesso negado genérico");
+        return Promise.reject(normalizeServiceError(error));
       }
     }
+
     return Promise.reject(normalizeServiceError(error));
   }
 );

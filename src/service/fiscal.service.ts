@@ -1,6 +1,5 @@
 import { api } from "@/config/api";
 import { API_ROUTES, buildRoute } from "@/config/api-routes";
-import { normalizeServiceError } from "@/service/helpers/service-error.helper";
 import type { AxiosResponse, AxiosResponseHeaders, RawAxiosResponseHeaders } from "axios";
 
 const FISCAL_ENDPOINTS = {
@@ -75,52 +74,36 @@ const downloadFiscalBlob = (
 
 export const FiscalService = {
   downloadMirror: async (startDate: string, endDate: string) => {
-    try {
-      const response = await api.get(FISCAL_ENDPOINTS.mirror, {
-        params: { startDate, endDate },
-        responseType: "blob",
-      });
+    const response = await api.get(FISCAL_ENDPOINTS.mirror, {
+      params: { startDate, endDate },
+      responseType: "blob",
+    });
 
-      return downloadFiscalBlob(response, FISCAL_FILE_NAMES.mirror(startDate, endDate));
-    } catch (error) {
-      throw normalizeServiceError(error);
-    }
+    return downloadFiscalBlob(response, FISCAL_FILE_NAMES.mirror(startDate, endDate));
   },
 
   downloadTechnicalCertificate: async () => {
-    try {
-      const response = await api.get(FISCAL_ENDPOINTS.technicalCertificate, {
-        responseType: "blob",
-      });
+    const response = await api.get(FISCAL_ENDPOINTS.technicalCertificate, {
+      responseType: "blob",
+    });
 
-      return downloadFiscalBlob(response, FISCAL_FILE_NAMES.technicalCertificate());
-    } catch (error) {
-      throw normalizeServiceError(error);
-    }
+    return downloadFiscalBlob(response, FISCAL_FILE_NAMES.technicalCertificate());
   },
 
   downloadAfd: async () => {
-    try {
-      const response = await api.get(FISCAL_ENDPOINTS.afd, {
-        responseType: "blob",
-      });
+    const response = await api.get(FISCAL_ENDPOINTS.afd, {
+      responseType: "blob",
+    });
 
-      return downloadFiscalBlob(response, FISCAL_FILE_NAMES.afd());
-    } catch (error) {
-      throw normalizeServiceError(error);
-    }
+    return downloadFiscalBlob(response, FISCAL_FILE_NAMES.afd());
   },
 
   downloadAej: async (startDate: string, endDate: string) => {
-    try {
-      const response = await api.get(FISCAL_ENDPOINTS.aej, {
-        params: { startDate, endDate },
-        responseType: "blob",
-      });
+    const response = await api.get(FISCAL_ENDPOINTS.aej, {
+      params: { startDate, endDate },
+      responseType: "blob",
+    });
 
-      return downloadFiscalBlob(response, FISCAL_FILE_NAMES.aej(startDate, endDate));
-    } catch (error) {
-      throw normalizeServiceError(error);
-    }
+    return downloadFiscalBlob(response, FISCAL_FILE_NAMES.aej(startDate, endDate));
   },
 };

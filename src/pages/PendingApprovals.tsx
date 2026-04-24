@@ -24,7 +24,7 @@ import { Badge } from "../components/ui/badge";
 import { cn } from "../lib/utils";
 import { PaginationComponent } from "../components/ui/PaginationComponent";
 import { format, parseISO } from "date-fns";
-import { ITimeRecordApprovalResponse } from "@/types/recordApproval";
+import type { ITimeRecordApprovalResponse } from "@/types/recordApproval";
 
 // --- Adaptação de Responsividade ---
 const useIsDesktop = () => {

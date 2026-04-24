@@ -1,10 +1,12 @@
 // src/hooks/useForgotPassword.ts
 
 import { useState, useCallback } from "react";
-import { useForm, UseFormReturn } from "react-hook-form";
+import type { UseFormReturn } from "react-hook-form";
+import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useToast } from "@/hooks/use-toast";
-import { forgotPasswordSchema, ForgotPasswordFormType, cleanCPF } from "@/types/auth";
+import type { ForgotPasswordFormType} from "@/types/auth";
+import { forgotPasswordSchema, cleanCPF } from "@/types/auth";
 import { recoverPasswordRequest } from "@/service/auth.service";
 import { getServiceErrorMessage } from "@/service/helpers/service-error.helper";
 

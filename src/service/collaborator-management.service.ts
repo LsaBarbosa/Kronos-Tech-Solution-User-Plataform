@@ -2,7 +2,7 @@ import { api } from "@/config/api";
 import { API_ROUTES, buildRoute } from "@/config/api-routes";
 import { normalizeServiceError } from "@/service/helpers/service-error.helper";
 import { extractArray, extractObject } from "@/service/helpers/response-normalizer.helper";
-import { EmployeeData } from "@/types/employee";
+import type { EmployeeData } from "@/types/employee";
 
 export interface CollaboratorAddressPayload {
   postalCode: string;

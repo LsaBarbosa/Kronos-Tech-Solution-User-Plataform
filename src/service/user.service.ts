@@ -2,10 +2,11 @@
 
 import { api } from "@/config/api";
 import { API_ROUTES, buildRoute } from "@/config/api-routes";
-import {
+import type {
   UserOwnProfileData,
   UserData,
-  ChangePasswordData,
+  ChangePasswordData} from "@/types/user";
+import {
   cleanNumberString,
   type UserSearchListItem,
   type UserSearchListResponse,

@@ -49,4 +49,14 @@ describe("useTimeOffCount", () => {
       status: "PENDING",
     });
   });
+
+  it("não consulta abonos pendentes quando o hook está desabilitado", async () => {
+    const { result } = renderHook(() => useTimeOffCount(false), { wrapper });
+
+    await waitFor(() => {
+      expect(result.current.pendingTimeOffCount).toBe(0);
+    });
+
+    expect(mockListTimeOffRequests).not.toHaveBeenCalled();
+  });
 });

@@ -116,4 +116,26 @@ describe("useDashboardData", () => {
 
     expect(mockUpdateLastSeenMessageTimestamp).toHaveBeenCalledTimes(1);
   });
+
+  it("não consulta aprovações pendentes para partner", async () => {
+    mockFetchUserProfile.mockResolvedValue({
+      userId: "u-2",
+      username: "joao",
+      role: "PARTNER",
+      active: true,
+      employeeId: "emp-2",
+      fullName: "Joao Silva",
+    } as never);
+    mockFetchAllWarnings.mockResolvedValue([] as never);
+
+    const { result } = renderHook(() => useDashboardData(), { wrapper });
+
+    await waitFor(() => {
+      expect(result.current.userData?.role).toBe("PARTNER");
+    });
+
+    expect(mockFetchPendingApprovalsCount).not.toHaveBeenCalled();
+    expect(result.current.pendingApprovalsCount).toBe(0);
+    expect(result.current.hasApprovalPermission).toBe(false);
+  });
 });

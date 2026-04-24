@@ -2,7 +2,8 @@
 
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import { EmployeeListItem, MAX_UPLOAD_SIZE_BYTES, ALLOWED_MIME_TYPES } from "@/types/document";
+import type { EmployeeListItem} from "@/types/document";
+import { MAX_UPLOAD_SIZE_BYTES, ALLOWED_MIME_TYPES } from "@/types/document";
 import { fetchEmployeesForSelection, uploadDocument } from "@/service/document.service";
 import { isAuthServiceError, normalizeServiceError } from "@/service/helpers/service-error.helper";
 import { showErrorToast, showSuccessToast } from "@/lib/feedback";

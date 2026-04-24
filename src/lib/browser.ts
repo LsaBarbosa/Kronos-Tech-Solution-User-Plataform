@@ -85,3 +85,15 @@ export const redirectBrowserTo = (url: string) => {
 
   window.location.assign(url);
 };
+
+export const reloadBrowserPage = () => {
+  if (!hasWindow()) {
+    return;
+  }
+
+  if (window.navigator?.userAgent.includes("jsdom")) {
+    return;
+  }
+
+  window.location.reload();
+};

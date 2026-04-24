@@ -3,7 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/context/AuthContext";
-import { Message } from "@/types/message";
+import type { Message } from "@/types/message";
 import { fetchMessages, deleteMessage } from "@/service/message.service";
 import { getServiceErrorMessage, isAuthServiceError } from "@/service/helpers/service-error.helper";
 

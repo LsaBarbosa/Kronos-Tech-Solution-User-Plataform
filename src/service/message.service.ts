@@ -2,8 +2,8 @@
 
 import { api } from "@/config/api";
 import { API_ROUTES, buildRoute } from "@/config/api-routes";
-import { Message, MessagePayload } from "@/types/message";
-import { EmployeeListItem } from "@/types/document";
+import type { Message, MessagePayload } from "@/types/message";
+import type { EmployeeListItem } from "@/types/document";
 import { extractArray } from "@/service/helpers/response-normalizer.helper";
 
 // --- Funções de Serviço para AVISOS (fetch, delete, post) ---

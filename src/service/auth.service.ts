@@ -1,6 +1,6 @@
 import { api } from "@/config/api";
 import { API_ROUTES, buildRoute } from "@/config/api-routes";
-import { RecoverPasswordPayload, ResetPasswordPayload } from "@/types/auth";
+import type { RecoverPasswordPayload, ResetPasswordPayload } from "@/types/auth";
 
 export interface LoginPayload {
     username: string;

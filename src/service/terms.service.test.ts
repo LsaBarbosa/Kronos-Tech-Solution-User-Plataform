@@ -4,13 +4,19 @@ import { server } from "@/test/mocks/server";
 import { acceptBiometricTerms, getBiometricTermStatus } from "./terms.service";
 
 describe("terms.service", () => {
-  it("consulta o status do termo biométrico", async () => {
+  it("interpreta status true do termo biométrico", async () => {
     server.use(
-      http.get("*/terms/status", () =>
-        HttpResponse.json({
-          accepted: false,
-        })
-      )
+      http.get("*/terms/status", () => HttpResponse.json(true))
+    );
+
+    await expect(getBiometricTermStatus()).resolves.toEqual({
+      accepted: true,
+    });
+  });
+
+  it("interpreta status false do termo biométrico", async () => {
+    server.use(
+      http.get("*/terms/status", () => HttpResponse.json(false))
     );
 
     await expect(getBiometricTermStatus()).resolves.toEqual({
@@ -18,11 +24,10 @@ describe("terms.service", () => {
     });
   });
 
-  it("aceita o termo biométrico", async () => {
+  it("aceita o termo biométrico e retorna o novo token", async () => {
     server.use(
       http.post("*/terms/accept-biometric", () =>
         HttpResponse.json({
-          accepted: true,
           token: "new-token",
         })
       )
@@ -32,5 +37,15 @@ describe("terms.service", () => {
       accepted: true,
       token: "new-token",
     });
+  });
+
+  it("falha quando o aceite biométrico volta sem token", async () => {
+    server.use(
+      http.post("*/terms/accept-biometric", () => HttpResponse.json({}))
+    );
+
+    await expect(acceptBiometricTerms()).rejects.toThrow(
+      "Resposta de aceite biométrico sem token."
+    );
   });
 });

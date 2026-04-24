@@ -11,7 +11,8 @@ import Header from "@/components/Header";
 import Sidebar from "@/components/Sidebar";
 
 import { useMessages } from "@/hooks/useMessages"; 
-import { Message, MessagePriority, getMessagePriorityTitle, getRecipientIndicatorText } from "@/types/message";
+import type { Message, MessagePriority} from "@/types/message";
+import { getMessagePriorityTitle, getRecipientIndicatorText } from "@/types/message";
 
 // --- FUNÇÕES DE APRESENTAÇÃO (Puras) ---
 

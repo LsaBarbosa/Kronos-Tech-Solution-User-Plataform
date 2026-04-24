@@ -1,0 +1,68 @@
+export const recordsFixture = {
+  pendingApprovals: {
+    approvals: [],
+    totalPages: 1,
+    totalElements: 2,
+    currentPage: 0,
+    isFirst: true,
+    isLast: true,
+  },
+  detailedReport: [
+    {
+      timeRecordId: 1,
+      startWork: "10-04-2026",
+      startHour: "08:00",
+      endHour: "17:00",
+      hoursWork: "09:00",
+      balance: "+01:00",
+      statusRecord: "CREATED",
+      employeeId: "emp-1",
+      employeeData: {
+        employeeName: "Maria Silva",
+        companyName: "Kronos Tech",
+      },
+    },
+  ],
+  simpleReport: {
+    workedHours: "08:00",
+    expectedHours: "08:00",
+    balance: "00:00",
+    totalRecords: 1,
+  },
+  vacationRequests: [
+    {
+      employeeId: "emp-1",
+      employeeName: "Maria Silva",
+      startDate: "10-04-2026",
+      endDate: "12-04-2026",
+      status: "REQUEST_VACATION",
+      timeRecordIdsForApproval: [11, 12, 13],
+    },
+  ],
+  timeOffRequests: {
+    records: [
+      {
+        timeRecordId: 77,
+        startWork: "10-04-2026",
+        startHour: "08:00",
+        endWork: "10-04-2026",
+        endHour: "17:00",
+        hoursWork: "09:00",
+        balance: "00:00",
+        statusRecord: "TIME_OFF_REQUEST",
+        edited: false,
+        active: true,
+        employeeId: "emp-1",
+        employeeData: {
+          employeeName: "Maria Silva",
+          companyName: "Kronos Tech",
+        },
+      },
+    ],
+    totalPages: 1,
+    totalElements: 1,
+    currentPage: 0,
+    isFirst: true,
+    isLast: true,
+  },
+};

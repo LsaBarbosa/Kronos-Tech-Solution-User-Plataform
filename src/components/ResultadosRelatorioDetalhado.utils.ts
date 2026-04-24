@@ -1,4 +1,4 @@
-import { DetailedReportItem } from "@/utils/report-utils";
+import type { DetailedReportItem } from "@/utils/report-utils";
 
 export const parseBalanceToMinutes = (balanceStr: string): number => {
   if (!balanceStr || balanceStr === "00:00" || balanceStr.length < 5) return 0;
@@ -36,7 +36,10 @@ export const formatMinutesToTime = (totalMinutes: number): string => {
 };
 
 export const formatCoordinates = (latitude?: number | null, longitude?: number | null) => {
-  if (latitude == null || longitude == null) return "Localização indisponível";
+  if (latitude === null || latitude === undefined || longitude === null || longitude === undefined) {
+    return "Localização indisponível";
+  }
+
   return `${latitude.toFixed(6)}, ${longitude.toFixed(6)}`;
 };
 

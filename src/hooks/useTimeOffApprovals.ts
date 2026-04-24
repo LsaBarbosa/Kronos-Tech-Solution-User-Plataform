@@ -1,7 +1,7 @@
 import { useCallback, useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import * as RecordsService from "@/service/records.service";
-import { TimeOffQueryParams, TimeRecordPageResponse } from "@/types/recordApproval";
+import type { TimeOffQueryParams, TimeRecordPageResponse } from "@/types/recordApproval";
 import { useToast } from "@/hooks/use-toast";
 import { getServiceErrorMessage } from "@/service/helpers/service-error.helper";
 

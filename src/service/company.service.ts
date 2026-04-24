@@ -1,7 +1,7 @@
 // src/services/companyService.ts
 
 import { api } from "@/config/api";
-import {
+import type {
     CompanyListItem,
     CompanyData,
     Location,
@@ -10,8 +10,7 @@ import {
 import { extractArray, extractObject } from "@/service/helpers/response-normalizer.helper";
 import { API_ROUTES, buildRoute } from "@/config/api-routes";
 import { normalizeServiceError } from "@/service/helpers/service-error.helper";
-
-const HERE_API_KEY = import.meta.env.VITE_HERE_API_KEY ?? "";
+import { resolveCompanyGeolocation } from "@/service/geolocation.service";
 
 type CompanyReadResponse = Partial<CompanyData> & {
     address?: Partial<CompanyData["address"]>;
@@ -130,54 +129,8 @@ export const updateCompany = async (cnpj: string, payload: CompanyUpdatePayload)
     await api.patch(buildRoute(API_ROUTES.COMPANIES, cnpj), payload);
 };
 
-// --- Serviço de Geolocalização (Movido do componente) ---
-
-/**
- * Obtém as coordenadas geográficas (Latitude/Longitude) a partir do CEP e número.
- */
 export const getGeolocationFromCEP = async (cep: string, number: string): Promise<Location> => {
-    
-    if (!HERE_API_KEY) {
-        throw new Error("A chave VITE_HERE_API_KEY não foi definida.");
-    }
-
-    try {
-        // 1. Busca Endereço completo pelo ViaCEP
-        const cepResponse = await fetch(`https://viacep.com.br/ws/${cep}/json/`);
-        const cepData = await cepResponse.json();
-
-        if (cepData.erro) {
-            throw new Error("CEP não encontrado ou inválido.");
-        }
-
-        const fullAddress = `${cepData.logradouro}, ${number}, ${cepData.localidade}, ${cepData.uf}, Brasil`;
-
-        // 2. Geocodificação pelo HERE Maps API
-        const geocodeResponse = await fetch(
-            `https://geocode.search.hereapi.com/v1/geocode?q=${encodeURIComponent(fullAddress)}&apiKey=${HERE_API_KEY}&in=countryCode:BRA`,
-        );
-
-        const geocodeData = await geocodeResponse.json();
-
-        if (!geocodeResponse.ok || geocodeData.items.length === 0) {
-            throw new Error(geocodeData.error || "Localização não encontrada pelo serviço de Geocodificação.");
-        }
-        
-        const position = geocodeData.items[0].position;
-        const lat = position.lat;
-        const lon = position.lng;
-        
-        return {
-            latitude: parseFloat(lat.toFixed(6)),
-            longitude: parseFloat(lon.toFixed(6))
-        };
-    } catch (error: unknown) {
-        if (error instanceof Error) {
-            throw new Error(error.message);
-        }
-
-        throw new Error("Falha ao obter coordenadas geográficas.");
-    }
+    return resolveCompanyGeolocation(cep, number);
 };
 
 /**

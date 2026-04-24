@@ -6,7 +6,7 @@ import { AuthProvider, useAuth } from "./AuthContext";
 import { server } from "@/test/mocks/server";
 
 const AuthProbe = () => {
-  const { status, role, token, user, isAuthenticated, logout } = useAuth();
+  const { status, role, token, user, isAuthenticated, logout, login } = useAuth();
 
   return (
     <div>
@@ -17,6 +17,9 @@ const AuthProbe = () => {
       <span data-testid="is-authenticated">{String(isAuthenticated)}</span>
       <button type="button" onClick={logout}>
         Logout
+      </button>
+      <button type="button" onClick={() => void login("rotated-token")}>
+        Login
       </button>
     </div>
   );
@@ -154,5 +157,50 @@ describe("AuthProvider", () => {
     expect(screen.getByTestId("user")).toHaveTextContent("");
     expect(screen.getByTestId("role")).toHaveTextContent("");
     expect(screen.getByTestId("is-authenticated")).toHaveTextContent("false");
+  });
+
+  it("login substitui o token persistido e recarrega a sessao", async () => {
+    localStorage.setItem("token", "old-token");
+    const seenAuthorizations: string[] = [];
+
+    server.use(
+      http.get("*/users/own-profile", ({ request }) => {
+        seenAuthorizations.push(request.headers.get("authorization") ?? "");
+
+        return HttpResponse.json({
+          userId: "u-1",
+          username: "ana",
+          role: "MANAGER",
+          active: true,
+          employeeId: "e-1",
+        });
+      }),
+      http.get("*/employee/own-profile", ({ request }) => {
+        seenAuthorizations.push(request.headers.get("authorization") ?? "");
+
+        return HttpResponse.json({
+          employeeId: "e-1",
+          fullName: "Ana",
+          role: "MANAGER",
+        });
+      })
+    );
+
+    renderAuthProvider();
+
+    await waitFor(() => {
+      expect(screen.getByTestId("status")).toHaveTextContent("authenticated");
+    });
+
+    await userEvent.click(screen.getByRole("button", { name: "Login" }));
+
+    await waitFor(() => {
+      expect(localStorage.getItem("token")).toBe("rotated-token");
+      expect(screen.getByTestId("token")).toHaveTextContent("rotated-token");
+      expect(screen.getByTestId("status")).toHaveTextContent("authenticated");
+    });
+
+    expect(seenAuthorizations).toContain("Bearer old-token");
+    expect(seenAuthorizations).toContain("Bearer rotated-token");
   });
 });

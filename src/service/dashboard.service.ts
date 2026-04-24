@@ -2,10 +2,10 @@
 
 import { api } from "@/config/api";
 import { API_ROUTES, buildRoute } from "@/config/api-routes";
-import { ITimeRecordApprovalPageResponse } from "@/types/recordApproval";
-import { WarningMessage } from "@/types/dashboard"; 
+import type { ITimeRecordApprovalPageResponse } from "@/types/recordApproval";
+import type { WarningMessage } from "@/types/dashboard"; 
 // 💡 CORREÇÃO 6: Importando UserData do local correto
-import { UserData } from "@/types/user";
+import type { UserData } from "@/types/user";
 import { extractArray, extractObject } from "@/service/helpers/response-normalizer.helper";
 
 // --- Serviços Corrigidos ---

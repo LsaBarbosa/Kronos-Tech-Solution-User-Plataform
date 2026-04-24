@@ -1,12 +1,14 @@
 // src/hooks/useUpdateCompanyForm.ts
 
 import { useState, useCallback, useEffect, useMemo } from "react";
-import { useForm, UseFormReturn } from "react-hook-form";
+import type { UseFormReturn } from "react-hook-form";
+import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast"; //
-import { CompanyListItem, CompanyData, Location, CompanyUpdatePayload, cleanCEP } from "@/types/company";
+import type { CompanyListItem, CompanyData, Location, CompanyUpdatePayload} from "@/types/company";
+import { cleanCEP } from "@/types/company";
 import { 
     fetchCompanyList, 
     fetchCompanyDetails, 

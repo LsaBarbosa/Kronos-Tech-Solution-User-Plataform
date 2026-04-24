@@ -4,7 +4,7 @@ import React, { useCallback, useState, useMemo } from "react";
 import Sidebar from "@/components/Sidebar";
 import Header from "@/components/Header";
 import { useVacationApprovals } from "../hooks/useVacationApprovals";
-import { VacationQueryParams, VacationRequestResponse } from "@/types/vacation";
+import type { VacationQueryParams, VacationRequestResponse } from "@/types/vacation";
 import {
     Card, CardContent, CardHeader, CardTitle,
 } from "../components/ui/card";

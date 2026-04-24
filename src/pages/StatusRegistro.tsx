@@ -17,12 +17,14 @@ import { RelatorioFiltros } from "@/pages/RelatorioFiltros";
 import { ResultadosRelatorioDetalhado } from "@/components/ResultadosRelatorioDetalhado"; 
 
 // 💡 NOVO: Importando utilitários centralizados
+import type {
+    DetailedReportItem,
+    Employee
+} from "@/utils/report-utils";
 import { 
     statusOptions, 
     getStatusColor, 
-    getTranslatedStatus,
-    DetailedReportItem,
-    Employee
+    getTranslatedStatus
 } from "@/utils/report-utils"; 
 import {
     fetchDetailedReport,

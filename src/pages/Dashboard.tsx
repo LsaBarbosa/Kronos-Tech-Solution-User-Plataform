@@ -56,8 +56,8 @@ const Dashboard = () => {
   } = useDashboardData();
   
   // 1. OBTENÇÃO DA CONTAGEM DE FÉRIAS
-  const { pendingVacationCount } = useVacationCount(); 
-  const { pendingTimeOffCount } = useTimeOffCount();
+  const { pendingVacationCount } = useVacationCount(hasApprovalPermission); 
+  const { pendingTimeOffCount } = useTimeOffCount(hasApprovalPermission);
   // Handlers de Navegação
   const handleApprovalClick = useCallback(() => {
     navigate("/apuracao-horas"); // Pendências de TimeRecord

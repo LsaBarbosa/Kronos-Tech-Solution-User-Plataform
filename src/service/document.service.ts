@@ -1,15 +1,18 @@
 import { api } from "@/config/api";
 import { API_ROUTES, buildRoute } from "@/config/api-routes";
 import { mapArrayPayload } from "@/service/helpers/response-normalizer.helper";
-import {
+import type {
   Document,
-  EmployeeListItem,
+  EmployeeListItem} from "@/types/document";
+import {
+  isAllowedDocumentFile,
   MAX_UPLOAD_SIZE_BYTES,
 } from "@/types/document";
 
 export interface DocumentFilters {
   employeeId?: string;
   type?: string;
+  date?: string;
 }
 
 export interface DownloadedDocument {
@@ -18,11 +21,13 @@ export interface DownloadedDocument {
 }
 
 type DocumentApiRecord = {
+  documentId?: string;
   id?: string;
-  name?: string;
   fileName?: string;
-  createdAt?: string;
+  name?: string;
   uploadedAt?: string;
+  createdAt?: string;
+  documentType?: string;
   type?: string;
 };
 
@@ -62,16 +67,16 @@ export const fetchDocuments = async (
   filters: DocumentFilters = {}
 ): Promise<Document[]> => {
   const response = await api.get(`/${API_ROUTES.DOCUMENTS}`, {
-    params: Object.keys(filters).length > 0 ? filters : undefined,
+      params: Object.keys(filters).length > 0 ? filters : undefined,
   });
 
   return mapArrayPayload<DocumentApiRecord, Document>(
     response.data,
     (document) => ({
-      id: document.id ?? "",
-      name: document.name ?? document.fileName ?? "Nome Desconhecido",
-      createdAt: document.createdAt ?? document.uploadedAt ?? "",
-      type: document.type ?? "",
+      id: document.documentId ?? document.id ?? "",
+      name: document.fileName ?? document.name ?? "Nome Desconhecido",
+      createdAt: document.uploadedAt ?? document.createdAt ?? "",
+      type: document.documentType ?? document.type ?? "",
     }),
     ["documents"]
   );
@@ -145,6 +150,10 @@ export const uploadDocument = async (
 ): Promise<void> => {
   if (file.size > MAX_UPLOAD_SIZE_BYTES) {
     throw new Error("O arquivo excede o limite de 5MB.");
+  }
+
+  if (!isAllowedDocumentFile(file)) {
+    throw new Error("Tipo de arquivo não permitido.");
   }
 
   const formData = new FormData();

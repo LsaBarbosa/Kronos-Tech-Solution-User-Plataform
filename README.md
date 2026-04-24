@@ -1,73 +1,104 @@
-# Welcome to your Lovable project
+# Kronos User Platform
 
-## Project info
+## Visão geral
 
-**URL**: https://lovable.dev/projects/f7d4276d-0957-48d6-97e8-bb1e053501ba
+Front-end React da plataforma de usuários da Kronos, alinhado ao backend `Kronos-Tech-Solutions-KTS`.
+O foco do projeto é autenticação consistente, aderência real aos endpoints do backend e uma base segura para evolução enterprise.
 
-## How can I edit this code?
+## Stack
 
-There are several ways of editing your application.
+- Vite
+- React 18
+- TypeScript
+- TanStack Query
+- Axios
+- Tailwind CSS
+- shadcn/ui
+- Vitest + Testing Library + MSW
 
-**Use Lovable**
+## Requisitos
 
-Simply visit the [Lovable Project](https://lovable.dev/projects/f7d4276d-0957-48d6-97e8-bb1e053501ba) and start prompting.
+- Node.js 22+
+- npm 10+
 
-Changes made via Lovable will be committed automatically to this repo.
+## Variáveis de ambiente
 
-**Use your preferred IDE**
+Copie os valores de [.env.example](/home/kronos/Documentos/Codigin/Kronos-Tech-Solution-User-Plataform/.env.example) para o seu ambiente local.
 
-If you want to work locally using your own IDE, you can clone this repo and push changes. Pushed changes will also be reflected in Lovable.
+| Variável | Obrigatória | Descrição |
+|---|---|---|
+| `VITE_API_BASE_URL` | Sim | URL base do backend Kronos. Em desenvolvimento local o fallback é `http://localhost:8080`. |
+| `VITE_HERE_API_KEY` | Não | Chave temporária para geolocalização no navegador até existir endpoint backend dedicado. |
 
-The only requirement is having Node.js & npm installed - [install with nvm](https://github.com/nvm-sh/nvm#installing-and-updating)
+## Como rodar localmente
 
-Follow these steps:
-
-```sh
-# Step 1: Clone the repository using the project's Git URL.
-git clone <YOUR_GIT_URL>
-
-# Step 2: Navigate to the project directory.
-cd <YOUR_PROJECT_NAME>
-
-# Step 3: Install the necessary dependencies.
-npm i
-
-# Step 4: Start the development server with auto-reloading and an instant preview.
+```bash
+npm install
 npm run dev
 ```
 
-**Edit a file directly in GitHub**
+## Como rodar testes
 
-- Navigate to the desired file(s).
-- Click the "Edit" button (pencil icon) at the top right of the file view.
-- Make your changes and commit the changes.
+```bash
+npm run test
+```
 
-**Use GitHub Codespaces**
+Para executar um domínio específico:
 
-- Navigate to the main page of your repository.
-- Click on the "Code" button (green button) near the top right.
-- Select the "Codespaces" tab.
-- Click on "New codespace" to launch a new Codespace environment.
-- Edit files directly within the Codespace and commit and push your changes once you're done.
+```bash
+npm run test -- terms
+npm run test -- dashboard
+npm run test -- records
+```
 
-## What technologies are used for this project?
+## Como gerar build
 
-This project is built with:
+```bash
+npm run build
+```
 
-- Vite
-- TypeScript
-- React
-- shadcn-ui
-- Tailwind CSS
+## Arquitetura
 
-## How can I deploy this project?
+### Pastas principais
 
-Simply open [Lovable](https://lovable.dev/projects/f7d4276d-0957-48d6-97e8-bb1e053501ba) and click on Share -> Publish.
+- `src/config`: cliente Axios, rotas de API e metadados de rotas do app.
+- `src/context`: autenticação e sessão.
+- `src/service`: integração com o backend por domínio.
+- `src/hooks`: orquestração de estado de tela e formulários.
+- `src/pages`: telas de negócio.
+- `src/components`: componentes compartilhados e guardas de rota.
+- `src/test`: setup global, MSW e testes de integração mockados.
+- `docs`: documentação técnica e de contrato.
 
-## Can I connect a custom domain to my Lovable project?
+### Padrões de service
 
-Yes, you can!
+- Toda chamada HTTP interna passa por `src/config/api.ts`.
+- Toda rota de API usa `src/config/api-routes.ts`.
+- Os services normalizam contrato e shape de resposta para a UI.
+- Erros HTTP são convertidos para `ServiceError`.
 
-To connect a domain, navigate to Project > Settings > Domains and click Connect Domain.
+## Integração com backend
 
-Read more here: [Setting up a custom domain](https://docs.lovable.dev/tips-tricks/custom-domain#step-by-step-guide)
+- O mapa completo de endpoints consumidos está em [docs/api-contract-map.md](/home/kronos/Documentos/Codigin/Kronos-Tech-Solution-User-Plataform/docs/api-contract-map.md).
+- A matriz de permissão do front está em [docs/permissions.md](/home/kronos/Documentos/Codigin/Kronos-Tech-Solution-User-Plataform/docs/permissions.md).
+- Mudanças recomendadas para o backend estão em [docs/backend-required-changes.md](/home/kronos/Documentos/Codigin/Kronos-Tech-Solution-User-Plataform/docs/backend-required-changes.md).
+
+## Autenticação e sessão
+
+- `AuthProvider` centraliza token, perfil e estado de sessão.
+- `ProtectedRoute` impede vazamento de conteúdo durante `checking`.
+- `RoleRoute` usa `APP_ROUTE_META` para bloquear acesso manual por URL.
+- O aceite biométrico trata `GET /terms/status` como `boolean` e `POST /terms/accept-biometric` como retorno com novo token.
+
+## Testes
+
+- A suíte usa `MSW` com `onUnhandledRequest: "error"` para impedir rotas não mockadas.
+- Os handlers base ficam em `src/test/mocks/handlers.ts`.
+- Testes podem sobrescrever handlers por caso usando `server.use(...)`.
+
+## Troubleshooting
+
+- `npm` fora do `PATH`: garanta que o Node instalado pelo `nvm` esteja carregado no shell.
+- `401/403` na navegação: verifique `VITE_API_BASE_URL` e o token salvo no storage.
+- erro de geolocalização: a criação/edição de empresa depende de `VITE_HERE_API_KEY` até existir endpoint backend dedicado.
+- teste falhando por rota não mockada: adicione ou atualize o handler em `src/test/mocks/handlers.ts`.

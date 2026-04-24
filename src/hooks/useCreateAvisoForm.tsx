@@ -4,8 +4,8 @@ import { useState, useEffect, useCallback, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { ToastAction } from "@/components/ui/toast"; // Importado como componente
-import { MessagePayload, MessagePriority } from "@/types/message";
-import { EmployeeListItem } from "@/types/document";
+import type { MessagePayload, MessagePriority } from "@/types/message";
+import type { EmployeeListItem } from "@/types/document";
 import { fetchActiveEmployees, postMessage } from "@/service/message.service"
 
 interface FormState {
