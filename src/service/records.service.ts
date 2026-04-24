@@ -30,6 +30,22 @@ export interface DetailedReportQueryParams {
   employeeId?: string;
 }
 
+export interface SimpleReportQueryParams {
+  reference: string;
+  active: boolean;
+  dates: string[];
+  statuses?: string[];
+  employeeId?: string;
+}
+
+export interface SimpleReportResponse {
+  workedHours?: string;
+  expectedHours?: string;
+  balance?: string;
+  totalRecords?: number;
+  [key: string]: unknown;
+}
+
 export interface RecordStatusUpdatePayload {
   statusRecord: string;
 }
@@ -91,6 +107,21 @@ export const fetchDetailedReport = async (
   );
 
   return extractArray<DetailedReportItem>(response.data, ["report", "records", "timeRecords"]);
+};
+
+export const fetchSimpleReport = async (
+  params: SimpleReportQueryParams
+): Promise<SimpleReportResponse> => {
+  const { employeeId, ...body } = params;
+  const response = await api.post<SimpleReportResponse>(
+    `${RECORDS_BASE_URL}/report/simple`,
+    body,
+    {
+      params: employeeId ? { employeeId } : undefined,
+    }
+  );
+
+  return extractObject<SimpleReportResponse>(response.data) as SimpleReportResponse;
 };
 
 export const approveTimeRecordChange = async (timeRecordId: number): Promise<void> => {

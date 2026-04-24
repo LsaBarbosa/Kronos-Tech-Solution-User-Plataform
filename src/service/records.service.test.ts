@@ -10,6 +10,7 @@ import {
   fetchManagerOptions,
   fetchPendingApprovals,
   fetchPendingVacationCount,
+  fetchSimpleReport,
   fetchVacationRequests,
   fetchReportEmployees,
   listTimeOffRequests,
@@ -101,6 +102,40 @@ describe("records.service", () => {
         timeRecordId: 1,
       }),
     ]);
+  });
+
+  it("gera relatório simples pelo endpoint oficial", async () => {
+    server.use(
+      http.post("*/records/report/simple", async ({ request }) => {
+        const body = await request.json();
+        expect(body).toMatchObject({
+          reference: "08:00",
+          active: true,
+          dates: ["10-04-2026"],
+        });
+
+        return HttpResponse.json({
+          workedHours: "08:00",
+          expectedHours: "08:00",
+          balance: "00:00",
+          totalRecords: 1,
+        });
+      })
+    );
+
+    await expect(
+      fetchSimpleReport({
+        reference: "08:00",
+        active: true,
+        dates: ["10-04-2026"],
+        employeeId: "emp-1",
+      })
+    ).resolves.toEqual({
+      workedHours: "08:00",
+      expectedHours: "08:00",
+      balance: "00:00",
+      totalRecords: 1,
+    });
   });
 
   it("aprova e rejeita ajustes de ponto", async () => {

@@ -1,6 +1,15 @@
 type EnvelopeRecord = Record<string, unknown>;
 type Mapper<TRaw, TOutput> = (item: TRaw) => TOutput;
 
+export interface PageEnvelope<T> {
+  content: T[];
+  totalPages: number;
+  totalElements: number;
+  currentPage: number;
+  isFirst: boolean;
+  isLast: boolean;
+}
+
 const DEFAULT_LIST_KEYS = [
   "content",
   "items",
@@ -48,6 +57,41 @@ export const extractObject = <T = EnvelopeRecord>(
 
   return envelope as Partial<T>;
 };
+
+export const extractPage = <T = unknown>(
+  payload: unknown,
+  keys: readonly string[] = DEFAULT_LIST_KEYS
+): PageEnvelope<T> => {
+  const page = extractObject<Partial<PageEnvelope<T>>>(payload);
+  const content = extractArray<T>(payload, keys);
+
+  return {
+    content,
+    totalPages: safeNumber(page.totalPages),
+    totalElements: safeNumber(page.totalElements, content.length),
+    currentPage: safeNumber(page.currentPage),
+    isFirst: safeBoolean(page.isFirst, true),
+    isLast: safeBoolean(page.isLast, true),
+  };
+};
+
+export const safeString = (value: unknown, fallback = ""): string =>
+  typeof value === "string" ? value : fallback;
+
+export const safeBoolean = (value: unknown, fallback = false): boolean =>
+  typeof value === "boolean" ? value : fallback;
+
+export const safeDate = (value: unknown, fallback = ""): string => {
+  if (typeof value !== "string") {
+    return fallback;
+  }
+
+  const parsed = Date.parse(value);
+  return Number.isNaN(parsed) ? fallback : value;
+};
+
+export const safeNumber = (value: unknown, fallback = 0): number =>
+  typeof value === "number" && Number.isFinite(value) ? value : fallback;
 
 export const mapUserProfile = (payload: unknown) => {
   const profile = extractObject<{

@@ -2,8 +2,12 @@ import { describe, expect, it } from "vitest";
 import {
   extractArray,
   extractObject,
+  extractPage,
   mapArrayPayload,
   mapUserProfile,
+  safeBoolean,
+  safeDate,
+  safeString,
 } from "../response-normalizer.helper";
 
 describe("response-normalizer.helper", () => {
@@ -45,5 +49,34 @@ describe("response-normalizer.helper", () => {
         })
       )
     ).toEqual([{ companyId: "c-1", label: "Kronos" }]);
+  });
+
+  it("extrai paginação envelopada", () => {
+    expect(
+      extractPage({
+        content: [{ id: 1 }],
+        totalPages: 3,
+        totalElements: 12,
+        currentPage: 1,
+        isFirst: false,
+        isLast: false,
+      })
+    ).toEqual({
+      content: [{ id: 1 }],
+      totalPages: 3,
+      totalElements: 12,
+      currentPage: 1,
+      isFirst: false,
+      isLast: false,
+    });
+  });
+
+  it("normaliza valores primitivos com fallback", () => {
+    expect(safeString("ok")).toBe("ok");
+    expect(safeString(1, "fallback")).toBe("fallback");
+    expect(safeBoolean(true)).toBe(true);
+    expect(safeBoolean("nope", true)).toBe(true);
+    expect(safeDate("2026-04-24T00:00:00Z")).toBe("2026-04-24T00:00:00Z");
+    expect(safeDate("not-a-date", "fallback")).toBe("fallback");
   });
 });
