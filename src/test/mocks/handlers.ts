@@ -61,7 +61,6 @@ export const handlers = [
   http.delete("*/messages/:messageId", () => new HttpResponse(null, { status: 204 })),
 
   http.post("*/records/report", () => HttpResponse.json(recordsFixture.detailedReport)),
-  http.post("*/records/report/simple", () => HttpResponse.json(recordsFixture.simpleReport)),
   http.get("*/records/pending-approvals", () => HttpResponse.json(recordsFixture.pendingApprovals)),
   http.patch("*/records/approve/:timeRecordId", () => new HttpResponse(null, { status: 204 })),
   http.patch("*/records/reject/:timeRecordId", () => new HttpResponse(null, { status: 204 })),

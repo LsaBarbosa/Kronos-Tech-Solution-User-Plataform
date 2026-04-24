@@ -38,7 +38,6 @@ Mapear as chamadas HTTP ativas do front-end e classificar aderência ao backend 
 | `src/service/message.service.ts` | `POST` | `/messages` | mensagens | sim | não | sim | válida |
 | `src/service/message.service.ts` | `DELETE` | `/messages/{messageId}` | mensagens | sim | não | sim | válida |
 | `src/service/records.service.ts` | `POST` | `/records/report` | ponto/relatórios | sim | não | sim | válida |
-| `src/service/records.service.ts` | `POST` | `/records/report/simple` | ponto/relatórios | sim | não | sim | válida |
 | `src/service/records.service.ts` | `GET` | `/records/pending-approvals` | ponto/ajustes | sim | não | sim | válida |
 | `src/service/records.service.ts` | `PATCH` | `/records/approve/{timeRecordId}` | ponto/ajustes | sim | não | sim | válida |
 | `src/service/records.service.ts` | `PATCH` | `/records/reject/{timeRecordId}` | ponto/ajustes | sim | não | sim | válida |

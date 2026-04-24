@@ -163,7 +163,6 @@ Padrão:
 ### Records
 
 - `POST /records/report`
-- `POST /records/report/simple`
 - `GET /records/pending-approvals`
 - `PATCH /records/approve/{timeRecordId}`
 - `PATCH /records/reject/{timeRecordId}`

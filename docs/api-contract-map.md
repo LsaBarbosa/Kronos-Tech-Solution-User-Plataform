@@ -34,7 +34,6 @@
 | Records | PATCH | `/records/approve/:timeRecordId` | `records.service.ts` | `PendingApprovals` | sem payload | `204/200` | Aderente |
 | Records | PATCH | `/records/reject/:timeRecordId` | `records.service.ts` | `PendingApprovals` | sem payload | `204/200` | Aderente |
 | Records | POST | `/records/report` | `records.service.ts` | `RelatorioDetalhado` | `{ reference, active, dates, statuses }` + `employeeId` opcional | lista detalhada | Aderente |
-| Records | POST | `/records/report/simple` | `records.service.ts` | `RelatorioDetalhado` | `{ reference, active, dates, statuses }` + `employeeId` opcional | resumo simples | Aderente |
 | Records | POST | `/records/vacation-request` | `records.service.ts` | `RequestVacation` | `{ startDate, endDate, managerId }` | `number[]` | Aderente |
 | Records | GET | `/records/vacation-request` | `records.service.ts` | `VacationApprovals`, `useVacationCount` | paginação, status, `employeeName` | array direto ou envelope paginado normalizado pelo front | Aderente |
 | Records | PATCH | `/records/vacation-request/approve` | `records.service.ts` | `VacationApprovals` | `{ timeRecordIds }` | `204/200` | Aderente |

@@ -20,15 +20,9 @@ export const recordsFixture = {
       employeeData: {
         employeeName: "Maria Silva",
         companyName: "Kronos Tech",
+        },
       },
-    },
-  ],
-  simpleReport: {
-    workedHours: "08:00",
-    expectedHours: "08:00",
-    balance: "00:00",
-    totalRecords: 1,
-  },
+    ],
   vacationRequests: [
     {
       employeeId: "emp-1",
