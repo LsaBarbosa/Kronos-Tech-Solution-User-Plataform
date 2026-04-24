@@ -50,7 +50,7 @@ describe("backend mocked integration", () => {
   it("faz login com sucesso e rejeita credenciais invalidas", async () => {
     server.use(
       http.post("*/auth/login", async ({ request }) => {
-        const body = await request.json();
+        const body = (await request.json()) as { username: string; password: string };
 
         if (body.username === "ana" && body.password === "senha123") {
           return HttpResponse.json({ token: "token-gerado" });
@@ -242,6 +242,7 @@ describe("backend mocked integration", () => {
           startHour: "08:00",
           endHour: "17:00",
           managerId: "manager-1",
+          type: "TIME_OFF_REQUEST",
         },
         new File(["pdf"], "abono.pdf", { type: "application/pdf" })
       )

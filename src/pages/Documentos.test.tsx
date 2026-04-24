@@ -30,7 +30,7 @@ vi.mock("@/components/ui/select", async () => {
         }
 
         if (React.isValidElement(child)) {
-          return toText(child.props.children);
+          return toText((child.props as { children?: React.ReactNode }).children);
         }
 
         return "";

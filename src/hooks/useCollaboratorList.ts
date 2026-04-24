@@ -7,6 +7,7 @@ import {
   updateUser,
 } from "@/service/collaborator-management.service";
 import { listUsers } from "@/service/user.service";
+import type { EmployeeData } from "@/types/employee";
 import type { UserSearchData } from "@/types/user";
 
 interface Address {
@@ -17,20 +18,31 @@ interface Address {
   state: string;
 }
 
-interface Employee {
-  employeeId: string;
-  fullName: string;
+type CollaboratorRole = UserSearchData["role"];
+
+interface CombinedColaborator extends EmployeeData {
+  userId: string;
+  username: string;
+  role: CollaboratorRole;
+  enabled: boolean;
+}
+
+const isValidEmail = (email: string) => /\S+@\S+\.\S+/.test(email);
+
+export interface EditableData {
+  fullName?: string;
+  maskedCpf?: string;
+  pis?: string;
+  jobPosition?: string;
+  email?: string;
+  salary?: string | number;
+  phone?: string;
+  postalCode?: string;
+  number?: string;
   username?: string;
-  maskedCpf: string;
-  pis: string;
-  jobPosition: string;
-  email: string;
-  salary: number;
-  phone: string;
-  address: Address;
-  companyId: string;
-  active: boolean;
-  homeOffice: boolean;
+  role?: CollaboratorRole;
+  enabled?: boolean;
+  homeOffice?: boolean;
   workStartTime?: string;
   workEndTime?: string;
   breakStartTime?: string;
@@ -38,18 +50,16 @@ interface Employee {
   scheduleType?: string;
   scaleStartDate?: string;
   preferredDayOff?: string;
-  weekendOffIndex?: number;
+  weekendOffIndex?: number | string | null;
   fixedWorkDays?: string[];
 }
 
-interface CombinedColaborator extends Employee, UserSearchData {
-  enabled?: boolean;
-}
+type CollaboratorEmployeePayload = Record<string, unknown>;
+type CollaboratorUserPayload = Record<string, unknown>;
+type EditableFieldValue = string | boolean | string[];
 
-const isValidEmail = (email: string) => /\S+@\S+\.\S+/.test(email);
-
-type EditableValue = string | boolean | string[] | number | null | undefined;
-type EditableData = Record<string, EditableValue>;
+const getSanitizedValue = (value: string | number | null | undefined) =>
+  value === null || value === undefined ? "" : String(value);
 
 export const useCollaboratorList = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -83,7 +93,7 @@ export const useCollaboratorList = () => {
         usersByUsername.set(user.username.trim().toLowerCase(), user);
       });
 
-      const combinedData: CombinedColaborator[] = employees.map((employee: Employee) => {
+      const combinedData: CombinedColaborator[] = employees.map((employee) => {
         const user = employee.username
           ? usersByUsername.get(employee.username.trim().toLowerCase())
           : undefined;
@@ -102,8 +112,7 @@ export const useCollaboratorList = () => {
           username: "Sem Usuário",
           role: "PARTNER",
           enabled: employee.active,
-          employeeId: employee.employeeId,
-        } as CombinedColaborator;
+        };
       });
 
       setColaboradores(combinedData);
@@ -239,14 +248,14 @@ export const useCollaboratorList = () => {
     setFaceImageFile(null);
   }, []);
 
-  const handleEditedDataChange = useCallback((field: string, value: string | boolean | string[]) => {
-    setEditedData((prev: EditableData) => {
+  const handleEditedDataChange = useCallback((field: string, value: EditableFieldValue) => {
+    setEditedData((prev) => {
       if (field === "enabled" || field === "homeOffice") {
         return { ...prev, [field]: value };
       }
 
       if (field === "fixedWorkDays") {
-        return { ...prev, [field]: value };
+        return { ...prev, [field]: value as string[] };
       }
 
       if (field === "maskedCpf" || field === "postalCode" || field === "phone") {
@@ -290,8 +299,8 @@ export const useCollaboratorList = () => {
       return;
     }
 
-    const editedCpf = editedData.maskedCpf ? editedData.maskedCpf.replace(/\D/g, "") : null;
-    const editedCep = editedData.postalCode ? editedData.postalCode.replace(/\D/g, "") : null;
+    const editedCpf = editedData.maskedCpf ? getSanitizedValue(editedData.maskedCpf).replace(/\D/g, "") : null;
+    const editedCep = editedData.postalCode ? getSanitizedValue(editedData.postalCode).replace(/\D/g, "") : null;
     const editedEmail = editedData.email;
 
     if (editedCpf && editedCpf.length !== 11) {
@@ -321,7 +330,7 @@ export const useCollaboratorList = () => {
       return;
     }
 
-    const cleanedPhone = editedData.phone ? editedData.phone.replace(/\D/g, "") : originalColaborador.phone.replace(/\D/g, "");
+    const cleanedPhone = editedData.phone ? getSanitizedValue(editedData.phone).replace(/\D/g, "") : originalColaborador.phone.replace(/\D/g, "");
     if (editedData.phone && cleanedPhone.length !== 11) {
       toast({
         title: "Erro ao salvar",
@@ -333,8 +342,8 @@ export const useCollaboratorList = () => {
 
     setIsLoading(true);
     try {
-      const bodyDataEmployee: Record<string, EditableValue> = {};
-      const bodyDataUser: Record<string, EditableValue> = {};
+      const bodyDataEmployee: CollaboratorEmployeePayload = {};
+      const bodyDataUser: CollaboratorUserPayload = {};
 
       if (editedData.fullName && editedData.fullName !== originalColaborador.fullName) {
         bodyDataEmployee.fullName = editedData.fullName;
@@ -352,10 +361,10 @@ export const useCollaboratorList = () => {
         bodyDataEmployee.email = editedData.email;
       }
       if (editedData.salary !== undefined && editedData.salary.toString() !== originalColaborador.salary.toString()) {
-        bodyDataEmployee.salary = parseFloat(editedData.salary);
+        bodyDataEmployee.salary = parseFloat(getSanitizedValue(editedData.salary));
       }
-      if (editedData.phone && editedData.phone.replace(/\D/g, "") !== originalColaborador.phone) {
-        bodyDataEmployee.phone = editedData.phone.replace(/\D/g, "");
+      if (editedData.phone && getSanitizedValue(editedData.phone).replace(/\D/g, "") !== originalColaborador.phone) {
+        bodyDataEmployee.phone = getSanitizedValue(editedData.phone).replace(/\D/g, "");
       }
       if (editedData.homeOffice !== undefined && editedData.homeOffice !== originalColaborador.homeOffice) {
         bodyDataEmployee.homeOffice = editedData.homeOffice;
@@ -375,7 +384,11 @@ export const useCollaboratorList = () => {
       if (editedData.scheduleType !== originalColaborador.scheduleType) bodyDataEmployee.scheduleType = editedData.scheduleType;
       if (editedData.scaleStartDate !== originalColaborador.scaleStartDate) bodyDataEmployee.scaleStartDate = editedData.scaleStartDate;
       if (editedData.preferredDayOff !== originalColaborador.preferredDayOff) bodyDataEmployee.preferredDayOff = editedData.preferredDayOff;
-      if (editedData.weekendOffIndex !== originalColaborador.weekendOffIndex) bodyDataEmployee.weekendOffIndex = editedData.weekendOffIndex ? parseInt(editedData.weekendOffIndex) : null;
+      if (editedData.weekendOffIndex !== originalColaborador.weekendOffIndex) {
+        bodyDataEmployee.weekendOffIndex = editedData.weekendOffIndex !== null && editedData.weekendOffIndex !== undefined && editedData.weekendOffIndex !== ""
+          ? parseInt(getSanitizedValue(editedData.weekendOffIndex), 10)
+          : null;
+      }
       if (JSON.stringify(editedData.fixedWorkDays) !== JSON.stringify(originalColaborador.fixedWorkDays)) bodyDataEmployee.fixedWorkDays = editedData.fixedWorkDays;
 
       if (faceImageFile) {

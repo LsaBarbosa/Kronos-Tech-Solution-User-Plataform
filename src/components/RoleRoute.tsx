@@ -9,12 +9,13 @@ interface RoleRouteProps {
 
 const RoleRoute = ({ allowedRoles, redirectTo = "/dashboard" }: RoleRouteProps) => {
   const { role } = useAuth();
+  const currentRole = role as AppRole;
 
   if (allowedRoles.length === 0) {
     return <Outlet />;
   }
 
-  if (!allowedRoles.includes(role)) {
+  if (!allowedRoles.includes(currentRole)) {
     return <Navigate to={redirectTo} replace />;
   }
 

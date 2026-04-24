@@ -30,14 +30,19 @@ export const downloadCsvFile = (rows: readonly (readonly CsvCell[])[], headers: 
 
 type PdfLibraries = {
   jsPDF: typeof import("jspdf").default;
-  autoTable: typeof import("jspdf-autotable").default;
+  autoTable: (...args: unknown[]) => void;
 };
 
 export const loadPdfLibraries = async (): Promise<PdfLibraries> => {
-  const [{ default: jsPDF }, { default: autoTable }] = await Promise.all([
+  const [{ default: jsPDF }, autoTableModule] = await Promise.all([
     import("jspdf"),
     import("jspdf-autotable"),
   ]);
+
+  const autoTable =
+    ("default" in autoTableModule && typeof autoTableModule.default === "function"
+      ? autoTableModule.default
+      : autoTableModule.autoTable) as (...args: unknown[]) => void;
 
   return { jsPDF, autoTable };
 };

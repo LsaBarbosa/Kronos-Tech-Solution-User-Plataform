@@ -3,7 +3,6 @@ import { API_ROUTES, buildRoute } from "@/config/api-routes";
 import { extractArray, extractObject } from "@/service/helpers/response-normalizer.helper";
 import { DetailedReportItem, Employee } from "@/utils/report-utils";
 import {
-  IManagerOption,
   IRequestTimeOffData,
   ITimeOffQueryParams,
   ITimeRecordApprovalPageResponse,
@@ -11,7 +10,9 @@ import {
   IPendingApprovalQueryParams,
 } from "@/types/recordApproval";
 import {
+  IManagerOption,
   IRequestVacationRequest,
+  RequestTimeOffRequestPayload,
   IVacationApprovalRequest,
   IVacationQueryParams,
   IVacationRequestPageResponse,
@@ -103,7 +104,7 @@ export const updateTimeRecord = async (
 };
 
 export const requestTimeOff = async (
-  requestData: IRequestTimeOffData,
+  requestData: RequestTimeOffRequestPayload,
   document?: File | null
 ): Promise<number> => {
   const formData = new FormData();

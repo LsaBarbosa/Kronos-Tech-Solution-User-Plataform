@@ -1,6 +1,7 @@
 import { api } from "@/config/api";
 import { API_ROUTES, buildRoute } from "@/config/api-routes";
 import { normalizeServiceError } from "@/service/helpers/service-error.helper";
+import type { AxiosResponse, AxiosResponseHeaders, RawAxiosResponseHeaders } from "axios";
 
 const FISCAL_ENDPOINTS = {
   mirror: buildRoute(API_ROUTES.LEGAL, "espelho-ponto"),
@@ -51,13 +52,21 @@ const getResponseFileName = (
   return decodeURIComponent(fileName.replace(/^"|"$/g, ""));
 };
 
+const getHeaderValue = (
+  headers: AxiosResponseHeaders | Partial<RawAxiosResponseHeaders> | undefined,
+  headerName: string
+) => {
+  const value = headers?.[headerName] ?? headers?.[headerName.toLowerCase()];
+  return typeof value === "string" ? value : undefined;
+};
+
 const downloadFiscalBlob = (
-  response: { data: Blob; headers?: Record<string, string | undefined> },
+  response: AxiosResponse<Blob>,
   fallbackFileName: string
 ) => {
   const fileName = getResponseFileName(
     fallbackFileName,
-    response.headers?.["content-disposition"] ?? response.headers?.["Content-Disposition"]
+    getHeaderValue(response.headers, "content-disposition")
   );
 
   downloadBlob(new Blob([response.data]), fileName);

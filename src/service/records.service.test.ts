@@ -238,6 +238,7 @@ describe("records.service", () => {
           startHour: "08:00",
           endHour: "17:00",
           managerId: "manager-1",
+          type: "TIME_OFF_REQUEST",
         },
         new File(["pdf"], "comprovante.pdf", { type: "application/pdf" })
       )

@@ -41,6 +41,7 @@ import { useCallback, useState } from "react";
 import PageShell from "@/components/PageShell";
 import { ALLOWED_ACCEPT_STRING, MAX_UPLOAD_SIZE_BYTES, ALLOWED_MIME_TYPES } from "../types/document"; 
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"; // Importe o RadioGroup
+import type { TimeOffRequestType } from "@/types/vacation";
 
 const blobToFile = (blob: Blob, fileName: string): File => {
     return new File([blob], fileName, { type: blob.type, lastModified: Date.now() });
@@ -212,7 +213,7 @@ export function RequestManualRegistration() {
                                 <RadioGroup
                                   onValueChange={(val: string) => {
                                     field.onChange(val);
-                                    handleChange("requestType", val);
+                                    handleChange("requestType", val as TimeOffRequestType);
                                   }}
                                   defaultValue={field.value}
                                   className="flex flex-col sm:flex-row gap-4"

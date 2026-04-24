@@ -3,6 +3,7 @@ import { MemoryRouter, Route, Routes } from "react-router-dom";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import RoleRoute from "./RoleRoute";
 import { useAuth } from "@/context/AuthContext";
+import type { AppRole } from "@/config/app-routes";
 
 vi.mock("@/context/AuthContext", () => ({
   useAuth: vi.fn(),
@@ -10,7 +11,7 @@ vi.mock("@/context/AuthContext", () => ({
 
 const mockUseAuth = vi.mocked(useAuth);
 
-const renderRoleRoute = (allowedRoles: string[], initialPath = "/admin-protected") =>
+const renderRoleRoute = (allowedRoles: readonly AppRole[], initialPath = "/admin-protected") =>
   render(
     <MemoryRouter initialEntries={[initialPath]}>
       <Routes>

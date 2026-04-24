@@ -16,16 +16,16 @@ export interface CompanyListItem {
  * Interface de dados do Colaborador para listagem e edição.
  */
 export interface EmployeeData {
-    id: string;
+    id?: string;
+    employeeId: string;
     fullName: string;
-    cpf: string;
+    maskedCpf: string;
     email: string;
-    phoneNumber: string;
+    phone: string;
     salary: number;
-    jobTitle: string;
+    jobPosition: string;
     pis: string;
-    username: string;
-    // Dados de endereço simplificados (ajuste conforme seu uso real)
+    username?: string;
     address: {
         street: string;
         number: string;
@@ -34,14 +34,19 @@ export interface EmployeeData {
         state: string;
         neighborhood?: string;
     };
-    company: CompanyListItem;
-    role: 'PARTNER' | 'MANAGER' | 'ADMIN' | 'CTO';
+    companyId: string;
+    role?: 'PARTNER' | 'MANAGER' | 'ADMIN' | 'CTO';
     active: boolean;
     homeOffice: boolean; 
-    workStartTime: string;  
-    workEndTime: string;    
-    breakStartTime: string; 
-    breakEndTime: string;
+    workStartTime?: string;  
+    workEndTime?: string;    
+    breakStartTime?: string; 
+    breakEndTime?: string;
+    scheduleType?: string;
+    scaleStartDate?: string;
+    preferredDayOff?: string;
+    weekendOffIndex?: number;
+    fixedWorkDays?: string[];
 }
 
 /**

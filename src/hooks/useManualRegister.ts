@@ -5,7 +5,7 @@ import { useToast } from "@/hooks/use-toast";
 import {
   TimeOffFormState,
   IManagerOption,
-  IRequestTimeOffData,
+  RequestTimeOffRequestPayload,
   TimeOffRequestType,
 } from "../types/vacation";
 import { requestTimeOff, fetchManagerOptions } from "../service/records.service";
@@ -99,7 +99,7 @@ export const useRequestManualRegistration = () => {
       // O Java espera "FORGOTTEN_REGISTRATION" ou "TIME_OFF_REQUEST"
       const backendType: TimeOffRequestType = formState.requestType;
 
-      const payload: IRequestTimeOffData = { 
+      const payload: RequestTimeOffRequestPayload = { 
         startDate: format(formState.startDate!, "dd-MM-yyyy"),
         endDate: format(formState.endDate!, "dd-MM-yyyy"),
         startHour: formState.startHour,

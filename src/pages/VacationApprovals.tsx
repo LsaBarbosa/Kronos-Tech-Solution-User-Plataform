@@ -4,7 +4,7 @@ import React, { useCallback, useState, useMemo } from "react";
 import Sidebar from "@/components/Sidebar";
 import Header from "@/components/Header";
 import { useVacationApprovals } from "../hooks/useVacationApprovals";
-import { IVacationRequestResponse } from "@/types/vacation";
+import { IVacationQueryParams, IVacationRequestResponse } from "@/types/vacation";
 import {
     Card, CardContent, CardHeader, CardTitle,
 } from "../components/ui/card";
@@ -227,8 +227,8 @@ export const VacationApprovals = () => {
     const [currentPage, setCurrentPage] = useState(0);
     const [filterName, setFilterName] = useState(""); 
     const [searchName, setSearchName] = useState(""); 
-    const [filterStatus, setFilterStatus] = useState("PENDING"); 
-    const [searchStatus, setSearchStatus] = useState("PENDING"); 
+    const [filterStatus, setFilterStatus] = useState<IVacationQueryParams["status"]>("PENDING"); 
+    const [searchStatus, setSearchStatus] = useState<IVacationQueryParams["status"]>("PENDING"); 
     const size = 10;
     
     const isDesktop = useIsDesktop();
@@ -290,7 +290,7 @@ export const VacationApprovals = () => {
                     </div>
 
                     {/* Filtro por Status */}
-                    <Select value={filterStatus} onValueChange={setFilterStatus} disabled={isMutating}>
+                    <Select value={filterStatus} onValueChange={(value) => setFilterStatus(value as IVacationQueryParams["status"])} disabled={isMutating}>
                         <SelectTrigger className="w-[200px] md:w-[250px]">
                             <SelectValue placeholder="Filtrar por Status" />
                         </SelectTrigger>

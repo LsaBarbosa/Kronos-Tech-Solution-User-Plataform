@@ -196,7 +196,10 @@ export const useCreateCompany = () => {
             postalCode: values.address.postalCode.replace(/\D/g, ""),
             number: values.address.number,
           },
-          location: values.location,
+          location: {
+            latitude: values.location.latitude,
+            longitude: values.location.longitude,
+          },
         };
 
         await createCompany(payload);

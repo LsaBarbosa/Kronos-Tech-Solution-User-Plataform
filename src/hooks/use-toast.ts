@@ -8,7 +8,7 @@ import type {
 const TOAST_LIMIT = 1
 const TOAST_REMOVE_DELAY = 1000000
 
-type ToasterToast = ToastProps & {
+type ToasterToast = Omit<ToastProps, "title"> & {
   id: string
   title?: React.ReactNode
   description?: React.ReactNode
@@ -180,20 +180,26 @@ type ToastApi = typeof showToast & {
 }
 
 const toast = Object.assign(showToast, {
-  success: (message: React.ReactNode, options: ToastShortcutOptions = {}) =>
-    showToast({
-      title: options.title ?? "Sucesso",
-      description: options.description ?? message,
-      variant: options.variant ?? "default",
-      ...options,
-    }),
-  error: (message: React.ReactNode, options: ToastShortcutOptions = {}) =>
-    showToast({
-      title: options.title ?? "Erro",
-      description: options.description ?? message,
-      variant: options.variant ?? "destructive",
-      ...options,
-    }),
+  success: (message: React.ReactNode, options: ToastShortcutOptions = {}) => {
+    const { title, description, variant, ...rest } = options
+
+    return showToast({
+      ...rest,
+      title: title ?? "Sucesso",
+      description: description ?? message,
+      variant: variant ?? "default",
+    })
+  },
+  error: (message: React.ReactNode, options: ToastShortcutOptions = {}) => {
+    const { title, description, variant, ...rest } = options
+
+    return showToast({
+      ...rest,
+      title: title ?? "Erro",
+      description: description ?? message,
+      variant: variant ?? "destructive",
+    })
+  },
 }) as ToastApi;
 
 function useToast() {

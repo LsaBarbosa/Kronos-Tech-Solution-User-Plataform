@@ -43,6 +43,25 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { Switch } from "@/components/ui/switch";
 import { useCollaboratorList } from "@/hooks/useCollaboratorList";
 
+const SCHEDULE_TYPES = [
+  { value: "TRADITIONAL_5X2", label: "Tradicional 5x2 (Seg-Sex)" },
+  { value: "SIX_BY_ONE_FIXED", label: "6x1 com Folga Fixa" },
+  { value: "ROTATING_12X36", label: "Plantão 12x36" },
+  { value: "ROTATING_24X72", label: "Plantão 24x72" },
+  { value: "SIX_BY_ONE_TWO_WEEKENDS", label: "6x1 + 2 Finais de Semana" },
+  { value: "SIX_BY_ONE_ONE_WEEKEND", label: "6x1 + 1 Final de Semana" },
+] as const;
+
+const DAYS_OF_WEEK = [
+  { value: "MONDAY", label: "Segunda-feira" },
+  { value: "TUESDAY", label: "Terça-feira" },
+  { value: "WEDNESDAY", label: "Quarta-feira" },
+  { value: "THURSDAY", label: "Quinta-feira" },
+  { value: "FRIDAY", label: "Sexta-feira" },
+  { value: "SATURDAY", label: "Sábado" },
+  { value: "SUNDAY", label: "Domingo" },
+] as const;
+
 const ListaColaboradores = () => {
   const {
     sidebarOpen,
@@ -336,7 +355,7 @@ const ListaColaboradores = () => {
                             <Sparkles className="w-4 h-4 text-muted-foreground flex-shrink-0" />
                             <span className="text-muted-foreground w-16">Perfil:</span>
                             <Select
-                              value={editedData.role}
+                              value={editedData.role ?? ""}
                               onValueChange={(value) => handleEditedDataChange("role", value)}
                             >
                               <SelectTrigger className="flex-1 h-8 focus:border-primary">
@@ -355,7 +374,7 @@ const ListaColaboradores = () => {
                               <span className="font-medium text-sm">{editedData.enabled ? 'Ativo' : 'Inativo'}</span>
                               <Switch
                                 id="enabled-toggle"
-                                checked={editedData.enabled}
+                                checked={editedData.enabled ?? false}
                                 onCheckedChange={(value) => handleEditedDataChange("enabled", value)}
                               />
                             </div>
@@ -365,7 +384,7 @@ const ListaColaboradores = () => {
                                 <Label className="text-xs font-bold text-muted-foreground uppercase flex gap-1 items-center mb-2"><CalendarDays className="w-3 h-3"/> Escala de Trabalho</Label>
                                 
                                 <div className="space-y-2">
-                                    <Select value={editedData.scheduleType} onValueChange={(val) => handleEditedDataChange("scheduleType", val)}>
+                                    <Select value={editedData.scheduleType ?? ""} onValueChange={(val) => handleEditedDataChange("scheduleType", val)}>
                                         <SelectTrigger className="h-8 text-xs"><SelectValue placeholder="Tipo de Escala" /></SelectTrigger>
                                         <SelectContent>
                                             {SCHEDULE_TYPES.map(t => <SelectItem key={t.value} value={t.value}>{t.label}</SelectItem>)}
@@ -384,7 +403,7 @@ const ListaColaboradores = () => {
                                             {editedData.scheduleType?.includes("SIX_BY_ONE") && (
                                                 <div className="space-y-1">
                                                     <Label className="text-[10px]">Dia da folga fixa</Label>
-                                                    <Select value={editedData.preferredDayOff} onValueChange={(val) => handleEditedDataChange("preferredDayOff", val)}>
+                                                    <Select value={editedData.preferredDayOff ?? ""} onValueChange={(val) => handleEditedDataChange("preferredDayOff", val)}>
                                                         <SelectTrigger className="h-8 text-xs"><SelectValue placeholder="Selecione o dia" /></SelectTrigger>
                                                         <SelectContent>{DAYS_OF_WEEK.map(d => <SelectItem key={d.value} value={d.value}>{d.label}</SelectItem>)}</SelectContent>
                                                     </Select>
@@ -394,9 +413,9 @@ const ListaColaboradores = () => {
                                         <div className="flex flex-wrap gap-2 pt-1">
                                             {DAYS_OF_WEEK.map((day) => (
                                                 <div key={day.value} className="flex items-center space-x-1">
-                                                    <Checkbox 
-                                                        id={`day-${day.value}`}
-                                                        checked={editedData.fixedWorkDays?.includes(day.value)}
+                                                        <Checkbox 
+                                                            id={`day-${day.value}`}
+                                                        checked={editedData.fixedWorkDays?.includes(day.value) ?? false}
                                                         onCheckedChange={(checked) => {
                                                             const current = editedData.fixedWorkDays || [];
                                                             const updated = checked ? [...current, day.value] : current.filter((d: string) => d !== day.value);
@@ -418,7 +437,7 @@ const ListaColaboradores = () => {
                             <span className="font-medium text-sm">{editedData.homeOffice ? 'Sim' : 'Não (Local Físico)'}</span>
                             <Switch
                               id="home-office-toggle"
-                              checked={editedData.homeOffice}
+                              checked={editedData.homeOffice ?? false}
                               onCheckedChange={(value) => handleEditedDataChange("homeOffice", value)}
                             />
                           </div>
