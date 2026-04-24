@@ -31,7 +31,6 @@ const BuscarEmpresa = () => {
   const {
     filteredEmpresas,
     searchTerm,
-    editingEmpresa,
     viewingEmpresa,
     isEditDialogOpen,
     isViewDialogOpen,

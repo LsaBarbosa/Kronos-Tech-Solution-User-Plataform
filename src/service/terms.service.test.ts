@@ -1,7 +1,7 @@
 import { HttpResponse, http } from "msw";
 import { describe, expect, it } from "vitest";
 import { server } from "@/test/mocks/server";
-import { acceptBiometricTerms, getBiometricTermStatus } from "./terms.service";
+import { acceptBiometricTerms, getBiometricTermStatus, revokeBiometricTerms } from "./terms.service";
 
 describe("terms.service", () => {
   it("interpreta status true do termo biométrico", async () => {
@@ -46,6 +46,31 @@ describe("terms.service", () => {
 
     await expect(acceptBiometricTerms()).rejects.toThrow(
       "Resposta de aceite biométrico sem token."
+    );
+  });
+
+  it("revoga o termo biométrico e retorna o novo token", async () => {
+    server.use(
+      http.delete("*/terms/revoke-biometric", () =>
+        HttpResponse.json({
+          token: "revoked-token",
+        })
+      )
+    );
+
+    await expect(revokeBiometricTerms()).resolves.toEqual({
+      accepted: false,
+      token: "revoked-token",
+    });
+  });
+
+  it("falha quando a revogação biométrica volta sem token", async () => {
+    server.use(
+      http.delete("*/terms/revoke-biometric", () => HttpResponse.json({}))
+    );
+
+    await expect(revokeBiometricTerms()).rejects.toThrow(
+      "Resposta de revogação biométrica sem token."
     );
   });
 });

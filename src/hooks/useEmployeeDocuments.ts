@@ -3,13 +3,15 @@
 import { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
-import type { Document, EmployeeListItem } from "@/types/document";
+import type { Document, DocumentType, EmployeeListItem } from "@/types/document";
 import {
     downloadDocument,
     fetchEmployeeDocuments,
     fetchEmployeesForSelection,
 } from "@/service/document.service";
 import { isAuthServiceError, normalizeServiceError } from "@/service/helpers/service-error.helper";
+
+const DEFAULT_EMPLOYEE_DOCUMENT_TYPE: DocumentType = "EMPLOYEE_DOCUMENTS";
 
 interface useEmployeeDocumentssReturn {
     employees: EmployeeListItem[];
@@ -65,7 +67,9 @@ export const useEmployeeDocuments = (): useEmployeeDocumentssReturn => {
         setDocuments([]); // Limpa documentos anteriores
         
         try {
-            const data = await fetchEmployeeDocuments(employeeId); // 💡 Chama o Serviço
+            const data = await fetchEmployeeDocuments(employeeId, {
+                type: DEFAULT_EMPLOYEE_DOCUMENT_TYPE,
+            }); // 💡 Chama o Serviço
             setDocuments(data);
             
             toast({
@@ -84,7 +88,7 @@ export const useEmployeeDocuments = (): useEmployeeDocumentssReturn => {
 
     const handleDownloadDocument = useCallback(async (documentId: string, documentName: string) => {
         try {
-            await downloadDocument(documentId, documentName);
+            await downloadDocument(documentId, documentName, selectedEmployeeId || undefined);
             toast({ title: "Sucesso", description: `Download de "${documentName}" iniciado.` });
         } catch (err) {
             const normalized = normalizeServiceError(err);
@@ -95,7 +99,7 @@ export const useEmployeeDocuments = (): useEmployeeDocumentssReturn => {
             });
             if (isAuthServiceError(normalized)) navigate("/login");
         }
-    }, [navigate, toast]);
+    }, [navigate, selectedEmployeeId, toast]);
     
     // 3. Efeito para buscar automaticamente quando o ID muda (opcional, mas prático)
     useEffect(() => {

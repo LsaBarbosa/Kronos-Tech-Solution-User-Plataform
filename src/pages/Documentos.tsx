@@ -9,6 +9,7 @@ import { cn } from "@/lib/utils";
 import { useDocumentsPage } from "@/hooks/useDocumentsPage";
 import PageShell from "@/components/PageShell";
 import { PaginationComponent } from "@/components/ui/PaginationComponent";
+import type { DocumentType } from "@/types/document";
 
 const Documentos = () => {
   const {
@@ -121,16 +122,21 @@ const Documentos = () => {
                     <Label htmlFor="document-type" className="text-sm font-medium">
                       Tipo de Documento
                     </Label>
-                    <Select value={selectedDocumentType} onValueChange={setSelectedDocumentType}>
+                    <Select
+                      value={selectedDocumentType}
+                      onValueChange={(value) => setSelectedDocumentType(value as DocumentType | "")}
+                    >
                       <SelectTrigger className="touch-target">
                         <SelectValue placeholder="Selecione o tipo" />
                       </SelectTrigger>
                       <SelectContent>
                         <SelectItem value="PAYSLIP">Contracheque</SelectItem>
                         <SelectItem value="TIME_OFF">Abono de Horas</SelectItem>
+                        <SelectItem value="DOCUMENTS">Documentos</SelectItem>
                         <SelectItem value="EMPLOYEE_DOCUMENTS">Documentos Pessoais</SelectItem>
                         <SelectItem value="POINT_RECORD_RECEIPT">Comprovante de Ponto</SelectItem>
-                        <SelectItem value="BIOMETRIC_CONSENT_TERM">Termo Consentimento</SelectItem>
+                        <SelectItem value="BIOMETRIC_CONSENT_TERM">Termo de Consentimento Biométrico</SelectItem>
+                        <SelectItem value="SERVICE_CONTRACT_TERMS">Termo de Contrato de Serviço</SelectItem>
                       </SelectContent>
                     </Select>
                   </div>
@@ -197,7 +203,7 @@ const Documentos = () => {
                       )}
                     </div>
                     <div className="text-xs sm:text-sm text-muted-foreground whitespace-nowrap">
-                      {filteredDocuments.length} de {documents.length} documento(s) - {getDocumentTypeLabel(selectedDocumentType)}
+                      {filteredDocuments.length} de {documents.length} documento(s) - {selectedDocumentType ? getDocumentTypeLabel(selectedDocumentType) : "Tipo não selecionado"}
                     </div>
                   </div>
                 </div>

@@ -9,6 +9,7 @@ import { updateEmail, updatePhone, changePassword } from "@/service/user.service
 import { loadSessionProfile } from "@/service/session-profile.service";
 import { getServiceErrorMessage, isAuthServiceError } from "@/service/helpers/service-error.helper";
 import { useAuth } from "@/context/AuthContext";
+import { getBiometricTermStatus, revokeBiometricTerms } from "@/service/terms.service";
 
 /**
  * Interface para o retorno do hook useUser.
@@ -37,13 +38,16 @@ interface UseUserReturn {
   handleSaveEmail: () => Promise<void>;
   handleSavePhone: () => Promise<void>;
   handleChangePassword: () => Promise<void>;
+  biometricConsentAccepted: boolean;
+  isRevokingBiometric: boolean;
+  handleRevokeBiometric: () => Promise<void>;
   togglePasswordFields: () => void;
 }
 
 export const useUser = (): UseUserReturn => {
   const { toast } = useToast();
   const navigate = useNavigate();
-  const { logout } = useAuth();
+  const { login, logout } = useAuth();
 
   // --- ESTADOS PRINCIPAIS ---
   const [userAccountData, setUserAccountData] = useState<UserAccountData | null>(null);
@@ -57,6 +61,8 @@ export const useUser = (): UseUserReturn => {
   
   // NOVO: Estado para gerenciar o loading da alteração de senha
   const [isSavingPassword, setIsSavingPassword] = useState(false);
+  const [biometricConsentAccepted, setBiometricConsentAccepted] = useState(false);
+  const [isRevokingBiometric, setIsRevokingBiometric] = useState(false);
 
   // Campos de edição e senha
   const [newEmail, setNewEmail] = useState("");
@@ -88,11 +94,15 @@ export const useUser = (): UseUserReturn => {
     setIsLoading(true);
 
     try {
-      const sessionProfile = await loadSessionProfile();
+      const [sessionProfile, biometricStatus] = await Promise.all([
+        loadSessionProfile(),
+        getBiometricTermStatus(),
+      ]);
       setUserAccountData(sessionProfile.accountData);
       setUserData(sessionProfile.userData);
       setNewEmail(sessionProfile.profileData.email || "");
       setNewPhone(sessionProfile.profileData.phone || "");
+      setBiometricConsentAccepted(biometricStatus.accepted);
 
       toast({
         title: "Dados carregados com sucesso",
@@ -218,7 +228,7 @@ const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
   }, [handleServiceError, newPhone, userAccountData, toast]);
 
 
- const handleChangePassword = useCallback(async () => {
+  const handleChangePassword = useCallback(async () => {
     if (!passwordData.currentPassword || !passwordData.newPassword || !passwordData.confirmPassword) {
         toast({ title: "Erro", description: "Preencha todos os campos de senha.", variant: "destructive" });
         return;
@@ -244,6 +254,25 @@ const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     }
   }, [handleServiceError, passwordData, toast]);
 
+  const handleRevokeBiometric = useCallback(async () => {
+    setIsRevokingBiometric(true);
+
+    try {
+      const response = await revokeBiometricTerms();
+      await login(response.token);
+      setBiometricConsentAccepted(false);
+      toast({ title: "Sucesso", description: "Consentimento biométrico revogado.", variant: "default" });
+    } catch (error) {
+      handleServiceError(
+        error,
+        "Erro ao revogar consentimento biométrico",
+        "Tente novamente mais tarde."
+      );
+    } finally {
+      setIsRevokingBiometric(false);
+    }
+  }, [handleServiceError, login, toast]);
+
   return {
     userAccountData,
     userData,
@@ -263,6 +292,9 @@ const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     handleSaveEmail,
     handleSavePhone,
     handleChangePassword,
+    biometricConsentAccepted,
+    isRevokingBiometric,
+    handleRevokeBiometric,
     togglePasswordFields,
   };
 };

@@ -3,7 +3,6 @@ import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { User, Shield, Loader2, MapPin, CheckCircle, Building2, CalendarDays } from "lucide-react";
-import { useNavigate } from "react-router-dom";
 import Header from "@/components/Header";
 import Sidebar from "@/components/Sidebar";
 import {
@@ -17,7 +16,6 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { useCreateManager } from "@/hooks/useCreateManager";
 
 const CriarManager = () => {
-    const navigate = useNavigate();
     const {
         form,
         isSubmitting,
@@ -25,7 +23,6 @@ const CriarManager = () => {
         handleToggleSidebar,
         companies,
         isFetchingCompanies,
-        savedEmployeeId,
         stepCompleted,
         usernameAvailability,
         isCheckingUsername,

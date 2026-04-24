@@ -5,8 +5,8 @@ import Clock from "@/components/Clock";
 import { 
     ArrowRight, Loader2, Clock as ClockIcon, FileCheck, DollarSign, Mail, 
     Briefcase, Phone, MessageSquareWarning, Zap, User2, Building, Eye, EyeOff, 
-    PlusCircle, ListChecks, ActivitySquare, AlertTriangle, Plane, // ÍCONE: Plane
-    TreePalm,Activity,
+    PlusCircle, ListChecks, Activity, AlertTriangle, Plane,
+    TreePalm,
     TimerReset
 } from "lucide-react"; 
 import { useNavigate } from "react-router-dom";
@@ -52,7 +52,6 @@ const Dashboard = () => {
     pendingApprovalsCount, 
     newWarnings,
     hasApprovalPermission,
-    fetchProfile, 
     handleWarningClick,
   } = useDashboardData();
   

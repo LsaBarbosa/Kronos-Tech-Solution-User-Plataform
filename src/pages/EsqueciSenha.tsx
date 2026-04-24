@@ -1,12 +1,10 @@
 // src/pages/EsqueciSenha.tsx
 
-import React, { useCallback, useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Form, FormField, FormItem, FormLabel, FormControl, FormMessage } from "@/components/ui/form";
-import { ArrowLeft, Mail, User, Loader2, Lock, CheckCircle, Eye, EyeOff } from "lucide-react";
+import { ArrowLeft, Mail, User, Loader2, Lock, CheckCircle } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 // 💡 NOVO: Importa o hook customizado

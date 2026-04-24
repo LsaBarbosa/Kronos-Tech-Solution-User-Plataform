@@ -5,7 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Badge } from "@/components/ui/badge";
 import { CalendarIcon, Download, Edit, Coffee, FileText, MapPin, Clock } from "lucide-react";
 import type { DetailedReportItem} from "@/utils/report-utils";
-import { statusOptions, getStatusColor, statusMap } from "@/utils/report-utils"; 
+import { getStatusColor, statusMap } from "@/utils/report-utils"; 
 import { useToast } from "@/hooks/use-toast";
 import { downloadDocument } from "@/service/document.service";
 import { Button } from "./ui/button";
@@ -43,6 +43,9 @@ export const ResultadosRelatorioDetalhado: React.FC<ResultadosDetalhadoProps> = 
     onDownloadCSV  // Recebendo via prop
 }) => {
     const { toast } = useToast();
+    void statusFilter;
+    void referenceTime;
+    void selectedDates;
 
     // --- PAGINAÇÃO E SCROLL CONTROL ---
     const [currentPage, setCurrentPage] = useState(0);
@@ -114,7 +117,7 @@ export const ResultadosRelatorioDetalhado: React.FC<ResultadosDetalhadoProps> = 
         }
 
         try {
-            await downloadDocument(documentId, `${employeeName}_documento`);
+            await downloadDocument(documentId, `${employeeName}_documento`, employeeId);
 
             toast({
                 title: "Download Iniciado",

@@ -35,6 +35,7 @@ Quando o backend não tem validação clara para CTO em fluxos gerenciais, o fro
 |---|---|---:|---:|---:|---|
 | Terms | `GET /terms/status` | Sim | Sim | Sim | Retorna boolean puro |
 | Terms | `POST /terms/accept-biometric` | Sim | Sim | Sim | Retorna token novo |
+| Terms | `DELETE /terms/revoke-biometric` | Sim | Sim | Sim | Revoga consentimento e retorna novo token |
 | Users | `GET /users/own-profile` | Sim | Sim | Sim | Base da sessão |
 | Employee | `GET /employee/own-profile` | Sim | Sim | Sim | Base do perfil da sessão |
 | Records | `GET /records/pending-approvals` | Não | Sim | Não | Bloqueado no front para evitar 403 previsível |

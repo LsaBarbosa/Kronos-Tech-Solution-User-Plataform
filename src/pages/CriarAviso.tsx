@@ -10,7 +10,6 @@ import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { Checkbox } from "@/components/ui/checkbox"; 
 import { MessageSquarePlus, Send, User, Users, Loader2 } from "lucide-react"; 
-import { useNavigate } from "react-router-dom";
 import Header from "@/components/Header";
 import Sidebar from "@/components/Sidebar";
 
@@ -23,8 +22,6 @@ const CriarAviso = () => {
   // 💡 Estado de UI (Sidebar) é o único estado mantido localmente
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const handleToggleSidebar = useCallback(() => setSidebarOpen((prev) => !prev), []);
-  const navigate = useNavigate();
-
   // 💡 HOOK: Desestrutura toda a lógica e estado
   const {
     formState,

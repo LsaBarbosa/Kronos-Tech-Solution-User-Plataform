@@ -3,13 +3,15 @@
 import { useState, useEffect, useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
-import type { Document } from "@/types/document";
+import type { Document, DocumentType } from "@/types/document";
 import {
     deleteDocument,
     downloadDocument,
     fetchUserDocuments,
 } from "@/service/document.service";
 import { isAuthServiceError, normalizeServiceError } from "@/service/helpers/service-error.helper";
+
+const DEFAULT_MY_DOCUMENTS_TYPE: DocumentType = "EMPLOYEE_DOCUMENTS";
 
 interface UseMyDocumentsReturn {
     documents: Document[];
@@ -34,7 +36,7 @@ export const useMyDocuments = (): UseMyDocumentsReturn => {
         setIsLoading(true);
         setError(null);
         try {
-            const data = await fetchUserDocuments(); // 💡 Chama o Serviço
+            const data = await fetchUserDocuments(DEFAULT_MY_DOCUMENTS_TYPE); // 💡 Chama o Serviço
             setDocuments(data);
         } catch (err) {
             const normalized = normalizeServiceError(err);

@@ -2,7 +2,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { ArrowLeft, User, Shield, Loader2, MapPin, CheckCircle, Clock, CalendarDays } from "lucide-react";
+import { User, Shield, Loader2, MapPin, CheckCircle, Clock, CalendarDays } from "lucide-react";
 import PageShell from "@/components/PageShell";
 import {
     Select,
@@ -21,7 +21,6 @@ const CriarColaborador = () => {
         isSubmitting,
         sidebarOpen,
         handleToggleSidebar,
-        savedEmployeeId,
         stepCompleted,
         cpfAvailability,
         isCheckingCPF,

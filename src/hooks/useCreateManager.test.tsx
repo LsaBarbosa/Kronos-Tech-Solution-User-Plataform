@@ -5,12 +5,6 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { useCreateManager } from "./useCreateManager";
 import { useToast } from "@/hooks/use-toast";
 import { fetchCompanyList } from "@/service/company.service";
-import {
-  checkCpfAvailability,
-  checkUsernameAvailability,
-  createManager,
-  createUser,
-} from "@/service/collaborator-management.service";
 
 vi.mock("@/service/company.service", () => ({
   fetchCompanyList: vi.fn(),

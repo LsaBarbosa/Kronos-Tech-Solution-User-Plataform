@@ -16,8 +16,6 @@ export default function EnviarDocumentos() {
     employees,
     selectedEmployeeId,
     setSelectedEmployeeId,
-    selectedDocumentType,
-    setSelectedDocumentType,
     activeEmployeeFilter,
     setActiveEmployeeFilter,
     selectedFile,

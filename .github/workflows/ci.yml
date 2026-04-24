@@ -27,8 +27,11 @@ jobs:
       - name: Lint
         run: npm run lint
 
-      - name: Test
-        run: npm run test
+      - name: Coverage
+        run: npm run test:coverage
+
+      - name: Audit
+        run: npm audit --audit-level=moderate
 
       - name: Build
         run: npm run build

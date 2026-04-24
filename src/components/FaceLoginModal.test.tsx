@@ -125,6 +125,7 @@ describe("FaceLoginModal", () => {
     await waitFor(() => {
       expect(mockLoginWithFace).toHaveBeenCalledWith({
         faceImageBase64: "a".repeat(120),
+        livenessPassed: true,
       });
     });
   });

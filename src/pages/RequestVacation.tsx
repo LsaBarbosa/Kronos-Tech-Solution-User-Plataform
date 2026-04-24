@@ -1,6 +1,6 @@
 // ARQUIVO: src/pages/RequestVacation.tsx
 
-import React, { useCallback, useState } from "react";
+import { useCallback, useState } from "react";
 import Sidebar from "@/components/Sidebar";
 import Header from "@/components/Header";
 import { useVacationRequest } from "../hooks/useVacationRequest"; // Importa o hook

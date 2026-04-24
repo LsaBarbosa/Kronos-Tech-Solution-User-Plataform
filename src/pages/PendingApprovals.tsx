@@ -21,7 +21,6 @@ import { Button } from "../components/ui/button";
 import { Input } from "../components/ui/input";
 import { Clock, Loader2, Search, X, Check, CalendarCheck, ArrowRight, User } from "lucide-react";
 import { Badge } from "../components/ui/badge";
-import { cn } from "../lib/utils";
 import { PaginationComponent } from "../components/ui/PaginationComponent";
 import { format, parseISO } from "date-fns";
 import type { ITimeRecordApprovalResponse } from "@/types/recordApproval";

@@ -68,9 +68,13 @@ describe("document.service", () => {
       http.get("*/documents", ({ request }) => {
         const url = new URL(request.url);
         const employeeId = url.searchParams.get("employeeId");
+        const type = url.searchParams.get("type");
 
         if (employeeId) {
           expect(employeeId).toBe("emp-1");
+          expect(type).toBe("EMPLOYEE_DOCUMENTS");
+        } else {
+          expect(type).toBe("EMPLOYEE_DOCUMENTS");
         }
 
         return HttpResponse.json({
@@ -79,28 +83,28 @@ describe("document.service", () => {
               id: employeeId ? "doc-1" : "doc-2",
               name: employeeId ? "holerite.pdf" : "documento-geral.pdf",
               createdAt: "2026-04-23T10:00:00Z",
-              type: "PAYSLIP",
+              type: "EMPLOYEE_DOCUMENTS",
             },
           ],
         });
       })
     );
 
-    await expect(fetchUserDocuments()).resolves.toEqual([
+    await expect(fetchUserDocuments("EMPLOYEE_DOCUMENTS")).resolves.toEqual([
       {
         id: "doc-2",
         name: "documento-geral.pdf",
         createdAt: "2026-04-23T10:00:00Z",
-        type: "PAYSLIP",
+        type: "EMPLOYEE_DOCUMENTS",
       },
     ]);
 
-    await expect(fetchEmployeeDocuments("emp-1")).resolves.toEqual([
+    await expect(fetchEmployeeDocuments("emp-1", { type: "EMPLOYEE_DOCUMENTS" })).resolves.toEqual([
       {
         id: "doc-1",
         name: "holerite.pdf",
         createdAt: "2026-04-23T10:00:00Z",
-        type: "PAYSLIP",
+        type: "EMPLOYEE_DOCUMENTS",
       },
     ]);
   });
@@ -160,7 +164,7 @@ describe("document.service", () => {
       )
     );
 
-    await expect(downloadDocument("doc-1", "fallback.pdf")).resolves.toMatchObject(
+    await expect(downloadDocument("doc-1", "fallback.pdf", "emp-1")).resolves.toMatchObject(
       {
         fileName: "contracheque.pdf",
       }
@@ -176,7 +180,7 @@ describe("document.service", () => {
       http.delete("*/documents/doc-1", () => new HttpResponse(null, { status: 204 }))
     );
 
-    await expect(deleteDocument("doc-1")).resolves.toBeUndefined();
+    await expect(deleteDocument("doc-1", "emp-1")).resolves.toBeUndefined();
   });
 
   it("busca colaboradores ativos para seleção", async () => {

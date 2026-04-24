@@ -1,6 +1,5 @@
-import React, { useState, useEffect, useCallback, useRef } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
 import { Badge } from "@/components/ui/badge";
@@ -24,7 +23,6 @@ import type {
 import { 
     statusOptions, 
     getStatusColor, 
-    getTranslatedStatus
 } from "@/utils/report-utils"; 
 import {
     fetchDetailedReport,
@@ -39,12 +37,11 @@ const StatusRegistro = () => {
     const [sidebarOpen, setSidebarOpen] = useState(false);
     // 💡 ESTADOS DO FILTRO - Compartilhados com RelatorioFiltros
     const [selectedDates, setSelectedDates] = useState<Date[]>([]);
-    const [referenceTime, setReferenceTime] = useState("08:00");
+    const [referenceTime] = useState("08:00");
     const [selectedEmployee, setSelectedEmployee] = useState("");
     const [employeeActive, setEmployeeActive] = useState("active");
     const [isActive, setIsActive] = useState(true);
     const [status, setStatus] = useState<string[]>(["CREATED"]); 
-    const [reportType, setReportType] = useState<"detailed" | "simple">("detailed"); 
     
     // ESTADOS DE DADOS
     const [reportData, setReportData] = useState<DetailedReportItem[]>([]);
@@ -72,7 +69,7 @@ const StatusRegistro = () => {
         statusRecord: "",
     });
 
-       const statusRegistroTips = (
+    const statusRegistroTips = (
     <>
    <h1 className="text-lg font-bold text-primary mb-2 flex items-center gap-2">
                     <Info className="w-5 h-5 text-primary"/> Instruções
@@ -303,19 +300,6 @@ const StatusRegistro = () => {
 
     const handleToggleSidebar = () => setSidebarOpen((prev) => !prev);
     
-    // Funções de Download Mockadas (CSV/PDF) - Não são a função principal desta tela
-    const handleDownloadPDF = () => toast({ title: "Funcionalidade de Download", description: "Download de PDF em Status de Registro não é suportado.", variant: "default" });
-    const handleDownloadCSV = () => toast({ title: "Funcionalidade de Download", description: "Download de CSV em Status de Registro não é suportado.", variant: "default" });
-    
-    // A função de mudar o tipo de relatório deve ser nula ou desabilitada
-    const setFixedReportType = (type: "detailed" | "simple") => {
-        if (type !== "detailed") {
-             toast({ title: "Aviso", description: "Esta página só suporta o modo 'Detalhado'.", variant: "default" });
-        }
-        setReportType("detailed");
-    };
-
-
     return (
        
 

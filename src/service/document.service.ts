@@ -3,15 +3,17 @@ import { API_ROUTES, buildRoute } from "@/config/api-routes";
 import { mapArrayPayload } from "@/service/helpers/response-normalizer.helper";
 import type {
   Document,
-  EmployeeListItem} from "@/types/document";
+  DocumentType,
+  EmployeeListItem,
+} from "@/types/document";
 import {
   isAllowedDocumentFile,
   MAX_UPLOAD_SIZE_BYTES,
 } from "@/types/document";
 
 export interface DocumentFilters {
+  type: DocumentType;
   employeeId?: string;
-  type?: string;
   date?: string;
 }
 
@@ -64,10 +66,10 @@ const triggerBrowserDownload = (blob: Blob, fileName: string) => {
 };
 
 export const fetchDocuments = async (
-  filters: DocumentFilters = {}
+  filters: DocumentFilters
 ): Promise<Document[]> => {
   const response = await api.get(`/${API_ROUTES.DOCUMENTS}`, {
-      params: Object.keys(filters).length > 0 ? filters : undefined,
+      params: filters,
   });
 
   return mapArrayPayload<DocumentApiRecord, Document>(
@@ -76,19 +78,19 @@ export const fetchDocuments = async (
       id: document.documentId ?? document.id ?? "",
       name: document.fileName ?? document.name ?? "Nome Desconhecido",
       createdAt: document.uploadedAt ?? document.createdAt ?? "",
-      type: document.documentType ?? document.type ?? "",
+      type: (document.documentType ?? document.type ?? "DOCUMENTS") as DocumentType,
     }),
     ["documents"]
   );
 };
 
-export const fetchUserDocuments = async (): Promise<Document[]> => {
-  return fetchDocuments();
+export const fetchUserDocuments = async (type: DocumentType): Promise<Document[]> => {
+  return fetchDocuments({ type });
 };
 
 export const fetchEmployeeDocuments = async (
   employeeId: string,
-  filters: Omit<DocumentFilters, "employeeId"> = {}
+  filters: Omit<DocumentFilters, "employeeId">
 ): Promise<Document[]> => {
   return fetchDocuments({
     ...filters,
@@ -96,16 +98,23 @@ export const fetchEmployeeDocuments = async (
   });
 };
 
-export const deleteDocument = async (documentId: string): Promise<void> => {
-  await api.delete(buildRoute(API_ROUTES.DOCUMENTS, documentId));
+export const deleteDocument = async (
+  documentId: string,
+  employeeId?: string
+): Promise<void> => {
+  await api.delete(buildRoute(API_ROUTES.DOCUMENTS, documentId), {
+    params: employeeId ? { employeeId } : undefined,
+  });
 };
 
 export const downloadDocument = async (
   documentId: string,
-  fallbackFileName: string
+  fallbackFileName: string,
+  employeeId?: string
 ): Promise<DownloadedDocument> => {
   const response = await api.get<Blob>(buildRoute(API_ROUTES.DOCUMENTS, documentId), {
     responseType: "blob",
+    params: employeeId ? { employeeId } : undefined,
   });
 
   const contentDisposition =
@@ -146,7 +155,7 @@ export const fetchEmployeesForSelection = async (
 export const uploadDocument = async (
   file: File,
   employeeId: string,
-  type: string
+  type: DocumentType
 ): Promise<void> => {
   if (file.size > MAX_UPLOAD_SIZE_BYTES) {
     throw new Error("O arquivo excede o limite de 5MB.");

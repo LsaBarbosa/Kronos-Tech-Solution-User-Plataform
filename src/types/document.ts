@@ -1,13 +1,19 @@
 // src/types/document.ts
 
-/**
- * Interface base para o Documento.
- */
+export type DocumentType =
+  | "PAYSLIP"
+  | "TIME_OFF"
+  | "DOCUMENTS"
+  | "EMPLOYEE_DOCUMENTS"
+  | "POINT_RECORD_RECEIPT"
+  | "BIOMETRIC_CONSENT_TERM"
+  | "SERVICE_CONTRACT_TERMS";
+
 export interface Document {
   id: string;
   name: string;
   createdAt: string;
-  type: string;
+  type: DocumentType;
 }
 
 /**

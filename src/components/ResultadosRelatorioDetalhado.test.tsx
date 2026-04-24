@@ -92,6 +92,6 @@ describe("ResultadosRelatorioDetalhado", () => {
 
     expect(onDownloadPDF).toHaveBeenCalled();
     expect(onDownloadCSV).toHaveBeenCalled();
-    expect(mockDownloadDocument).toHaveBeenCalledWith("doc-1", "Maria Silva_documento");
+    expect(mockDownloadDocument).toHaveBeenCalledWith("doc-1", "Maria Silva_documento", "emp-1");
   });
 });

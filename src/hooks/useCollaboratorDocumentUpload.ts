@@ -2,7 +2,7 @@ import { useCallback, useEffect, useRef, useState, type ChangeEvent, type DragEv
 import { useAuth } from "@/context/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import { fetchEmployeesForSelection, uploadDocument } from "@/service/document.service";
-import { ALLOWED_MIME_TYPES, MAX_UPLOAD_SIZE_BYTES, type EmployeeListItem } from "@/types/document";
+import { ALLOWED_MIME_TYPES, MAX_UPLOAD_SIZE_BYTES, type DocumentType, type EmployeeListItem } from "@/types/document";
 
 const MAX_COMPRESS_SIZE_MB = 3;
 
@@ -67,7 +67,7 @@ export const useCollaboratorDocumentUpload = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [employees, setEmployees] = useState<SelectedEmployee[]>([]);
   const [selectedEmployeeId, setSelectedEmployeeId] = useState("");
-  const [selectedDocumentType, setSelectedDocumentType] = useState("");
+  const [selectedDocumentType, setSelectedDocumentType] = useState<DocumentType>("PAYSLIP");
   const [activeEmployeeFilter, setActiveEmployeeFilter] = useState("true");
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [isDragOver, setIsDragOver] = useState(false);

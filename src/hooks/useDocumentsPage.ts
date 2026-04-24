@@ -7,12 +7,13 @@ import {
   fetchDocuments,
   fetchEmployeesForSelection,
 } from "@/service/document.service";
+import type { DocumentType } from "@/types/document";
 
 export interface DocumentItem {
   id: string;
   name: string;
   createdAt: string;
-  type: string;
+  type: DocumentType;
 }
 
 export interface EmployeeOption {
@@ -24,7 +25,7 @@ export const useDocumentsPage = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [employees, setEmployees] = useState<EmployeeOption[]>([]);
   const [selectedEmployeeId, setSelectedEmployeeId] = useState("");
-  const [selectedDocumentType, setSelectedDocumentType] = useState("");
+  const [selectedDocumentType, setSelectedDocumentType] = useState<DocumentType | "">("");
   const [searchDate, setSearchDate] = useState("");
   const [documents, setDocuments] = useState<DocumentItem[]>([]);
   const [isSearching, setIsSearching] = useState(false);
@@ -75,8 +76,18 @@ export const useDocumentsPage = () => {
     void fetchEmployees();
   }, [activeEmployeeFilter, authStatus, currentUserId, currentUserName, role]);
 
-  const getDocumentTypeLabel = useCallback((type: string) => {
-    return type === "PAYSLIP" ? "Contracheque" : "Atestado";
+  const getDocumentTypeLabel = useCallback((type: DocumentType) => {
+    const labels: Record<DocumentType, string> = {
+      PAYSLIP: "Contracheque",
+      TIME_OFF: "Abono de Horas",
+      DOCUMENTS: "Documentos",
+      EMPLOYEE_DOCUMENTS: "Documentos Pessoais",
+      POINT_RECORD_RECEIPT: "Comprovante de Ponto",
+      BIOMETRIC_CONSENT_TERM: "Termo de Consentimento Biométrico",
+      SERVICE_CONTRACT_TERMS: "Termo de Contrato de Serviço",
+    };
+
+    return labels[type];
   }, []);
 
   const handleSearch = useCallback(async () => {
@@ -85,20 +96,22 @@ export const useDocumentsPage = () => {
       return;
     }
 
+    const documentType = selectedDocumentType;
+
     setIsSearching(true);
     setHasSearched(true);
 
     try {
       const data = await fetchDocuments({
         employeeId: selectedEmployeeId,
-        type: selectedDocumentType,
+        type: documentType,
         ...(searchDate ? { date: searchDate } : {}),
       });
 
       setDocuments(data);
       showSuccessToast(
         "Documentos encontrados",
-        `${data.length} documento(s) encontrado(s) - ${getDocumentTypeLabel(selectedDocumentType)}`
+        `${data.length} documento(s) encontrado(s) - ${getDocumentTypeLabel(documentType)}`
       );
     } catch (error) {
       console.error("Erro ao buscar documentos:", error);
@@ -157,7 +170,7 @@ export const useDocumentsPage = () => {
       }
 
       try {
-        await deleteDocument(documentId);
+        await deleteDocument(documentId, selectedEmployeeId || undefined);
         setDocuments((prev) => prev.filter((doc) => doc.id !== documentId));
         showSuccessToast("Documento excluído", `Documento "${documentName}" excluído com sucesso!`);
       } catch (error) {
@@ -170,13 +183,13 @@ export const useDocumentsPage = () => {
 
   const handleDownload = useCallback(async (document: DocumentItem) => {
     try {
-      await downloadDocument(document.id, document.name);
+      await downloadDocument(document.id, document.name, selectedEmployeeId || undefined);
       showSuccessToast("Download iniciado", `Download de ${document.name} iniciado`);
     } catch (error) {
       console.error("Erro ao iniciar o download:", error);
       showErrorToast("Erro", `Falha ao baixar o documento ${document.name}. Tente novamente.`);
     }
-  }, []);
+  }, [selectedEmployeeId]);
 
   const formatDate = useCallback((dateString: string) => {
     try {

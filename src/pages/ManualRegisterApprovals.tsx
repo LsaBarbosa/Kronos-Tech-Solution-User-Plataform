@@ -321,7 +321,7 @@ const ManualRegisterApprovals = () => {
         }
         
         try {
-            await downloadDocument(documentId, `justificativa_abono_${employeeId}.pdf`);
+            await downloadDocument(documentId, `justificativa_abono_${employeeId}.pdf`, employeeId);
 
         } catch (error) {
             console.error("Erro ao iniciar o download:", error);

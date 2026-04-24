@@ -43,8 +43,20 @@ export const handlers = [
   http.post("*/terms/accept-biometric", () =>
     HttpResponse.json({ token: authFixture.loginResponse.token })
   ),
+  http.delete("*/terms/revoke-biometric", () =>
+    HttpResponse.json({ token: `${authFixture.loginResponse.token}-revoked` })
+  ),
 
-  http.get("*/documents", () => HttpResponse.json(documentFixture.list)),
+  http.get("*/documents", ({ request }) => {
+    const url = new URL(request.url);
+    const type = url.searchParams.get("type");
+
+    if (!type) {
+      throw new Error("GET /documents requer query param type.");
+    }
+
+    return HttpResponse.json(documentFixture.list);
+  }),
   http.post("*/documents", () => new HttpResponse(null, { status: 201 })),
   http.get("*/documents/:documentId", () =>
     new HttpResponse(documentFixture.fileContent, {

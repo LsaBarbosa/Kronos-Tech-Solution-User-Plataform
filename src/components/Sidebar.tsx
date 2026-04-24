@@ -4,21 +4,15 @@ import {
   X, Home, BarChart3, ChevronDown, ChevronRight, User, Shield, Users, 
   Clock, FilePlus, LogOut, UserCheck, UserPlus, Folder, FolderOpen, 
   Calculator, ClipboardCheck, Building2, BellMinus, TreePalm, TimerReset, Activity,
-  // Novos ícones importados:
-  FileText, Scale, FileCode, FileSignature, BadgeCheck,
-  CalendarRange,
-  Scale3d,
-  ScaleIcon
+  CalendarRange, Scale, ScaleIcon,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
 import { cn } from "@/lib/utils";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { FiscalService } from "@/service/fiscal.service"; // Ajuste o caminho conforme criou o arquivo acima
 import { useAuth } from "@/context/AuthContext";
 import { APP_PATHS, APP_ROUTE_META } from "@/config/app-routes";
-import { showErrorToast, showSuccessToast } from "@/lib/feedback";
 
 interface SidebarProps {
   isOpen: boolean;
@@ -50,56 +44,6 @@ const Sidebar = ({ isOpen, toggleSidebar }: SidebarProps) => {
 
   const isManager = role === "MANAGER";
   const isCto = role === "CTO";
-
-  // --- Funções Auxiliares de Download ---
-  const getCurrentMonthDates = () => {
-    const date = new Date();
-    const startDate = new Date(date.getFullYear(), date.getMonth(), 1).toISOString().split('T')[0];
-    const endDate = new Date(date.getFullYear(), date.getMonth() + 1, 0).toISOString().split('T')[0];
-    return { startDate, endDate };
-  };
-
-  const handleDownloadMirror = async () => {
-    try {
-      const { startDate, endDate } = getCurrentMonthDates();
-      showSuccessToast("Gerando Espelho...", "O download iniciará em breve.");
-      await FiscalService.downloadMirror(startDate, endDate);
-    } catch (error) {
-      console.error(error);
-      showErrorToast("Erro", "Falha ao baixar espelho de ponto.");
-    }
-  };
-
-  const handleDownloadAfd = async () => {
-    try {
-      showSuccessToast("Gerando AFD...", "Isso pode levar alguns segundos.");
-      await FiscalService.downloadAfd();
-    } catch (error) {
-      console.error(error);
-      showErrorToast("Erro", "Falha ao baixar AFD.");
-    }
-  };
-
-  const handleDownloadAej = async () => {
-    try {
-      const { startDate, endDate } = getCurrentMonthDates();
-      showSuccessToast("Gerando AEJ Assinado...", "Verificando assinatura digital.");
-      await FiscalService.downloadAej(startDate, endDate);
-    } catch (error) {
-      console.error(error);
-      showErrorToast("Erro", "Falha ao baixar AEJ.");
-    }
-  };
-
-  const handleDownloadCertificate = async () => {
-    try {
-      showSuccessToast("Baixando Atestado...", "Obtendo documento assinado.");
-      await FiscalService.downloadTechnicalCertificate();
-    } catch (error) {
-      console.error(error);
-      showErrorToast("Erro", "Falha ao baixar Atestado Técnico.");
-    }
-  };
 
   return (
     <>

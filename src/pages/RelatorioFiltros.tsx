@@ -10,7 +10,7 @@ import { Checkbox } from "@/components/ui/checkbox";
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Command, CommandInput, CommandItem, CommandList, CommandEmpty } from "@/components/ui/command";
-import { Check, CalendarIcon, Search, Download, FileText, CalendarCheck, CalendarX, ChevronDown, Loader2 } from "lucide-react"; 
+import { Check, CalendarIcon, Search, FileText, CalendarCheck, CalendarX, ChevronDown, Loader2 } from "lucide-react"; 
 import { format, startOfMonth, endOfMonth, eachDayOfInterval, startOfDay, isSameDay } from "date-fns"; 
 import { ptBR } from "date-fns/locale";
 import type { Employee} from "@/utils/report-utils";
@@ -61,11 +61,14 @@ export const RelatorioFiltros: React.FC<RelatorioFiltrosProps> = ({
     onDownloadCSV,
     customTips,
     isLoading,
-    hasResults = false
+    hasResults = false,
 }) => {
     const [displayMonth, setDisplayMonth] = React.useState<Date | undefined>(startOfDay(new Date()));
     const [open, setOpen] = React.useState(false); 
     const [openStatus, setOpenStatus] = React.useState(false);
+    void onDownloadPDF;
+    void onDownloadCSV;
+    void hasResults;
 
     const handleDateSelect = (days: Date[] | undefined) => {
         setSelectedDates(days || []);

@@ -25,13 +25,32 @@ export const acceptBiometricTerms = async (): Promise<BiometricTermsAcceptRespon
   );
 
   const data = extractObject<{ token?: string }>(response.data) as { token?: string };
+  const token = data.token;
 
-  if (!data.token) {
+  if (!token) {
     throw new Error("Resposta de aceite biométrico sem token.");
   }
 
   return {
     accepted: true,
-    token: data.token,
+    token,
+  };
+};
+
+export const revokeBiometricTerms = async (): Promise<BiometricTermsAcceptResponse> => {
+  const response = await api.delete<{ token?: string }>(
+    buildRoute(API_ROUTES.TERMS, "revoke-biometric")
+  );
+
+  const data = extractObject<{ token?: string }>(response.data) as { token?: string };
+  const token = data.token;
+
+  if (!token) {
+    throw new Error("Resposta de revogação biométrica sem token.");
+  }
+
+  return {
+    accepted: false,
+    token,
   };
 };

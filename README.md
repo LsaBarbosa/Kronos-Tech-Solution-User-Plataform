@@ -50,6 +50,8 @@ npm run test -- dashboard
 npm run test -- records
 ```
 
+Os testes de contrato cobrem `GET /documents` com `type` obrigatório, login facial com `livenessPassed` e revogação biométrica via `DELETE /terms/revoke-biometric`.
+
 ## Como gerar build
 
 ```bash
@@ -88,6 +90,8 @@ npm run build
 - `ProtectedRoute` impede vazamento de conteúdo durante `checking`.
 - `RoleRoute` usa `APP_ROUTE_META` para bloquear acesso manual por URL.
 - O aceite biométrico trata `GET /terms/status` como `boolean` e `POST /terms/accept-biometric` como retorno com novo token.
+- O login facial envia `livenessPassed` por contrato com o backend atual.
+- A listagem de documentos exige `type` em toda chamada.
 
 ## Testes
 

@@ -1,10 +1,9 @@
 // src/pages/RelatorioDetalhado.tsx
 
-import React, { useState, useEffect, useCallback } from "react";
+import { useState, useEffect, useCallback } from "react";
 import { useToast } from "@/hooks/use-toast";
 import PageShell from "@/components/PageShell";
 import { format } from "date-fns";
-import { ptBR } from "date-fns/locale";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 
@@ -51,7 +50,7 @@ type AutoTableCell =
 const RelatorioDetalhado = () => {
     const [sidebarOpen, setSidebarOpen] = useState(false);
     const [selectedDates, setSelectedDates] = useState<Date[]>([]);
-    const [referenceTime, setReferenceTime] = useState("08:00");
+    const [referenceTime] = useState("08:00");
     const [selectedEmployee, setSelectedEmployee] = useState("");
     const [employeeActive, setEmployeeActive] = useState("active");
     const [isActive, setIsActive] = useState(true);
@@ -569,7 +568,6 @@ const RelatorioDetalhado = () => {
                         selectedDates={selectedDates}
                         setSelectedDates={setSelectedDates}
                         referenceTime={referenceTime}
-                        setReferenceTime={setReferenceTime}
                         selectedEmployee={selectedEmployee}
                         setSelectedEmployee={setSelectedEmployee}
                         employeeActive={employeeActive}

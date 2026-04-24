@@ -40,14 +40,17 @@ describe("auth.service", () => {
       http.post("*/auth/login-face", async ({ request }) => {
         const body = await request.json();
 
-        expect(body).toEqual({ faceImageBase64: "imagem-base64" });
+        expect(body).toEqual({
+          faceImageBase64: "imagem-base64",
+          livenessPassed: true,
+        });
 
         return HttpResponse.json({ token: "token-face" });
       })
     );
 
     await expect(
-      loginWithFace({ faceImageBase64: "imagem-base64" })
+      loginWithFace({ faceImageBase64: "imagem-base64", livenessPassed: true })
     ).resolves.toEqual({ token: "token-face" });
   });
 
@@ -62,7 +65,7 @@ describe("auth.service", () => {
     );
 
     await expect(
-      loginWithFace({ faceImageBase64: "imagem-base64" })
+      loginWithFace({ faceImageBase64: "imagem-base64", livenessPassed: true })
     ).rejects.toThrow("Face nao reconhecida.");
   });
 });

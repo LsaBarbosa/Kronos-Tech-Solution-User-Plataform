@@ -1,7 +1,7 @@
 // src/components/EmployeeBadge.tsx
 
 import { useEffect, useState, useCallback } from "react";
-import { User, Phone, Mail, Briefcase, DollarSign, Edit, Check, X, Eye, EyeOff, Loader2 } from "lucide-react";
+import { Phone, Mail, DollarSign, Edit, Check, X, Eye, EyeOff, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input"; 
 import { Card, CardContent, CardHeader } from "@/components/ui/card";

@@ -31,9 +31,9 @@ Mapear as chamadas HTTP ativas do front-end e classificar aderência ao backend 
 | `src/service/user.service.ts` | `PUT` | `/users/password` | usuários | sim | não | sim | válida |
 | `src/service/user.service.ts` | `PATCH` | `/employee/update-own-profile` | usuários | sim | não | sim | válida |
 | `src/service/document.service.ts` | `POST` | `/documents` | documentos | sim | não | sim | válida |
-| `src/service/document.service.ts` | `GET` | `/documents` | documentos | sim | não | sim | válida |
-| `src/service/document.service.ts` | `GET` | `/documents/{documentId}` | documentos | sim | não | sim | válida |
-| `src/service/document.service.ts` | `DELETE` | `/documents/{documentId}` | documentos | sim | não | sim | válida |
+| `src/service/document.service.ts` | `GET` | `/documents?type=...` | documentos | sim | não | sim | válida |
+| `src/service/document.service.ts` | `GET` | `/documents/{documentId}?employeeId?` | documentos | sim | não | sim | válida |
+| `src/service/document.service.ts` | `DELETE` | `/documents/{documentId}?employeeId?` | documentos | sim | não | sim | válida |
 | `src/service/message.service.ts` | `GET` | `/messages` | mensagens | sim | não | sim | válida |
 | `src/service/message.service.ts` | `POST` | `/messages` | mensagens | sim | não | sim | válida |
 | `src/service/message.service.ts` | `DELETE` | `/messages/{messageId}` | mensagens | sim | não | sim | válida |
@@ -51,6 +51,7 @@ Mapear as chamadas HTTP ativas do front-end e classificar aderência ao backend 
 | `src/service/records.service.ts` | `PATCH` | `/records/time-off/reject/{timeRecordId}` | abonos | sim | não | sim | válida |
 | `src/service/terms.service.ts` | `GET` | `/terms/status` | termos | sim | não | sim | válida |
 | `src/service/terms.service.ts` | `POST` | `/terms/accept-biometric` | termos | sim | não | sim | válida |
+| `src/service/terms.service.ts` | `DELETE` | `/terms/revoke-biometric` | termos | sim | não | sim | válida |
 | `src/service/fiscal.service.ts` | `GET` | `/legal/technical-certificate` | legal/fiscal | sim | não | sim | válida |
 | `src/service/fiscal.service.ts` | `GET` | `/legal/afd` | legal/fiscal | sim | não | sim | válida |
 | `src/service/fiscal.service.ts` | `GET` | `/legal/aej` | legal/fiscal | sim | não | sim | válida |

@@ -2,13 +2,13 @@
 
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import type { EmployeeListItem} from "@/types/document";
+import type { EmployeeListItem, DocumentType } from "@/types/document";
 import { MAX_UPLOAD_SIZE_BYTES, ALLOWED_MIME_TYPES } from "@/types/document";
 import { fetchEmployeesForSelection, uploadDocument } from "@/service/document.service";
 import { isAuthServiceError, normalizeServiceError } from "@/service/helpers/service-error.helper";
 import { showErrorToast, showSuccessToast } from "@/lib/feedback";
 
-const DEFAULT_DOCUMENT_TYPE = "EMPLOYEE_DOCUMENTS";
+const DEFAULT_DOCUMENT_TYPE: DocumentType = "EMPLOYEE_DOCUMENTS";
 
 // ===========================================
 // FUNÇÕES DE COMPRESSÃO E CONVERSÃO (NOVAS)
@@ -121,7 +121,7 @@ export const useDocumentUpload = (): UseDocumentUploadReturn => {
 
     // 2. Handler para seleção de arquivo com COMPRESSÃO e VALIDAÇÃO (CORRIGIDO)
     const handleFileChange = useCallback(async (event: React.ChangeEvent<HTMLInputElement>) => {
-        let file = event.target.files?.[0] || null;
+    let file = event.target.files?.[0] || null;
         setFileError(null);
         setSelectedFile(null);
 

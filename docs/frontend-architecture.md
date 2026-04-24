@@ -46,7 +46,8 @@ Exceção:
 - `ProtectedRoute` usa `AuthContext`
 - o token é persistido via camada de browser/storage
 - login com senha usa `POST /auth/login`
-- login facial usa `POST /auth/login-face`
+- login facial usa `POST /auth/login-face` com `{ faceImageBase64, livenessPassed }`
+- revogação biométrica usa `DELETE /terms/revoke-biometric`
 - logout é local
 
 ## Padrão de erro
@@ -150,9 +151,9 @@ Padrão:
 ### Documents
 
 - `POST /documents`
-- `GET /documents`
-- `GET /documents/{documentId}`
-- `DELETE /documents/{documentId}`
+- `GET /documents` com `type` obrigatório
+- `GET /documents/{documentId}` com `employeeId` opcional
+- `DELETE /documents/{documentId}` com `employeeId` opcional
 
 ### Messages
 
@@ -179,6 +180,7 @@ Padrão:
 
 - `GET /terms/status`
 - `POST /terms/accept-biometric`
+- `DELETE /terms/revoke-biometric`
 
 ### Legal
 

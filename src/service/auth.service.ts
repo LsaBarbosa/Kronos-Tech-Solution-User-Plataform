@@ -13,6 +13,7 @@ export interface LoginResponse {
 
 export interface FaceLoginPayload {
     faceImageBase64: string;
+    livenessPassed?: boolean;
 }
 
 /**

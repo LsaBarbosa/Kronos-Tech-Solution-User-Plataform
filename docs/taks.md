@@ -1,4 +1,4 @@
 # Backlog arquivado
 
-Este arquivo registrava a limpeza do contrato de relatórios e foi mantido apenas como referência histórica.
-O estado funcional atual do front está refletido em `docs/api-contract-map.md` e `docs/frontend-http-inventory.md`.
+Este arquivo foi consolidado após a implementação das sprints de aderência enterprise.
+A documentação ativa do front agora fica em `docs/api-contract-map.md`, `docs/frontend-http-inventory.md`, `docs/frontend-architecture.md`, `docs/permissions.md` e `README.md`.

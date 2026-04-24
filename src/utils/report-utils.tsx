@@ -1,7 +1,6 @@
 // src/utils/report-utils.ts
 
 import { z } from "zod";
-import { API_BASE_URL } from "@/config/api";
 import { format, parse, isValid } from "date-fns"; // Adicionado 'parse' e 'isValid'
 import { ptBR } from 'date-fns/locale'; //
 // --- Interfaces ---

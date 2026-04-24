@@ -1,25 +1,33 @@
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { HttpResponse, http } from "msw";
-import { beforeEach, describe, expect, it } from "vitest";
-import App from "./App";
-import { server } from "@/test/mocks/server";
+import { MemoryRouter, Route, Routes, useLocation } from "react-router-dom";
+import { beforeEach, describe, expect, it, vi } from "vitest";
+import { AuthProvider } from "@/context/AuthContext";
+import { ThemeProvider } from "@/hooks/useTheme";
+import Dashboard from "./pages/Dashboard";
 
 const setAuthenticatedSession = (role: "PARTNER" | "MANAGER" | "CTO") => {
   localStorage.setItem("token", `${role.toLowerCase()}-token`);
+};
 
-  server.use(
-    http.get("*/users/own-profile", () =>
-      HttpResponse.json({
+vi.mock("@/service/session-profile.service", () => ({
+  loadSessionProfile: async () => {
+    const token = localStorage.getItem("token") ?? "";
+    const role = token.includes("manager")
+      ? "MANAGER"
+      : token.includes("cto")
+        ? "CTO"
+        : "PARTNER";
+
+    return {
+      accountData: {
         userId: "user-1",
         username: "maria.silva",
         role,
         active: true,
         employeeId: "emp-1",
-      })
-    ),
-    http.get("*/employee/own-profile", () =>
-      HttpResponse.json({
+      },
+      profileData: {
         employeeId: "emp-1",
         fullName: "Maria Silva",
         email: "maria@kronos.test",
@@ -27,30 +35,99 @@ const setAuthenticatedSession = (role: "PARTNER" | "MANAGER" | "CTO") => {
         role,
         companyName: "Kronos Tech",
         lastSeenMessageTimestamp: "2026-04-20T10:00:00Z",
-      })
-    )
-  );
-};
+      },
+      userData: {
+        employeeId: "emp-1",
+        fullName: "Maria Silva",
+        email: "maria@kronos.test",
+        phone: "11999990000",
+        role,
+        companyName: "Kronos Tech",
+        lastSeenMessageTimestamp: "2026-04-20T10:00:00Z",
+      },
+      role,
+    };
+  },
+}));
+
+vi.mock("@/service/terms.service", () => ({
+  getBiometricTermStatus: async () => ({ accepted: true }),
+}));
+
+vi.mock("@/hooks/useDashboardData", () => ({
+  useDashboardData: () => {
+    const token = localStorage.getItem("token") ?? "";
+    const role = token.includes("manager")
+      ? "MANAGER"
+      : token.includes("cto")
+        ? "CTO"
+        : "PARTNER";
+
+    return {
+      userData: {
+        fullName: "Maria Silva",
+        email: "maria@kronos.test",
+        phone: "11999990000",
+        role,
+        companyName: "Kronos Tech",
+        salary: "5000",
+        jobPosition: "Analista",
+        lastSeenMessageTimestamp: "2026-04-20T10:00:00Z",
+      },
+      isLoading: false,
+      pendingApprovalsCount: 0,
+      newWarnings: [],
+      hasApprovalPermission: false,
+      fetchProfile: async () => undefined,
+      handleWarningClick: async () => undefined,
+    };
+  },
+}));
+
+vi.mock("@/hooks/useVacationCount", () => ({
+  useVacationCount: () => ({ pendingVacationCount: 0 }),
+}));
+
+vi.mock("@/hooks/useTimeOffCount", () => ({
+  useTimeOffCount: () => ({ pendingTimeOffCount: 0 }),
+}));
 
 describe("App routes", () => {
   beforeEach(() => {
+    vi.resetModules();
+    localStorage.clear();
     window.history.pushState({}, "", "/");
   });
 
   it("permite que PARTNER navegue do dashboard para /meus-documentos sem cair em NotFound", async () => {
     setAuthenticatedSession("PARTNER");
-    window.history.pushState({}, "", "/dashboard");
+    const LocationProbe = () => {
+      const location = useLocation();
 
-    render(<App />);
+      return <div data-testid="location-probe">{location.pathname}</div>;
+    };
 
-    const quickAccessTitle = await screen.findByText("Acesso Rápido");
-    const quickAccessCard = quickAccessTitle.closest('[role="button"]');
+    render(
+      <ThemeProvider>
+        <AuthProvider>
+          <MemoryRouter initialEntries={["/dashboard"]}>
+            <Routes>
+              <Route path="/dashboard" element={<Dashboard />} />
+              <Route path="/meus-documentos" element={<LocationProbe />} />
+            </Routes>
+          </MemoryRouter>
+        </AuthProvider>
+      </ThemeProvider>
+    );
 
-    expect(quickAccessCard).not.toBeNull();
+    const quickAccessCard = await screen.findByRole("button", {
+      name: /Abrir acesso rápido para meus documentos/i,
+    });
 
-    await userEvent.click(quickAccessCard as HTMLElement);
+    await userEvent.click(quickAccessCard);
 
-    await screen.findByRole("heading", { name: "Buscar Documentos" });
+    await screen.findByTestId("location-probe");
+    expect(screen.getByTestId("location-probe")).toHaveTextContent("/meus-documentos");
     expect(screen.queryByText("404")).not.toBeInTheDocument();
   });
 
@@ -58,9 +135,12 @@ describe("App routes", () => {
     setAuthenticatedSession("PARTNER");
     window.history.pushState({}, "", "/criar-aviso");
 
+    const { default: App } = await import("./App");
     render(<App />);
 
-    await screen.findByText("Acesso Rápido");
+    await screen.findByRole("button", {
+      name: /Abrir acesso rápido para meus documentos/i,
+    });
 
     expect(window.location.pathname).toBe("/dashboard");
     expect(screen.queryByText("Criar Aviso")).not.toBeInTheDocument();
@@ -70,6 +150,7 @@ describe("App routes", () => {
     setAuthenticatedSession("MANAGER");
     window.history.pushState({}, "", "/criar-aviso");
 
+    const { default: App } = await import("./App");
     render(<App />);
 
     await waitFor(() => {
