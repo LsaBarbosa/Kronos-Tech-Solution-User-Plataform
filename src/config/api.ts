@@ -2,7 +2,7 @@ import axios from "axios";
 import { normalizeServiceError } from "@/service/helpers/service-error.helper";
 import { getCurrentLocationHref, readStoredValue, redirectBrowserTo } from "@/lib/browser";
 
-export const API_BASE_URL = import.meta.env.VITE_API_URL;
+export const API_BASE_URL = "http://localhost:8080/";
 
 export const buildTermsRedirectUrl = (
   redirectBaseUrl: string,

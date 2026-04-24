@@ -1,29 +1,36 @@
 // src/types/recordApproval.ts
 
-export type StatusRecord =
-  | 'CREATED'
-  | 'PENDING'
-  | 'UPDATED'
-  | 'UPDATE_REJECTED'
-  | 'DAY_OFF'
-  | 'ABSENCE'
-  | 'PENDING_APPROVAL'
-  | 'TIME_OFF'
-  | 'WORK_TIME_REQUEST'
-  | 'WORK_TIME_REJECTED'
-  | 'IMPLICIT_BREAK'
-  | 'REQUEST_VACATION'
-  | 'VACATION'
-  | 'VACATION_REJECTED'
-  | 'TIME_OFF_REQUEST'
-  | 'TIME_OFF_REJECTED';
+export type RecordStatus =
+  | "CREATED"
+  | "PENDING"
+  | "UPDATED"
+  | "UPDATE_REJECTED"
+  | "DAY_OFF"
+  | "ABSENCE"
+  | "PENDING_APPROVAL"
+  | "TIME_OFF"
+  | "WORK_TIME_REQUEST"
+  | "WORK_TIME_REJECTED"
+  | "IMPLICIT_BREAK"
+  | "REQUEST_VACATION"
+  | "VACATION"
+  | "VACATION_REJECTED"
+  | "TIME_OFF_REQUEST"
+  | "TIME_OFF_REJECTED";
 
-export interface EmployeeData {
+export type StatusRecord = RecordStatus;
+
+export type RecordApprovalFilterStatus =
+  | "PENDING"
+  | "APPROVED"
+  | "REJECTED"
+  | "ALL";
+
+export interface RecordEmployeeData {
   employeeName: string;
   companyName: string;
 }
 
-// Interface para a resposta de um TimeRecord
 export interface TimeRecordResponse {
   timeRecordId: number;
   startWork: string;
@@ -32,15 +39,14 @@ export interface TimeRecordResponse {
   endHour: string;
   hoursWork: string;
   balance: string;
-  statusRecord: StatusRecord;
+  statusRecord: RecordStatus;
   edited: boolean;
   active: boolean;
   employeeId: string;
-  employeeData: EmployeeData;
+  employeeData: RecordEmployeeData;
   documentDownloadPath?: string;
 }
 
-// NOVO: Interface para a resposta paginada de TimeRecords
 export interface TimeRecordPageResponse {
   records: TimeRecordResponse[];
   totalPages: number;
@@ -50,7 +56,6 @@ export interface TimeRecordPageResponse {
   isLast: boolean;
 }
 
-// Interface para a requisição de alteração de ponto
 export interface TimeRecordApprovalResponse {
   timeRecordId: number;
   partnerName: string;
@@ -71,46 +76,26 @@ export interface TimeRecordApprovalPageResponse {
   isLast: boolean;
 }
 
-export interface ITimeRecordApprovalResponse {
-  timeRecordId: number;
-  partnerName: string;
-  managerUsername: string;
-  newStartWork: string;
-  newEndWork: string;
-  currentStartWork: string;
-  currentEndWork: string | null;
-}
-
-export interface ITimeRecordApprovalPageResponse {
-  approvals: ITimeRecordApprovalResponse[];
-  totalPages: number;
-  totalElements: number;
-  currentPage: number;
-  isFirst: boolean;
-  isLast: boolean;
-}
-
-export interface IPendingApprovalQueryParams {
+export interface PendingApprovalQueryParams {
   page: number;
   employeeName: string;
 }
 
-export interface IUpdateStatusRequest {
-  statusRecord: StatusRecord;
+export interface RecordStatusUpdateRequest {
+  statusRecord: RecordStatus;
 }
 
-export interface IRequestTimeOffData {
-    startDate: string;
-    endDate: string;
-    startHour: string;
-    endHour: string;
-    managerId: string;
+export interface TimeOffQueryParams {
+  page: number;
+  size: number;
+  employeeName?: string;
+  status: RecordApprovalFilterStatus;
 }
 
-export interface ITimeOffQueryParams {
-    page: number;
-    size: number;
-    employeeName?: string;
-    status: 'PENDING' | 'APPROVED' | 'REJECTED' | 'ALL';
-}
+export type EmployeeData = RecordEmployeeData;
+export type ITimeRecordApprovalResponse = TimeRecordApprovalResponse;
+export type ITimeRecordApprovalPageResponse = TimeRecordApprovalPageResponse;
+export type IPendingApprovalQueryParams = PendingApprovalQueryParams;
+export type IUpdateStatusRequest = RecordStatusUpdateRequest;
+export type ITimeOffQueryParams = TimeOffQueryParams;
 export type ITimeRecordPageResponse = TimeRecordPageResponse;

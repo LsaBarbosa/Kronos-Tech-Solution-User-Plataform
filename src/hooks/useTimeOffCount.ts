@@ -1,6 +1,6 @@
 import { useQuery } from "@tanstack/react-query";
 import * as RecordsService from "@/service/records.service";
-import { ITimeOffQueryParams, ITimeRecordPageResponse } from "@/types/recordApproval";
+import { TimeOffQueryParams, TimeRecordPageResponse } from "@/types/recordApproval";
 
 export interface UseTimeOffCountReturn {
   pendingTimeOffCount: number;
@@ -9,7 +9,7 @@ export interface UseTimeOffCountReturn {
 }
 
 const TIME_OFF_COUNT_QUERY_KEY = ["pendingTimeOffCount"];
-const EMPTY_TIME_OFF_PAGE: ITimeRecordPageResponse = {
+const EMPTY_TIME_OFF_PAGE: TimeRecordPageResponse = {
   records: [],
   totalPages: 0,
   totalElements: 0,
@@ -19,14 +19,14 @@ const EMPTY_TIME_OFF_PAGE: ITimeRecordPageResponse = {
 };
 
 export const useTimeOffCount = (): UseTimeOffCountReturn => {
-  const query = useQuery<ITimeRecordPageResponse, Error, number>({
+  const query = useQuery<TimeRecordPageResponse, Error, number>({
     queryKey: TIME_OFF_COUNT_QUERY_KEY,
     queryFn: () =>
       RecordsService.listTimeOffRequests({
         page: 0,
         size: 1,
         employeeName: "",
-        status: "PENDING" as ITimeOffQueryParams["status"],
+        status: "PENDING" as TimeOffQueryParams["status"],
       }),
     select: (data) => data.totalElements ?? 0,
     placeholderData: EMPTY_TIME_OFF_PAGE,

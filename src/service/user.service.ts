@@ -7,7 +7,8 @@ import {
   UserData,
   ChangePasswordData,
   cleanNumberString,
-  type UserSearchData,
+  type UserSearchListItem,
+  type UserSearchListResponse,
 } from "@/types/user";
 import { extractArray, extractObject } from "@/service/helpers/response-normalizer.helper";
 
@@ -69,10 +70,10 @@ export const changePassword = async (data: ChangePasswordData): Promise<void> =>
  * @param active - Opcional. true para ativos, false para inativos, null para todos.
  * @returns Lista resumida de dados do usuário usada no fluxo administrativo.
  */
-export const listUsers = async (active: boolean | null): Promise<UserSearchData[]> => {
-  const response = await api.get<{ users: UserSearchData[] }>(buildRoute(API_ROUTES.USERS, "search"), {
+export const listUsers = async (active: boolean | null): Promise<UserSearchListItem[]> => {
+  const response = await api.get<UserSearchListResponse>(buildRoute(API_ROUTES.USERS, "search"), {
     params: active !== null ? { active } : undefined,
   });
   
-  return extractArray<UserSearchData>(response.data, ["users"]); 
+  return extractArray<UserSearchListItem>(response.data, ["users"]); 
 };

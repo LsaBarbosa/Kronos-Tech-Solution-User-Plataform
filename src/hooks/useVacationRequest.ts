@@ -5,7 +5,7 @@ import { toast } from '@/hooks/use-toast';
 import { useState } from 'react';
 import { format } from 'date-fns';
 import * as z from 'zod';
-import { IRequestVacationRequest, IManagerOption } from '@/types/vacation';
+import { VacationRequestPayload } from '@/types/vacation';
 import { requestVacation, fetchManagerOptions } from '@/service/records.service';
 import { getServiceErrorMessage } from '@/service/helpers/service-error.helper';
 
@@ -41,7 +41,7 @@ export const useVacationRequest = () => {
 
     // --- Mutação (API POST) ---
     const { mutate, isPending } = useMutation({
-        mutationFn: (data: IRequestVacationRequest) => requestVacation(data),
+        mutationFn: (data: VacationRequestPayload) => requestVacation(data),
         onSuccess: (createdIds) => {
             toast.success(`Solicitação de férias enviada com sucesso! ${createdIds.length} dias registrados para aprovação.`);
             // Limpar formulário
@@ -62,7 +62,7 @@ export const useVacationRequest = () => {
             const validatedData = VacationSchema.parse(rawData);
 
             // 2. Formatação das Datas para o padrão do Backend ('dd-MM-yyyy')
-            const formattedRequest: IRequestVacationRequest = {
+            const formattedRequest: VacationRequestPayload = {
                 startDate: format(validatedData.startDate, 'dd-MM-yyyy'),
                 endDate: format(validatedData.endDate, 'dd-MM-yyyy'),
                 managerId: validatedData.managerId,

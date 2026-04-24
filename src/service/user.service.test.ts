@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import { server } from "@/test/mocks/server";
 import {
   changePassword,
+  listUsers,
   updateEmail,
   updatePhone,
 } from "./user.service";
@@ -62,5 +63,34 @@ describe("user.service", () => {
         confirmPassword: "nova",
       })
     ).resolves.toBeUndefined();
+  });
+
+  it("lista usuarios com o contrato resumido de /users/search", async () => {
+    server.use(
+      http.get("*/users/search", ({ request }) => {
+        const url = new URL(request.url);
+        expect(url.searchParams.get("active")).toBe("true");
+
+        return HttpResponse.json({
+          users: [
+            {
+              userId: "user-1",
+              username: "maria.silva",
+              role: "PARTNER",
+              active: true,
+            },
+          ],
+        });
+      })
+    );
+
+    await expect(listUsers(true)).resolves.toEqual([
+      {
+        userId: "user-1",
+        username: "maria.silva",
+        role: "PARTNER",
+        active: true,
+      },
+    ]);
   });
 });

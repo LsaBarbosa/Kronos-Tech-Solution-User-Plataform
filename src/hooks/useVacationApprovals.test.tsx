@@ -44,21 +44,28 @@ const createWrapper = () => {
 describe("useVacationApprovals", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    mockFetchVacationRequests.mockResolvedValue([
-      {
-        employeeId: "emp-1",
-        employeeName: "Maria",
-        startDate: "10-04-2026",
-        endDate: "12-04-2026",
-        status: "PENDING",
-        timeRecordIdsForApproval: [11, 12],
-      },
-    ] as any);
+    mockFetchVacationRequests.mockResolvedValue({
+      requests: [
+        {
+          employeeId: "emp-1",
+          employeeName: "Maria",
+          startDate: "10-04-2026",
+          endDate: "12-04-2026",
+          status: "REQUEST_VACATION",
+          timeRecordIdsForApproval: [11, 12],
+        },
+      ],
+      totalPages: 1,
+      totalElements: 1,
+      currentPage: 0,
+      isFirst: true,
+      isLast: true,
+    });
   });
 
   it("carrega solicitacoes de férias", async () => {
     const { result } = renderHook(
-      () => useVacationApprovals({ page: 0, size: 10, status: "PENDING" } as any),
+      () => useVacationApprovals({ page: 0, size: 10, status: "PENDING" }),
       { wrapper: createWrapper() }
     );
 
@@ -72,7 +79,7 @@ describe("useVacationApprovals", () => {
     mockRejectVacationRequest.mockResolvedValue(undefined);
 
     const { result } = renderHook(
-      () => useVacationApprovals({ page: 0, size: 10, status: "PENDING" } as any),
+      () => useVacationApprovals({ page: 0, size: 10, status: "PENDING" }),
       { wrapper: createWrapper() }
     );
 
@@ -96,7 +103,7 @@ describe("useVacationApprovals", () => {
     mockApproveVacationRequest.mockRejectedValue(new Error("Falha de rede"));
 
     const { result } = renderHook(
-      () => useVacationApprovals({ page: 0, size: 10, status: "PENDING" } as any),
+      () => useVacationApprovals({ page: 0, size: 10, status: "PENDING" }),
       { wrapper: createWrapper() }
     );
 

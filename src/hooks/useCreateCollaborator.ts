@@ -290,7 +290,7 @@ export const useCreateCollaborator = () => {
       setStepCompleted(true);
       toast({
         title: "Colaborador criado!",
-        description: `O registro de ${data.nomeCompleto} foi salvo. Prossiga para as credenciais de usuário.`,
+        description: `O registro de ${data.nomeCompleto} foi salvo. Prossiga para vincular o acesso do usuário.`,
       });
     } catch (error) {
       console.error("Erro no Passo 1 (Colaborador):", error);
@@ -348,7 +348,7 @@ export const useCreateCollaborator = () => {
       await createUser(userPayload);
       toast({
         title: "Cadastro Concluído!",
-        description: `O colaborador e usuário (${data.username}) foram criados com sucesso!`,
+        description: `O colaborador e o vínculo de acesso (${data.username}) foram criados com sucesso.`,
       });
       form.reset();
       setSavedEmployeeId(null);

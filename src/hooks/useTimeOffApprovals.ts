@@ -1,20 +1,20 @@
 import { useCallback, useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import * as RecordsService from "@/service/records.service";
-import { ITimeOffQueryParams, ITimeRecordPageResponse } from "@/types/recordApproval";
+import { TimeOffQueryParams, TimeRecordPageResponse } from "@/types/recordApproval";
 import { useToast } from "@/hooks/use-toast";
 import { getServiceErrorMessage } from "@/service/helpers/service-error.helper";
 
 export interface UseTimeOffApprovalsReturn {
-  approvalsData: ITimeRecordPageResponse | null;
+  approvalsData: TimeRecordPageResponse | null;
   isLoading: boolean;
   isMutating: boolean;
   currentPage: number;
   setCurrentPage: (page: number) => void;
   employeeNameFilter: string;
   setEmployeeNameFilter: (name: string) => void;
-  statusFilter: ITimeOffQueryParams["status"];
-  setStatusFilter: (status: ITimeOffQueryParams["status"]) => void;
+  statusFilter: TimeOffQueryParams["status"];
+  setStatusFilter: (status: TimeOffQueryParams["status"]) => void;
   handleSearch: () => void;
   handleAction: (timeRecordId: number, action: "approve" | "reject") => Promise<void>;
   refetch: () => void;
@@ -23,7 +23,7 @@ export interface UseTimeOffApprovalsReturn {
 }
 
 const ROWS_PER_PAGE = 5;
-const INITIAL_STATUS_FILTER: ITimeOffQueryParams["status"] = "PENDING";
+const INITIAL_STATUS_FILTER: TimeOffQueryParams["status"] = "PENDING";
 
 export const useTimeOffApprovals = (): UseTimeOffApprovalsReturn => {
   const { toast } = useToast();
@@ -31,7 +31,7 @@ export const useTimeOffApprovals = (): UseTimeOffApprovalsReturn => {
   const [currentPage, setCurrentPage] = useState(0);
   const [employeeNameFilter, setEmployeeNameFilter] = useState("");
   const [searchQuery, setSearchQuery] = useState("");
-  const [statusFilter, setStatusFilter] = useState<ITimeOffQueryParams["status"]>(INITIAL_STATUS_FILTER);
+  const [statusFilter, setStatusFilter] = useState<TimeOffQueryParams["status"]>(INITIAL_STATUS_FILTER);
   const [sidebarOpen, setSidebarOpen] = useState(false);
 
   const handleToggleSidebar = useCallback(() => setSidebarOpen((prev) => !prev), []);

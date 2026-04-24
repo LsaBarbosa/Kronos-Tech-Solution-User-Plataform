@@ -4,7 +4,7 @@ import React, { useCallback, useState, useMemo } from "react";
 import Sidebar from "@/components/Sidebar";
 import Header from "@/components/Header";
 import { useVacationApprovals } from "../hooks/useVacationApprovals";
-import { IVacationQueryParams, IVacationRequestResponse } from "@/types/vacation";
+import { VacationQueryParams, VacationRequestResponse } from "@/types/vacation";
 import {
     Card, CardContent, CardHeader, CardTitle,
 } from "../components/ui/card";
@@ -19,6 +19,7 @@ import { cn } from "../lib/utils";
 import { format, parse, isValid } from "date-fns";
 import { ptBR } from 'date-fns/locale';
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
+import { PaginationComponent } from "@/components/ui/PaginationComponent";
 
 
 // --- Função Auxiliar de Responsividade (Padrão) ---
@@ -34,7 +35,7 @@ const useIsDesktop = () => {
 
 
 // --- Componente de Item Consolidado (Tabela/Card) ---
-const VacationItem: React.FC<IVacationRequestResponse & {
+const VacationItem: React.FC<VacationRequestResponse & {
     onApprove: (ids: number[]) => void;
     onReject: (ids: number[]) => void;
     isMutating: boolean;
@@ -227,8 +228,8 @@ export const VacationApprovals = () => {
     const [currentPage, setCurrentPage] = useState(0);
     const [filterName, setFilterName] = useState(""); 
     const [searchName, setSearchName] = useState(""); 
-    const [filterStatus, setFilterStatus] = useState<IVacationQueryParams["status"]>("PENDING"); 
-    const [searchStatus, setSearchStatus] = useState<IVacationQueryParams["status"]>("PENDING"); 
+    const [filterStatus, setFilterStatus] = useState<VacationQueryParams["status"]>("PENDING"); 
+    const [searchStatus, setSearchStatus] = useState<VacationQueryParams["status"]>("PENDING"); 
     const size = 10;
     
     const isDesktop = useIsDesktop();
@@ -236,7 +237,7 @@ export const VacationApprovals = () => {
     const handleToggleSidebar = useCallback(() => setSidebarOpen((prev) => !prev), []);
 
 
-    const { requests, isLoading, isMutating, approve, reject } = useVacationApprovals({
+    const { requests, totalPages, totalElements, isLoading, isMutating, approve, reject } = useVacationApprovals({
         page: currentPage,
         size: size,
         employeeName: searchName,
@@ -290,7 +291,7 @@ export const VacationApprovals = () => {
                     </div>
 
                     {/* Filtro por Status */}
-                    <Select value={filterStatus} onValueChange={(value) => setFilterStatus(value as IVacationQueryParams["status"])} disabled={isMutating}>
+                    <Select value={filterStatus} onValueChange={(value) => setFilterStatus(value as VacationQueryParams["status"])} disabled={isMutating}>
                         <SelectTrigger className="w-[200px] md:w-[250px]">
                             <SelectValue placeholder="Filtrar por Status" />
                         </SelectTrigger>
@@ -381,6 +382,16 @@ export const VacationApprovals = () => {
                             isMutating={isMutating}
                             />
                         ))}
+                    </div>
+                )}
+                {totalPages > 1 && (
+                    <div className="mt-6">
+                        <PaginationComponent
+                            currentPage={currentPage}
+                            totalPages={totalPages}
+                            onPageChange={setCurrentPage}
+                            totalElements={totalElements}
+                        />
                     </div>
                 )}
                 </>

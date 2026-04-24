@@ -18,12 +18,18 @@ export type UserAccountData = UserOwnProfileData;
  * Interface para o retorno resumido de /users/search.
  * O backend não garante employeeId nesse endpoint.
  */
-export interface UserSearchData {
+export interface UserSearchListItem {
   userId: string;
   username: string;
   role: "PARTNER" | "MANAGER";
   active: boolean;
 }
+
+export interface UserSearchListResponse {
+  users: UserSearchListItem[];
+}
+
+export type UserSearchData = UserSearchListItem;
 
 export interface SessionUserData {
   accountData: UserOwnProfileData;

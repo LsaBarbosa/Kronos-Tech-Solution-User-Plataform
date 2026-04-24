@@ -42,7 +42,6 @@ export interface UserCreationPayload {
 
 export interface UserUpdatePayload {
   username?: string;
-  password?: string;
   role?: "MANAGER" | "PARTNER";
   enabled?: boolean;
 }

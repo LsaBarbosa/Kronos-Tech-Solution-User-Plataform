@@ -125,4 +125,34 @@ describe("useCollaboratorList", () => {
     await waitFor(() => expect(mockFetchEmployeeList).toHaveBeenCalledTimes(2));
     await waitFor(() => expect(mockListUsers).toHaveBeenCalledTimes(2));
   });
+
+  it("vincula colaborador ao usuario apenas pelo username retornado em /users/search", async () => {
+    mockFetchEmployeeList.mockResolvedValue([
+      {
+        ...employee,
+        username: "Base.User ",
+      },
+    ] as never);
+
+    mockListUsers.mockResolvedValue([
+      {
+        userId: "user-99",
+        username: " base.user",
+        role: "MANAGER",
+        active: false,
+      },
+    ] as never);
+
+    const { result } = renderHook(() => useCollaboratorList());
+
+    await waitFor(() => expect(result.current.colaboradores).toHaveLength(1));
+
+    expect(result.current.colaboradores[0]).toMatchObject({
+      employeeId: "emp-1",
+      userId: "user-99",
+      username: " base.user",
+      role: "MANAGER",
+      enabled: false,
+    });
+  });
 });

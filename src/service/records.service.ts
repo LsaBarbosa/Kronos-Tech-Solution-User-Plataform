@@ -3,22 +3,22 @@ import { API_ROUTES, buildRoute } from "@/config/api-routes";
 import { extractArray, extractObject } from "@/service/helpers/response-normalizer.helper";
 import { DetailedReportItem, Employee } from "@/utils/report-utils";
 import {
-  IRequestTimeOffData,
-  ITimeOffQueryParams,
-  ITimeRecordApprovalPageResponse,
-  ITimeRecordPageResponse,
-  IPendingApprovalQueryParams,
+  PendingApprovalQueryParams,
+  TimeOffQueryParams,
+  TimeRecordApprovalPageResponse,
+  TimeRecordPageResponse,
 } from "@/types/recordApproval";
 import {
-  IManagerOption,
-  IRequestVacationRequest,
+  EMPTY_VACATION_REQUEST_PAGE,
+  ManagerOption,
+  VacationRequestPayload,
   RequestTimeOffRequestPayload,
-  IVacationApprovalRequest,
-  IVacationQueryParams,
-  IVacationRequestPageResponse,
-  IVacationRequestResponse,
+  VacationApprovalRequest,
+  VacationQueryParams,
+  VacationRequestPageResponse,
+  VacationRequestResponse,
 } from "@/types/vacation";
-import { UserSearchData } from "@/types/user";
+import { UserSearchListItem, UserSearchListResponse } from "@/types/user";
 
 const RECORDS_BASE_URL = `/${API_ROUTES.RECORDS}`;
 
@@ -42,10 +42,30 @@ export interface TimeRecordUpdatePayload {
   managerId: string;
 }
 
+const extractVacationRequestPage = (
+  payload: unknown
+): VacationRequestPageResponse => {
+  const pageData = extractObject<Partial<VacationRequestPageResponse>>(payload);
+  const requests = extractArray<VacationRequestResponse>(payload, [
+    "requests",
+    "vacationRequests",
+    "content",
+  ]);
+
+  return {
+    requests,
+    totalPages: pageData.totalPages ?? (requests.length > 0 ? 1 : 0),
+    totalElements: pageData.totalElements ?? requests.length,
+    currentPage: pageData.currentPage ?? 0,
+    isFirst: pageData.isFirst ?? true,
+    isLast: pageData.isLast ?? true,
+  };
+};
+
 export const fetchPendingApprovals = async (
-  params: IPendingApprovalQueryParams
-): Promise<ITimeRecordApprovalPageResponse> => {
-  const response = await api.get<ITimeRecordApprovalPageResponse>(
+  params: PendingApprovalQueryParams
+): Promise<TimeRecordApprovalPageResponse> => {
+  const response = await api.get<TimeRecordApprovalPageResponse>(
     `${RECORDS_BASE_URL}/pending-approvals`,
     {
       params: {
@@ -55,7 +75,7 @@ export const fetchPendingApprovals = async (
     }
   );
 
-  return extractObject<ITimeRecordApprovalPageResponse>(response.data) as ITimeRecordApprovalPageResponse;
+  return extractObject<TimeRecordApprovalPageResponse>(response.data) as TimeRecordApprovalPageResponse;
 };
 
 export const fetchDetailedReport = async (
@@ -123,9 +143,9 @@ export const requestTimeOff = async (
 };
 
 export const listTimeOffRequests = async (
-  params: ITimeOffQueryParams
-): Promise<ITimeRecordPageResponse> => {
-  const response = await api.get<ITimeRecordPageResponse>(`${RECORDS_BASE_URL}/time-off/requests`, {
+  params: TimeOffQueryParams
+): Promise<TimeRecordPageResponse> => {
+  const response = await api.get<TimeRecordPageResponse>(`${RECORDS_BASE_URL}/time-off/requests`, {
     params: {
       page: params.page,
       size: params.size,
@@ -134,7 +154,7 @@ export const listTimeOffRequests = async (
     },
   });
 
-  return extractObject<ITimeRecordPageResponse>(response.data) as ITimeRecordPageResponse;
+  return extractObject<TimeRecordPageResponse>(response.data) as TimeRecordPageResponse;
 };
 
 export const approveTimeOff = async (timeRecordId: number): Promise<void> => {
@@ -145,15 +165,15 @@ export const rejectTimeOff = async (timeRecordId: number): Promise<void> => {
   await api.patch(`${RECORDS_BASE_URL}/time-off/reject/${timeRecordId}`);
 };
 
-export const requestVacation = async (data: IRequestVacationRequest): Promise<number[]> => {
+export const requestVacation = async (data: VacationRequestPayload): Promise<number[]> => {
   const response = await api.post<number[]>(`${RECORDS_BASE_URL}/vacation-request`, data);
   return extractArray<number>(response.data);
 };
 
 export const fetchVacationRequests = async (
-  params: IVacationQueryParams
-): Promise<IVacationRequestResponse[]> => {
-  const response = await api.get<IVacationRequestResponse[]>(`${RECORDS_BASE_URL}/vacation-request`, {
+  params: VacationQueryParams
+): Promise<VacationRequestPageResponse> => {
+  const response = await api.get<unknown>(`${RECORDS_BASE_URL}/vacation-request`, {
     params: {
       page: params.page,
       size: params.size,
@@ -162,34 +182,34 @@ export const fetchVacationRequests = async (
     },
   });
 
-  return extractArray<IVacationRequestResponse>(response.data, ["requests", "vacationRequests", "content"]);
+  return extractVacationRequestPage(response.data);
 };
 
 export const approveVacationRequest = async (timeRecordIds: number[]): Promise<void> => {
-  const body: IVacationApprovalRequest = { timeRecordIds };
+  const body: VacationApprovalRequest = { timeRecordIds };
   await api.patch(`${RECORDS_BASE_URL}/vacation-request/approve`, body);
 };
 
 export const rejectVacationRequest = async (timeRecordIds: number[]): Promise<void> => {
-  const body: IVacationApprovalRequest = { timeRecordIds };
+  const body: VacationApprovalRequest = { timeRecordIds };
   await api.patch(`${RECORDS_BASE_URL}/vacation-request/reject`, body);
 };
 
-export const fetchManagerOptions = async (): Promise<IManagerOption[]> => {
-  const response = await api.get<{ users?: UserSearchData[] }>(buildRoute(API_ROUTES.USERS, "search"), {
+export const fetchManagerOptions = async (): Promise<ManagerOption[]> => {
+  const response = await api.get<UserSearchListResponse>(buildRoute(API_ROUTES.USERS, "search"), {
     params: { active: true },
   });
 
-  return extractArray<UserSearchData>(response.data, ["users"])
+  return extractArray<UserSearchListItem>(response.data, ["users"])
     .filter((user) => user.role === "MANAGER")
-    .map((user): IManagerOption => ({
+    .map((user): ManagerOption => ({
       userId: user.userId,
       username: user.username,
     }));
 };
 
 export const fetchPendingVacationCount = async (): Promise<number> => {
-  const response = await api.get<IVacationRequestPageResponse>(`${RECORDS_BASE_URL}/vacation-request`, {
+  const response = await api.get<unknown>(`${RECORDS_BASE_URL}/vacation-request`, {
     params: {
       page: 0,
       size: 1,
@@ -197,8 +217,8 @@ export const fetchPendingVacationCount = async (): Promise<number> => {
     },
   });
 
-  const pageData = extractObject<IVacationRequestPageResponse>(response.data) as IVacationRequestPageResponse;
-  return pageData.totalElements ?? extractArray(response.data).length;
+  const pageData = extractVacationRequestPage(response.data);
+  return pageData.totalElements ?? EMPTY_VACATION_REQUEST_PAGE.totalElements;
 };
 
 export const fetchReportEmployees = async (active = true): Promise<Employee[]> => {

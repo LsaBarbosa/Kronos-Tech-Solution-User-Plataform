@@ -8,7 +8,7 @@ import {
 } from "@/service/collaborator-management.service";
 import { listUsers } from "@/service/user.service";
 import type { EmployeeData } from "@/types/employee";
-import type { UserSearchData } from "@/types/user";
+import type { UserSearchListItem } from "@/types/user";
 
 interface Address {
   street: string;
@@ -18,7 +18,7 @@ interface Address {
   state: string;
 }
 
-type CollaboratorRole = UserSearchData["role"];
+type CollaboratorRole = UserSearchListItem["role"];
 
 interface CombinedColaborator extends EmployeeData {
   userId: string;
@@ -61,6 +61,8 @@ type EditableFieldValue = string | boolean | string[];
 const getSanitizedValue = (value: string | number | null | undefined) =>
   value === null || value === undefined ? "" : String(value);
 
+const normalizeUsername = (username: string) => username.trim().toLowerCase();
+
 export const useCollaboratorList = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [colaboradores, setColaboradores] = useState<CombinedColaborator[]>([]);
@@ -88,14 +90,14 @@ export const useCollaboratorList = () => {
         listUsers(isActive),
       ]);
 
-      const usersByUsername = new Map<string, UserSearchData>();
+      const usersByUsername = new Map<string, UserSearchListItem>();
       users.forEach((user) => {
-        usersByUsername.set(user.username.trim().toLowerCase(), user);
+        usersByUsername.set(normalizeUsername(user.username), user);
       });
 
       const combinedData: CombinedColaborator[] = employees.map((employee) => {
         const user = employee.username
-          ? usersByUsername.get(employee.username.trim().toLowerCase())
+          ? usersByUsername.get(normalizeUsername(employee.username))
           : undefined;
 
         if (user) {

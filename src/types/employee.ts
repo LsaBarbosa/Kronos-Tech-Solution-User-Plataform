@@ -54,53 +54,52 @@ export interface EmployeeData {
  * 💡 CORREÇÃO 1: O tipo de 'homeOffice' deve ser BOOLEAN aqui, pois é o que a API espera.
  */
 export interface EmployeeCreationPayload {
-    name: string;
+    fullName: string;
     cpf: string;
     email: string;
-    phoneNumber: string;
+    phone: string;
     salary: number;
-    jobTitle: string;
-    pis: string;
-    companyId: string;
-    role: 'PARTNER' | 'MANAGER'; // O ADMIN/CTO não é criado por aqui
-    username: string;
-    password: string;
-    confirmPassword: string; // Incluído no form, mas removido no payload final
-    homeOffice: boolean; // 💡 Corrigido para boolean
+    jobPosition: string;
+    homeOffice: boolean;
+    address: {
+        postalCode: string;
+        number: string;
+    };
+    workStartTime: string;
+    workEndTime: string;
+    breakStartTime: string;
+    breakEndTime: string;
+    scheduleType: string;
+    scaleStartDate: string | null;
+    preferredDayOff: string | null;
+    weekendOffIndex: number | null;
+    fixedWorkDays: string[];
 }
 
 // --- ESQUEMAS DE VALIDAÇÃO (CENTRALIZADOS) ---
 
 // Esquema para validação rigorosa dos campos de Colaborador/Manager
 export const employeeSchema = z.object({
-    name: z.string().min(2, "Nome deve ter pelo menos 2 caracteres"),
+    fullName: z.string().min(2, "Nome deve ter pelo menos 2 caracteres"),
     cpf: z.string().length(11, "CPF deve ter 11 dígitos (apenas números)"), 
     email: z.string().email("E-mail inválido"),
-    phoneNumber: z.string().min(10, "Telefone inválido"),
+    phone: z.string().min(10, "Telefone inválido"),
     salary: z.coerce.number().min(0, "Salário deve ser maior ou igual a zero"),
-    jobTitle: z.string().min(2, "Cargo é obrigatório"),
-   pis: z.string()
-        .transform((val) => val.replace(/\D/g, '')) // Remove formatação antes de validar
-        .refine((val) => val === '' || val.length === 11, {
-            message: "PIS deve ter 11 dígitos ou ficar vazio"
-        })
-        .optional(),
-    
-    // Selects exigem string, convertemos depois
-    companyId: z.string().min(1, "Empresa é obrigatória"),
-    // O valor do campo no formulário DEVE ser string ('true'/'false') para o Select
-    homeOffice: z.string(), 
+    jobPosition: z.string().min(2, "Cargo é obrigatório"),
+    homeOffice: z.boolean(),
+    address: z.object({
+        postalCode: z.string().length(8, "CEP deve ter 8 dígitos"),
+        number: z.string().min(1, "Número é obrigatório"),
+    }),
     workStartTime: z.string().regex(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/, "Hora inválida"),
     workEndTime: z.string().regex(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/, "Hora inválida"),
     breakStartTime: z.string().regex(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/, "Hora inválida"),
     breakEndTime: z.string().regex(/^([0-1]?[0-9]|2[0-3]):[0-5][0-9]$/, "Hora inválida"),
-    // Campos para o Passo 2: Acesso
-    username: z.string().min(5, "Username deve ter pelo menos 5 caracteres"),
-    password: z.string().min(6, "Senha deve ter pelo menos 6 caracteres"),
-    confirmPassword: z.string().min(6, "Confirmação de Senha é obrigatória"),
-}).refine(data => data.password === data.confirmPassword, {
-    message: "As senhas não coincidem.",
-    path: ["confirmPassword"],
+    scheduleType: z.string().min(1, "Tipo de escala é obrigatório"),
+    scaleStartDate: z.string().nullable(),
+    preferredDayOff: z.string().nullable(),
+    weekendOffIndex: z.number().nullable(),
+    fixedWorkDays: z.array(z.string()),
 });
 
 export type EmployeeFormType = z.infer<typeof employeeSchema>;

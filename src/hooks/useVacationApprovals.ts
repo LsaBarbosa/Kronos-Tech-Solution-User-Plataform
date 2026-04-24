@@ -1,32 +1,24 @@
 // ARQUIVO: src/hooks/useVacationApprovals.ts
 
 import { useQuery, useMutation, useQueryClient } from "@tanstack/react-query";
-import { IVacationQueryParams, IVacationRequestResponse } from "@/types/vacation";
+import {
+  EMPTY_VACATION_REQUEST_PAGE,
+  VacationQueryParams,
+  VacationRequestPageResponse,
+} from "@/types/vacation";
 import { toast } from "@/hooks/use-toast";
 import { fetchVacationRequests, approveVacationRequest, rejectVacationRequest } from "@/service/records.service";
 import { getServiceErrorMessage } from "@/service/helpers/service-error.helper";
 
-// Validador defensivo: garante que o resultado é sempre um array
-const ensureArray = (data: unknown): IVacationRequestResponse[] => {
-    return Array.isArray(data) ? data : [];
-};
-
-export const useVacationApprovals = (params: IVacationQueryParams) => {
+export const useVacationApprovals = (params: VacationQueryParams) => {
     const queryClient = useQueryClient();
 
-    // 1. Fetch de Dados
     const { data, isLoading } = useQuery({
         queryKey: ['vacationRequests', params],
         queryFn: () => fetchVacationRequests(params),
-        
-        // CORREÇÃO: Garante que 'data' é sempre um array vazio no início
-        placeholderData: [],
-        
-        // CORREÇÃO: Força o valor final a ser um array, tratando falhas de forma segura
-        select: ensureArray 
+        placeholderData: EMPTY_VACATION_REQUEST_PAGE,
     });
 
-    // 2. Mutações (Aprovação)
     const { mutate: approveMutate, isPending: isApproving } = useMutation({
         mutationFn: (ids: number[]) => approveVacationRequest(ids),
         onSuccess: () => {
@@ -38,7 +30,6 @@ export const useVacationApprovals = (params: IVacationQueryParams) => {
         },
     });
 
-    // 3. Mutações (Rejeição)
     const { mutate: rejectMutate, isPending: isRejecting } = useMutation({
         mutationFn: (ids: number[]) => rejectVacationRequest(ids),
         onSuccess: () => {
@@ -52,9 +43,14 @@ export const useVacationApprovals = (params: IVacationQueryParams) => {
 
     const approve = (ids: number[]) => approveMutate(ids);
     const reject = (ids: number[]) => rejectMutate(ids);
+    const pageData: VacationRequestPageResponse = data ?? EMPTY_VACATION_REQUEST_PAGE;
 
     return {
-        requests: data, // data agora é garantido como array
+        requests: pageData.requests,
+        pageData,
+        totalPages: pageData.totalPages,
+        totalElements: pageData.totalElements,
+        currentPage: pageData.currentPage,
         isLoading,
         isMutating: isApproving || isRejecting,
         approve,

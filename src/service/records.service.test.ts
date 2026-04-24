@@ -312,16 +312,23 @@ describe("records.service", () => {
     server.use(
       http.post("*/records/vacation-request", () => HttpResponse.json([11, 12])),
       http.get("*/records/vacation-request", () =>
-        HttpResponse.json([
-          {
-            employeeId: "emp-1",
-            employeeName: "Maria",
-            startDate: "10-04-2026",
-            endDate: "12-04-2026",
-            status: "PENDING",
-            timeRecordIdsForApproval: [11, 12],
-          },
-        ])
+        HttpResponse.json({
+          requests: [
+            {
+              employeeId: "emp-1",
+              employeeName: "Maria",
+              startDate: "10-04-2026",
+              endDate: "12-04-2026",
+              status: "REQUEST_VACATION",
+              timeRecordIdsForApproval: [11, 12],
+            },
+          ],
+          totalPages: 1,
+          totalElements: 1,
+          currentPage: 0,
+          isFirst: true,
+          isLast: true,
+        })
       )
     );
 
@@ -335,16 +342,23 @@ describe("records.service", () => {
 
     await expect(
       fetchVacationRequests({ page: 0, size: 5, status: "PENDING" })
-    ).resolves.toEqual([
-      {
-        employeeId: "emp-1",
-        employeeName: "Maria",
-        startDate: "10-04-2026",
-        endDate: "12-04-2026",
-        status: "PENDING",
-        timeRecordIdsForApproval: [11, 12],
-      },
-    ]);
+    ).resolves.toEqual({
+      requests: [
+        {
+          employeeId: "emp-1",
+          employeeName: "Maria",
+          startDate: "10-04-2026",
+          endDate: "12-04-2026",
+          status: "REQUEST_VACATION",
+          timeRecordIdsForApproval: [11, 12],
+        },
+      ],
+      totalPages: 1,
+      totalElements: 1,
+      currentPage: 0,
+      isFirst: true,
+      isLast: true,
+    });
   });
 
   it("aprova e rejeita férias", async () => {
@@ -385,7 +399,7 @@ describe("records.service", () => {
             employeeName: "Maria",
             startDate: "10-04-2026",
             endDate: "12-04-2026",
-            status: "PENDING",
+            status: "REQUEST_VACATION",
             timeRecordIdsForApproval: [11, 12],
           },
           {
@@ -393,7 +407,7 @@ describe("records.service", () => {
             employeeName: "Joao",
             startDate: "14-04-2026",
             endDate: "16-04-2026",
-            status: "PENDING",
+            status: "REQUEST_VACATION",
             timeRecordIdsForApproval: [13, 14],
           },
         ])
