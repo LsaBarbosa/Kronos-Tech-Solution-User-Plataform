@@ -153,11 +153,8 @@ describe("Documentos", () => {
 
     expect(screen.getByRole("button", { name: /Buscar Documentos/i })).toBeDisabled();
 
-    await waitFor(() => {
-      expect(screen.getByRole("button", { name: /Buscar Documentos/i })).toBeEnabled();
-    });
-
     await user.selectOptions(screen.getByRole("combobox"), "PAYSLIP");
+    expect(screen.getByRole("button", { name: /Buscar Documentos/i })).toBeEnabled();
 
     await user.click(screen.getByRole("button", { name: /Buscar Documentos/i }));
 
@@ -182,15 +179,15 @@ describe("Documentos", () => {
       </MemoryRouter>
     );
 
-    await waitFor(() => {
-      expect(screen.getByRole("button", { name: /Buscar Documentos/i })).toBeEnabled();
-    });
-
     await user.selectOptions(screen.getByRole("combobox"), "PAYSLIP");
+    expect(screen.getByRole("button", { name: /Buscar Documentos/i })).toBeEnabled();
     await user.click(screen.getByRole("button", { name: /Buscar Documentos/i }));
 
     await waitFor(() => {
-      expect(mockToast.error).toHaveBeenCalledWith("Erro ao buscar documentos. Tente novamente.");
+      expect(mockToast.error).toHaveBeenCalledWith("Erro", {
+        description: "Erro ao buscar documentos. Tente novamente.",
+        variant: "destructive",
+      });
     });
   });
 });

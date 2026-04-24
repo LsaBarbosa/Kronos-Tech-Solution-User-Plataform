@@ -125,8 +125,8 @@ export const useUpdateCompanyForm = (): UseUpdateCompanyFormReturn => {
                     postalCode: data.address.postalCode, 
                     number: data.address.number,
                 },
-                latitude: data.location?.latitude, 
-                longitude: data.location?.longitude,
+                latitude: data.location?.latitude ?? null, 
+                longitude: data.location?.longitude ?? null,
             });
 
             toast({ title: "Dados carregados", description: `Detalhes de ${data.name} preenchidos no formulário.` });
@@ -153,8 +153,8 @@ export const useUpdateCompanyForm = (): UseUpdateCompanyFormReturn => {
             return;
         }
 
-        form.setValue("latitude", originalCompany.location.latitude, { shouldDirty: false, shouldValidate: false });
-        form.setValue("longitude", originalCompany.location.longitude, { shouldDirty: false, shouldValidate: false });
+        form.setValue("latitude", originalCompany.location?.latitude ?? null, { shouldDirty: false, shouldValidate: false });
+        form.setValue("longitude", originalCompany.location?.longitude ?? null, { shouldDirty: false, shouldValidate: false });
     }, [form, hasAddressChanged, originalCompany]);
 
 
@@ -169,7 +169,7 @@ export const useUpdateCompanyForm = (): UseUpdateCompanyFormReturn => {
         setIsGeocoding(false);
 
         try {
-            let finalLocation: Location = originalCompany.location;
+            let finalLocation: Location | undefined = originalCompany.location ?? undefined;
             if (isAddressChanged) {
                 setIsGeocoding(true);
                 const resolvedLocation = await getGeolocationFromCEP(
@@ -191,7 +191,7 @@ export const useUpdateCompanyForm = (): UseUpdateCompanyFormReturn => {
                     postalCode: cleanCEP(values.address.postalCode), 
                     number: values.address.number,
                 },
-                location: finalLocation
+                ...(finalLocation ? { location: finalLocation } : {}),
             };
 
             await updateCompany(originalCompany.cnpj, updatePayload);
@@ -219,7 +219,7 @@ export const useUpdateCompanyForm = (): UseUpdateCompanyFormReturn => {
             setIsSubmitting(false);
             setIsGeocoding(false);
         }
-    }, [fetchList, form, hasAddressChanged, originalCompany, toast]);
+    }, [fetchList, form, navigate, originalCompany, toast]);
 
 
     // --- EFEITOS DE ORQUESTRAÇÃO ---

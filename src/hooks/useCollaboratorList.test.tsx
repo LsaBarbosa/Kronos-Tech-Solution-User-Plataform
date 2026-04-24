@@ -30,6 +30,7 @@ const mockListUsers = vi.mocked(listUsers);
 const employee = {
   employeeId: "emp-1",
   fullName: "Colaborador Base",
+  username: "base.user",
   maskedCpf: "12345678901",
   pis: "12345678901",
   jobPosition: "Analista",
@@ -62,7 +63,6 @@ const user = {
   username: "base.user",
   role: "PARTNER" as const,
   active: true,
-  employeeId: "emp-1",
 };
 
 describe("useCollaboratorList", () => {
@@ -121,7 +121,7 @@ describe("useCollaboratorList", () => {
       await result.current.handleToggleUserStatus("user-1", true);
     });
 
-    expect(mockToggleUserStatus).toHaveBeenCalledWith("user-1", true);
+    expect(mockToggleUserStatus).toHaveBeenCalledWith("user-1");
     await waitFor(() => expect(mockFetchEmployeeList).toHaveBeenCalledTimes(2));
     await waitFor(() => expect(mockListUsers).toHaveBeenCalledTimes(2));
   });

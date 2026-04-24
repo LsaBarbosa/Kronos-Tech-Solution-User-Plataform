@@ -2,7 +2,7 @@ import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
-import { ArrowLeft, User, Shield, Loader2, MapPin, CheckCircle, Building2, CalendarDays } from "lucide-react";
+import { User, Shield, Loader2, MapPin, CheckCircle, Building2, CalendarDays } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import Header from "@/components/Header";
 import Sidebar from "@/components/Sidebar";
@@ -29,8 +29,10 @@ const CriarManager = () => {
         stepCompleted,
         usernameAvailability,
         isCheckingUsername,
+        resetUsernameAvailability,
         cpfAvailability,
         isCheckingCPF,
+        resetCpfAvailability,
         selectedScheduleType,
         maskCPF,
         maskPhone,
@@ -170,7 +172,7 @@ const CriarManager = () => {
                                                             {...field}
                                                             onChange={(e) => {
                                                                 field.onChange(maskCPF(e.target.value));
-                                                                setCpfAvailability(null); // Resetar status ao digitar
+                                                                resetCpfAvailability();
                                                             }}
                                                             maxLength={14}
                                                         />
@@ -253,7 +255,7 @@ const CriarManager = () => {
                                                         <Select onValueChange={field.onChange} defaultValue={field.value}>
                                                             <FormControl><SelectTrigger><SelectValue placeholder="Selecione" /></SelectTrigger></FormControl>
                                                             <SelectContent>
-                                                                {SCHEDULE_TYPES.map(t => <SelectItem key={t.value} value={t.value}>{t.label}</SelectItem>)}
+                                                                {scheduleTypes.map(t => <SelectItem key={t.value} value={t.value}>{t.label}</SelectItem>)}
                                                             </SelectContent>
                                                         </Select>
                                                         <FormMessage />
@@ -272,7 +274,7 @@ const CriarManager = () => {
                                                             <FormLabel>Folga Fixa</FormLabel>
                                                             <Select onValueChange={field.onChange} value={field.value}>
                                                                 <FormControl><SelectTrigger><SelectValue placeholder="Dia" /></SelectTrigger></FormControl>
-                                                                <SelectContent>{DAYS_OF_WEEK.map(d => <SelectItem key={d.value} value={d.value}>{d.label}</SelectItem>)}</SelectContent>
+                                                                <SelectContent>{daysOfWeek.map(d => <SelectItem key={d.value} value={d.value}>{d.label}</SelectItem>)}</SelectContent>
                                                             </Select>
                                                             <FormMessage />
                                                         </FormItem>
@@ -303,7 +305,7 @@ const CriarManager = () => {
                                                     <FormItem className="mt-4">
                                                         <FormLabel className="mb-2 block">Dias de Trabalho</FormLabel>
                                                         <div className="grid grid-cols-2 md:grid-cols-4 gap-2">
-                                                            {DAYS_OF_WEEK.map((day) => (
+                                                            {daysOfWeek.map((day) => (
                                                                 <FormField key={day.value} control={form.control} name="fixedWorkDays" render={({ field }) => (
                                                                     <FormItem key={day.value} className="flex items-center space-x-2 space-y-0">
                                                                         <FormControl>
@@ -363,7 +365,7 @@ const CriarManager = () => {
                                             <FormItem>
                                                 <FormLabel className="text-base font-semibold flex items-center">Nome de Usuário</FormLabel>
                                                 <div className="flex space-x-2">
-                                                    <FormControl><Input placeholder="Digite o nome de usuário" className="h-12 text-base" {...field} onChange={(e) => { field.onChange(e); setUsernameAvailability(null); }} /></FormControl>
+                                                    <FormControl><Input placeholder="Digite o nome de usuário" className="h-12 text-base" {...field} onChange={(e) => { field.onChange(e.target.value); resetUsernameAvailability(); }} /></FormControl>
 
                                                     {/* BLOQUEIO DO BOTÃO DE VERIFICAR */}
                                                     <Button
@@ -379,15 +381,6 @@ const CriarManager = () => {
                                                     {usernameAvailability === 'unavailable' && 'Nome de usuário já existe.'}
                                                     {usernameAvailability === 'available' && <span className="text-green-500">Nome de usuário disponível.</span>}
                                                 </FormMessage>
-                                            </FormItem>
-                                        )} />
-
-                                        <FormField control={form.control} name="password" render={({ field }) => (
-                                            <FormItem>
-                                                <FormLabel className="text-base font-semibold">Senha inicial</FormLabel>
-                                                <FormControl><Input type="password" placeholder="Opcional na criação inicial" className="h-12 text-base" {...field} /></FormControl>
-                                                <FormMessage />
-                                                <p className="text-xs text-muted-foreground">Se o backend não exigir senha neste fluxo, o campo pode permanecer vazio.</p>
                                             </FormItem>
                                         )} />
 

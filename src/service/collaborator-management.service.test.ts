@@ -168,8 +168,8 @@ describe("collaborator-management.service", () => {
         return new HttpResponse(null, { status: 204 });
       }),
       http.patch("*/users/toggle-activate/user-1", async ({ request }) => {
-        const body = await request.json();
-        expect(body).toEqual({ active: false });
+        const bodyText = await request.text();
+        expect(bodyText).toBe("");
         return new HttpResponse(null, { status: 204 });
       })
     );
@@ -184,6 +184,6 @@ describe("collaborator-management.service", () => {
 
     await expect(updateCollaborator("emp-1", { fullName: "Maria Silva" })).resolves.toBeUndefined();
     await expect(updateUser("user-1", userUpdatePayload)).resolves.toBeUndefined();
-    await expect(toggleUserStatus("user-1", true)).resolves.toBeUndefined();
+    await expect(toggleUserStatus("user-1")).resolves.toBeUndefined();
   });
 });

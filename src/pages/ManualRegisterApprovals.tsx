@@ -34,7 +34,7 @@ import { downloadDocument } from '@/service/document.service';
 
 const formatBackendDate = (dateString: string): string => {
     const dateOnly = dateString.split(' ')[0];
-    const parts = dateOnly.split(/[-\/\.]/); 
+    const parts = dateOnly.split(/[-/.]/); 
 
     if (parts.length === 3) {
         const year = parts[2]; 
@@ -52,6 +52,7 @@ const statusMap: Record<StatusRecord | string, string> = {
     WORK_TIME_REQUEST: 'Esq. Ponto Pendente', // 💡 Novo
     TIME_OFF: 'Abono Aprovado',
     TIME_OFF_REJECTED: 'Abono Rejeitado',
+    WORK_TIME_REJECTED: 'Esq. Ponto Rejeitado',
     UPDATED: 'Aprovado (Ajuste)', // 💡 Novo (Esquecimento Aprovado)
     UPDATE_REJECTED: 'Rejeitado (Ajuste)', // 💡 Novo (Esquecimento Rejeitado)
     PENDING: 'Pendente',
@@ -88,6 +89,7 @@ const renderStatusBadge = (status: StatusRecord) => {
             return <span className={cn(baseClasses, 'bg-green-100 text-green-800 border-green-200 dark:bg-green-900/50 dark:text-green-200 dark:border-green-800')}>{statusMap[status]}</span>;
             
         case 'TIME_OFF_REJECTED':
+        case 'WORK_TIME_REJECTED':
         case 'UPDATE_REJECTED': // Inclui UPDATE_REJECTED como vermelho (rejeitado)
             return <span className={cn(baseClasses, 'bg-red-100 text-red-800 border-red-200 dark:bg-red-900/50 dark:text-red-200 dark:border-red-800')}>{statusMap[status]}</span>;
             

@@ -1,10 +1,12 @@
 import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
 import { format, isBefore, isSameDay } from "date-fns";
-import { useToast } from "../components/ui/use-toast";
+import { useToast } from "@/hooks/use-toast";
 import {
   TimeOffFormState,
   IManagerOption,
+  IRequestTimeOffData,
+  TimeOffRequestType,
 } from "../types/vacation";
 import { requestTimeOff, fetchManagerOptions } from "../service/records.service";
 import { getServiceErrorMessage } from "@/service/helpers/service-error.helper";
@@ -95,11 +97,9 @@ export const useRequestManualRegistration = () => {
    try {
       // CORREÇÃO AQUI:
       // O Java espera "FORGOTTEN_REGISTRATION" ou "TIME_OFF_REQUEST"
-      const backendType = formState.requestType === 'FORGOTTEN_REGISTRATION' 
-                          ? 'FORGOTTEN_REGISTRATION'  // Envia a chave exata do Enum Java
-                          : 'TIME_OFF_REQUEST';       // Envia a chave exata do Enum Java
+      const backendType: TimeOffRequestType = formState.requestType;
 
-      const payload: any = { 
+      const payload: IRequestTimeOffData = { 
         startDate: format(formState.startDate!, "dd-MM-yyyy"),
         endDate: format(formState.endDate!, "dd-MM-yyyy"),
         startHour: formState.startHour,

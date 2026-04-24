@@ -80,7 +80,7 @@ export const useEmployeeDocuments = (): useEmployeeDocumentssReturn => {
         } finally {
             setIsLoading(false);
         }
-    }, [toast]);
+    }, [navigate, toast]);
 
     const handleDownloadDocument = useCallback(async (documentId: string, documentName: string) => {
         try {
@@ -95,7 +95,7 @@ export const useEmployeeDocuments = (): useEmployeeDocumentssReturn => {
             });
             if (isAuthServiceError(normalized)) navigate("/login");
         }
-    }, [toast]);
+    }, [navigate, toast]);
     
     // 3. Efeito para buscar automaticamente quando o ID muda (opcional, mas prático)
     useEffect(() => {

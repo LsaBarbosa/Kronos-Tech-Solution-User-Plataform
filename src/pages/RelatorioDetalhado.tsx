@@ -7,9 +7,6 @@ import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import jsPDF from 'jspdf';
-import 'jspdf-autotable';
-import autoTable from "jspdf-autotable";
 
 import {
     DetailedReportItem,
@@ -38,29 +35,17 @@ import { RelatorioFiltros } from "./RelatorioFiltros";
 import { Info } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
+import { downloadCsvFile, loadPdfLibraries } from "@/utils/report-export";
 
-// === FUNÇÃO UTILITÁRIA PARA GERAÇÃO DE CSV ===
-const generateCSV = (data: any[], headers: string[], fileName: string) => {
-    const csvHeaders = headers.join(';');
-    const csvRows = data.map(row =>
-        row.map((item: any) => {
-            let value = String(item);
-            value = value.replace(/\n/g, ' ').replace(/,/g, '.');
-            return /;/.test(value) ? `"${value.replace(/"/g, '""')}"` : value;
-        }).join(';')
-    ).join('\n');
-
-    const csvContent = `\ufeff${csvHeaders}\n${csvRows}`;
-    const blob = new Blob([csvContent], { type: "text/csv;charset=utf-8;" });
-    const url = URL.createObjectURL(blob);
-    const link = document.createElement('a');
-    link.href = url;
-    link.setAttribute('download', fileName);
-    document.body.appendChild(link);
-    link.click();
-    document.body.removeChild(link);
-    URL.revokeObjectURL(url);
-};
+type AutoTableCell =
+    | string
+    | number
+    | boolean
+    | null
+    | {
+        content?: string | string[] | number;
+        styles?: Record<string, unknown>;
+    };
 
 const RelatorioDetalhado = () => {
     const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -179,28 +164,29 @@ const RelatorioDetalhado = () => {
             const data = await fetchReportEmployees(activeStatus);
             setEmployees(data);
             if (!selectedEmployee) setSelectedEmployee("");
-        } catch (error) {
+        } catch (error: unknown) {
             console.error("Erro ao buscar funcionários:", error);
         }
     }, [authStatus, employeeActive, role, selectedEmployee, user]);
 
-    const fetchManagers = async () => {
+    const fetchManagers = useCallback(async () => {
         try {
             const filteredManagers: Manager[] = (await fetchManagerOptions()).map((manager) => ({
                 id: manager.userId,
                 name: manager.username,
             }));
             setManagers(filteredManagers);
-        } catch (error) {
+        } catch (error: unknown) {
+            const message = error instanceof Error ? error.message : "Erro ao buscar gerentes.";
             console.error("Erro ao buscar gerentes:", error);
-            toast({ title: "Erro", description: (error as Error).message, variant: "destructive" });
+            toast({ title: "Erro", description: message, variant: "destructive" });
         }
-    };
+    }, [toast]);
 
     useEffect(() => {
-        fetchEmployees();
-        fetchManagers();
-    }, [fetchEmployees]);
+        void fetchEmployees();
+        void fetchManagers();
+    }, [fetchEmployees, fetchManagers]);
 
     // === BUSCA ===
     const handleSearch = async () => {
@@ -230,21 +216,23 @@ const RelatorioDetalhado = () => {
             toast({ title: "Busca realizada", description: `Relatório gerado com sucesso.` });
             window.scrollTo({ top: 0, behavior: 'smooth' });
 
-        } catch (error) {
+        } catch (error: unknown) {
+            const message = error instanceof Error ? error.message : "Ocorreu um erro ao buscar o relatório.";
             console.error("Erro na busca:", error);
-            toast({ title: "Erro", description: (error as Error).message, variant: "destructive" });
+            toast({ title: "Erro", description: message, variant: "destructive" });
         } finally {
             setIsLoading(false);
         }
     };
 
     // === PDF DETALHADO (MODERNO E ESTILIZADO) ===
-    const handleDownloadPDFDetailed = () => {
+    const handleDownloadPDFDetailed = async () => {
         if (reportData.length === 0) {
             toast({ title: "Erro", description: "Não há dados para gerar o PDF.", variant: "destructive" });
             return;
         }
 
+        const { jsPDF, autoTable } = await loadPdfLibraries();
         const doc = new jsPDF();
         
         // Configurações Visuais
@@ -378,7 +366,7 @@ const RelatorioDetalhado = () => {
         doc.text(totalBalanceStr, col3X, boxY + 29);
 
         // --- Tabela ---
-        const tableBody: any[] = [];
+        const tableBody: AutoTableCell[][] = [];
 
         reportData.forEach((item) => {
             const isBreak = item.statusRecord === 'IMPLICIT_BREAK';
@@ -492,7 +480,7 @@ const RelatorioDetalhado = () => {
         });
 
         const fileName = `relatorio_detalhado_csv_${format(new Date(), 'yyyyMMdd_HHmmss')}.csv`;
-        generateCSV(csvDataRows, headers, fileName); 
+        downloadCsvFile(csvDataRows, headers, fileName); 
         toast({ title: "CSV Gerado", description: "Relatório detalhado baixado em formato CSV!" });
     };
 
@@ -538,9 +526,10 @@ const RelatorioDetalhado = () => {
             setSelectedRecord(null);
             form.reset();
             handleSearch();
-        } catch (error) {
+        } catch (error: unknown) {
+            const message = error instanceof Error ? error.message : "Ocorreu um erro ao salvar o ajuste.";
             console.error("Erro ao salvar:", error);
-            toast({ title: "Erro", description: (error as Error).message, variant: "destructive" });
+            toast({ title: "Erro", description: message, variant: "destructive" });
         }
     };
 

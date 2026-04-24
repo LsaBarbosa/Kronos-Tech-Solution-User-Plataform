@@ -7,6 +7,7 @@ import {
   updateUser,
 } from "@/service/collaborator-management.service";
 import { listUsers } from "@/service/user.service";
+import type { UserSearchData } from "@/types/user";
 
 interface Address {
   street: string;
@@ -19,6 +20,7 @@ interface Address {
 interface Employee {
   employeeId: string;
   fullName: string;
+  username?: string;
   maskedCpf: string;
   pis: string;
   jobPosition: string;
@@ -40,18 +42,14 @@ interface Employee {
   fixedWorkDays?: string[];
 }
 
-interface UserData {
-  userId: string;
-  username: string;
-  role: "PARTNER" | "MANAGER";
-  active: boolean;
+interface CombinedColaborator extends Employee, UserSearchData {
   enabled?: boolean;
-  employeeId: string;
 }
 
-interface CombinedColaborator extends Employee, UserData {}
-
 const isValidEmail = (email: string) => /\S+@\S+\.\S+/.test(email);
+
+type EditableValue = string | boolean | string[] | number | null | undefined;
+type EditableData = Record<string, EditableValue>;
 
 export const useCollaboratorList = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -65,7 +63,7 @@ export const useCollaboratorList = () => {
     cargo: "",
   });
   const [editingId, setEditingId] = useState<string | null>(null);
-  const [editedData, setEditedData] = useState<Record<string, any>>({});
+  const [editedData, setEditedData] = useState<EditableData>({});
 
   const { toast } = useToast();
 
@@ -80,17 +78,21 @@ export const useCollaboratorList = () => {
         listUsers(isActive),
       ]);
 
-      const usersMap = new Map<string, UserData>();
-      users.forEach((user: UserData) => usersMap.set(user.employeeId, user));
+      const usersByUsername = new Map<string, UserSearchData>();
+      users.forEach((user) => {
+        usersByUsername.set(user.username.trim().toLowerCase(), user);
+      });
 
       const combinedData: CombinedColaborator[] = employees.map((employee: Employee) => {
-        const user = usersMap.get(employee.employeeId);
+        const user = employee.username
+          ? usersByUsername.get(employee.username.trim().toLowerCase())
+          : undefined;
 
         if (user) {
           return {
             ...employee,
             ...user,
-            enabled: user.active !== undefined ? user.active : employee.active,
+            enabled: user.active,
           };
         }
 
@@ -238,7 +240,7 @@ export const useCollaboratorList = () => {
   }, []);
 
   const handleEditedDataChange = useCallback((field: string, value: string | boolean | string[]) => {
-    setEditedData((prev: Record<string, any>) => {
+    setEditedData((prev: EditableData) => {
       if (field === "enabled" || field === "homeOffice") {
         return { ...prev, [field]: value };
       }
@@ -331,8 +333,8 @@ export const useCollaboratorList = () => {
 
     setIsLoading(true);
     try {
-      const bodyDataEmployee: Record<string, any> = {};
-      const bodyDataUser: Record<string, any> = {};
+      const bodyDataEmployee: Record<string, EditableValue> = {};
+      const bodyDataUser: Record<string, EditableValue> = {};
 
       if (editedData.fullName && editedData.fullName !== originalColaborador.fullName) {
         bodyDataEmployee.fullName = editedData.fullName;
@@ -463,7 +465,7 @@ export const useCollaboratorList = () => {
     }
 
     try {
-      await toggleUserStatus(userId, currentStatus);
+      await toggleUserStatus(userId);
       setColaboradores((prevList) => prevList.filter((colab) => colab.userId !== userId));
 
       toast({

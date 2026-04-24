@@ -12,11 +12,13 @@ import { Table, TableBody, TableCell, TableHead, TableHeader, TableRow } from ".
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from "../components/ui/dialog";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "../components/ui/form";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../components/ui/select";
+import { Separator } from "../components/ui/separator";
 import { ArrowLeft, Search, Building2, Mail, MapPin, Hash, Eye, Edit, Power, Loader2, Info, Users, UserX } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 import { useCompanySearch } from "@/hooks/useCompanySearch"; 
 import { APP_PATHS } from "@/config/app-routes";
+import { cleanCEP } from "@/types/company";
 
 
 const BuscarEmpresa = () => {

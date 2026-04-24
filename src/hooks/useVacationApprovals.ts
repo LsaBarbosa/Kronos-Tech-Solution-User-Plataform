@@ -7,7 +7,7 @@ import { fetchVacationRequests, approveVacationRequest, rejectVacationRequest } 
 import { getServiceErrorMessage } from "@/service/helpers/service-error.helper";
 
 // Validador defensivo: garante que o resultado é sempre um array
-const ensureArray = (data: any): IVacationRequestResponse[] => {
+const ensureArray = (data: unknown): IVacationRequestResponse[] => {
     return Array.isArray(data) ? data : [];
 };
 
@@ -20,7 +20,7 @@ export const useVacationApprovals = (params: IVacationQueryParams) => {
         queryFn: () => fetchVacationRequests(params),
         
         // CORREÇÃO: Garante que 'data' é sempre um array vazio no início
-        initialData: [], 
+        placeholderData: [],
         
         // CORREÇÃO: Força o valor final a ser um array, tratando falhas de forma segura
         select: ensureArray 

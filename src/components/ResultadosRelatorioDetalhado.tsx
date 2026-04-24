@@ -9,53 +9,17 @@ import { useToast } from "@/hooks/use-toast";
 import { downloadDocument } from "@/service/document.service";
 import { Button } from "./ui/button";
 import { PaginationComponent } from "./ui/PaginationComponent";
+import {
+    parseBalanceToMinutes,
+    parseTimeToMinutes,
+    formatMinutesToBalance,
+    formatMinutesToTime,
+    formatCoordinates,
+    groupRecordsByDate,
+} from "./ResultadosRelatorioDetalhado.utils";
 
 // Define 5 itens por página para a paginação local (Client-Side)
 const ROWS_PER_PAGE = 5; 
-
-// --- FUNÇÕES AUXILIARES DE CÁLCULO DE TEMPO ---
-const parseBalanceToMinutes = (balanceStr: string): number => {
-    if (!balanceStr || balanceStr === "00:00" || balanceStr.length < 5) return 0;
-    
-    const cleanStr = balanceStr.trim();
-    const sign = cleanStr.startsWith("-") ? -1 : 1;
-    
-    const timePart = cleanStr.replace(/[+-]/, "");
-    const [hours, minutes] = timePart.split(":").map(Number);
-    
-    if (isNaN(hours) || isNaN(minutes)) return 0;
-    
-    return sign * (hours * 60 + minutes);
-};
-
-// Nova função específica para parsear horas trabalhadas (sem sinal negativo)
-const parseTimeToMinutes = (timeStr: string): number => {
-    if (!timeStr || timeStr === "00:00" || timeStr.length < 5) return 0;
-    const [hours, minutes] = timeStr.split(":").map(Number);
-    if (isNaN(hours) || isNaN(minutes)) return 0;
-    return hours * 60 + minutes;
-};
-
-const formatMinutesToBalance = (totalMinutes: number): string => {
-    const sign = totalMinutes < 0 ? "-" : "+";
-    const absMinutes = Math.abs(totalMinutes);
-    const hours = Math.floor(absMinutes / 60);
-    const minutes = absMinutes % 60;
-    
-    return `${sign}${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`;
-};
-
-const formatMinutesToTime = (totalMinutes: number): string => {
-    const hours = Math.floor(totalMinutes / 60);
-    const minutes = totalMinutes % 60;
-    return `${String(hours).padStart(2, '0')}:${String(minutes).padStart(2, '0')}`;
-};
-// --- FIM FUNÇÕES AUXILIARES ---
-
-const formatCoordinates = (latitude?: number | null, longitude?: number | null) => {
-    if (latitude == null || longitude == null) return "Localização indisponível";
-    return `${latitude.toFixed(6)}, ${longitude.toFixed(6)}`;
-};
 
 interface ResultadosDetalhadoProps {
     reportData: DetailedReportItem[];
@@ -131,19 +95,7 @@ export const ResultadosRelatorioDetalhado: React.FC<ResultadosDetalhadoProps> = 
     }, [reportData, currentPage]);
     
     // --- AGRUPAMENTO POR DATA (Apenas da página atual para exibição) ---
-    const groupedCurrentRecords = useMemo(() => {
-        const groups: Record<string, DetailedReportItem[]> = {};
-        
-        currentRecords.forEach(record => {
-            const dateKey = record.startWork; 
-            if (!groups[dateKey]) {
-                groups[dateKey] = [];
-            }
-            groups[dateKey].push(record);
-        });
-        
-        return Object.entries(groups);
-    }, [currentRecords]);
+    const groupedCurrentRecords = useMemo(() => groupRecordsByDate(currentRecords), [currentRecords]);
 
     if (currentPage > 0 && currentRecords.length === 0 && totalElements > 0) {
         setCurrentPage(0);

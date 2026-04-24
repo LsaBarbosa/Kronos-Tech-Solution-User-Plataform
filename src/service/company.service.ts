@@ -13,7 +13,11 @@ import { normalizeServiceError } from "@/service/helpers/service-error.helper";
 
 const HERE_API_KEY = import.meta.env.VITE_HERE_API_KEY ?? "";
 
-export interface CompanyCreationPayload {
+/**
+ * Payload oficial da etapa 1 do onboarding de empresa.
+ * Esta requisição cria apenas a empresa; o administrador inicial é criado na etapa seguinte.
+ */
+export interface CompanyOnboardingRequest {
     name: string;
     cnpj: string;
     email: string;
@@ -23,6 +27,8 @@ export interface CompanyCreationPayload {
     };
     location: Location;
 }
+
+export type CompanyCreationPayload = CompanyOnboardingRequest;
 
 // --- Serviços de API ---
 
@@ -59,7 +65,7 @@ export const checkCompanyCnpjAvailability = async (cnpj: string): Promise<boolea
     }
 };
 
-export const createCompany = async (payload: CompanyCreationPayload): Promise<void> => {
+export const createCompany = async (payload: CompanyOnboardingRequest): Promise<void> => {
     await api.post(buildRoute(API_ROUTES.COMPANIES), payload);
 };
 
@@ -111,8 +117,12 @@ export const getGeolocationFromCEP = async (cep: string, number: string): Promis
             latitude: parseFloat(lat.toFixed(6)),
             longitude: parseFloat(lon.toFixed(6))
         };
-    } catch (error: any) {
-        throw new Error(error.message || "Falha ao obter coordenadas geográficas.");
+    } catch (error: unknown) {
+        if (error instanceof Error) {
+            throw new Error(error.message);
+        }
+
+        throw new Error("Falha ao obter coordenadas geográficas.");
     }
 };
 

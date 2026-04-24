@@ -1,14 +1,35 @@
 // src/types/user.ts
 
 /**
- * Interface para os dados básicos da conta do usuário (geralmente do token ou endpoint de conta).
+ * Interface para os dados do own profile do usuário.
+ * Não deve ser reutilizada para listagens resumidas.
  */
-export interface UserAccountData {
+export interface UserOwnProfileData {
   userId: string;
   username: string;
   role: string;
   active: boolean;
   employeeId: string;
+}
+
+export type UserAccountData = UserOwnProfileData;
+
+/**
+ * Interface para o retorno resumido de /users/search.
+ * O backend não garante employeeId nesse endpoint.
+ */
+export interface UserSearchData {
+  userId: string;
+  username: string;
+  role: "PARTNER" | "MANAGER";
+  active: boolean;
+}
+
+export interface SessionUserData {
+  accountData: UserOwnProfileData;
+  profileData: UserData;
+  userData: UserData & { role: string };
+  role: string;
 }
 
 /**

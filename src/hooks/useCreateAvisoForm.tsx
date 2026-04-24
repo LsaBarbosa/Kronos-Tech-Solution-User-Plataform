@@ -89,11 +89,12 @@ export const useCreateAvisoForm = (): UseCreateAvisoFormReturn => { // 💡 CORR
         try {
             const data = await fetchActiveEmployees(); 
             setEmployees(data);
-        } catch (error: any) {
+        } catch (error: unknown) {
+            const message = error instanceof Error ? error.message : "Não foi possível carregar a lista de colaboradores para seleção.";
             console.error("Erro ao buscar colaboradores:", error);
             toast({
                 title: "Atenção",
-                description: error.message || "Não foi possível carregar a lista de colaboradores para seleção.",
+                description: message,
                 variant: "destructive",
             });
         } finally {
@@ -184,11 +185,12 @@ export const useCreateAvisoForm = (): UseCreateAvisoFormReturn => { // 💡 CORR
                 ),
             });
 
-        } catch (error: any) {
+        } catch (error: unknown) {
+            const message = error instanceof Error ? error.message : "Ocorreu um erro ao postar o aviso.";
             console.error("Erro ao postar aviso:", error);
             toast({
                 title: "Erro",
-                description: error.message || "Ocorreu um erro ao postar o aviso.",
+                description: message,
                 variant: "destructive",
             });
         } finally {

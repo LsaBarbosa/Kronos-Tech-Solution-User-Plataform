@@ -1,11 +1,9 @@
-// src/types/vacation.ts
+export type TimeOffRequestType = "TIME_OFF_REQUEST" | "FORGOTTEN_REGISTRATION";
 
-import { StatusRecord } from "./recordApproval";
-
-export interface RequestVacationRequest {
-    startDate: string; // dd-MM-yyyy
-    endDate: string;   // dd-MM-yyyy
-    managerId: string; // UUID
+export interface IRequestVacationRequest {
+    startDate: string;
+    endDate: string;
+    managerId: string;
 }
 
 export interface IManagerOption {
@@ -13,40 +11,15 @@ export interface IManagerOption {
     username: string;
 }
 
-// ATUALIZADO: Adicionado requestType opcional
 export interface RequestTimeOffRequestPayload {
-    startDate: string; // dd-MM-yyyy
-    endDate: string;   // dd-MM-yyyy
-    startHour: string; // HH:mm
-    endHour: string;   // HH:mm
-    managerId: string; // UUID
-    type:'TIME_OFF_REQUEST' | 'FORGOTTEN_REGISTRATION'
-}
-export interface TimeOffFormState {
-  startDate: Date | undefined;
-  endDate: Date | undefined;
-  startHour: string;
-  endHour: string;
-  managerId: string;
-  document: File | null;
-  // No formulário local (state) você pode manter o nome que quiser, 
-  // mas o valor deve ser compatível ou convertido no submit.
-  requestType: 'TIME_OFF_REQUEST' | 'FORGOTTEN_REGISTRATION'
-}
-export interface VacationRequestResponse {
-    employeeId: string;
-    employeeName: string;
     startDate: string;
     endDate: string;
-    status: string; // REQUEST_VACATION, VACATION, VACATION_REJECTED
-    timeRecordIdsForApproval: number[];
+    startHour: string;
+    endHour: string;
+    managerId: string;
+    type: TimeOffRequestType;
 }
 
-export interface VacationApprovalRequest {
-    timeRecordIds: number[];
-}
-
-// ATUALIZADO: Adicionado requestType ao estado do formulário
 export interface TimeOffFormState {
     startDate: Date | undefined;
     endDate: Date | undefined;
@@ -54,5 +27,40 @@ export interface TimeOffFormState {
     endHour: string;
     managerId: string;
     document: File | null;
-    requestType: 'TIME_OFF_REQUEST' | 'FORGOTTEN_REGISTRATION'; // Default
+    requestType: TimeOffRequestType;
 }
+
+export interface VacationRequestResponse {
+    employeeId: string;
+    employeeName: string;
+    startDate: string;
+    endDate: string;
+    status: string;
+    timeRecordIdsForApproval: number[];
+}
+
+export interface VacationApprovalRequest {
+    timeRecordIds: number[];
+}
+
+export interface IVacationQueryParams {
+    page: number;
+    size: number;
+    status: "PENDING" | "APPROVED" | "REJECTED" | "ALL";
+    employeeName?: string;
+}
+
+export type IVacationRequestResponse = VacationRequestResponse;
+
+export interface IVacationRequestPageResponse {
+    requests?: IVacationRequestResponse[];
+    vacationRequests?: IVacationRequestResponse[];
+    content?: IVacationRequestResponse[];
+    totalPages: number;
+    totalElements: number;
+    currentPage: number;
+    isFirst: boolean;
+    isLast: boolean;
+}
+
+export type IVacationApprovalRequest = VacationApprovalRequest;

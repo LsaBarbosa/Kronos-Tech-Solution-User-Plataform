@@ -51,7 +51,7 @@ export const useForgotPassword = (): UseForgotPasswordReturn => {
                 email: data.email,
             });
 
-        } catch (error: any) {
+        } catch (error: unknown) {
             console.error("Erro na recuperação de senha:", error);
             toast({
                 title: "Erro na Solicitação",

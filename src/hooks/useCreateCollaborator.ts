@@ -343,7 +343,6 @@ export const useCreateCollaborator = () => {
         username: data.username,
         role: data.role,
         employeeId: savedEmployeeId,
-        password: (data as { password?: string }).password,
       };
 
       await createUser(userPayload);

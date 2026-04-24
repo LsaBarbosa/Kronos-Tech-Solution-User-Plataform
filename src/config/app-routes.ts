@@ -159,7 +159,7 @@ export const APP_ROUTE_META = {
     ],
   }),
   criarAdministrador: defineRoute(APP_PATHS.criarAdministrador, "Criar Administrador", {
-    allowedRoles: ["MANAGER"],
+    allowedRoles: ["CTO", "MANAGER"],
     showInMenu: false,
     breadcrumbs: [
       { label: "Início", path: APP_PATHS.dashboard },

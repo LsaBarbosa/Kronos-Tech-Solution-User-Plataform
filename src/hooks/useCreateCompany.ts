@@ -9,7 +9,7 @@ import {
   checkCompanyCnpjAvailability,
   createCompany,
   getGeolocationFromCEP,
-  type CompanyCreationPayload,
+  type CompanyOnboardingRequest,
 } from "@/service/company.service";
 
 const formSchema = z.object({
@@ -188,7 +188,7 @@ export const useCreateCompany = () => {
       }
 
       try {
-        const payload: CompanyCreationPayload = {
+        const payload: CompanyOnboardingRequest = {
           name: values.name,
           cnpj: values.cnpj.replace(/\D/g, ""),
           email: values.email,

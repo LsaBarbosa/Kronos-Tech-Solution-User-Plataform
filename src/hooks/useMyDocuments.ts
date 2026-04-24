@@ -77,7 +77,7 @@ export const useMyDocuments = (): UseMyDocumentsReturn => {
         } finally {
             setIsDeleting(false);
         }
-    }, [isDeleting, toast]);
+    }, [isDeleting, navigate, toast]);
 
     const handleDownloadDocument = useCallback(async (documentId: string, documentName: string) => {
         try {
@@ -92,7 +92,7 @@ export const useMyDocuments = (): UseMyDocumentsReturn => {
             });
             if (isAuthServiceError(normalized)) navigate("/login");
         }
-    }, [toast]);
+    }, [navigate, toast]);
 
     return {
         documents,

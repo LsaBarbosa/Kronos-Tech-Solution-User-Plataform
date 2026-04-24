@@ -1,4 +1,10 @@
 import { createContext, useContext, useEffect, useState } from "react";
+import {
+  applyThemeClass,
+  getPreferredTheme,
+  readStoredValue,
+  writeStoredValue,
+} from "@/lib/browser";
 
 type Theme = "light" | "dark";
 
@@ -11,24 +17,15 @@ const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
   const [theme, setTheme] = useState<Theme>(() => {
-    // Check localStorage first, then system preference
-    const saved = localStorage.getItem("theme") as Theme;
+    const saved = readStoredValue("theme") as Theme | null;
     if (saved) return saved;
-    
-    return window.matchMedia("(prefers-color-scheme: dark)").matches ? "dark" : "light";
+
+    return getPreferredTheme();
   });
 
   useEffect(() => {
-    const root = document.documentElement;
-    
-    // Remove both classes first
-    root.classList.remove("light", "dark");
-    
-    // Add the current theme class
-    root.classList.add(theme);
-    
-    // Save to localStorage
-    localStorage.setItem("theme", theme);
+    applyThemeClass(theme, ["light", "dark"]);
+    writeStoredValue("theme", theme);
   }, [theme]);
 
   const toggleTheme = () => {

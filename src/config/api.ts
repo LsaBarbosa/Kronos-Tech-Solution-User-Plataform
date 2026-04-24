@@ -1,5 +1,6 @@
 import axios from "axios";
 import { normalizeServiceError } from "@/service/helpers/service-error.helper";
+import { getCurrentLocationHref, readStoredValue, redirectBrowserTo } from "@/lib/browser";
 
 export const API_BASE_URL = import.meta.env.VITE_API_URL;
 
@@ -7,14 +8,6 @@ export const buildTermsRedirectUrl = (
   redirectBaseUrl: string,
   currentPlatformUrl: string
 ) => `${redirectBaseUrl}?returnUrl=${encodeURIComponent(currentPlatformUrl)}`;
-
-const redirectBrowserTo = (url: string) => {
-  if (typeof navigator !== "undefined" && navigator.userAgent.includes("jsdom")) {
-    return;
-  }
-
-  window.location.assign(url);
-};
 
 const clearContentTypeHeader = (headers: unknown) => {
   if (!headers || typeof headers !== "object") {
@@ -77,7 +70,7 @@ export const api = axios.create({
 // Interceptor de Requisição (Para injetar o Token automaticamente)
 api.interceptors.request.use(
   (config) => {
-    const token = localStorage.getItem('token'); // Ou onde você guarda o token
+    const token = readStoredValue("token"); // Ou onde você guarda o token
 
     if (isFormDataPayload(config.data)) {
       clearContentTypeHeader(config.headers);
@@ -104,7 +97,7 @@ api.interceptors.response.use(
         const redirectBaseUrl = data.redirect_url;
 
         // 2. Pega a URL atual da plataforma para o usuário voltar depois
-        const currentPlatformUrl = window.location.href;
+        const currentPlatformUrl = getCurrentLocationHref();
 
         // 3. Monta a URL final com o parâmetro de retorno
         // Ex: https://termo...?returnUrl=https://plataforma.../dashboard

@@ -38,7 +38,6 @@ export interface UserCreationPayload {
   username: string;
   role: "MANAGER" | "PARTNER";
   employeeId: string;
-  password?: string;
 }
 
 export interface UserUpdatePayload {
@@ -144,10 +143,7 @@ export const updateUser = async (
 };
 
 export const toggleUserStatus = async (
-  userId: string,
-  currentStatus: boolean
+  userId: string
 ): Promise<void> => {
-  await api.patch(buildRoute(API_ROUTES.USERS, "toggle-activate", userId), {
-    active: !currentStatus,
-  });
+  await api.patch(buildRoute(API_ROUTES.USERS, "toggle-activate", userId));
 };

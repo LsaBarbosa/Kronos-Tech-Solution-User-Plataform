@@ -3,15 +3,13 @@
 import React from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { CalendarIcon, Download } from "lucide-react";
+import { CalendarIcon } from "lucide-react";
 // Usando ReportDataSimple do utils, mas estendemos a tipagem aqui para os novos campos
 import { ReportDataSimple, isHoliday, formatDateWithDayOfWeek } from "@/utils/report-utils"; // <--- ALTERADO
-import jsPDF from 'jspdf';
-import 'jspdf-autotable';
-import autoTable from "jspdf-autotable";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { useToast } from "@/hooks/use-toast";
+import { loadPdfLibraries } from "@/utils/report-export";
 
 // 💡 NOVO: Estendendo as interfaces para incluir as novas horas
 interface ReportDayExtended {
@@ -45,7 +43,7 @@ export const ResultadosRelatorioSimples: React.FC<ResultadosSimplesProps> = ({
     const { toast } = useToast();
 
     // Lógica do PDF Simples (Migrada, Estilizada e Atualizada com Entrada/Saída)
-    const handleDownload = () => {
+    const handleDownload = async () => {
         if (!reportDataSimple || reportDataSimple.days.length === 0) {
             toast({
                 title: "Erro",
@@ -56,6 +54,7 @@ export const ResultadosRelatorioSimples: React.FC<ResultadosSimplesProps> = ({
         }
 
         try {
+            const { jsPDF, autoTable } = await loadPdfLibraries();
             const doc = new jsPDF({
                 orientation: 'portrait',
                 unit: 'mm',

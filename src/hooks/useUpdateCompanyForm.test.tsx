@@ -81,7 +81,6 @@ describe("useUpdateCompanyForm", () => {
         city: "São Paulo",
         state: "SP",
       },
-      location: { latitude: -23.55, longitude: -46.63 },
     } as any);
     mockUpdateCompany.mockResolvedValue(undefined);
     mockGetGeolocationFromCEP.mockResolvedValue({
@@ -105,8 +104,8 @@ describe("useUpdateCompanyForm", () => {
       expect(result.current.originalCompany?.cnpj).toBe("12345678000199");
     });
 
-    expect(result.current.form.getValues("latitude")).toBe(-23.55);
-    expect(result.current.form.getValues("longitude")).toBe(-46.63);
+    expect(result.current.form.getValues("latitude")).toBeNull();
+    expect(result.current.form.getValues("longitude")).toBeNull();
 
     await act(async () => {
       result.current.form.setValue("address.postalCode", "01002000");

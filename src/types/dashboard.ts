@@ -21,7 +21,7 @@ export interface WarningMessage {
   title: string;
   priority: string;
   // Outros campos relevantes para exibir no dashboard
-  [key: string]: any;
+  [key: string]: unknown;
 }
 
 // Utilitários de role

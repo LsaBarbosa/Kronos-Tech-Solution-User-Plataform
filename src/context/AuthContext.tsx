@@ -10,6 +10,7 @@ import {
 import { isAuthServiceError } from "@/service/helpers/service-error.helper";
 import { loadSessionProfile } from "@/service/session-profile.service";
 import type { UserAccountData, UserData } from "@/types/user";
+import { readStoredValue, removeStoredValue, writeStoredValue } from "@/lib/browser";
 
 export type AuthStatus = "checking" | "authenticated" | "unauthenticated";
 
@@ -35,17 +36,17 @@ const AuthContext = createContext<AuthContextValue | undefined>(undefined);
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const [status, setStatus] = useState<AuthStatus>("checking");
   const [user, setUser] = useState<AuthUser | null>(null);
-  const [token, setToken] = useState<string | null>(() => localStorage.getItem("token"));
+  const [token, setToken] = useState<string | null>(() => readStoredValue("token"));
 
   const clearSession = useCallback(() => {
-    localStorage.removeItem("token");
+    removeStoredValue("token");
     setToken(null);
     setUser(null);
     setStatus("unauthenticated");
   }, []);
 
   const checkSession = useCallback(async () => {
-    const storedToken = localStorage.getItem("token");
+    const storedToken = readStoredValue("token");
     setToken(storedToken);
 
     if (!storedToken) {
@@ -78,7 +79,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const login = useCallback(
     async (newToken: string) => {
-      localStorage.setItem("token", newToken);
+      writeStoredValue("token", newToken);
       setToken(newToken);
       await checkSession();
     },

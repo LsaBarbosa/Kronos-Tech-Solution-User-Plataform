@@ -73,7 +73,7 @@ export const useResetPassword = (): UseResetPasswordReturn => {
             // Redireciona para login após um pequeno atraso
             setTimeout(() => navigate("/login"), 3000);
 
-        } catch (error: any) {
+        } catch (error: unknown) {
             console.error("Erro ao redefinir senha:", error);
             toast({
                 title: "Erro na Redefinição",

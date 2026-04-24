@@ -1,15 +1,10 @@
 import { fetchAccountData, fetchUserData } from "@/service/user.service";
-import type { UserAccountData, UserData } from "@/types/user";
+import type { SessionUserData, UserOwnProfileData, UserData } from "@/types/user";
 
-export interface SessionProfileData {
-  accountData: UserAccountData;
-  profileData: UserData;
-  userData: UserData & { role: string };
-  role: string;
-}
+export type SessionProfileData = SessionUserData;
 
 export const composeSessionProfile = (
-  accountData: UserAccountData,
+  accountData: UserOwnProfileData,
   profileData: UserData
 ): SessionProfileData => {
   const role = accountData.role || profileData.role || "";

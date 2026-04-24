@@ -2,6 +2,7 @@ import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Palette } from "lucide-react";
+import { applyThemeClass, readStoredValue, writeStoredValue } from "@/lib/browser";
 
 type ThemeVariant = 'red' | 'purple' | 'blue' | 'yellow';
 
@@ -30,33 +31,18 @@ const themes = [
 
 const ThemeSelector = () => {
   const [currentTheme, setCurrentTheme] = useState<ThemeVariant>(() => {
-    // Carregar tema salvo do localStorage
-    const savedTheme = localStorage.getItem("color-theme") as ThemeVariant;
+    const savedTheme = readStoredValue("color-theme") as ThemeVariant | null;
     return savedTheme || 'red';
   });
 
   // Aplicar tema salvo quando o componente montar
   useEffect(() => {
-    const root = document.documentElement;
-    
-    // Remove previous theme classes
-    root.classList.remove('theme-purple', 'theme-blue', 'theme-yellow', 'theme-red', 'theme-pink', 'theme-green', 'theme-gray');
-    
-    // Apply current theme class
-    root.classList.add(`theme-${currentTheme}`);
-  }, []);
+    applyThemeClass(`theme-${currentTheme}`, ['theme-purple', 'theme-blue', 'theme-yellow', 'theme-red', 'theme-pink', 'theme-green', 'theme-gray']);
+  }, [currentTheme]);
 
   const applyTheme = (theme: ThemeVariant) => {
-    const root = document.documentElement;
-    
-    // Remove previous theme classes
-     root.classList.remove('theme-purple', 'theme-blue', 'theme-yellow', 'theme-red', 'theme-pink', 'theme-green', 'theme-gray');
-    
-    // Apply new theme class
-    root.classList.add(`theme-${theme}`);
-    
-    // Salvar no localStorage
-    localStorage.setItem("color-theme", theme);
+    applyThemeClass(`theme-${theme}`, ['theme-purple', 'theme-blue', 'theme-yellow', 'theme-red', 'theme-pink', 'theme-green', 'theme-gray']);
+    writeStoredValue("color-theme", theme);
     setCurrentTheme(theme);
   };
 

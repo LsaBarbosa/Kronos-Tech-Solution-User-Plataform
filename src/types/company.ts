@@ -26,7 +26,7 @@ export interface CompanyListItem {
     active: boolean;
     // Detalhes parciais necessários para a tabela
     address: Omit<Address, 'city' | 'state' | 'neighborhood'> & { city: string; state: string; }; // Garante CEP e número
-    location: Location;
+    location?: Location;
     
     // Contadores usados no Modal de Visualização (assumindo que a API retorna isso)
     activeEmployees?: number; 
@@ -40,6 +40,7 @@ export interface CompanyData extends CompanyListItem {
     address: Address; // Usa o tipo Address completo
     activeEmployees: number; // Garante o contador
     inactiveEmployees: number; // Garante o contador
+    location?: Location;
 }
 
 /**
@@ -53,7 +54,7 @@ export interface CompanyUpdatePayload {
         postalCode: string;
         number: string;
     };
-    location: Location; // Mantém a localização inalterada na busca
+    location?: Location; // Opcional quando a API não devolve coordenadas
 }
 
 // --- Funções Utilitárias Puras ---

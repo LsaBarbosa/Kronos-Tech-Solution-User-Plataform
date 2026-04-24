@@ -39,7 +39,7 @@ export const usePendingApprovals = (params: IPendingApprovalQueryParams) => {
       // Invalida a query para forçar o refetch dos dados da página atual
       queryClient.invalidateQueries({ queryKey: ["pendingApprovals"] });
     },
-    onError: (e: any) => {
+    onError: (e: unknown) => {
       toast({
         title: "❌ Erro ao Aprovar",
         description: getServiceErrorMessage(e, "Não foi possível aprovar a solicitação."), 
@@ -59,7 +59,7 @@ export const usePendingApprovals = (params: IPendingApprovalQueryParams) => {
       // Invalida a query para forçar o refetch dos dados da página atual
       queryClient.invalidateQueries({ queryKey: ["pendingApprovals"] });
     },
-    onError: (e: any) => {
+    onError: (e: unknown) => {
       toast({
         title: "❌ Erro ao Rejeitar",
         description: getServiceErrorMessage(e, "Não foi possível rejeitar a solicitação."), 

@@ -1,55 +1,42 @@
-// src/hooks/useTimeOffCount.ts
-
-import { useState, useEffect } from 'react';
-import * as RecordsService from '@/service/records.service';
-import { ITimeRecordPageResponse } from '@/types/recordApproval';
-import { useToast } from "@/hooks/use-toast";
+import { useQuery } from "@tanstack/react-query";
+import * as RecordsService from "@/service/records.service";
+import { ITimeOffQueryParams, ITimeRecordPageResponse } from "@/types/recordApproval";
 
 export interface UseTimeOffCountReturn {
-    pendingTimeOffCount: number;
-    isLoadingTimeOffCount: boolean;
-    refetchTimeOffCount: () => void;
+  pendingTimeOffCount: number;
+  isLoadingTimeOffCount: boolean;
+  refetchTimeOffCount: () => void;
 }
 
+const TIME_OFF_COUNT_QUERY_KEY = ["pendingTimeOffCount"];
+const EMPTY_TIME_OFF_PAGE: ITimeRecordPageResponse = {
+  records: [],
+  totalPages: 0,
+  totalElements: 0,
+  currentPage: 0,
+  isFirst: true,
+  isLast: true,
+};
+
 export const useTimeOffCount = (): UseTimeOffCountReturn => {
-    const { toast } = useToast();
-    const [pendingTimeOffCount, setPendingTimeOffCount] = useState<number>(0);
-    const [isLoadingTimeOffCount, setIsLoadingTimeOffCount] = useState(true);
+  const query = useQuery<ITimeRecordPageResponse, Error, number>({
+    queryKey: TIME_OFF_COUNT_QUERY_KEY,
+    queryFn: () =>
+      RecordsService.listTimeOffRequests({
+        page: 0,
+        size: 1,
+        employeeName: "",
+        status: "PENDING" as ITimeOffQueryParams["status"],
+      }),
+    select: (data) => data.totalElements ?? 0,
+    placeholderData: EMPTY_TIME_OFF_PAGE,
+    refetchInterval: 60000 * 5,
+    staleTime: 60000 * 2,
+  });
 
-    const fetchTimeOffCount = async () => {
-        setIsLoadingTimeOffCount(true);
-        try {
-            // Filtra por status 'PENDING' e pega apenas o primeiro elemento (page: 0, size: 1)
-            // para obter o totalElements com o mínimo de dados, se o serviço suportar
-            const data: ITimeRecordPageResponse = await RecordsService.listTimeOffRequests({
-                page: 0,
-                size: 1,
-                employeeName: '',
-                status: 'PENDING',
-            });
-            
-            // Assume que ITimeRecordPageResponse tem totalElements para a paginação
-            setPendingTimeOffCount(data.totalElements || 0);
-        } catch (error) {
-            console.error("Erro ao buscar contagem de abonos pendentes:", error);
-            setPendingTimeOffCount(0);
-            // Opcional: toast({ title: "Erro", description: "Falha ao carregar contagem de abonos." });
-        } finally {
-            setIsLoadingTimeOffCount(false);
-        }
-    };
-
-    useEffect(() => {
-        fetchTimeOffCount();
-    }, []);
-
-    const refetchTimeOffCount = () => {
-        fetchTimeOffCount();
-    };
-
-    return {
-        pendingTimeOffCount,
-        isLoadingTimeOffCount,
-        refetchTimeOffCount,
-    };
+  return {
+    pendingTimeOffCount: query.data ?? 0,
+    isLoadingTimeOffCount: query.isLoading,
+    refetchTimeOffCount: () => void query.refetch(),
+  };
 };

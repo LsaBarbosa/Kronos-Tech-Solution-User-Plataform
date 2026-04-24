@@ -2,10 +2,10 @@
 
 import { useState, useEffect, useCallback, useRef } from "react";
 import { useNavigate } from "react-router-dom";
-import { useToast } from "@/hooks/use-toast";
 import { EmployeeListItem, MAX_UPLOAD_SIZE_BYTES, ALLOWED_MIME_TYPES } from "@/types/document";
 import { fetchEmployeesForSelection, uploadDocument } from "@/service/document.service";
 import { isAuthServiceError, normalizeServiceError } from "@/service/helpers/service-error.helper";
+import { showErrorToast, showSuccessToast } from "@/lib/feedback";
 
 const DEFAULT_DOCUMENT_TYPE = "EMPLOYEE_DOCUMENTS";
 
@@ -96,7 +96,6 @@ export const useDocumentUpload = (): UseDocumentUploadReturn => {
     const [fileError, setFileError] = useState<string | null>(null);
 
     const fileInputRef = useRef<HTMLInputElement>(null);
-    const { toast } = useToast();
     const navigate = useNavigate();
 
     // 1. Busca a lista de colaboradores (inalterada)
@@ -110,13 +109,13 @@ export const useDocumentUpload = (): UseDocumentUploadReturn => {
                 const normalized = normalizeServiceError(err);
                 setError(normalized.message);
                 if (isAuthServiceError(normalized)) navigate("/login");
-                toast({ title: "Erro", description: normalized.message, variant: "destructive" });
+                showErrorToast("Erro", normalized.message);
             } finally {
                 setIsFetchingEmployees(false);
             }
         };
         loadEmployees();
-    }, [toast, navigate]);
+    }, [navigate]);
 
 
     // 2. Handler para seleção de arquivo com COMPRESSÃO e VALIDAÇÃO (CORRIGIDO)
@@ -174,23 +173,23 @@ export const useDocumentUpload = (): UseDocumentUploadReturn => {
         try {
             await uploadDocument(selectedFile, selectedEmployeeId, DEFAULT_DOCUMENT_TYPE);
 
-            toast({ title: "Sucesso", description: `Documento "${selectedFile.name}" enviado com sucesso!` });
+            showSuccessToast("Sucesso", `Documento "${selectedFile.name}" enviado com sucesso!`);
             
             setSelectedFile(null);
             if (fileInputRef.current) {
                 fileInputRef.current.value = "";
             }
-        } catch (err: any) {
+        } catch (err: unknown) {
             console.error("Erro no upload:", err);
-            toast({ 
-                title: "Erro no Envio", 
-                description: err.message || "Falha ao enviar o documento. Verifique o tamanho e formato.", 
-                variant: "destructive" 
-            });
+            const normalized = normalizeServiceError(err);
+            showErrorToast(
+                "Erro no Envio",
+                normalized.message || "Falha ao enviar o documento. Verifique o tamanho e formato."
+            );
         } finally {
             setIsUploading(false);
         }
-    }, [selectedFile, selectedEmployeeId, toast]);
+    }, [selectedFile, selectedEmployeeId]);
     
     const handleClearFile = useCallback(() => {
         setSelectedFile(null);

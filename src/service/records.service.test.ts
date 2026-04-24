@@ -180,19 +180,22 @@ describe("records.service", () => {
     ]);
   });
 
-  it("conta pendencias de ferias com o endpoint paginado", async () => {
+  it("conta pendencias de ferias usando totalElements da pagina", async () => {
     server.use(
       http.get("*/records/vacation-request", ({ request }) => {
         const url = new URL(request.url);
         expect(url.searchParams.get("page")).toBe("0");
-        expect(url.searchParams.get("size")).toBe("500");
+        expect(url.searchParams.get("size")).toBe("1");
         expect(url.searchParams.get("status")).toBe("PENDING");
 
-        return HttpResponse.json([
-          { id: 1 },
-          { id: 2 },
-          { id: 3 },
-        ]);
+        return HttpResponse.json({
+          requests: [{ id: 1 }],
+          totalPages: 3,
+          totalElements: 3,
+          currentPage: 0,
+          isFirst: true,
+          isLast: false,
+        });
       })
     );
 

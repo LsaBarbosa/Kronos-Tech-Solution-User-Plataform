@@ -16,6 +16,7 @@ const renderRoleRoute = (allowedRoles: string[], initialPath = "/admin-protected
       <Routes>
         <Route path="/dashboard" element={<div>Dashboard</div>} />
         <Route path="/admin" element={<div>Admin público</div>} />
+        <Route path="/forbidden" element={<div>Acesso negado</div>} />
         <Route element={<RoleRoute allowedRoles={allowedRoles} />}>
           <Route path="/admin-protected" element={<div>Admin protegido</div>} />
         </Route>
@@ -60,5 +61,57 @@ describe("RoleRoute", () => {
     renderRoleRoute(["MANAGER"]);
 
     expect(screen.getByText("Admin protegido")).toBeInTheDocument();
+  });
+
+  it("libera acesso quando nao ha roles restritas", () => {
+    mockUseAuth.mockReturnValue({
+      status: "authenticated",
+      user: null,
+      role: "PARTNER",
+      token: null,
+      isAuthenticated: true,
+      checkSession: vi.fn(),
+      login: vi.fn(),
+      logout: vi.fn(),
+    });
+
+    render(
+      <MemoryRouter initialEntries={["/admin-protected"]}>
+        <Routes>
+          <Route element={<RoleRoute allowedRoles={[]} />}>
+            <Route path="/admin-protected" element={<div>Admin protegido</div>} />
+          </Route>
+        </Routes>
+      </MemoryRouter>
+    );
+
+    expect(screen.getByText("Admin protegido")).toBeInTheDocument();
+  });
+
+  it("redireciona para a rota configurada quando a role nao esta permitida", () => {
+    mockUseAuth.mockReturnValue({
+      status: "authenticated",
+      user: null,
+      role: "PARTNER",
+      token: null,
+      isAuthenticated: true,
+      checkSession: vi.fn(),
+      login: vi.fn(),
+      logout: vi.fn(),
+    });
+
+    render(
+      <MemoryRouter initialEntries={["/admin-protected"]}>
+        <Routes>
+          <Route path="/forbidden" element={<div>Acesso negado</div>} />
+          <Route element={<RoleRoute allowedRoles={["MANAGER"]} redirectTo="/forbidden" />}>
+            <Route path="/admin-protected" element={<div>Admin protegido</div>} />
+          </Route>
+        </Routes>
+      </MemoryRouter>
+    );
+
+    expect(screen.getByText("Acesso negado")).toBeInTheDocument();
+    expect(screen.queryByText("Admin protegido")).not.toBeInTheDocument();
   });
 });

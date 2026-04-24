@@ -2,7 +2,13 @@
 
 import { api } from "@/config/api";
 import { API_ROUTES, buildRoute } from "@/config/api-routes";
-import { UserAccountData, UserData, ChangePasswordData, cleanNumberString } from "@/types/user";
+import {
+  UserOwnProfileData,
+  UserData,
+  ChangePasswordData,
+  cleanNumberString,
+  type UserSearchData,
+} from "@/types/user";
 import { extractArray, extractObject } from "@/service/helpers/response-normalizer.helper";
 
 
@@ -11,9 +17,9 @@ import { extractArray, extractObject } from "@/service/helpers/response-normaliz
 /**
  * Busca os dados básicos da conta do usuário.
  */
-export const fetchAccountData = async (): Promise<UserAccountData> => {
-  const response = await api.get<UserAccountData>(buildRoute(API_ROUTES.USERS, "own-profile"));
-  return extractObject<UserAccountData>(response.data) as UserAccountData;
+export const fetchAccountData = async (): Promise<UserOwnProfileData> => {
+  const response = await api.get<UserOwnProfileData>(buildRoute(API_ROUTES.USERS, "own-profile"));
+  return extractObject<UserOwnProfileData>(response.data) as UserOwnProfileData;
 };
 
 /**
@@ -61,12 +67,12 @@ export const changePassword = async (data: ChangePasswordData): Promise<void> =>
 /**
  * Busca todos os usuários (ou usuários ativos/inativos) da empresa.
  * @param active - Opcional. true para ativos, false para inativos, null para todos.
- * @returns Lista de dados detalhados do usuário (UserAccountData).
+ * @returns Lista resumida de dados do usuário usada no fluxo administrativo.
  */
-export const listUsers = async (active: boolean | null): Promise<UserAccountData[]> => {
-  const response = await api.get<{ users: UserAccountData[] }>(buildRoute(API_ROUTES.USERS, "search"), {
+export const listUsers = async (active: boolean | null): Promise<UserSearchData[]> => {
+  const response = await api.get<{ users: UserSearchData[] }>(buildRoute(API_ROUTES.USERS, "search"), {
     params: active !== null ? { active } : undefined,
   });
   
-  return extractArray<UserAccountData>(response.data, ["users"]); 
+  return extractArray<UserSearchData>(response.data, ["users"]); 
 };

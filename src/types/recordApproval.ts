@@ -10,14 +10,13 @@ export type StatusRecord =
   | 'PENDING_APPROVAL'
   | 'TIME_OFF'
   | 'WORK_TIME_REQUEST'
+  | 'WORK_TIME_REJECTED'
   | 'IMPLICIT_BREAK'
   | 'REQUEST_VACATION'
   | 'VACATION'
   | 'VACATION_REJECTED'
   | 'TIME_OFF_REQUEST'
-  | 'TIME_OFF'
-  | 'TIME_OFF_REJECTED'
-  | 'FORGOTTEN_REGISTRATION'; // NOVO STATUS ADICIONADO
+  | 'TIME_OFF_REJECTED';
 
 export interface EmployeeData {
   employeeName: string;
@@ -97,7 +96,7 @@ export interface IPendingApprovalQueryParams {
 }
 
 export interface IUpdateStatusRequest {
-  statusRecord: string;
+  statusRecord: StatusRecord;
 }
 
 export interface IRequestTimeOffData {
@@ -113,13 +112,5 @@ export interface ITimeOffQueryParams {
     size: number;
     employeeName?: string;
     status: 'PENDING' | 'APPROVED' | 'REJECTED' | 'ALL';
-}
-export interface TimeRecordPageResponse {
-    records: TimeRecordResponse[]; // Reutiliza a interface TimeRecordResponse
-    totalPages: number;
-    totalElements: number;
-    currentPage: number;
-    isFirst: boolean;
-    isLast: boolean;
 }
 export type ITimeRecordPageResponse = TimeRecordPageResponse;

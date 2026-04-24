@@ -85,7 +85,7 @@ const formSchema = z.object({
   startHour: z.string().nonempty(),
   endHour: z.string().nonempty(),
   managerId: z.string().nonempty(),
-  document: z.any(),
+  document: z.union([z.instanceof(File), z.null()]).optional(),
   requestType: z.enum(['TIME_OFF_REQUEST', 'FORGOTTEN_REGISTRATION']), // Validação do Zod
 });
 
@@ -210,7 +210,7 @@ export function RequestManualRegistration() {
                               </FormLabel>
                               <FormControl>
                                 <RadioGroup
-                                  onValueChange={(val: any) => {
+                                  onValueChange={(val: string) => {
                                     field.onChange(val);
                                     handleChange("requestType", val);
                                   }}

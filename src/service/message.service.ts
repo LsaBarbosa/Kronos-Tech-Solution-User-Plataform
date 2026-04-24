@@ -3,8 +3,8 @@
 import { api } from "@/config/api";
 import { API_ROUTES, buildRoute } from "@/config/api-routes";
 import { Message, MessagePayload } from "@/types/message";
-import { EmployeeData } from "@/types/employee"; 
-import { extractArray, mapArrayPayload } from "@/service/helpers/response-normalizer.helper";
+import { EmployeeListItem } from "@/types/document";
+import { extractArray } from "@/service/helpers/response-normalizer.helper";
 
 // --- Funções de Serviço para AVISOS (fetch, delete, post) ---
 
@@ -35,12 +35,9 @@ export const postMessage = async (payload: MessagePayload): Promise<void> => {
 /**
  * Busca a lista de colaboradores ativos para seleção de destinatários.
  */
-export const fetchActiveEmployees = async (): Promise<EmployeeData[]> => {
-    const response = await api.get<{ employees: any[] }>(`/${API_ROUTES.EMPLOYEE}`, {
+export const fetchActiveEmployees = async (): Promise<EmployeeListItem[]> => {
+    const response = await api.get<{ employees?: EmployeeListItem[] }>(`/${API_ROUTES.EMPLOYEE}`, {
         params: { active: true },
     });
-    return mapArrayPayload<any, EmployeeData>(response.data, (emp) => ({
-        employeeId: emp.employeeId,
-        fullName: emp.fullName,
-    }) as EmployeeData, ["employees"]);
+    return extractArray<EmployeeListItem>(response.data, ["employees"]);
 };

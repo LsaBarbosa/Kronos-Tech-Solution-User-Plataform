@@ -16,7 +16,7 @@ export const useVacationCount = () => {
         // CORREÇÃO: 'onError' foi removido. Essa propriedade não é permitida em useQuery no TanStack Query v4+.
         
         // Garante que o valor inicial seja 0 (número)
-        initialData: 0,
+        placeholderData: 0,
     });
 
     return {

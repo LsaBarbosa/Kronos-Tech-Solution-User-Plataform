@@ -14,7 +14,7 @@ const { toastSuccessMock, toastErrorMock } = vi.hoisted(() => ({
   toastErrorMock: vi.fn(),
 }));
 
-vi.mock("sonner", () => ({
+vi.mock("@/hooks/use-toast", () => ({
   toast: {
     success: toastSuccessMock,
     error: toastErrorMock,

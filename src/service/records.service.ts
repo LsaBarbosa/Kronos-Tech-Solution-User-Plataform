@@ -14,8 +14,10 @@ import {
   IRequestVacationRequest,
   IVacationApprovalRequest,
   IVacationQueryParams,
+  IVacationRequestPageResponse,
   IVacationRequestResponse,
 } from "@/types/vacation";
+import { UserSearchData } from "@/types/user";
 
 const RECORDS_BASE_URL = `/${API_ROUTES.RECORDS}`;
 
@@ -173,28 +175,29 @@ export const rejectVacationRequest = async (timeRecordIds: number[]): Promise<vo
 };
 
 export const fetchManagerOptions = async (): Promise<IManagerOption[]> => {
-  const response = await api.get<{ users?: any[] }>(buildRoute(API_ROUTES.USERS, "search"), {
+  const response = await api.get<{ users?: UserSearchData[] }>(buildRoute(API_ROUTES.USERS, "search"), {
     params: { active: true },
   });
 
-  return extractArray<any>(response.data, ["users"])
-    .filter((user: any) => user.role === "MANAGER")
-    .map((user: any) => ({
+  return extractArray<UserSearchData>(response.data, ["users"])
+    .filter((user) => user.role === "MANAGER")
+    .map((user): IManagerOption => ({
       userId: user.userId,
       username: user.username,
-    })) as IManagerOption[];
+    }));
 };
 
 export const fetchPendingVacationCount = async (): Promise<number> => {
-  const response = await api.get(`${RECORDS_BASE_URL}/vacation-request`, {
+  const response = await api.get<IVacationRequestPageResponse>(`${RECORDS_BASE_URL}/vacation-request`, {
     params: {
       page: 0,
-      size: 500,
+      size: 1,
       status: "PENDING",
     },
   });
 
-  return extractArray(response.data).length;
+  const pageData = extractObject<IVacationRequestPageResponse>(response.data) as IVacationRequestPageResponse;
+  return pageData.totalElements ?? extractArray(response.data).length;
 };
 
 export const fetchReportEmployees = async (active = true): Promise<Employee[]> => {

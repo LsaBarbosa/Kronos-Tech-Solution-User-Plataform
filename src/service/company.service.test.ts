@@ -64,6 +64,25 @@ describe("company.service", () => {
     );
   });
 
+  it("aceita detalhes de empresa sem location no contrato de leitura", async () => {
+    server.use(
+      http.get("*/companies/:cnpj", ({ params }) => {
+        expect(params.cnpj).toBe("12345678000190");
+        return HttpResponse.json({
+          data: {
+            ...companyDetails,
+            location: undefined,
+          },
+        });
+      })
+    );
+
+    const detailsWithoutLocation = await fetchCompanyDetails("12345678000190");
+
+    expect(detailsWithoutLocation.cnpj).toBe("12345678000190");
+    expect("location" in detailsWithoutLocation).toBe(false);
+  });
+
   it("verifica disponibilidade de CNPJ pelo endpoint oficial", async () => {
     server.use(
       http.get("*/companies/check-cnpj", ({ request }) => {

@@ -1,8 +1,6 @@
 // ARQUIVO: src/pages/Dashboard.tsx (Com alterações no Card de Pendências)
 
 import { useState, useCallback, useMemo } from "react";
-import Header from "@/components/Header";
-import Sidebar from "@/components/Sidebar";
 import Clock from "@/components/Clock";
 import { 
     ArrowRight, Loader2, Clock as ClockIcon, FileCheck, DollarSign, Mail, 
@@ -19,43 +17,15 @@ import { Separator } from "@/components/ui/separator";
 import { useDashboardData } from "@/hooks/useDashboardData";
 import { useVacationCount } from "@/hooks/useVacationCount"; 
 import { useTimeOffCount } from "@/hooks/useTimeOffCount"; 
+import PageShell from "@/components/PageShell";
 import { getRoleDisplayName } from "@/types/dashboard";
-
-// Função utilitária para formatar o salário
-const formatSalary = (salary: number | undefined) => {
-    if (salary === undefined || salary === null) return "N/A";
-    return new Intl.NumberFormat('pt-BR', {
-      style: 'currency',
-      currency: 'BRL'
-    }).format(salary);
-};
-
-// Função utilitária para formatar o telefone
-const formatPhone = (phone: string | undefined) => {
-    if (!phone) return "N/A";
-    const cleaned = ('' + phone).replace(/\D/g, '');
-    const match = cleaned.match(/^(\d{2})(\d{5})(\d{4})$/);
-    if (match) {
-      return `(${match[1]}) ${match[2]}-${match[3]}`;
-    }
-    const matchShort = cleaned.match(/^(\d{2})(\d{\d})(\d{4})$/);
-     if (matchShort) {
-      return `(${matchShort[1]}) ${matchShort[2]}-${matchShort[3]}`;
-    }
-    return phone;
-};
-
-/**
- * Função auxiliar para extrair o primeiro nome (para a saudação)
- */
-const getFirstName = (fullName: string | undefined): string => {
-    if (!fullName) return "Usuário";
-    return fullName.trim().split(/\s+/)[0];
-};
-const getSecondName = (fullName: string | undefined): string => {
-    if (!fullName) return "Usuário";
-    return fullName.trim().split(/\s+/)[1];
-};
+import {
+    formatPhone,
+    formatSalary,
+    getFirstName,
+    getSecondName,
+    getThemeCardClasses,
+} from "@/utils/dashboard-utils";
 
 const Dashboard = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -63,6 +33,15 @@ const Dashboard = () => {
   
   const handleToggleSidebar = useCallback(() => setSidebarOpen((prev) => !prev), []);
   const toggleSalary = useCallback(() => setShowSalary(prev => !prev), []); // Toggle do salário
+  const getCardKeyDownHandler = useCallback(
+    (action: () => void) => (event: React.KeyboardEvent<HTMLElement>) => {
+      if (event.key === "Enter" || event.key === " ") {
+        event.preventDefault();
+        action();
+      }
+    },
+    []
+  );
   
   const navigate = useNavigate();
 
@@ -138,98 +117,11 @@ const Dashboard = () => {
    * **ATUALIZADO:** Adiciona classes de borda lateral e sombra para consistência.
    * @param baseColor Cor base ('primary', 'destructive', 'success', 'yellow-600').
    */
-  const getThemeCardClasses = (baseColor: string, isClickable: boolean = false) => {
-      
-      let borderColor, rawColor;
-
-      // Mapeamento das classes Tailwind para cores e rawColor (para classes dinâmicas)
-      switch (baseColor) {
-          case 'primary':
-              // Borda base e Borda lateral
-              borderColor = 'border-l-4 border-l-primary';
-              rawColor = 'primary';
-              break;
-          case 'destructive':
-              borderColor = 'border-l-4 border-l-destructive';
-              rawColor = 'destructive';
-              break;
-          case 'success':
-              // Usando green-600 como sucesso
-              borderColor = 'border-l-4 border-l-green-600';
-              rawColor = 'green-600';
-              break;
-          case 'yellow-600':
-              // Cor de aviso/alerta (amarelo)
-              borderColor = 'border-l-4 border-l-yellow-600';
-              rawColor = 'yellow-600';
-              break;
-          default:
-              borderColor = 'border-l-4 border-l-border';
-              rawColor = 'primary';
-      }
-      
-      // 🚀 CLASSES INTERATIVAS (Hover e Focus)
-      const interactiveClasses = `
-          shadow-card
-          transition-all duration-300 
-          hover:shadow-xl 
-          hover:shadow-${rawColor}/20
-          hover:border-l-primary/80 
-      `;
-      
-      const cursorClass = isClickable ? 'cursor-pointer' : 'cursor-default';
-      
-      // Combina as classes
-      return `${borderColor} ${interactiveClasses} ${cursorClass}`;
-  };
-
   return (
-    <div className="min-h-screen bg-background relative  overflow-hidden">
-      {/* Animated Background and Header/Sidebar components */}
-      <div className="fixed inset-0 z-0">
-        <div
-          className="absolute inset-0 opacity-5"
-          style={{
-            background: 'linear-gradient(-45deg, hsl(var(--black-primary)), hsl(var(--primary)), hsl(var(--black-primary)), hsl(var(--primary)))',
-            backgroundSize: '400% 400%',
-            animation: 'gradient-flow 15s ease-in-out infinite'
-          }}
-        />
-        <div className="absolute inset-0">
-          <div
-            className="absolute top-1/4 left-1/4 w-32 h-32 opacity-3"
-            style={{
-              background: 'linear-gradient(135deg, hsl(var(--primary) / 0.50), transparent)',
-              borderRadius: '30% 70% 70% 30% / 30% 30% 70% 70%',
-              animation: 'float-shapes 20s ease-in-out infinite'
-            }}
-          />
-          <div
-            className="absolute top-3/4 right-1/4 w-48 h-48 opacity-2"
-            style={{
-              background: 'linear-gradient(45deg, hsl(var(--black-primary) / 0.50), transparent)',
-              borderRadius: '70% 30% 30% 70% / 70% 70% 30% 30%',
-              animation: 'float-shapes 25s ease-in-out infinite reverse'
-            }}
-          />
-          <div
-            className="absolute top-1/2 right-1/3 w-24 h-24 opacity-4"
-            style={{
-              background: 'radial-gradient(circle, hsl(var(--primary) / 0.50), transparent)',
-              borderRadius: '50%',
-              animation: 'float-shapes 18s ease-in-out infinite 5s'
-            }}
-          />
-        </div>
-      </div>
-
-    <Sidebar isOpen={sidebarOpen} toggleSidebar={handleToggleSidebar} />
-
-      <div className="flex-1 flex flex-col overflow-hidden">
-        {/* 💡 CORREÇÃO: Header usa 'toggleSidebar' */}
-        <Header toggleSidebar={handleToggleSidebar} />
-
-      <main className="pt-16 mobile-container py-4 sm:py-20 space-y-6 sm:space-y-8 relative z-10">
+    <PageShell
+      sidebarOpen={sidebarOpen}
+      toggleSidebar={handleToggleSidebar}
+    >
           <div className="max-w-6xl mx-auto">
             
             {/* SAUDAÇÃO PERSONALIZADA */}
@@ -255,6 +147,9 @@ const Dashboard = () => {
                             // Aplica a borda lateral e sombra
                             className={`lg:col-span-1 ${getThemeCardClasses('primary', true)}`}
                             onClick={handleDetailsCardClick} // Redireciona para /usuario
+                            onKeyDown={getCardKeyDownHandler(handleDetailsCardClick)}
+                            role="button"
+                            aria-label="Abrir detalhes do colaborador"
                             tabIndex={0} 
                         >
                             <CardContent className="p-6 space-y-4">
@@ -347,6 +242,9 @@ const Dashboard = () => {
                                 flex flex-col justify-center
                             `}
                             onClick={handleClockCardClick}
+                            onKeyDown={getCardKeyDownHandler(handleClockCardClick)}
+                            role="button"
+                            aria-label="Abrir relatório de ponto"
                             tabIndex={0} 
                         >
                             <CardContent className="p-6">
@@ -373,6 +271,9 @@ const Dashboard = () => {
                                 ${getThemeCardClasses('yellow-600', !isManager && newWarnings.length > 0)}
                             `}
                             onClick={handleAvisosCardClick} 
+                            onKeyDown={getCardKeyDownHandler(handleAvisosCardClick)}
+                            role="button"
+                            aria-label="Abrir avisos recentes"
                             tabIndex={0}
                         >
                             <CardContent className="p-5 flex flex-col h-full justify-between">
@@ -426,6 +327,9 @@ const Dashboard = () => {
                                 `}
                                 // O clique geral no card é para Apuração de Horas
                                 onClick={handleApprovalClick} 
+                                onKeyDown={getCardKeyDownHandler(handleApprovalClick)}
+                                role="button"
+                                aria-label="Abrir apuração de horas"
                                 tabIndex={0}
                             >
                                 <CardContent className="p-5 flex flex-col h-full justify-between">
@@ -514,7 +418,14 @@ const Dashboard = () => {
                             </Card>
                         ) : (
                             /* Card de Acesso Rápido */
-                             <Card className={getThemeCardClasses('primary', true)} onClick={() => navigate("/meus-documentos")} tabIndex={0}>
+                             <Card
+                               className={getThemeCardClasses('primary', true)}
+                               onClick={() => navigate("/meus-documentos")}
+                               onKeyDown={getCardKeyDownHandler(() => navigate("/meus-documentos"))}
+                               role="button"
+                               aria-label="Abrir acesso rápido para meus documentos"
+                               tabIndex={0}
+                             >
                                 <CardContent className="p-5 space-y-3 flex flex-col items-start h-full justify-center">
                                     <div className="flex items-center text-primary mb-3">
                                         <Zap className="h-6 w-6 mr-2" />
@@ -551,9 +462,7 @@ const Dashboard = () => {
                 </div>
             )}
           </div>
-        </main>
-      </div>
-    </div>
+    </PageShell>
   );
 };
 

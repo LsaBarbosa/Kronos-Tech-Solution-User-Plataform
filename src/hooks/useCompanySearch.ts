@@ -99,7 +99,7 @@ export const useCompanySearch = (): UseCompanySearchReturn => {
         try {
             const data = await fetchCompanyList();
             setEmpresas(data);
-        } catch (err: any) {
+        } catch (err: unknown) {
             const normalized = normalizeServiceError(err);
             console.error("Falha ao buscar empresas:", normalized);
             setError(normalized.message || "Falha ao carregar as empresas. Tente novamente.");
@@ -182,7 +182,7 @@ export const useCompanySearch = (): UseCompanySearchReturn => {
 
             // Recarrega os dados após a alteração
             await fetchCompanies();
-        } catch (error: any) {
+        } catch (error: unknown) {
             const normalized = normalizeServiceError(error);
             toast({
                 title: 'Erro',
@@ -211,7 +211,7 @@ export const useCompanySearch = (): UseCompanySearchReturn => {
                     postalCode: cleanCEP(data.address.postalCode),
                     number: data.address.number
                 },
-                location: editingEmpresa.location // Mantém a localização original
+                ...(editingEmpresa.location ? { location: editingEmpresa.location } : {}),
             };
 
             await updateCompany(editingEmpresa.cnpj, updatePayload);
@@ -225,7 +225,7 @@ export const useCompanySearch = (): UseCompanySearchReturn => {
             setEditingEmpresa(null);
             // Recarrega os dados após a alteração
             await fetchCompanies();
-        } catch (error: any) {
+        } catch (error: unknown) {
             const normalized = normalizeServiceError(error);
             console.error("Erro ao atualizar a empresa:", normalized);
             toast({

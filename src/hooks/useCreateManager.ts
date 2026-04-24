@@ -50,13 +50,11 @@ const employeeSchema = z.object({
 
 const userSchema = z.object({
   username: z.string().min(4, "Usuário deve ter pelo menos 4 caracteres"),
-  password: z.union([z.string().min(6, "Senha deve ter pelo menos 6 caracteres"), z.literal("")]).optional(),
   role: z.literal("MANAGER"),
 });
 
 const formSchema = employeeSchema.extend({
   username: z.string().optional(),
-  password: z.string().optional(),
   role: z.literal("MANAGER").optional(),
 });
 
@@ -96,7 +94,6 @@ export const useCreateManager = () => {
       scheduleType: "TRADITIONAL_5X2",
       fixedWorkDays: ["MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY"],
       username: "",
-      password: "",
       role: "MANAGER",
     },
   });
@@ -151,7 +148,7 @@ export const useCreateManager = () => {
     } finally {
       setIsFetchingCompanies(false);
     }
-  }, []);
+  }, [toast]);
 
   useEffect(() => {
     void fetchCompanies();
@@ -190,7 +187,7 @@ export const useCreateManager = () => {
     } finally {
       setIsCheckingCPF(false);
     }
-  }, [form]);
+  }, [form, toast]);
 
   const handleCheckUsername = useCallback(async () => {
     if (!stepCompleted) {
@@ -235,7 +232,7 @@ export const useCreateManager = () => {
     } finally {
       setIsCheckingUsername(false);
     }
-  }, [form, stepCompleted]);
+  }, [form, stepCompleted, toast]);
 
   const handleCreateEmployee = useCallback(async (data: ManagerFormData) => {
     setIsSubmitting(true);
@@ -297,7 +294,7 @@ export const useCreateManager = () => {
     } finally {
       setIsSubmitting(false);
     }
-  }, [cpfAvailability]);
+  }, [cpfAvailability, toast]);
 
   const handleCreateUser = useCallback(async (data: ManagerFormData) => {
     setIsSubmitting(true);
@@ -338,7 +335,6 @@ export const useCreateManager = () => {
         username: data.username,
         role: "MANAGER" as const,
         employeeId: savedEmployeeId,
-        ...(data.password?.trim() ? { password: data.password } : {}),
       };
       await createUser(userPayload);
 
@@ -363,7 +359,7 @@ export const useCreateManager = () => {
     } finally {
       setIsSubmitting(false);
     }
-  }, [form, navigate, savedEmployeeId, usernameAvailability]);
+  }, [form, navigate, savedEmployeeId, toast, usernameAvailability]);
 
   const onSubmit = useCallback((data: ManagerFormData) => {
     if (!stepCompleted) {
@@ -385,8 +381,10 @@ export const useCreateManager = () => {
     stepCompleted,
     usernameAvailability,
     isCheckingUsername,
+    resetUsernameAvailability: () => setUsernameAvailability(null),
     cpfAvailability,
     isCheckingCPF,
+    resetCpfAvailability: () => setCpfAvailability(null),
     selectedScheduleType,
     maskCPF,
     maskPhone,

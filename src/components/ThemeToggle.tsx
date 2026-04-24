@@ -4,6 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Popover, PopoverContent, PopoverTrigger } from "@/components/ui/popover";
 import { Separator } from "@/components/ui/separator";
 import { useTheme } from "@/hooks/useTheme";
+import { applyThemeClass, readStoredValue, writeStoredValue } from "@/lib/browser";
 
 type ThemeVariant = 'red' | 'purple' | 'blue' | 'yellow' | 'pink' | 'green' | 'gray';
 
@@ -48,17 +49,15 @@ const themes = [
 const ThemeToggle = () => {
   const { theme, toggleTheme } = useTheme();
   const [currentColorTheme, setCurrentColorTheme] = useState<ThemeVariant>(() => {
-    const saved = localStorage.getItem("color-theme") as ThemeVariant;
+    const saved = readStoredValue("color-theme") as ThemeVariant | null;
     return saved || "red";
   });
   const [open, setOpen] = useState(false);
 
   // Apply and persist color theme on mount and when it changes
   useEffect(() => {
-    const root = document.documentElement;
-    root.classList.remove("theme-purple", "theme-blue", "theme-yellow", "theme-red", "theme-pink", "theme-green", "theme-gray");
-    root.classList.add(`theme-${currentColorTheme}`);
-    localStorage.setItem("color-theme", currentColorTheme);
+    applyThemeClass(`theme-${currentColorTheme}`, ["theme-purple", "theme-blue", "theme-yellow", "theme-red", "theme-pink", "theme-green", "theme-gray"]);
+    writeStoredValue("color-theme", currentColorTheme);
   }, [currentColorTheme]);
 
   const applyColorTheme = (themeVariant: ThemeVariant) => {

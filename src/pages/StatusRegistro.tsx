@@ -59,7 +59,7 @@ const StatusRegistro = () => {
 
     // ESTADOS DO MODAL DE EDIÇÃO DE STATUS (Ação Principal da Página)
     const [editModalOpen, setEditModalOpen] = useState(false);
-    const [selectedRecord, setSelectedRecord] = useState<any>(null); // Armazena o registro completo
+    const [selectedRecord, setSelectedRecord] = useState<DetailedReportItem | null>(null); // Armazena o registro completo
     const [statusUpdate, setStatusUpdate] = useState<{
         timeRecordId: string;
         employeeId: string;
@@ -179,11 +179,12 @@ const StatusRegistro = () => {
             setReportData(data);
             window.scrollTo({ top: 0, behavior: 'smooth' }); // 🚀 SCROLL PARA O TOPO APÓS SUCESSO
 
-        } catch (error: any) {
+        } catch (error: unknown) {
+            const message = error instanceof Error ? error.message : "Ocorreu um erro ao buscar o relatório.";
             console.error("Erro na busca:", error);
             toast({
                 title: "Erro",
-                description: error.message || "Ocorreu um erro ao buscar o relatório.",
+                description: message,
                 variant: "destructive",
             });
         } finally {
@@ -237,11 +238,12 @@ const StatusRegistro = () => {
             // Recarrega os dados para mostrar o status atualizado e ROLA PARA O TOPO
             await handleSearch();
 
-        } catch (error: any) {
+        } catch (error: unknown) {
+            const message = error instanceof Error ? error.message : "Ocorreu um erro ao salvar o status.";
             console.error("Erro ao atualizar status:", error);
             toast({
                 title: "Erro",
-                description: error.message || "Ocorreu um erro ao salvar o status.",
+                description: message,
                 variant: "destructive",
             });
         } finally {
@@ -279,11 +281,12 @@ const StatusRegistro = () => {
             // Recarrega os dados para mostrar o status atualizado e ROLA PARA O TOPO
             await handleSearch();
 
-        } catch (error: any) {
+        } catch (error: unknown) {
+            const message = error instanceof Error ? error.message : `Ocorreu um erro ao ${currentAction.toLowerCase()} o registro.`;
             console.error(`Erro ao ${currentAction.toLowerCase()} registro:`, error);
             toast({
                 title: "Erro",
-                description: error.message || `Ocorreu um erro ao ${currentAction.toLowerCase()} o registro.`,
+                description: message,
                 variant: "destructive",
             });
         } finally {

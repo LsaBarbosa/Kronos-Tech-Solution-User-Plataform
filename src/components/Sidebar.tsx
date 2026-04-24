@@ -16,9 +16,9 @@ import { cn } from "@/lib/utils";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { FiscalService } from "@/service/fiscal.service"; // Ajuste o caminho conforme criou o arquivo acima
-import { useToast } from "@/hooks/use-toast";
 import { useAuth } from "@/context/AuthContext";
 import { APP_PATHS, APP_ROUTE_META } from "@/config/app-routes";
+import { showErrorToast, showSuccessToast } from "@/lib/feedback";
 
 interface SidebarProps {
   isOpen: boolean;
@@ -36,7 +36,6 @@ const Sidebar = ({ isOpen, toggleSidebar }: SidebarProps) => {
   const [auditoriaOpen, setAuditoriaOpen] = useState(false);
   
   const navigate = useNavigate();
-  const { toast } = useToast(); // Opcional, apenas para feedback visual
   const { logout, role } = useAuth();
   const goTo = (path: string) => {
     navigate(path);
@@ -63,42 +62,42 @@ const Sidebar = ({ isOpen, toggleSidebar }: SidebarProps) => {
   const handleDownloadMirror = async () => {
     try {
       const { startDate, endDate } = getCurrentMonthDates();
-      toast({ title: "Gerando Espelho...", description: "O download iniciará em breve." });
+      showSuccessToast("Gerando Espelho...", "O download iniciará em breve.");
       await FiscalService.downloadMirror(startDate, endDate);
     } catch (error) {
       console.error(error);
-      toast({ variant: "destructive", title: "Erro", description: "Falha ao baixar espelho de ponto." });
+      showErrorToast("Erro", "Falha ao baixar espelho de ponto.");
     }
   };
 
   const handleDownloadAfd = async () => {
     try {
-      toast({ title: "Gerando AFD...", description: "Isso pode levar alguns segundos." });
+      showSuccessToast("Gerando AFD...", "Isso pode levar alguns segundos.");
       await FiscalService.downloadAfd();
     } catch (error) {
       console.error(error);
-      toast({ variant: "destructive", title: "Erro", description: "Falha ao baixar AFD." });
+      showErrorToast("Erro", "Falha ao baixar AFD.");
     }
   };
 
   const handleDownloadAej = async () => {
     try {
       const { startDate, endDate } = getCurrentMonthDates();
-      toast({ title: "Gerando AEJ Assinado...", description: "Verificando assinatura digital." });
+      showSuccessToast("Gerando AEJ Assinado...", "Verificando assinatura digital.");
       await FiscalService.downloadAej(startDate, endDate);
     } catch (error) {
       console.error(error);
-      toast({ variant: "destructive", title: "Erro", description: "Falha ao baixar AEJ." });
+      showErrorToast("Erro", "Falha ao baixar AEJ.");
     }
   };
 
   const handleDownloadCertificate = async () => {
     try {
-      toast({ title: "Baixando Atestado...", description: "Obtendo documento assinado." });
+      showSuccessToast("Baixando Atestado...", "Obtendo documento assinado.");
       await FiscalService.downloadTechnicalCertificate();
     } catch (error) {
       console.error(error);
-      toast({ variant: "destructive", title: "Erro", description: "Falha ao baixar Atestado Técnico." });
+      showErrorToast("Erro", "Falha ao baixar Atestado Técnico.");
     }
   };
 
