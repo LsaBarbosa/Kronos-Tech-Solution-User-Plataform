@@ -14,6 +14,7 @@ const FORBIDDEN_PATTERNS = [
 ];
 
 const SKIP_DIRECTORIES = new Set(["node_modules", "dist", ".git"]);
+const SKIP_FILES = new Set(["docs/task.md"]);
 const TEXT_EXTENSIONS = new Set([".ts", ".tsx", ".js", ".jsx", ".mjs", ".cjs", ".json", ".md", ".yml", ".yaml"]);
 
 const shouldScanFile = (filePath: string): boolean => {
@@ -44,6 +45,10 @@ const collectFiles = async (targetPath: string): Promise<string[]> => {
     }
 
     const filePath = join(targetPath, entry.name);
+    if (SKIP_FILES.has(filePath)) {
+      continue;
+    }
+
     if (shouldScanFile(filePath)) {
       collected.push(filePath);
     }

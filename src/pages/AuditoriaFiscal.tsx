@@ -35,6 +35,7 @@ import { useToast } from "@/hooks/use-toast";
 
 // Services
 import { FiscalService } from "@/service/fiscal.service";
+import { getServiceErrorMessage } from "@/service/helpers/service-error.helper";
 import PageShell from "@/components/PageShell";
 
 export default function AuditoriaFiscal() {
@@ -87,7 +88,14 @@ export default function AuditoriaFiscal() {
       toast({ title: "Sucesso!", description: "Arquivo baixado com sucesso.", variant: "default" });
     } catch (error) {
       console.error(error);
-      toast({ variant: "destructive", title: "Erro", description: "Falha ao baixar o arquivo solicitado." });
+      toast({
+        variant: "destructive",
+        title: "Erro",
+        description: getServiceErrorMessage(
+          error,
+          "Falha ao baixar o arquivo solicitado."
+        ),
+      });
     } finally {
       setIsLoading(false);
     }

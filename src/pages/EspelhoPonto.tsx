@@ -1,12 +1,23 @@
-import { useState, useCallback } from "react";
+import { useEffect, useState, useCallback } from "react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { Calendar as CalendarIcon, Download, FileText, AlertCircle, Sheet } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { useAuth } from "@/context/AuthContext";
+import { getServiceErrorMessage } from "@/service/helpers/service-error.helper";
+import { fetchReportEmployees } from "@/service/records.service";
+import type { Employee } from "@/utils/report-utils";
 
 // Componentes UI
 import { Button } from "@/components/ui/button";
 import { Calendar } from "@/components/ui/calendar";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 import {
   Popover,
   PopoverContent,
@@ -30,11 +41,58 @@ import PageShell from "@/components/PageShell";
 
 export default function EspelhoPonto() {
   const [date, setDate] = useState<Date | undefined>(new Date());
+  const [employees, setEmployees] = useState<Employee[]>([]);
+  const [selectedEmployeeId, setSelectedEmployeeId] = useState("");
   const [isLoading, setIsLoading] = useState(false);
+  const [isLoadingEmployees, setIsLoadingEmployees] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const handleToggleSidebar = useCallback(() => setSidebarOpen((prev) => !prev), []);
 
   const { toast } = useToast();
+  const { status: authStatus, role } = useAuth();
+  const canSelectEmployee = role === "MANAGER" || role === "CTO";
+
+  useEffect(() => {
+    if (authStatus !== "authenticated" || !canSelectEmployee) {
+      setEmployees([]);
+      setSelectedEmployeeId("");
+      return;
+    }
+
+    let isActive = true;
+
+    const loadEmployees = async () => {
+      setIsLoadingEmployees(true);
+
+      try {
+        const data = await fetchReportEmployees(true);
+
+        if (isActive) {
+          setEmployees(data);
+        }
+      } catch (error) {
+        console.error("Erro ao carregar colaboradores para o espelho de ponto:", error);
+        toast({
+          variant: "destructive",
+          title: "Erro",
+          description: getServiceErrorMessage(
+            error,
+            "Não foi possível carregar a lista de colaboradores."
+          ),
+        });
+      } finally {
+        if (isActive) {
+          setIsLoadingEmployees(false);
+        }
+      }
+    };
+
+    void loadEmployees();
+
+    return () => {
+      isActive = false;
+    };
+  }, [authStatus, canSelectEmployee, toast]);
 
   const handleDownload = async () => {
     if (!date) {
@@ -54,13 +112,14 @@ export default function EspelhoPonto() {
       const month = date.getMonth();
       const startDate = new Date(year, month, 1).toISOString().split('T')[0];
       const endDate = new Date(year, month + 1, 0).toISOString().split('T')[0];
+      const targetEmployeeId = canSelectEmployee && selectedEmployeeId ? selectedEmployeeId : undefined;
 
       toast({
         title: "Gerando Relatório",
         description: "Baixando espelho de ponto...",
       });
 
-      await FiscalService.downloadMirror(startDate, endDate);
+      await FiscalService.downloadMirror(startDate, endDate, targetEmployeeId);
 
       toast({
         title: "Sucesso!",
@@ -72,7 +131,10 @@ export default function EspelhoPonto() {
       toast({
         variant: "destructive",
         title: "Erro no Download",
-        description: "Não foi possível gerar o espelho de ponto. Verifique se há registros no período.",
+        description: getServiceErrorMessage(
+          error,
+          "Não foi possível gerar o espelho de ponto. Verifique se há registros no período."
+        ),
       });
     } finally {
       setIsLoading(false);
@@ -153,6 +215,37 @@ export default function EspelhoPonto() {
                   </PopoverContent>
                 </Popover>
               </div>
+
+              {canSelectEmployee && (
+                <div className="flex flex-col space-y-2">
+                  <Label>Colaborador</Label>
+                  <Select
+                    value={selectedEmployeeId}
+                    onValueChange={setSelectedEmployeeId}
+                    disabled={isLoadingEmployees || isLoading}
+                  >
+                    <SelectTrigger className="w-full">
+                      <SelectValue
+                        placeholder={
+                          isLoadingEmployees
+                            ? "Carregando colaboradores..."
+                            : "Selecione um colaborador ou deixe em branco para gerar o próprio espelho"
+                        }
+                      />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {employees.map((employee) => (
+                        <SelectItem key={employee.employeeId} value={employee.employeeId}>
+                          {employee.fullName}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                  <p className="text-sm text-muted-foreground">
+                    Opcional para gestores e CTOs. Se nenhum colaborador for selecionado, o espelho próprio será gerado.
+                  </p>
+                </div>
+              )}
             </div>
 
           </CardContent>

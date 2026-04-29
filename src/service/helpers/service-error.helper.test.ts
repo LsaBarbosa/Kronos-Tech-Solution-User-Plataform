@@ -46,6 +46,28 @@ describe("service-error.helper", () => {
     });
   });
 
+  it("converte 429 em rate limit com mensagem amigável", () => {
+    const error = normalizeServiceError(
+      axiosError(429, { detail: "Processamento em andamento." })
+    );
+
+    expect(error).toMatchObject({
+      kind: "rateLimit",
+      status: 429,
+      message: "Processamento em andamento.",
+    });
+  });
+
+  it("converte 503 em indisponibilidade temporária", () => {
+    const error = normalizeServiceError(axiosError(503));
+
+    expect(error).toMatchObject({
+      kind: "serviceUnavailable",
+      status: 503,
+      message: "Serviço temporariamente indisponível. Tente novamente em instantes.",
+    });
+  });
+
   it("usa fallback genérico quando não há corpo legível", () => {
     const error = normalizeHttpResponseError(500);
 

@@ -1,77 +1,56 @@
-# Inventário HTTP do Front-end
+# Frontend HTTP Inventory
 
-## Objetivo
+Inventario das chamadas HTTP usadas pelo front-end.
 
-Mapear as chamadas HTTP ativas do front-end e classificar aderência ao backend atual.
+## Auth
 
-## Matriz resumida
+- `POST /auth/login`
+- `POST /auth/login-face`
+- `POST /auth/recover-password`
+- `POST /auth/reset-password`
 
-| Arquivo | Método | Endpoint | Domínio | Usa `api.ts` | Usa `fetch` | Token | Status |
-| --- | --- | --- | --- | --- | --- | --- | --- |
-| `src/service/auth.service.ts` | `POST` | `/auth/login` | autenticação | sim | não | não | válida |
-| `src/service/auth.service.ts` | `POST` | `/auth/login-face` | autenticação | sim | não | não | válida |
-| `src/service/auth.service.ts` | `POST` | `/auth/recover-password` | autenticação | sim | não | não | válida |
-| `src/service/auth.service.ts` | `POST` | `/auth/reset-password` | autenticação | sim | não | não | válida |
-| `src/service/company.service.ts` | `GET` | `/companies` | empresas | sim | não | sim | válida |
-| `src/service/company.service.ts` | `GET` | `/companies/{cnpj}` | empresas | sim | não | sim | válida |
-| `src/service/company.service.ts` | `GET` | `/companies/check-cnpj` | empresas | sim | não | sim | válida |
-| `src/service/company.service.ts` | `POST` | `/companies` | empresas | sim | não | sim | válida |
-| `src/service/company.service.ts` | `PATCH` | `/companies/{cnpj}` | empresas | sim | não | sim | válida |
-| `src/service/company.service.ts` | `PATCH` | `/companies/{cnpj}/toggle-activate` | empresas | sim | não | sim | válida |
-| `src/service/geolocation.service.ts` | `POST` | `/geolocation/resolve` | empresas | sim | não | sim | válida |
-| `src/service/collaborator-management.service.ts` | `GET` | `/employee/check-cpf` | colaboradores | sim | não | sim | válida |
-| `src/service/collaborator-management.service.ts` | `POST` | `/employee` | colaboradores | sim | não | sim | válida |
-| `src/service/collaborator-management.service.ts` | `GET` | `/employee` | colaboradores | sim | não | sim | válida |
-| `src/service/collaborator-management.service.ts` | `PATCH` | `/employee/manager/update-employee/{employeeId}` | colaboradores | sim | não | sim | válida |
-| `src/service/collaborator-management.service.ts` | `POST` | `/users` | usuários | sim | não | sim | válida |
-| `src/service/collaborator-management.service.ts` | `PATCH` | `/users/search/{userId}` | usuários | sim | não | sim | válida |
-| `src/service/collaborator-management.service.ts` | `PATCH` | `/users/toggle-activate/{userId}` | usuários | sim | não | sim | válida |
-| `src/service/user.service.ts` | `GET` | `/users/own-profile` | usuários | sim | não | sim | válida |
-| `src/service/user.service.ts` | `GET` | `/users/search` | usuários | sim | não | sim | válida |
-| `src/service/user.service.ts` | `PUT` | `/users/password` | usuários | sim | não | sim | válida |
-| `src/service/user.service.ts` | `PATCH` | `/employee/update-own-profile` | usuários | sim | não | sim | válida |
-| `src/service/document.service.ts` | `POST` | `/documents` | documentos | sim | não | sim | válida |
-| `src/service/document.service.ts` | `GET` | `/documents?type=...` | documentos | sim | não | sim | válida |
-| `src/service/document.service.ts` | `GET` | `/documents/{documentId}?employeeId?` | documentos | sim | não | sim | válida |
-| `src/service/document.service.ts` | `DELETE` | `/documents/{documentId}?employeeId?` | documentos | sim | não | sim | válida |
-| `src/service/message.service.ts` | `GET` | `/messages` | mensagens | sim | não | sim | válida |
-| `src/service/message.service.ts` | `POST` | `/messages` | mensagens | sim | não | sim | válida |
-| `src/service/message.service.ts` | `DELETE` | `/messages/{messageId}` | mensagens | sim | não | sim | válida |
-| `src/service/records.service.ts` | `POST` | `/records/report` | ponto/relatórios | sim | não | sim | válida |
-| `src/service/records.service.ts` | `GET` | `/records/pending-approvals` | ponto/ajustes | sim | não | sim | válida |
-| `src/service/records.service.ts` | `PATCH` | `/records/approve/{timeRecordId}` | ponto/ajustes | sim | não | sim | válida |
-| `src/service/records.service.ts` | `PATCH` | `/records/reject/{timeRecordId}` | ponto/ajustes | sim | não | sim | válida |
-| `src/service/records.service.ts` | `POST` | `/records/vacation-request` | férias | sim | não | sim | válida |
-| `src/service/records.service.ts` | `GET` | `/records/vacation-request` | férias | sim | não | sim | válida |
-| `src/service/records.service.ts` | `PATCH` | `/records/vacation-request/approve` | férias | sim | não | sim | válida |
-| `src/service/records.service.ts` | `PATCH` | `/records/vacation-request/reject` | férias | sim | não | sim | válida |
-| `src/service/records.service.ts` | `POST` | `/records/time-off/request` | abonos | sim | não | sim | válida |
-| `src/service/records.service.ts` | `GET` | `/records/time-off/requests` | abonos | sim | não | sim | válida |
-| `src/service/records.service.ts` | `PATCH` | `/records/time-off/approve/{timeRecordId}` | abonos | sim | não | sim | válida |
-| `src/service/records.service.ts` | `PATCH` | `/records/time-off/reject/{timeRecordId}` | abonos | sim | não | sim | válida |
-| `src/service/terms.service.ts` | `GET` | `/terms/status` | termos | sim | não | sim | válida |
-| `src/service/terms.service.ts` | `POST` | `/terms/accept-biometric` | termos | sim | não | sim | válida |
-| `src/service/terms.service.ts` | `DELETE` | `/terms/revoke-biometric` | termos | sim | não | sim | válida |
-| `src/service/fiscal.service.ts` | `GET` | `/legal/technical-certificate` | legal/fiscal | sim | não | sim | válida |
-| `src/service/fiscal.service.ts` | `GET` | `/legal/afd` | legal/fiscal | sim | não | sim | válida |
-| `src/service/fiscal.service.ts` | `GET` | `/legal/aej` | legal/fiscal | sim | não | sim | válida |
-| `src/service/fiscal.service.ts` | `GET` | `/legal/espelho-ponto` | legal/fiscal | sim | não | sim | válida |
+## Company
 
-## Chamadas classificadas como obsoletas ou removidas
+- `GET /companies`
+- `GET /companies/:cnpj`
+- `GET /companies/check-cnpj`
+- `POST /companies`
+- `PATCH /companies/:cnpj`
+- `PATCH /companies/:cnpj/toggle-activate`
+- `POST /geolocation/resolve`
 
-Não há uso ativo no código atual para:
+## Documents
 
-- `/employees/create-partner`
-- `/employees/create-manager`
-- `/companies/list-basic`
-- `/auth/username-availability`
-- `/documents/me`
-- `/documents/employee/{employeeId}`
-- `/documents/upload`
-- `/records/time-off-request`
+- `GET /documents?type=...`
+- `GET /documents/:documentId`
+- `DELETE /documents/:documentId`
+- `POST /documents`
 
-## Observações
+## Records
 
-- Não há uso ativo de `fetch` em `src` para integrações de produção.
-- Todas as chamadas internas ao backend passam por `api.ts`.
-- As integrações críticas do sistema estão cobertas por testes unitários com MSW.
+- `POST /records/report`
+- `GET /records/pending-approvals`
+- `PATCH /records/approve/:timeRecordId`
+- `PATCH /records/reject/:timeRecordId`
+- `POST /records/time-off/request`
+- `GET /records/time-off/requests`
+- `PATCH /records/time-off/approve/:timeRecordId`
+- `PATCH /records/time-off/reject/:timeRecordId`
+- `POST /records/vacation-request`
+- `GET /records/vacation-request`
+- `PATCH /records/vacation-request/approve`
+- `PATCH /records/vacation-request/reject`
+
+## Legal
+
+- `GET /legal/technical-certificate`
+- `GET /legal/afd`
+- `GET /legal/aej`
+- `GET /legal/espelho-ponto`
+
+## Notes
+
+- Os downloads legais usam o helper de erro compartilhado para exibir `429` e `503`.
+- O espelho de ponto pode receber `targetEmployeeId` opcional.
+- A listagem de documentos exige `type` em todas as chamadas.
+

@@ -73,9 +73,13 @@ const downloadFiscalBlob = (
 };
 
 export const FiscalService = {
-  downloadMirror: async (startDate: string, endDate: string) => {
+  downloadMirror: async (startDate: string, endDate: string, targetEmployeeId?: string) => {
     const response = await api.get(FISCAL_ENDPOINTS.mirror, {
-      params: { startDate, endDate },
+      params: {
+        startDate,
+        endDate,
+        ...(targetEmployeeId ? { targetEmployeeId } : {}),
+      },
       responseType: "blob",
     });
 

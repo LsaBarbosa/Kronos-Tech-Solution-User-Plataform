@@ -1,190 +1,34 @@
-# Arquitetura Técnica do Front-end
+# Frontend Architecture
 
-## Visão geral
+Arquitetura resumida do front-end da Kronos.
 
-O front-end segue uma arquitetura por domínio, com quatro regras centrais:
+## Estrutura
 
-1. chamadas internas ao backend passam por `api.ts`
-2. services encapsulam endpoint, payload, erro e normalização
-3. hooks orquestram estado de UI e consumo de services
-4. componentes e páginas não conhecem detalhes de endpoint
+- `src/config`: cliente HTTP e rotas de API.
+- `src/service`: integracao com o backend por dominio.
+- `src/hooks`: estado e orquestracao de telas.
+- `src/pages`: telas de negocio.
+- `src/components`: componentes reutilizaveis e guardas de rota.
+- `src/test`: testes de contrato, integracao mockada e setup do Vitest.
 
-## Estrutura principal
+## Fluxo de dados
 
-- `src/config/api.ts`: client Axios central com interceptors
-- `src/config/api-routes.ts`: rotas oficiais da API
-- `src/service/*.service.ts`: camada oficial de integração por domínio
-- `src/service/helpers/*`: normalização e padronização de erro
-- `src/context/AuthContext.tsx`: sessão global
-- `src/hooks/*`: orquestração de formulário, queries e mutações
-- `src/pages/*`: composição de tela
-- `src/test/*`: setup de testes e handlers MSW
+1. A UI chama um hook ou pagina.
+2. O hook usa um service.
+3. O service usa o Axios centralizado em `src/config/api.ts`.
+4. Erros HTTP sao normalizados em `ServiceError`.
+5. A UI mostra mensagens orientadas por contrato.
 
-## Padrão obrigatório de service
+## Regras de contrato
 
-Cada service deve:
+- Nao consumir endpoints legados removidos.
+- Nao chamar servicos de geolocalizacao direto no navegador.
+- Tratar `429` e `503` como comportamento operacional, nao como erro genérico.
+- Manter os contratos criticos cobertos por testes de guard.
 
-- usar `api.ts`
-- usar `API_ROUTES` e `buildRoute`
-- normalizar respostas com `response-normalizer.helper`
-- propagar erros via `service-error.helper`
-- expor funções pequenas e específicas por endpoint
+## Ponto de atencao
 
-Não usar:
+- O backend `flag/redis` exige cobertura documental para `/geolocation/resolve`.
+- O login facial ainda usa `livenessPassed` como compatibilidade contratual.
+- O espelho de ponto aceita `targetEmployeeId?` para gestores.
 
-- `fetch` para backend interno
-- strings soltas de endpoint em componente
-- parsing manual repetido de envelopes no componente
-
-Exceção:
-
-- integrações externas explícitas, como geocodificação, podem usar `fetch`
-
-## Sessão e autenticação
-
-- `AuthProvider` envolve a árvore da aplicação
-- `ProtectedRoute` usa `AuthContext`
-- o token é persistido via camada de browser/storage
-- login com senha usa `POST /auth/login`
-- login facial usa `POST /auth/login-face` com `{ faceImageBase64, livenessPassed }`
-- revogação biométrica usa `DELETE /terms/revoke-biometric`
-- logout é local
-
-## Padrão de erro
-
-Usar `src/service/helpers/service-error.helper.ts`.
-
-Objetivo:
-
-- transformar erros HTTP em `ServiceError`
-- padronizar `401`, `403`, `404`, `409`, `500`
-- evitar parsing duplicado em hooks e componentes
-
-## Padrão de normalização
-
-Usar `src/service/helpers/response-normalizer.helper.ts`.
-
-Helpers principais:
-
-- `extractArray`
-- `extractObject`
-- `extractPage`
-- `safeString`
-- `safeBoolean`
-- `safeDate`
-
-Objetivo:
-
-- aceitar arrays diretos e envelopes
-- evitar quebra por payload parcial
-- manter parsing no service, não na UI
-
-## Rotas da API
-
-Cadastrar novas rotas em [src/config/api-routes.ts](/home/kronos/Documentos/Codigin/Kronos-Tech-Solution-User-Plataform/src/config/api-routes.ts).
-
-Regras:
-
-- evitar strings literais em services
-- preferir `buildRoute(...)` para path params
-- manter um namespace por domínio
-
-## Como criar um novo service
-
-1. definir rota em `api-routes.ts`
-2. criar `src/service/<dominio>.service.ts`
-3. usar `api.ts`
-4. normalizar resposta
-5. normalizar erro
-6. criar teste unitário com MSW
-
-## Como testar service com MSW
-
-Arquivos-base:
-
-- `src/test/setup.ts`
-- `src/test/mocks/server.ts`
-
-Padrão:
-
-1. sobrescrever handler com `server.use(...)`
-2. chamar o service
-3. validar método, URL, body e retorno
-
-## Endpoints oficiais por domínio
-
-### Auth
-
-- `POST /auth/login`
-- `POST /auth/login-face`
-- `POST /auth/recover-password`
-- `POST /auth/reset-password`
-
-### Companies
-
-- `POST /companies`
-- `GET /companies`
-- `GET /companies/{cnpj}`
-- `PATCH /companies/{cnpj}`
-- `PATCH /companies/{cnpj}/toggle-activate`
-- `GET /companies/check-cnpj`
-
-### Employee
-
-- `POST /employee`
-- `GET /employee`
-- `GET /employee/{employeeId}`
-- `PATCH /employee/manager/update-employee/{employeeId}`
-- `DELETE /employee/{employeeId}`
-- `GET /employee/check-cpf`
-- `GET /employee/own-profile`
-
-### Users
-
-- `POST /users`
-- `GET /users/search`
-- `GET /users/own-profile`
-- `GET /users/check-username`
-- `PUT /users/password`
-- `PATCH /users/toggle-activate/{userId}`
-
-### Documents
-
-- `POST /documents`
-- `GET /documents` com `type` obrigatório
-- `GET /documents/{documentId}` com `employeeId` opcional
-- `DELETE /documents/{documentId}` com `employeeId` opcional
-
-### Messages
-
-- `POST /messages`
-- `GET /messages`
-- `DELETE /messages/{messageId}`
-
-### Records
-
-- `POST /records/report`
-- `GET /records/pending-approvals`
-- `PATCH /records/approve/{timeRecordId}`
-- `PATCH /records/reject/{timeRecordId}`
-- `POST /records/vacation-request`
-- `GET /records/vacation-request`
-- `PATCH /records/vacation-request/approve`
-- `PATCH /records/vacation-request/reject`
-- `POST /records/time-off/request`
-- `GET /records/time-off/requests`
-- `PATCH /records/time-off/approve/{timeRecordId}`
-- `PATCH /records/time-off/reject/{timeRecordId}`
-
-### Terms
-
-- `GET /terms/status`
-- `POST /terms/accept-biometric`
-- `DELETE /terms/revoke-biometric`
-
-### Legal
-
-- `GET /legal/technical-certificate`
-- `GET /legal/afd`
-- `GET /legal/aej`
-- `GET /legal/espelho-ponto`

@@ -37,16 +37,36 @@ describe("fiscal.service", () => {
     ).resolves.toBe("Espelho_2026-04-01_2026-04-30.pdf");
 
     expect(getSpy).toHaveBeenCalledWith("/legal/espelho-ponto", {
-      params: {
-        startDate: "2026-04-01",
-        endDate: "2026-04-30",
-      },
-      responseType: "blob",
-    });
+        params: {
+          startDate: "2026-04-01",
+          endDate: "2026-04-30",
+        },
+        responseType: "blob",
+      });
 
     expect(createObjectURLMock).toHaveBeenCalledWith(expect.any(Blob));
     expect(clickSpy).toHaveBeenCalled();
     expect(revokeObjectURLMock).toHaveBeenCalledWith("blob:fiscal");
+  });
+
+  it("envia targetEmployeeId quando o espelho é gerado para outro colaborador", async () => {
+    const getSpy = vi.spyOn(api, "get").mockResolvedValue({
+      data: new Blob(["pdf"]),
+      headers: {},
+    } as never);
+
+    await expect(
+      FiscalService.downloadMirror("2026-04-01", "2026-04-30", "emp-1")
+    ).resolves.toBe("Espelho_2026-04-01_2026-04-30.pdf");
+
+    expect(getSpy).toHaveBeenCalledWith("/legal/espelho-ponto", {
+      params: {
+        startDate: "2026-04-01",
+        endDate: "2026-04-30",
+        targetEmployeeId: "emp-1",
+      },
+      responseType: "blob",
+    });
   });
 
   it("baixa o AFD com nome padronizado", async () => {

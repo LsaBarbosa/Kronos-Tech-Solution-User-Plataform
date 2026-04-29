@@ -4,6 +4,8 @@ export type ServiceErrorKind =
   | "validation"
   | "auth"
   | "terms"
+  | "rateLimit"
+  | "serviceUnavailable"
   | "http"
   | "network"
   | "unknown";
@@ -44,6 +46,8 @@ const DEFAULT_MESSAGES: Record<ServiceErrorKind, string> = {
   validation: "Erro de validação. Verifique os dados informados.",
   auth: "Sessão expirada ou acesso não autorizado.",
   terms: "Aceite dos termos de uso pendente.",
+  rateLimit: "Processamento em andamento. Aguarde alguns instantes e tente novamente.",
+  serviceUnavailable: "Serviço temporariamente indisponível. Tente novamente em instantes.",
   http: "Erro ao processar solicitação.",
   network: "Erro de conexão. Verifique sua internet e tente novamente.",
   unknown: "Erro desconhecido ao processar solicitação.",
@@ -135,6 +139,14 @@ const getErrorKind = (status?: number, data?: unknown): ServiceErrorKind => {
 
   if (status === 400) {
     return "validation";
+  }
+
+  if (status === 429) {
+    return "rateLimit";
+  }
+
+  if (status === 503) {
+    return "serviceUnavailable";
   }
 
   if (status === 403 && isRecord(data) && data.type === "TERMS_NOT_ACCEPTED") {
