@@ -38,13 +38,27 @@ const REQUIRED_PATTERNS = [
 
 const GELOCATION_DOC_PATH = "docs/api-contract-map.md";
 const GELOCATION_DOC_PATTERNS = ["/geolocation/resolve", "flag/redis"];
+const FLAG_DOC_PATH = "docs/flag-redis-adherence.md";
+const FLAG_DOC_PATTERNS = [
+  "flag/redis",
+  "Geolocation",
+  "/geolocation/resolve",
+  "Redis",
+  "429",
+  "503",
+];
+const README_REQUIRED_PATTERNS = [
+  "docs/flag-redis-adherence.md",
+  "docs/api-contract-map.md",
+];
 const GEOLOCATION_ADHERENT_ROW =
   /\|\s*Geolocation\s*\|\s*`POST\s+\/geolocation\/resolve`\s*\|\s*Aderente\s*\|/i;
 const GEOLOCATION_STALE_STATUS_PATTERNS = [
   /Bloqueado/i,
+  /bloqueado/i,
   /pendente/i,
-  /não exposto/i,
-  /nao exposto/i,
+  /não expõe/i,
+  /nao expoe/i,
   /não existe/i,
   /nao existe/i,
 ];
@@ -145,11 +159,31 @@ describe("api contract guard", () => {
     );
 
     expect(geolocationDoc).toBeDefined();
-    expect(geolocationDoc?.content).toContain(GELOCATION_DOC_PATTERNS[0]);
+    const geolocationRow = geolocationDoc?.content.match(
+      /\|\s*Geolocation\s*\|[^\n]+/i
+    )?.[0];
+
+    expect(geolocationRow).toBeDefined();
+    expect(geolocationRow).toContain(GELOCATION_DOC_PATTERNS[0]);
+    expect(geolocationRow).toContain("Aderente");
     expect(geolocationDoc?.content).toContain(GELOCATION_DOC_PATTERNS[1]);
-    expect(geolocationDoc?.content).toMatch(GEOLOCATION_ADHERENT_ROW);
+
+    expect(geolocationRow).toMatch(GEOLOCATION_ADHERENT_ROW);
     for (const stalePattern of GEOLOCATION_STALE_STATUS_PATTERNS) {
-      expect(geolocationDoc?.content).not.toMatch(stalePattern);
+      expect(geolocationRow).not.toMatch(stalePattern);
+    }
+
+    const flagDoc = combinedContent.find(({ filePath }) => filePath === FLAG_DOC_PATH);
+
+    expect(flagDoc).toBeDefined();
+    for (const requiredPattern of FLAG_DOC_PATTERNS) {
+      expect(flagDoc?.content).toContain(requiredPattern);
+    }
+
+    const readme = combinedContent.find(({ filePath }) => filePath === "README.md");
+    expect(readme).toBeDefined();
+    for (const requiredPattern of README_REQUIRED_PATTERNS) {
+      expect(readme?.content).toContain(requiredPattern);
     }
   });
 });

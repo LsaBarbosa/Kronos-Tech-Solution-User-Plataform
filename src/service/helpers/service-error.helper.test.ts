@@ -47,15 +47,27 @@ describe("service-error.helper", () => {
   });
 
   it("converte 429 em rate limit com mensagem amigável", () => {
-    const error = normalizeServiceError(
-      axiosError(429, { detail: "Processamento em andamento." })
-    );
+    const error = normalizeHttpResponseError(429, {
+      detail: "Relatório já está em processamento.",
+    });
 
     expect(error).toMatchObject({
       kind: "rateLimit",
       status: 429,
-      message: "Processamento em andamento.",
+      message: "Relatório já está em processamento.",
     });
+  });
+
+  it("extrai title e error quando detail nao existe", () => {
+    const titleError = normalizeHttpResponseError(400, {
+      title: "Título do erro.",
+    });
+    const errorField = normalizeHttpResponseError(400, {
+      error: "Campo error prioritário.",
+    });
+
+    expect(titleError.message).toBe("Título do erro.");
+    expect(errorField.message).toBe("Campo error prioritário.");
   });
 
   it("converte 429 sem corpo em rate limit com mensagem padrão", () => {
@@ -108,5 +120,11 @@ describe("service-error.helper", () => {
     });
 
     expect(getServiceErrorMessage(error)).toBe("Nome de usuário obrigatório.");
+  });
+
+  it("usa fallback da UI para erro axios sem mensagem legivel", () => {
+    expect(getServiceErrorMessage(axiosError(503), "Mensagem de fallback")).toBe(
+      "Serviço temporariamente indisponível. Tente novamente em instantes."
+    );
   });
 });

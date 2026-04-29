@@ -33,6 +33,12 @@ Também pode retornar `503` quando a camada Redis estiver temporariamente indisp
 O front normaliza esses status em `src/service/helpers/service-error.helper.ts`, usando `rateLimit` para `429` e `serviceUnavailable` para `503`.
 As telas fiscais devem evitar múltiplos cliques durante downloads para reduzir concorrência desnecessária contra os locks do backend.
 
+## Cobertura automatizada
+
+- O helper de erro possui testes específicos para `429` e `503`.
+- `AuditoriaFiscal` e `EspelhoPonto` possuem testes de bloqueio de clique durante download.
+- `EspelhoPonto` cobre o envio de `targetEmployeeId` quando um colaborador é selecionado.
+
 ## Geolocalização
 
 O front consome `POST /geolocation/resolve` por meio de `src/service/geolocation.service.ts`.
