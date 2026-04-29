@@ -28,7 +28,6 @@ Arquitetura resumida do front-end da Kronos.
 
 ## Ponto de atencao
 
-- O backend `flag/redis` exige cobertura documental para `/geolocation/resolve`.
-- O login facial ainda usa `livenessPassed` como compatibilidade contratual.
+- O backend `flag/redis` expoe `/geolocation/resolve`; o front deve consumir esse endpoint em vez de chamar geocoding externo.
+- O login facial usa `livenessPassed` a partir de validacao minima local como compatibilidade contratual.
 - O espelho de ponto aceita `targetEmployeeId?` para gestores.
-

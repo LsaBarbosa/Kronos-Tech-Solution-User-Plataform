@@ -41,4 +41,16 @@ describe("geolocation.service", () => {
       resolveCompanyGeolocation("00000000", "10")
     ).rejects.toThrow("CEP não encontrado ou inválido.");
   });
+
+  it("falha quando o backend não retorna coordenadas numéricas", async () => {
+    server.use(
+      http.post("*/geolocation/resolve", () =>
+        HttpResponse.json({ latitude: null, longitude: -46.633308 })
+      )
+    );
+
+    await expect(
+      resolveCompanyGeolocation("01001000", "100")
+    ).rejects.toThrow("Localização não encontrada para o endereço informado.");
+  });
 });

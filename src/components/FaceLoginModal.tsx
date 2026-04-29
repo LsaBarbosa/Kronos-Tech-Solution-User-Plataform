@@ -16,7 +16,7 @@ interface FaceLoginModalProps {
 
 const FaceLoginModal = ({ isOpen, onOpenChange }: FaceLoginModalProps) => {
     const [imageSrc, setImageSrc] = useState<string | null>(null);
-    const [livenessPassed] = useState<boolean>(() => true);
+    const [hasCapturedFrame, setHasCapturedFrame] = useState(false);
     const [isCapturing, setIsCapturing] = useState(false);
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [isStreamReady, setIsStreamReady] = useState(false);
@@ -25,6 +25,14 @@ const FaceLoginModal = ({ isOpen, onOpenChange }: FaceLoginModalProps) => {
     const canvasRef = useRef<HTMLCanvasElement>(null);
     const navigate = useNavigate();
     const { login } = useAuth();
+
+    const isValidCapturedImage = useCallback((capturedDataUrl: string | null) => {
+        return Boolean(capturedDataUrl?.startsWith("data:image/") && capturedDataUrl.length > 100);
+    }, []);
+
+    const validateLiveness = useCallback(() => {
+        return isValidCapturedImage(imageSrc) && hasCapturedFrame && !isStreamReady;
+    }, [hasCapturedFrame, imageSrc, isStreamReady, isValidCapturedImage]);
 
     const stopWebcam = useCallback(() => {
         const videoElement = videoRef.current;
@@ -80,13 +88,14 @@ const FaceLoginModal = ({ isOpen, onOpenChange }: FaceLoginModalProps) => {
         } else {
             stopWebcam();
             setImageSrc(null);
+            setHasCapturedFrame(false);
             setIsSubmitting(false);
             setIsCapturing(false); 
         }
     }, [isOpen, startWebcam, stopWebcam]);
 
     const handleCapture = () => {
-        if (!videoRef.current || !canvasRef.current) return;
+        if (!videoRef.current || !canvasRef.current || !isStreamReady) return;
 
         const video = videoRef.current;
         const canvas = canvasRef.current;
@@ -102,10 +111,12 @@ const FaceLoginModal = ({ isOpen, onOpenChange }: FaceLoginModalProps) => {
             ctx.drawImage(video, 0, 0, width, height);
             const dataUrl = canvas.toDataURL('image/jpeg', 0.9);
             
-            if (dataUrl.length > 100) {
+            if (isValidCapturedImage(dataUrl)) {
+                setHasCapturedFrame(true);
                 setImageSrc(dataUrl);
                 stopWebcam();
             } else {
+                setHasCapturedFrame(false);
                 toast.error("Falha na captura. Tente novamente.");
             }
         }
@@ -113,6 +124,7 @@ const FaceLoginModal = ({ isOpen, onOpenChange }: FaceLoginModalProps) => {
 
     const handleRetake = () => {
         setImageSrc(null);
+        setHasCapturedFrame(false);
         setIsCapturing(false);
         setTimeout(() => {
             startWebcam();
@@ -121,6 +133,12 @@ const FaceLoginModal = ({ isOpen, onOpenChange }: FaceLoginModalProps) => {
 
     const handleLoginAttempt = async () => {
         if (!imageSrc) return;
+        const livenessPassed = validateLiveness();
+
+        if (!livenessPassed) {
+            toast.error("Validação biométrica incompleta. Capture o rosto novamente.");
+            return;
+        }
         
         setIsSubmitting(true);
         const base64Data = imageSrc.split(',')[1]; 

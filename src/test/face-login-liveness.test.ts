@@ -57,6 +57,8 @@ describe("loginWithFace — contrato de liveness (História 1.1)", () => {
   });
 
   it("lança erro quando o backend retorna resposta sem token", async () => {
+    const livenessPassed = Boolean(MOCK_FACE_BASE64);
+
     server.use(
       http.post("*/auth/login-face", () =>
         HttpResponse.json({}, { status: 200 })
@@ -64,11 +66,13 @@ describe("loginWithFace — contrato de liveness (História 1.1)", () => {
     );
 
     await expect(
-      loginWithFace({ faceImageBase64: MOCK_FACE_BASE64, livenessPassed: true })
+      loginWithFace({ faceImageBase64: MOCK_FACE_BASE64, livenessPassed })
     ).rejects.toThrow("Resposta de login facial sem token.");
   });
 
   it("lança erro quando o backend retorna 401", async () => {
+    const livenessPassed = Boolean(MOCK_FACE_BASE64);
+
     server.use(
       http.post("*/auth/login-face", () =>
         HttpResponse.json(
@@ -79,7 +83,7 @@ describe("loginWithFace — contrato de liveness (História 1.1)", () => {
     );
 
     await expect(
-      loginWithFace({ faceImageBase64: MOCK_FACE_BASE64, livenessPassed: true })
+      loginWithFace({ faceImageBase64: MOCK_FACE_BASE64, livenessPassed })
     ).rejects.toThrow();
   });
 });

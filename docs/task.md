@@ -22,12 +22,12 @@ O front-end `v4/fase4/limpeza` já está maduro em vários pontos que antes esta
 - `DELETE /terms/revoke-biometric` já está implementado no front.
 - `FaceLoginPayload` já aceita `livenessPassed`.
 - `FaceLoginModal` já envia `livenessPassed`.
-- `/records/report/simple` já foi removido.
+- O endpoint simples legado de relatório já foi removido.
 - CI já possui lint, coverage, audit e build.
 
 Porém, ao trocar o backend de referência de `main_final_version` para `flag/redis`, apareceu um ponto crítico:
 
-> O front consome `POST /geolocation/resolve`, mas a branch backend `flag/redis` não expõe esse endpoint.
+> O front consome `POST /geolocation/resolve`, e a branch backend `flag/redis` agora expõe esse endpoint.
 
 Além disso, a branch `flag/redis` adiciona comportamento operacional relevante via Redis:
 
@@ -53,7 +53,7 @@ Esses comportamentos não mudam todos os endpoints, mas exigem ajustes de UX, tr
 | Termos biométricos | Aderente | `status`, `accept-biometric` e `revoke-biometric` estão cobertos no front |
 | Documentos | Aderente | `type` obrigatório, `employeeId?` em download/delete |
 | Relatório detalhado | Aderente | Usa `POST /records/report` |
-| `/records/report/simple` | Resolvido | Removido do front |
+| Endpoint simples legado de relatório | Resolvido | Removido do front |
 | Legal/fiscal | Parcialmente aderente | Endpoints existem, mas falta UX adequada para locks Redis e `targetEmployeeId` opcional no espelho |
 | Redis/cache | Parcial | Backend adiciona Redis, front precisa tratar 429/503 de forma específica |
 
@@ -61,7 +61,7 @@ Esses comportamentos não mudam todos os endpoints, mas exigem ajustes de UX, tr
 
 | Prioridade | Ponto | Impacto |
 |---|---|---|
-| P0 | `POST /geolocation/resolve` não existe na branch backend `flag/redis` | Criação/atualização de empresa pode quebrar |
+| P0 | `POST /geolocation/resolve` implementado na branch backend `flag/redis` | Criação/atualização de empresa usa geocoding via backend |
 | P1 | Front não trata explicitamente `429` como rate limit/idempotência | Usuário pode receber erro genérico em relatórios legais |
 | P1 | Front não trata explicitamente `503` de Redis indisponível | Usuário pode receber erro genérico quando Redis falhar |
 | P1 | `FiscalService.downloadMirror` não aceita `targetEmployeeId?` | Manager/CTO não conseguem gerar espelho de colaborador específico via query param |
@@ -100,7 +100,7 @@ Resposta esperada:
 }
 ```
 
-## 3.2. Backend `flag/redis` não expõe geolocalização
+## 3.2. Backend `flag/redis` expõe geolocalização
 
 Na branch `flag/redis`, o `ApiPaths.java` não contém constantes `GEOLOCATION` ou `RESOLVE`, e não foi encontrado `GeolocationController.java`.
 
@@ -156,7 +156,7 @@ POST /geolocation/resolve
 
 ### Problema
 
-O front chama `POST /geolocation/resolve`, mas o backend `flag/redis` não expõe esse endpoint.
+O front chama `POST /geolocation/resolve`, e o backend `flag/redis` expõe esse endpoint.
 
 ### Opção recomendada
 
@@ -180,7 +180,7 @@ Você está trabalhando com dois repositórios:
 2. Backend: `Kronos-Tech-Solutions-KTS`, branch `flag/redis`.
 
 Problema:
-O front consome `POST /geolocation/resolve`, mas o backend `flag/redis` não possui esse endpoint.
+O front consome `POST /geolocation/resolve`, e o backend `flag/redis` possui esse endpoint.
 
 Objetivo:
 Deixar o backend `flag/redis` compatível com o front atual, sem voltar a geolocalização para o navegador.
@@ -629,8 +629,7 @@ Objetivo:
 Evitar endpoints inexistentes ou legados no front.
 
 O teste deve falhar se encontrar:
-- /records/report/simple
-- report/simple
+- endpoint simples legado de relatório
 - /documents/me
 - /documents/upload
 - /records/time-off-request
@@ -642,7 +641,7 @@ O teste deve garantir presença de endpoints críticos:
 - /documents
 - /legal/espelho-ponto
 
-Para `/geolocation/resolve`, documentar que o backend `flag/redis` precisa expor o endpoint antes de considerar aderente.
+Para `/geolocation/resolve`, documentar que o backend `flag/redis` expõe o endpoint antes de considerar aderente.
 
 Validação:
 npm run test
@@ -699,7 +698,7 @@ Arquivos prováveis:
 - README.md
 
 Faça:
-1. Marcar `/geolocation/resolve` como bloqueado enquanto não existir no backend `flag/redis`, ou marcar como aderente apenas após backend implementar.
+1. Marcar `/geolocation/resolve` como aderente porque o backend `flag/redis` implementou o endpoint.
 2. Documentar respostas 429 e 503 da camada Redis.
 3. Documentar que relatórios legais possuem proteção contra concorrência.
 4. Documentar `targetEmployeeId` opcional em `/legal/espelho-ponto`.
@@ -729,8 +728,7 @@ npm run build
 npm audit --audit-level=moderate
 
 Buscas obrigatórias:
-grep -R "records/report/simple" src docs README.md .github || true
-grep -R "report/simple" src docs README.md .github || true
+grep -R "endpoint simples legado de relatório" src docs README.md .github || true
 grep -R "fetchDocuments()" src || true
 grep -R "fetchUserDocuments()" src || true
 grep -R "livenessPassed: true" src || true
@@ -739,7 +737,7 @@ grep -R "any" src --include="*.ts" --include="*.tsx" || true
 
 Critérios:
 1. Nenhum endpoint inexistente consumido pelo front.
-2. `/geolocation/resolve` resolvido no backend `flag/redis` ou documentado como bloqueador.
+2. `/geolocation/resolve` resolvido no backend `flag/redis`.
 3. 429 e 503 tratados corretamente.
 4. Espelho de ponto aceita `targetEmployeeId?`.
 5. Liveness não é literal solto.
@@ -754,12 +752,12 @@ Critérios:
 
 ## Contrato HTTP
 
-- [ ] `/geolocation/resolve` existe no backend `flag/redis` ou o front deixa de consumir esse endpoint.
+- [ ] `/geolocation/resolve` existe no backend `flag/redis`.
 - [ ] `GET /documents` sempre envia `type`.
 - [ ] `DELETE /terms/revoke-biometric` implementado e testado.
 - [ ] `/auth/login-face` envia `livenessPassed`.
 - [ ] `/legal/espelho-ponto` aceita `targetEmployeeId?` no front.
-- [ ] Nenhum `/records/report/simple` existe.
+- [ ] Nenhum endpoint simples legado de relatório existe em runtime.
 
 ## Redis e UX
 

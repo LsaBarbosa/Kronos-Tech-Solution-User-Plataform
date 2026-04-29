@@ -2,7 +2,10 @@
 
 ## Situação atual
 
-O front envia `livenessPassed` no payload de `POST /auth/login-face`, mas a validacao ainda e apenas contratual.
+O front envia `livenessPassed` no payload de `POST /auth/login-face`.
+Hoje o valor vem de uma validacao minima local (`validateLiveness`) que confirma apenas uma captura de imagem valida antes do envio.
+Essa validacao confere imagem capturada, tamanho minimo e frame obtido apos inicializacao da camera.
+Essa validacao ainda e compatibilidade contratual, nao liveness biometrico real.
 
 ## Risco
 
@@ -21,4 +24,3 @@ Sem liveness real, a captura pode aceitar imagens estaticas e abrir margem para 
 - O liveness nao pode depender de um literal fixo.
 - O backend deve conseguir validar a evidencia recebida.
 - A UI deve explicar claramente quando a validacao e apenas parcial.
-

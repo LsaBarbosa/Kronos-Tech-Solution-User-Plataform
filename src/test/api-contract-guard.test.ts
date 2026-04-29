@@ -32,11 +32,22 @@ const REQUIRED_PATTERNS = [
   "/terms/revoke-biometric",
   "/auth/login-face",
   "/documents",
+  "/geolocation/resolve",
   "/legal/espelho-ponto",
 ];
 
 const GELOCATION_DOC_PATH = "docs/api-contract-map.md";
 const GELOCATION_DOC_PATTERNS = ["/geolocation/resolve", "flag/redis"];
+const GEOLOCATION_ADHERENT_ROW =
+  /\|\s*Geolocation\s*\|\s*`POST\s+\/geolocation\/resolve`\s*\|\s*Aderente\s*\|/i;
+const GEOLOCATION_STALE_STATUS_PATTERNS = [
+  /Bloqueado/i,
+  /pendente/i,
+  /não exposto/i,
+  /nao exposto/i,
+  /não existe/i,
+  /nao existe/i,
+];
 
 const shouldScanFile = (filePath: string): boolean => {
   if (SKIP_FILES.has(filePath) || filePath === "README.md") {
@@ -136,5 +147,9 @@ describe("api contract guard", () => {
     expect(geolocationDoc).toBeDefined();
     expect(geolocationDoc?.content).toContain(GELOCATION_DOC_PATTERNS[0]);
     expect(geolocationDoc?.content).toContain(GELOCATION_DOC_PATTERNS[1]);
+    expect(geolocationDoc?.content).toMatch(GEOLOCATION_ADHERENT_ROW);
+    for (const stalePattern of GEOLOCATION_STALE_STATUS_PATTERNS) {
+      expect(geolocationDoc?.content).not.toMatch(stalePattern);
+    }
   });
 });

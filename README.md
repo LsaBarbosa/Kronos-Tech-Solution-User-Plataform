@@ -83,8 +83,7 @@ npm run build
 - O mapa completo de endpoints consumidos está em [docs/api-contract-map.md](/home/kronos/Documentos/Codigin/Kronos-Tech-Solution-User-Plataform/docs/api-contract-map.md).
 - O inventario HTTP do front está em [docs/frontend-http-inventory.md](/home/kronos/Documentos/Codigin/Kronos-Tech-Solution-User-Plataform/docs/frontend-http-inventory.md).
 - A visao de arquitetura está em [docs/frontend-architecture.md](/home/kronos/Documentos/Codigin/Kronos-Tech-Solution-User-Plataform/docs/frontend-architecture.md).
-- A matriz de permissão do front está em [docs/permissions.md](/home/kronos/Documentos/Codigin/Kronos-Tech-Solution-User-Plataform/docs/permissions.md).
-- Mudanças recomendadas para o backend estão em [docs/backend-required-changes.md](/home/kronos/Documentos/Codigin/Kronos-Tech-Solution-User-Plataform/docs/backend-required-changes.md).
+- A aderência à branch backend `flag/redis` está em [docs/flag-redis-adherence.md](/home/kronos/Documentos/Codigin/Kronos-Tech-Solution-User-Plataform/docs/flag-redis-adherence.md).
 - O plano de liveness biometrico está em [docs/biometric-liveness-plan.md](/home/kronos/Documentos/Codigin/Kronos-Tech-Solution-User-Plataform/docs/biometric-liveness-plan.md).
 - O plano OpenAPI está em [docs/openapi-contract-plan.md](/home/kronos/Documentos/Codigin/Kronos-Tech-Solution-User-Plataform/docs/openapi-contract-plan.md).
 
@@ -110,5 +109,4 @@ npm run build
 - `npm` fora do `PATH`: garanta que o Node instalado pelo `nvm` esteja carregado no shell.
 - `401/403` na navegação: verifique `VITE_API_BASE_URL` e o token salvo no storage.
 - erro de geolocalização: a criação/edição de empresa depende do endpoint backend `POST /geolocation/resolve`.
-- erro de geolocalização: a criação/edição de empresa continua dependendo do endpoint backend `POST /geolocation/resolve`.
 - teste falhando por rota não mockada: adicione ou atualize o handler em `src/test/mocks/handlers.ts`.

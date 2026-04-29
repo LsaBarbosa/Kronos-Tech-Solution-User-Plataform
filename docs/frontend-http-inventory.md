@@ -17,7 +17,7 @@ Inventario das chamadas HTTP usadas pelo front-end.
 - `POST /companies`
 - `PATCH /companies/:cnpj`
 - `PATCH /companies/:cnpj/toggle-activate`
-- `POST /geolocation/resolve`
+- `POST /geolocation/resolve` com `{ postalCode, number }`
 
 ## Documents
 
@@ -53,4 +53,4 @@ Inventario das chamadas HTTP usadas pelo front-end.
 - Os downloads legais usam o helper de erro compartilhado para exibir `429` e `503`.
 - O espelho de ponto pode receber `targetEmployeeId` opcional.
 - A listagem de documentos exige `type` em todas as chamadas.
-
+- A geolocalizacao e resolvida exclusivamente pelo backend `flag/redis`; o front nao chama HERE, ViaCEP ou geocoding externo diretamente.

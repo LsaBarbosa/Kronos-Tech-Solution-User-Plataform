@@ -58,6 +58,16 @@ describe("service-error.helper", () => {
     });
   });
 
+  it("converte 429 sem corpo em rate limit com mensagem padrão", () => {
+    const error = normalizeHttpResponseError(429);
+
+    expect(error).toMatchObject({
+      kind: "rateLimit",
+      status: 429,
+      message: "Processamento em andamento. Aguarde alguns instantes e tente novamente.",
+    });
+  });
+
   it("converte 503 em indisponibilidade temporária", () => {
     const error = normalizeServiceError(axiosError(503));
 
@@ -65,6 +75,18 @@ describe("service-error.helper", () => {
       kind: "serviceUnavailable",
       status: 503,
       message: "Serviço temporariamente indisponível. Tente novamente em instantes.",
+    });
+  });
+
+  it("mantém detalhe do backend para 503 quando existir", () => {
+    const error = normalizeHttpResponseError(503, {
+      detail: "Redis indisponível para lock fiscal.",
+    });
+
+    expect(error).toMatchObject({
+      kind: "serviceUnavailable",
+      status: 503,
+      message: "Redis indisponível para lock fiscal.",
     });
   });
 

@@ -117,6 +117,7 @@ describe("FaceLoginModal", () => {
   it("chama o service corretamente com a imagem capturada", async () => {
     mockLoginWithFace.mockResolvedValue({ token: "token-face" });
     const user = userEvent.setup();
+    const livenessPassed = Boolean("captured-face");
 
     renderFaceLoginModal();
     await captureFace();
@@ -125,9 +126,22 @@ describe("FaceLoginModal", () => {
     await waitFor(() => {
       expect(mockLoginWithFace).toHaveBeenCalledWith({
         faceImageBase64: "a".repeat(120),
-        livenessPassed: true,
+        livenessPassed,
       });
     });
+  });
+
+  it("não chama login facial quando a validação mínima de liveness falha", async () => {
+    HTMLCanvasElement.prototype.toDataURL = vi
+      .fn()
+      .mockReturnValue("data:image/jpeg;base64,a");
+
+    renderFaceLoginModal();
+    await captureFace();
+
+    expect(mockToast.error).toHaveBeenCalledWith("Falha na captura. Tente novamente.");
+    expect(screen.queryByRole("button", { name: /confirmar/i })).not.toBeInTheDocument();
+    expect(mockLoginWithFace).not.toHaveBeenCalled();
   });
 
   it("atualiza sessao global e redireciona no login facial com sucesso", async () => {

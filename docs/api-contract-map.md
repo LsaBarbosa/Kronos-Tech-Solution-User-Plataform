@@ -22,7 +22,7 @@ Mapa de aderencia entre o front-end e o backend.
 | Legal | `GET /legal/afd` | Aderente | Pode retornar `429` ou `503`. |
 | Legal | `GET /legal/aej` | Aderente | Pode retornar `429` ou `503`. |
 | Legal | `GET /legal/espelho-ponto` | Aderente | Aceita `startDate`, `endDate` e `targetEmployeeId?`. |
-| Geolocation | `POST /geolocation/resolve` | Bloqueado ate o backend `flag/redis` expor o endpoint | O front continua consumindo esse contrato para criar e atualizar empresas. |
+| Geolocation | `POST /geolocation/resolve` | Aderente | Backend `flag/redis` expõe `GeolocationController` com `POST /geolocation/resolve`. |
 
 ## Regras de interesse
 
@@ -30,4 +30,4 @@ Mapa de aderencia entre o front-end e o backend.
 - `503` significa indisponibilidade temporaria da camada Redis.
 - `targetEmployeeId` no espelho de ponto e opcional.
 - O front nao resolve geolocalizacao diretamente no navegador.
-
+- `POST /geolocation/resolve` recebe `{ postalCode, number }` e retorna latitude/longitude numericas.

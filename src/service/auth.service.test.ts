@@ -36,13 +36,15 @@ describe("auth.service", () => {
   });
 
   it("realiza login facial com sucesso e retorna token", async () => {
+    const livenessPassed = Boolean("captured-face");
+
     server.use(
       http.post("*/auth/login-face", async ({ request }) => {
         const body = await request.json();
 
         expect(body).toEqual({
           faceImageBase64: "imagem-base64",
-          livenessPassed: true,
+          livenessPassed,
         });
 
         return HttpResponse.json({ token: "token-face" });
@@ -50,11 +52,13 @@ describe("auth.service", () => {
     );
 
     await expect(
-      loginWithFace({ faceImageBase64: "imagem-base64", livenessPassed: true })
+      loginWithFace({ faceImageBase64: "imagem-base64", livenessPassed })
     ).resolves.toEqual({ token: "token-face" });
   });
 
   it("lança erro padronizado quando login facial falha", async () => {
+    const livenessPassed = Boolean("captured-face");
+
     server.use(
       http.post("*/auth/login-face", () =>
         HttpResponse.json(
@@ -65,7 +69,7 @@ describe("auth.service", () => {
     );
 
     await expect(
-      loginWithFace({ faceImageBase64: "imagem-base64", livenessPassed: true })
+      loginWithFace({ faceImageBase64: "imagem-base64", livenessPassed })
     ).rejects.toThrow("Face nao reconhecida.");
   });
 });
