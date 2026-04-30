@@ -6,6 +6,7 @@ import type { EmployeeListItem, DocumentType } from "@/types/document";
 import { MAX_UPLOAD_SIZE_BYTES, ALLOWED_MIME_TYPES } from "@/types/document";
 import { fetchEmployeesForSelection, uploadDocument } from "@/service/document.service";
 import { isAuthServiceError, normalizeServiceError } from "@/service/helpers/service-error.helper";
+import { getAdministrativeErrorMessage } from "@/service/helpers/admin-error-message.helper";
 import { showErrorToast, showSuccessToast } from "@/lib/feedback";
 
 const DEFAULT_DOCUMENT_TYPE: DocumentType = "EMPLOYEE_DOCUMENTS";
@@ -185,7 +186,7 @@ export const useDocumentUpload = (): UseDocumentUploadReturn => {
             const normalized = normalizeServiceError(err);
             showErrorToast(
                 "Erro no Envio",
-                normalized.message || "Falha ao enviar o documento. Verifique o tamanho e formato."
+                getAdministrativeErrorMessage(normalized, "document")
             );
         } finally {
             setIsUploading(false);

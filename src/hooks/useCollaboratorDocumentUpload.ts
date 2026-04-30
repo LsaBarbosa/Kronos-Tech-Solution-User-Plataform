@@ -2,6 +2,7 @@ import { useCallback, useEffect, useRef, useState, type ChangeEvent, type DragEv
 import { useAuth } from "@/context/AuthContext";
 import { useToast } from "@/hooks/use-toast";
 import { fetchEmployeesForSelection, uploadDocument } from "@/service/document.service";
+import { getAdministrativeErrorMessage } from "@/service/helpers/admin-error-message.helper";
 import { ALLOWED_MIME_TYPES, MAX_UPLOAD_SIZE_BYTES, type DocumentType, type EmployeeListItem } from "@/types/document";
 
 const MAX_COMPRESS_SIZE_MB = 3;
@@ -244,11 +245,10 @@ export const useCollaboratorDocumentUpload = () => {
         setSelectedEmployeeId("");
       }
     } catch (error: unknown) {
-      const message = error instanceof Error ? error.message : "Erro ao enviar documento. Tente novamente.";
       console.error("Erro de upload:", error);
       toast({
         title: "Erro",
-        description: message,
+        description: getAdministrativeErrorMessage(error, "document"),
         variant: "destructive",
       });
     } finally {

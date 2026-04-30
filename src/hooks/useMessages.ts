@@ -6,6 +6,7 @@ import { useAuth } from "@/context/AuthContext";
 import type { Message } from "@/types/message";
 import { fetchMessages, deleteMessage } from "@/service/message.service";
 import { getServiceErrorMessage, isAuthServiceError } from "@/service/helpers/service-error.helper";
+import { queryKeys } from "@/lib/query-keys";
 
 type UserRole = "MANAGER" | "PARTNER" | "CTO" | "";
 
@@ -44,7 +45,7 @@ export const useMessages = (): UseMessagesReturn => {
   const { toast } = useToast();
   const { role, logout } = useAuth();
   const queryClient = useQueryClient();
-  const messagesQueryKey = ["messages", currentPage, size] as const;
+  const messagesQueryKey = [...queryKeys.messages, currentPage, size] as const;
 
   const messagesQuery = useQuery({
     queryKey: messagesQueryKey,
@@ -61,7 +62,7 @@ export const useMessages = (): UseMessagesReturn => {
       queryClient.setQueryData<Message[]>(messagesQueryKey, (current = []) =>
         current.filter((message) => message.messageId !== selectedMessage?.messageId)
       );
-      await queryClient.invalidateQueries({ queryKey: ["messages"] });
+      await queryClient.invalidateQueries({ queryKey: queryKeys.messages });
       setIsDialogOpen(false);
       setIsConfirmDeleteDialogOpen(false);
       setSelectedMessage(null);

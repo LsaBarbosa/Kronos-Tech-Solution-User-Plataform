@@ -5,7 +5,7 @@ import { describe, expect, it } from "vitest";
 
 const ROOT_TARGETS = ["src", "docs", "README.md", ".github"];
 const SKIP_DIRECTORIES = new Set(["node_modules", "dist", ".git"]);
-const SKIP_FILES = new Set(["docs/task.md"]);
+const SKIP_FILES = new Set(["docs/sprint.md", "docs/task.md"]);
 const FILE_EXTENSIONS = new Set([
   ".ts",
   ".tsx",

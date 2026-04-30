@@ -3,7 +3,8 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import * as RecordsService from "@/service/records.service";
 import type { TimeOffQueryParams, TimeRecordPageResponse } from "@/types/recordApproval";
 import { useToast } from "@/hooks/use-toast";
-import { getServiceErrorMessage } from "@/service/helpers/service-error.helper";
+import { getAdministrativeErrorMessage } from "@/service/helpers/admin-error-message.helper";
+import { queryKeys } from "@/lib/query-keys";
 
 export interface UseTimeOffApprovalsReturn {
   approvalsData: TimeRecordPageResponse | null;
@@ -37,7 +38,7 @@ export const useTimeOffApprovals = (): UseTimeOffApprovalsReturn => {
   const handleToggleSidebar = useCallback(() => setSidebarOpen((prev) => !prev), []);
 
   const queryKey = useMemo(
-    () => ["time-off-approvals", currentPage, searchQuery, statusFilter],
+    () => [...queryKeys.timeOffApprovals, currentPage, searchQuery, statusFilter],
     [currentPage, searchQuery, statusFilter]
   );
 
@@ -66,13 +67,16 @@ export const useTimeOffApprovals = (): UseTimeOffApprovalsReturn => {
             ? "Solicitação aprovada com sucesso!"
             : "Solicitação rejeitada com sucesso!",
       });
-      await queryClient.invalidateQueries({ queryKey: ["time-off-approvals"] });
+      await queryClient.invalidateQueries({ queryKey: queryKeys.timeOffApprovals });
     },
     onError: (error, variables) => {
       console.error(`Erro ao ${variables.action} abono:`, error);
       toast({
         title: "Erro",
-        description: `Não foi possível ${variables.action} o abono. Detalhes: ${getServiceErrorMessage(error)}`,
+        description: `Não foi possível ${variables.action} o abono. Detalhes: ${getAdministrativeErrorMessage(
+          error,
+          "timeOff"
+        )}`,
         variant: "destructive",
       });
     },

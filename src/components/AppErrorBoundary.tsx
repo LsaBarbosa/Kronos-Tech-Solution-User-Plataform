@@ -1,6 +1,7 @@
 import { Component, type ErrorInfo, type ReactNode } from "react";
 import { APP_PATHS } from "@/config/app-routes";
 import { redirectBrowserTo, reloadBrowserPage } from "@/lib/browser";
+import { captureError } from "@/lib/observability";
 
 interface AppErrorBoundaryProps {
   children: ReactNode;
@@ -26,6 +27,11 @@ class AppErrorBoundary extends Component<
 
   componentDidCatch(error: Error, errorInfo: ErrorInfo) {
     console.error("Erro inesperado na aplicação.", error, errorInfo);
+    captureError(error, {
+      domain: "ui",
+      operation: "error-boundary",
+      componentStack: errorInfo.componentStack,
+    });
   }
 
   handleReload = () => {

@@ -185,7 +185,7 @@ describe("Documentos", () => {
 
     await waitFor(() => {
       expect(mockToast.error).toHaveBeenCalledWith("Erro", {
-        description: "Erro ao buscar documentos. Tente novamente.",
+        description: "Falha na busca",
         variant: "destructive",
       });
     });

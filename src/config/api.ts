@@ -1,6 +1,7 @@
 import axios from "axios";
 import { normalizeServiceError } from "@/service/helpers/service-error.helper";
 import { getCurrentLocationHref, readStoredValue, redirectBrowserTo } from "@/lib/browser";
+import { captureError } from "@/lib/observability";
 
 const DEFAULT_LOCAL_API_BASE_URL = ["http://localhost", "8080"].join(":");
 
@@ -62,6 +63,58 @@ const isFormDataPayload = (value: unknown): value is FormData => {
   return typeof candidate.append === "function" && typeof candidate.get === "function";
 };
 
+export const createCorrelationId = () => {
+  const cryptoRandomUUID = globalThis.crypto?.randomUUID?.bind(globalThis.crypto);
+
+  if (cryptoRandomUUID) {
+    return cryptoRandomUUID();
+  }
+
+  return `kronos-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`;
+};
+
+const ensureCorrelationIdHeader = (headers: unknown) => {
+  if (!headers || typeof headers !== "object") {
+    return;
+  }
+
+  const typedHeaders = headers as {
+    get?: (name: string) => unknown;
+    set?: (name: string, value: string) => void;
+    [key: string]: unknown;
+  };
+
+  const currentValue =
+    (typeof typedHeaders.get === "function" ? typedHeaders.get("X-Correlation-Id") : undefined) ??
+    typedHeaders["X-Correlation-Id"] ??
+    typedHeaders["x-correlation-id"];
+
+  if (currentValue) {
+    return;
+  }
+
+  const correlationId = createCorrelationId();
+  if (typeof typedHeaders.set === "function") {
+    typedHeaders.set("X-Correlation-Id", correlationId);
+    return;
+  }
+
+  typedHeaders["X-Correlation-Id"] = correlationId;
+};
+
+const rejectApiError = (error: unknown) => {
+  const serviceError = normalizeServiceError(error);
+
+  captureError(serviceError, {
+    domain: "api",
+    operation: "http-response",
+    kind: serviceError.kind,
+    status: serviceError.status,
+  });
+
+  return Promise.reject(serviceError);
+};
+
 // Cria uma instância do Axios
 export const api = axios.create({
   baseURL: API_BASE_URL,
@@ -74,6 +127,9 @@ export const api = axios.create({
 api.interceptors.request.use(
   (config) => {
     const token = readStoredValue("token"); // Ou onde você guarda o token
+
+    config.headers = config.headers ?? {};
+    ensureCorrelationIdHeader(config.headers);
 
     if (isFormDataPayload(config.data)) {
       clearContentTypeHeader(config.headers);
@@ -110,14 +166,14 @@ api.interceptors.response.use(
         // 4. Força o redirecionamento
         redirectBrowserTo(finalRedirectUrl);
 
-        return Promise.reject(normalizeServiceError(error));
+        return rejectApiError(error);
       }
 
       if (status === 403 && !data?.type) {
-        return Promise.reject(normalizeServiceError(error));
+        return rejectApiError(error);
       }
     }
 
-    return Promise.reject(normalizeServiceError(error));
+    return rejectApiError(error);
   }
 );

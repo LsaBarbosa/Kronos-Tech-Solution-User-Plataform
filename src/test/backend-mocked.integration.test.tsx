@@ -11,7 +11,11 @@ import {
   type CollaboratorCreationPayload,
 } from "@/service/collaborator-management.service";
 import { uploadDocument } from "@/service/document.service";
-import { requestTimeOff, approveVacationRequest } from "@/service/records.service";
+import {
+  requestTimeOff,
+  approveVacationRequest,
+  fetchDetailedReport,
+} from "@/service/records.service";
 import { server } from "@/test/mocks/server";
 
 const makeJwt = (payload: Record<string, unknown>) => {
@@ -187,24 +191,15 @@ describe("backend mocked integration", () => {
       })
     );
 
-    const response = await fetch(
-      new URL("/records/report?employeeId=emp-1", window.location.origin),
-      {
-        method: "POST",
-        headers: {
-          "Content-Type": "application/json",
-        },
-        body: JSON.stringify({
-          reference: "08:00",
-          active: true,
-          dates: ["10-04-2026"],
-          statuses: ["CREATED"],
-        }),
-      }
-    );
-
-    expect(response.ok).toBe(true);
-    await expect(response.json()).resolves.toEqual([
+    await expect(
+      fetchDetailedReport({
+        employeeId: "emp-1",
+        reference: "08:00",
+        active: true,
+        dates: ["10-04-2026"],
+        statuses: ["CREATED"],
+      })
+    ).resolves.toEqual([
       {
         timeRecordId: 1,
         startWork: "10-04-2026",

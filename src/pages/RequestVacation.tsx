@@ -20,6 +20,7 @@ import { format, isPast } from "date-fns";
 import { ptBR } from 'date-fns/locale';
 import { CalendarIcon, Loader2, Send, User, Clock, AlertTriangle } from "lucide-react";
 import { cn } from "../lib/utils";
+import { LoadingState } from "@/components/states";
 
  
 export const RequestVacation = () => {
@@ -154,10 +155,10 @@ export const RequestVacation = () => {
                             </SelectContent>
                         </Select>
                         {isLoadingManagers && (
-                            <div className="flex items-center text-xs text-gray-500">
-                                <Loader2 className="h-4 w-4 mr-2 animate-spin" />
-                                Buscando lista de gestores...
-                            </div>
+                            <LoadingState
+                                title="Buscando lista de gestores..."
+                                className="items-start py-2 text-left"
+                            />
                         )}
                     </div>
 

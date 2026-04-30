@@ -35,8 +35,9 @@ import { useToast } from "@/hooks/use-toast";
 
 // Services
 import { FiscalService } from "@/service/fiscal.service";
-import { getServiceErrorMessage } from "@/service/helpers/service-error.helper";
+import { getAdministrativeErrorMessage } from "@/service/helpers/admin-error-message.helper";
 import PageShell from "@/components/PageShell";
+import { LoadingState } from "@/components/states";
 
 export default function AuditoriaFiscal() {
   const [date, setDate] = useState<Date | undefined>(new Date());
@@ -91,10 +92,7 @@ export default function AuditoriaFiscal() {
       toast({
         variant: "destructive",
         title: "Erro",
-        description: getServiceErrorMessage(
-          error,
-          "Falha ao baixar o arquivo solicitado."
-        ),
+        description: getAdministrativeErrorMessage(error, "fiscal"),
       });
     } finally {
       setIsLoading(false);
@@ -231,6 +229,14 @@ export default function AuditoriaFiscal() {
                 </>
               )}
             </div>
+
+            {isLoading && (
+              <LoadingState
+                title={`Gerando arquivo ${reportType}...`}
+                description="Aguarde o término do download antes de solicitar outro relatório."
+                className="rounded-lg border border-primary/20 bg-primary/5 py-4"
+              />
+            )}
 
           </CardContent>
 

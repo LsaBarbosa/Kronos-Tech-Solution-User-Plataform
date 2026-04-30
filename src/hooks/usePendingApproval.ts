@@ -12,6 +12,7 @@ import {
     rejectTimeRecordChange 
 } from "@/service/records.service"; 
 import { getServiceErrorMessage } from "@/service/helpers/service-error.helper";
+import { queryKeys } from "@/lib/query-keys";
 
 /**
  * Hook para gerenciar a listagem, aprovação e rejeição de solicitações de ponto.
@@ -21,7 +22,7 @@ export const usePendingApprovals = (params: IPendingApprovalQueryParams) => {
 
   // 1. Listagem Paginada e Filtrada
   const { data, isLoading, error } = useQuery<ITimeRecordApprovalPageResponse>({
-    queryKey: ["pendingApprovals", params.page, params.employeeName],
+    queryKey: [...queryKeys.pendingApprovals, params.page, params.employeeName],
     queryFn: () => fetchPendingApprovals(params), 
     staleTime: 1000 * 60 * 5, 
     // CORREÇÃO: Usando placeholderData para manter os dados anteriores
@@ -37,7 +38,7 @@ export const usePendingApprovals = (params: IPendingApprovalQueryParams) => {
         description: "O registro de ponto foi atualizado e aprovado.",
       });
       // Invalida a query para forçar o refetch dos dados da página atual
-      queryClient.invalidateQueries({ queryKey: ["pendingApprovals"] });
+      queryClient.invalidateQueries({ queryKey: queryKeys.pendingApprovals });
     },
     onError: (e: unknown) => {
       toast({
@@ -57,7 +58,7 @@ export const usePendingApprovals = (params: IPendingApprovalQueryParams) => {
         description: "A solicitação de alteração foi rejeitada.",
       });
       // Invalida a query para forçar o refetch dos dados da página atual
-      queryClient.invalidateQueries({ queryKey: ["pendingApprovals"] });
+      queryClient.invalidateQueries({ queryKey: queryKeys.pendingApprovals });
     },
     onError: (e: unknown) => {
       toast({

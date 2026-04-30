@@ -1,0 +1,312 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "Kronos Backend flag/redis - Front Contract",
+    "version": "1.0.0"
+  },
+  "servers": [
+    {
+      "url": "http://localhost:8080"
+    }
+  ],
+  "paths": {
+    "/auth/login": {
+      "post": {
+        "operationId": "login",
+        "responses": {
+          "200": {
+            "description": "Authenticated"
+          },
+          "401": {
+            "description": "Invalid credentials"
+          }
+        }
+      }
+    },
+    "/auth/login-face": {
+      "post": {
+        "operationId": "loginFace",
+        "responses": {
+          "200": {
+            "description": "Authenticated"
+          },
+          "400": {
+            "description": "Invalid biometric payload"
+          }
+        }
+      }
+    },
+    "/documents": {
+      "get": {
+        "operationId": "listDocuments",
+        "parameters": [
+          {
+            "name": "type",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "employeeId",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Documents"
+          },
+          "400": {
+            "description": "Missing type"
+          }
+        }
+      },
+      "post": {
+        "operationId": "uploadDocument",
+        "responses": {
+          "201": {
+            "description": "Uploaded"
+          }
+        }
+      }
+    },
+    "/documents/{documentId}": {
+      "get": {
+        "operationId": "downloadDocument",
+        "parameters": [
+          {
+            "name": "documentId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Document file"
+          }
+        }
+      },
+      "delete": {
+        "operationId": "deleteDocument",
+        "parameters": [
+          {
+            "name": "documentId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "Deleted"
+          }
+        }
+      }
+    },
+    "/geolocation/resolve": {
+      "post": {
+        "operationId": "resolveGeolocation",
+        "responses": {
+          "200": {
+            "description": "Coordinates",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Location"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Invalid postal code"
+          },
+          "404": {
+            "description": "Address not found"
+          }
+        }
+      }
+    },
+    "/records/report": {
+      "post": {
+        "operationId": "detailedReport",
+        "responses": {
+          "200": {
+            "description": "Detailed report"
+          }
+        }
+      }
+    },
+    "/records/time-off/request": {
+      "post": {
+        "operationId": "requestTimeOff",
+        "responses": {
+          "201": {
+            "description": "Created"
+          }
+        }
+      }
+    },
+    "/records/vacation-request": {
+      "post": {
+        "operationId": "requestVacation",
+        "responses": {
+          "201": {
+            "description": "Created"
+          }
+        }
+      },
+      "get": {
+        "operationId": "listVacationRequests",
+        "responses": {
+          "200": {
+            "description": "Vacation requests"
+          }
+        }
+      }
+    },
+    "/legal/technical-certificate": {
+      "get": {
+        "operationId": "downloadTechnicalCertificate",
+        "responses": {
+          "200": {
+            "description": "Technical certificate"
+          },
+          "429": {
+            "description": "Report already processing"
+          },
+          "503": {
+            "description": "Redis unavailable"
+          }
+        }
+      }
+    },
+    "/legal/afd": {
+      "get": {
+        "operationId": "downloadAfd",
+        "responses": {
+          "200": {
+            "description": "AFD"
+          },
+          "429": {
+            "description": "Report already processing"
+          },
+          "503": {
+            "description": "Redis unavailable"
+          }
+        }
+      }
+    },
+    "/legal/aej": {
+      "get": {
+        "operationId": "downloadAej",
+        "parameters": [
+          {
+            "name": "startDate",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "endDate",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "AEJ"
+          },
+          "429": {
+            "description": "Report already processing"
+          },
+          "503": {
+            "description": "Redis unavailable"
+          }
+        }
+      }
+    },
+    "/legal/espelho-ponto": {
+      "get": {
+        "operationId": "downloadMirror",
+        "parameters": [
+          {
+            "name": "targetEmployeeId",
+            "in": "query",
+            "required": false,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "startDate",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          },
+          {
+            "name": "endDate",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "Point mirror"
+          },
+          "429": {
+            "description": "Report already processing"
+          },
+          "503": {
+            "description": "Redis unavailable"
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "Location": {
+        "type": "object",
+        "required": ["latitude", "longitude"],
+        "properties": {
+          "latitude": {
+            "type": "number",
+            "format": "double"
+          },
+          "longitude": {
+            "type": "number",
+            "format": "double"
+          }
+        }
+      }
+    }
+  }
+}

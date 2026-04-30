@@ -3,6 +3,7 @@ import react from "@vitejs/plugin-react-swc";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { componentTagger } from "lovable-tagger";
+import { visualizer } from "rollup-plugin-visualizer";
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
@@ -12,6 +13,12 @@ export default defineConfig(({ mode }) => ({
     react(),
     mode === 'development' &&
     componentTagger(),
+    mode === "analyze" &&
+    visualizer({
+      filename: "dist/bundle-stats.html",
+      gzipSize: true,
+      brotliSize: true,
+    }),
   ].filter(Boolean),
   server: {
     host: "::",
@@ -28,5 +35,8 @@ export default defineConfig(({ mode }) => ({
     alias: {
       "@": path.resolve(__dirname, "./src"),
     },
+  },
+  test: {
+    exclude: ["**/node_modules/**", "**/dist/**", "**/coverage/**", "**/e2e/**"],
   },
 }));

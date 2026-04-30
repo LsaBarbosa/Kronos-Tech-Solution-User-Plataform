@@ -3,11 +3,13 @@
 import { useMutation, useQuery } from '@tanstack/react-query';
 import { toast } from '@/hooks/use-toast';
 import { useState } from 'react';
-import { format } from 'date-fns';
 import * as z from 'zod';
 import type { VacationRequestPayload } from '@/types/vacation';
 import { requestVacation, fetchManagerOptions } from '@/service/records.service';
 import { getServiceErrorMessage } from '@/service/helpers/service-error.helper';
+import { dateToBackendDatePattern } from '@/utils/date-format';
+import { getAdministrativeErrorMessage } from '@/service/helpers/admin-error-message.helper';
+import { queryKeys } from '@/lib/query-keys';
 
 // --- Zod Schema para Validação ---
 const VacationSchema = z.object({
@@ -35,7 +37,7 @@ export const useVacationRequest = () => {
 
     // --- Fetch de Managers ---
     const { data: managerOptions, isLoading: isLoadingManagers } = useQuery({
-        queryKey: ['managerOptions'],
+        queryKey: queryKeys.managerOptions,
         queryFn: fetchManagerOptions,
     });
 
@@ -50,7 +52,7 @@ export const useVacationRequest = () => {
             setManagerId('');
         },
         onError: (error) => {
-            toast.error(`Falha na solicitação: ${getServiceErrorMessage(error)}`);
+            toast.error(`Falha na solicitação: ${getAdministrativeErrorMessage(error, "vacation")}`);
         },
     });
 
@@ -63,8 +65,8 @@ export const useVacationRequest = () => {
 
             // 2. Formatação das Datas para o padrão do Backend ('dd-MM-yyyy')
             const formattedRequest: VacationRequestPayload = {
-                startDate: format(validatedData.startDate, 'dd-MM-yyyy'),
-                endDate: format(validatedData.endDate, 'dd-MM-yyyy'),
+                startDate: dateToBackendDatePattern(validatedData.startDate),
+                endDate: dateToBackendDatePattern(validatedData.endDate),
                 managerId: validatedData.managerId,
             };
 

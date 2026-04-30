@@ -21,6 +21,7 @@ import {
   EMPTY_VACATION_REQUEST_PAGE
 } from "@/types/vacation";
 import type { UserSearchListItem, UserSearchListResponse } from "@/types/user";
+import { ensureBackendDatePattern } from "@/utils/date-format";
 
 const RECORDS_BASE_URL = `/${API_ROUTES.RECORDS}`;
 
@@ -144,11 +145,16 @@ export const requestTimeOff = async (
   requestData: RequestTimeOffRequestPayload,
   document?: File | null
 ): Promise<number> => {
+  const normalizedRequestData: RequestTimeOffRequestPayload = {
+    ...requestData,
+    startDate: ensureBackendDatePattern(requestData.startDate),
+    endDate: ensureBackendDatePattern(requestData.endDate),
+  };
+
   const formData = new FormData();
   formData.append(
     "request",
-    new Blob([JSON.stringify(requestData)], { type: "application/json" }),
-    "request.json"
+    new Blob([JSON.stringify(normalizedRequestData)], { type: "application/json" })
   );
 
   if (document) {
@@ -183,7 +189,11 @@ export const rejectTimeOff = async (timeRecordId: number): Promise<void> => {
 };
 
 export const requestVacation = async (data: VacationRequestPayload): Promise<number[]> => {
-  const response = await api.post<number[]>(`${RECORDS_BASE_URL}/vacation-request`, data);
+  const response = await api.post<number[]>(`${RECORDS_BASE_URL}/vacation-request`, {
+    ...data,
+    startDate: ensureBackendDatePattern(data.startDate),
+    endDate: ensureBackendDatePattern(data.endDate),
+  });
   return extractArray<number>(response.data);
 };
 

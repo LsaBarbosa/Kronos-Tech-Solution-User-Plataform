@@ -12,7 +12,7 @@ import { cn } from "@/lib/utils";
 import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
-import { APP_PATHS, APP_ROUTE_META } from "@/config/app-routes";
+import { ADMIN_MENU_GROUPS, APP_PATHS, APP_ROUTE_META, type AppRole, type AppRouteMeta } from "@/config/app-routes";
 
 interface SidebarProps {
   isOpen: boolean;
@@ -42,8 +42,13 @@ const Sidebar = ({ isOpen, toggleSidebar }: SidebarProps) => {
     toggleSidebar();
   };
 
-  const isManager = role === "MANAGER";
   const isCto = role === "CTO";
+  const currentRole = role as AppRole | "";
+  const canAccessRoute = (route: AppRouteMeta) =>
+    !route.allowedRoles || (currentRole ? route.allowedRoles.includes(currentRole) : false);
+  const canAccessAdminMenu = Object.values(ADMIN_MENU_GROUPS)
+    .flat()
+    .some(canAccessRoute);
 
   return (
     <>
@@ -67,6 +72,7 @@ const Sidebar = ({ isOpen, toggleSidebar }: SidebarProps) => {
             variant="ghost"
             size="icon"
             onClick={toggleSidebar}
+            aria-label="Fechar menu lateral"
             className="hover:bg-primary/10 hover:text-primary transition-colors"
           >
             <X className="h-5 w-5" />
@@ -193,8 +199,8 @@ const Sidebar = ({ isOpen, toggleSidebar }: SidebarProps) => {
             </Collapsible>
 
 
-            {/* Administrador (Somente visível para MANAGER) */}
-            {isManager && (
+            {/* Administrador: os subgrupos usam APP_ROUTE_META como fonte de verdade de RBAC. */}
+            {canAccessAdminMenu && (
               <Collapsible open={administradorOpen} onOpenChange={setAdministradorOpen}>
                 <CollapsibleTrigger asChild>
                   <Button
@@ -213,6 +219,7 @@ const Sidebar = ({ isOpen, toggleSidebar }: SidebarProps) => {
                 <CollapsibleContent className="space-y-1">
                   
                   {/* 7.1 Colaboradores */}
+                  {canAccessRoute(APP_ROUTE_META.listaColaboradores) && (
                   <Collapsible open={colaboradoresOpen} onOpenChange={setColaboradoresOpen}>
                     <CollapsibleTrigger asChild>
                       <Button
@@ -247,8 +254,10 @@ const Sidebar = ({ isOpen, toggleSidebar }: SidebarProps) => {
                       </Button>
                     </CollapsibleContent>
                   </Collapsible>
+                  )}
 
                   {/* 7.2 Folha de Ponto */}
+                  {canAccessRoute(APP_ROUTE_META.apuracaoHoras) && (
                   <Collapsible open={folhaDePontoOpen} onOpenChange={setFolhaDePontoOpen}>
                     <CollapsibleTrigger asChild>
                       <Button
@@ -283,8 +292,10 @@ const Sidebar = ({ isOpen, toggleSidebar }: SidebarProps) => {
                       </Button>
                     </CollapsibleContent>
                   </Collapsible>
+                  )}
 
                   {/* 7.3 Férias Admin */}
+                  {canAccessRoute(APP_ROUTE_META.ferias) && (
                   <Collapsible open={adminVacationOpen} onOpenChange={setAdminVacationOpen}>
                     <CollapsibleTrigger asChild>
                       <Button
@@ -311,8 +322,10 @@ const Sidebar = ({ isOpen, toggleSidebar }: SidebarProps) => {
                       </Button>
                     </CollapsibleContent>
                   </Collapsible>
+                  )}
 
                   {/* 7.4 Registro Manual Admin */}
+                  {canAccessRoute(APP_ROUTE_META.aprovacoesAbono) && (
                   <Collapsible open={adminTimeOffOpen} onOpenChange={setAdminTimeOffOpen}>
                     <CollapsibleTrigger asChild>
                       <Button
@@ -339,8 +352,10 @@ const Sidebar = ({ isOpen, toggleSidebar }: SidebarProps) => {
                       </Button>
                     </CollapsibleContent>
                   </Collapsible>
+                  )}
 
                   {/* 🆕 7.5 AUDITORIA (Subgrupo Fiscal) */}
+                  {canAccessRoute(APP_ROUTE_META.auditoria) && (
                   <Collapsible open={auditoriaOpen} onOpenChange={setAuditoriaOpen}>
                     <CollapsibleTrigger asChild>
                       <Button
@@ -367,6 +382,7 @@ const Sidebar = ({ isOpen, toggleSidebar }: SidebarProps) => {
                       </Button>
                     </CollapsibleContent>
                   </Collapsible>
+                  )}
         
                 </CollapsibleContent>
               </Collapsible>

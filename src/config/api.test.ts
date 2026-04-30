@@ -20,6 +20,37 @@ describe("api", () => {
     expect(response.data).toEqual({ authorization: "Bearer abc-123" });
   });
 
+  it("adiciona X-Correlation-Id em todas as requisicoes", async () => {
+    server.use(
+      http.get("http://localhost:3000/correlation", ({ request }) => {
+        return HttpResponse.json({
+          correlationId: request.headers.get("x-correlation-id"),
+        });
+      })
+    );
+
+    const response = await api.get("http://localhost:3000/correlation");
+
+    expect(response.data.correlationId).toMatch(/^[-\w]+$/);
+  });
+
+  it("nao preserva Content-Type application/json em envio multipart", async () => {
+    server.use(
+      http.post("http://localhost:3000/upload", ({ request }) => {
+        return HttpResponse.json({
+          contentType: request.headers.get("content-type"),
+        });
+      })
+    );
+
+    const formData = new FormData();
+    formData.append("file", new File(["conteudo"], "teste.pdf", { type: "application/pdf" }));
+
+    const response = await api.post("http://localhost:3000/upload", formData);
+
+    expect(response.data.contentType).not.toBe("application/json");
+  });
+
   it("monta URL de redirecionamento para aceite de termos", () => {
     expect(
       buildTermsRedirectUrl(
@@ -73,6 +104,28 @@ describe("api", () => {
         status: 500,
         data: { detail: "Falha controlada" },
       },
+    });
+  });
+
+  it.each([
+    [400, "validation", "Dados inválidos."],
+    [401, "auth", "Sessão expirada ou acesso não autorizado."],
+    [403, "auth", "Sessão expirada ou acesso não autorizado."],
+    [429, "rateLimit", "Processamento em andamento. Aguarde alguns instantes e tente novamente."],
+    [503, "serviceUnavailable", "Serviço temporariamente indisponível. Tente novamente em instantes."],
+  ])("normaliza status HTTP %s como %s", async (status, kind, message) => {
+    server.use(
+      http.get("http://localhost:3000/status-normalization", () =>
+        status === 400
+          ? HttpResponse.json({ detail: "Dados inválidos." }, { status })
+          : new HttpResponse(null, { status })
+      )
+    );
+
+    await expect(api.get("http://localhost:3000/status-normalization")).rejects.toMatchObject({
+      kind,
+      status,
+      message,
     });
   });
 });

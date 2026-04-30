@@ -7,6 +7,7 @@ import {
   fetchDocuments,
   fetchEmployeesForSelection,
 } from "@/service/document.service";
+import { getAdministrativeErrorMessage } from "@/service/helpers/admin-error-message.helper";
 import type { DocumentType } from "@/types/document";
 
 export interface DocumentItem {
@@ -115,7 +116,7 @@ export const useDocumentsPage = () => {
       );
     } catch (error) {
       console.error("Erro ao buscar documentos:", error);
-      showErrorToast("Erro", "Erro ao buscar documentos. Tente novamente.");
+      showErrorToast("Erro", getAdministrativeErrorMessage(error, "document"));
       setDocuments([]);
     } finally {
       setIsSearching(false);
@@ -174,8 +175,8 @@ export const useDocumentsPage = () => {
         setDocuments((prev) => prev.filter((doc) => doc.id !== documentId));
         showSuccessToast("Documento excluído", `Documento "${documentName}" excluído com sucesso!`);
       } catch (error) {
-        console.error("Erro ao excluir documento:", error);
-        showErrorToast("Erro", "Não foi possível excluir o documento.");
+      console.error("Erro ao excluir documento:", error);
+      showErrorToast("Erro", getAdministrativeErrorMessage(error, "document"));
       }
     },
     [selectedEmployeeId]
@@ -187,7 +188,7 @@ export const useDocumentsPage = () => {
       showSuccessToast("Download iniciado", `Download de ${document.name} iniciado`);
     } catch (error) {
       console.error("Erro ao iniciar o download:", error);
-      showErrorToast("Erro", `Falha ao baixar o documento ${document.name}. Tente novamente.`);
+      showErrorToast("Erro", getAdministrativeErrorMessage(error, "document"));
     }
   }, [selectedEmployeeId]);
 

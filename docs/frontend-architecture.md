@@ -1,33 +1,38 @@
-# Frontend Architecture
+# Arquitetura do Front-end
 
-Arquitetura resumida do front-end da Kronos.
+## Camadas
 
-## Estrutura
+| Camada | Responsabilidade |
+|---|---|
+| `src/config` | Axios, rotas HTTP e rotas da aplicação. |
+| `src/service` | Integração com backend por domínio. |
+| `src/hooks` | Estado de tela, mutations e query cache. |
+| `src/pages` | Composição de telas. |
+| `src/components` | UI compartilhada, layout e guardas. |
+| `src/test/msw` | Handlers MSW por domínio. |
 
-- `src/config`: cliente HTTP e rotas de API.
-- `src/service`: integracao com o backend por dominio.
-- `src/hooks`: estado e orquestracao de telas.
-- `src/pages`: telas de negocio.
-- `src/components`: componentes reutilizaveis e guardas de rota.
-- `src/test`: testes de contrato, integracao mockada e setup do Vitest.
+## HTTP
 
-## Fluxo de dados
+Todas as chamadas passam por `src/config/api.ts`, que aplica:
 
-1. A UI chama um hook ou pagina.
-2. O hook usa um service.
-3. O service usa o Axios centralizado em `src/config/api.ts`.
-4. Erros HTTP sao normalizados em `ServiceError`.
-5. A UI mostra mensagens orientadas por contrato.
+- `Authorization` quando existe token local.
+- `X-Correlation-Id` por requisição.
+- normalização de erro em `ServiceError`.
+- redirecionamento de termos somente quando o backend retorna `TERMS_NOT_ACCEPTED`.
 
-## Regras de contrato
+## React Query
 
-- Nao consumir endpoints legados removidos.
-- Nao chamar servicos de geolocalizacao direto no navegador.
-- Tratar `429` e `503` como comportamento operacional, nao como erro genérico.
-- Manter os contratos criticos cobertos por testes de guard.
+As chaves de cache compartilhadas ficam em `src/lib/query-keys.ts`. Mutations administrativas invalidam prefixos por domínio para evitar listas obsoletas.
 
-## Ponto de atencao
+## Observabilidade
 
-- O backend `flag/redis` expoe `/geolocation/resolve`; o front deve consumir esse endpoint em vez de chamar geocoding externo.
-- O login facial usa `livenessPassed` a partir de validacao minima local como compatibilidade contratual.
-- O espelho de ponto aceita `targetEmployeeId?` para gestores.
+`src/lib/observability.ts` fornece captura opt-in por ambiente:
+
+- `VITE_OBSERVABILITY_ENABLED=true`
+- `VITE_OBSERVABILITY_ENDPOINT=https://...`
+
+O payload é sanitizado e não envia token, senha, CPF, CNPJ, e-mail, username, imagens ou payloads biométricos.
+
+## Acessibilidade
+
+Estados reutilizáveis ficam em `src/components/states` com `role=status`, `role=alert` e `aria-live` quando aplicável.

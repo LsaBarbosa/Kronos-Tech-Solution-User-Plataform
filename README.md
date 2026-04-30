@@ -1,112 +1,67 @@
 # Kronos User Platform
 
-## Visão geral
-
-Front-end React da plataforma de usuários da Kronos, alinhado ao backend `Kronos-Tech-Solutions-KTS`.
-O foco do projeto é autenticação consistente, aderência real aos endpoints do backend e uma base segura para evolução enterprise.
+Front-end React da plataforma de usuários da Kronos, alinhado ao backend `Kronos-Tech-Solutions-KTS` na branch `flag/redis`.
 
 ## Stack
 
 - Vite
 - React 18
-- TypeScript
+- TypeScript strict
 - TanStack Query
 - Axios
 - Tailwind CSS
 - shadcn/ui
 - Vitest + Testing Library + MSW
+- Playwright para E2E administrativo
 
 ## Requisitos
 
 - Node.js 22+
 - npm 10+
 
-## Variáveis de ambiente
+## Variáveis de Ambiente
 
-Copie os valores de [.env.example](/home/kronos/Documentos/Codigin/Kronos-Tech-Solution-User-Plataform/.env.example) para o seu ambiente local.
+Copie `.env.example` para o ambiente local.
 
 | Variável | Obrigatória | Descrição |
 |---|---|---|
-| `VITE_API_BASE_URL` | Sim | URL base do backend Kronos. Em desenvolvimento local o fallback é `http://localhost:8080`. |
+| `VITE_API_BASE_URL` | Sim | URL base do backend Kronos. O fallback local é `http://localhost:8080`. |
+| `VITE_OBSERVABILITY_ENABLED` | Não | Habilita captura opt-in de erros de runtime/API. |
+| `VITE_OBSERVABILITY_ENDPOINT` | Não | Endpoint para eventos de observabilidade. |
 
-## Como rodar localmente
+## Comandos
 
 ```bash
 npm install
 npm run dev
-```
-
-## Como rodar testes
-
-```bash
+npm run generate:api-types
+npm run lint
 npm run test
-```
-
-Para executar um domínio específico:
-
-```bash
-npm run test -- terms
-npm run test -- dashboard
-npm run test -- records
-```
-
-Os testes de contrato cobrem `GET /documents` com `type` obrigatório, login facial com `livenessPassed` e revogação biométrica via `DELETE /terms/revoke-biometric`.
-
-## Como gerar build
-
-```bash
 npm run build
+npm run test:e2e
+npm run test:coverage
+npm run analyze
 ```
 
-## Arquitetura
+## Contrato com Backend
 
-### Pastas principais
+- Mapa de endpoints: [docs/api-contract-map.md](docs/api-contract-map.md)
+- Inventário HTTP: [docs/frontend-http-inventory.md](docs/frontend-http-inventory.md)
+- Aderência ao backend `flag/redis`: [docs/flag-redis-adherence.md](docs/flag-redis-adherence.md)
+- Plano OpenAPI: [docs/openapi-contract-plan.md](docs/openapi-contract-plan.md)
+- Arquitetura: [docs/frontend-architecture.md](docs/frontend-architecture.md)
+- Plano de liveness: [docs/biometric-liveness-plan.md](docs/biometric-liveness-plan.md)
 
-- `src/config`: cliente Axios, rotas de API e metadados de rotas do app.
-- `src/context`: autenticação e sessão.
-- `src/service`: integração com o backend por domínio.
-- `src/hooks`: orquestração de estado de tela e formulários.
-- `src/pages`: telas de negócio.
-- `src/components`: componentes compartilhados e guardas de rota.
-- `src/test`: setup global, MSW e testes de integração mockados.
-- `docs`: documentação técnica e de contrato.
+## Padrões
 
-### Padrões de service
+- Toda chamada HTTP passa por `src/config/api.ts`.
+- Rotas HTTP usam `API_ROUTES` e `buildRoute`.
+- `GET /documents` sempre envia `type`.
+- Geolocalização usa `POST /geolocation/resolve` no backend, sem chave externa no navegador.
+- Relatórios legais tratam `429` e `503` com mensagens específicas.
+- Requisições Axios enviam `X-Correlation-Id`.
+- MSW fica organizado por domínio em `src/test/msw/handlers`.
 
-- Toda chamada HTTP interna passa por `src/config/api.ts`.
-- Toda rota de API usa `src/config/api-routes.ts`.
-- Os services normalizam contrato e shape de resposta para a UI.
-- Erros HTTP são convertidos para `ServiceError`.
+## Fora de Escopo Neste Front
 
-## Integração com backend
-
-- O mapa completo de endpoints consumidos está em [docs/api-contract-map.md](/home/kronos/Documentos/Codigin/Kronos-Tech-Solution-User-Plataform/docs/api-contract-map.md).
-- O inventario HTTP do front está em [docs/frontend-http-inventory.md](/home/kronos/Documentos/Codigin/Kronos-Tech-Solution-User-Plataform/docs/frontend-http-inventory.md).
-- A visao de arquitetura está em [docs/frontend-architecture.md](/home/kronos/Documentos/Codigin/Kronos-Tech-Solution-User-Plataform/docs/frontend-architecture.md).
-- A aderência à branch backend `flag/redis` está em [docs/flag-redis-adherence.md](/home/kronos/Documentos/Codigin/Kronos-Tech-Solution-User-Plataform/docs/flag-redis-adherence.md).
-- O plano de liveness biometrico está em [docs/biometric-liveness-plan.md](/home/kronos/Documentos/Codigin/Kronos-Tech-Solution-User-Plataform/docs/biometric-liveness-plan.md).
-- O plano OpenAPI está em [docs/openapi-contract-plan.md](/home/kronos/Documentos/Codigin/Kronos-Tech-Solution-User-Plataform/docs/openapi-contract-plan.md).
-
-## Autenticação e sessão
-
-- `AuthProvider` centraliza token, perfil e estado de sessão.
-- `ProtectedRoute` impede vazamento de conteúdo durante `checking`.
-- `RoleRoute` usa `APP_ROUTE_META` para bloquear acesso manual por URL.
-- O aceite biométrico trata `GET /terms/status` como `boolean` e `POST /terms/accept-biometric` como retorno com novo token.
-- O login facial envia `livenessPassed` por contrato com o backend atual.
-- A listagem de documentos exige `type` em toda chamada.
-- O espelho de ponto aceita `targetEmployeeId?` para gestores.
-- O tratamento de erros HTTP diferencia `429` e `503`.
-
-## Testes
-
-- A suíte usa `MSW` com `onUnhandledRequest: "error"` para impedir rotas não mockadas.
-- Os handlers base ficam em `src/test/mocks/handlers.ts`.
-- Testes podem sobrescrever handlers por caso usando `server.use(...)`.
-
-## Troubleshooting
-
-- `npm` fora do `PATH`: garanta que o Node instalado pelo `nvm` esteja carregado no shell.
-- `401/403` na navegação: verifique `VITE_API_BASE_URL` e o token salvo no storage.
-- erro de geolocalização: a criação/edição de empresa depende do endpoint backend `POST /geolocation/resolve`.
-- teste falhando por rota não mockada: adicione ou atualize o handler em `src/test/mocks/handlers.ts`.
+Fluxos de registro de ponto e termo biométrico pertencem a outro front-end. Este projeto mantém guardas de contrato e documentação, mas não implementa esses fluxos.

@@ -5,6 +5,7 @@ import { Calendar as CalendarIcon, Download, FileText, AlertCircle, Sheet } from
 import { cn } from "@/lib/utils";
 import { useAuth } from "@/context/AuthContext";
 import { getServiceErrorMessage } from "@/service/helpers/service-error.helper";
+import { getAdministrativeErrorMessage } from "@/service/helpers/admin-error-message.helper";
 import { fetchReportEmployees } from "@/service/records.service";
 import type { Employee } from "@/utils/report-utils";
 
@@ -38,6 +39,7 @@ import { useToast } from "@/hooks/use-toast";
 // Serviços
 import { FiscalService } from "@/service/fiscal.service";
 import PageShell from "@/components/PageShell";
+import { LoadingState } from "@/components/states";
 
 export default function EspelhoPonto() {
   const [date, setDate] = useState<Date | undefined>(new Date());
@@ -131,10 +133,7 @@ export default function EspelhoPonto() {
       toast({
         variant: "destructive",
         title: "Erro no Download",
-        description: getServiceErrorMessage(
-          error,
-          "Não foi possível gerar o espelho de ponto. Verifique se há registros no período."
-        ),
+        description: getAdministrativeErrorMessage(error, "fiscal"),
       });
     } finally {
       setIsLoading(false);
@@ -244,6 +243,12 @@ export default function EspelhoPonto() {
                   <p className="text-sm text-muted-foreground">
                     Opcional para gestores e CTOs. Se nenhum colaborador for selecionado, o espelho próprio será gerado.
                   </p>
+                  {isLoadingEmployees && (
+                    <LoadingState
+                      title="Carregando colaboradores..."
+                      className="items-start py-2 text-left"
+                    />
+                  )}
                 </div>
               )}
             </div>

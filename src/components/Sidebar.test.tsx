@@ -41,6 +41,19 @@ vi.mock("react-router-dom", async () => {
 
 const mockUseAuth = vi.mocked(useAuth);
 
+const setRole = (role: "CTO" | "MANAGER" | "PARTNER" | "") => {
+  mockUseAuth.mockReturnValue({
+    status: "authenticated",
+    user: null,
+    role,
+    token: "token-valido",
+    isAuthenticated: true,
+    checkSession: vi.fn(),
+    login: vi.fn(),
+    logout: logoutMock,
+  });
+};
+
 const renderSidebar = () =>
   render(
     <MemoryRouter>
@@ -51,16 +64,7 @@ const renderSidebar = () =>
 describe("Sidebar", () => {
   beforeEach(() => {
     vi.clearAllMocks();
-    mockUseAuth.mockReturnValue({
-      status: "authenticated",
-      user: null,
-      role: "",
-      token: "token-valido",
-      isAuthenticated: true,
-      checkSession: vi.fn(),
-      login: vi.fn(),
-      logout: logoutMock,
-    });
+    setRole("");
   });
 
   it("logout limpa sessao via contexto e redireciona para login", async () => {
@@ -71,5 +75,34 @@ describe("Sidebar", () => {
     expect(logoutMock).toHaveBeenCalledTimes(1);
     expect(navigateMock).toHaveBeenCalledWith("/login", { replace: true });
     expect(toggleSidebarMock).toHaveBeenCalledTimes(1);
+  });
+
+  it("renderiza auditoria fiscal para CTO via metadados da rota", async () => {
+    setRole("CTO");
+
+    renderSidebar();
+
+    await userEvent.click(screen.getByRole("button", { name: /administrador/i }));
+
+    expect(screen.getByRole("button", { name: /auditoria fiscal/i })).toBeInTheDocument();
+  });
+
+  it("renderiza auditoria fiscal para MANAGER", async () => {
+    setRole("MANAGER");
+
+    renderSidebar();
+
+    await userEvent.click(screen.getByRole("button", { name: /administrador/i }));
+
+    expect(screen.getByRole("button", { name: /auditoria fiscal/i })).toBeInTheDocument();
+  });
+
+  it("não renderiza auditoria fiscal para PARTNER", () => {
+    setRole("PARTNER");
+
+    renderSidebar();
+
+    expect(screen.queryByRole("button", { name: /administrador/i })).not.toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /auditoria fiscal/i })).not.toBeInTheDocument();
   });
 });

@@ -2,13 +2,14 @@
 
 import { useQuery } from '@tanstack/react-query';
 import { fetchPendingVacationCount } from '@/service/records.service';
+import { queryKeys } from '@/lib/query-keys';
 
 /**
  * Hook para buscar a contagem de solicitações de férias PENDENTES.
  */
 export const useVacationCount = (enabled = true) => {
     const { data: vacationCount = 0, isLoading: isLoadingVacationCount } = useQuery<number>({
-        queryKey: ['pendingVacationCount'],
+        queryKey: queryKeys.vacationCount,
         queryFn: fetchPendingVacationCount,
         enabled,
         refetchInterval: 60000 * 5,

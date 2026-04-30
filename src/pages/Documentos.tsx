@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState } from "react";
-import { Download, FileText, Search, UserCheck, UserX, Trash2, Loader2, Info } from "lucide-react";
+import { Download, FileText, Search, UserCheck, UserX, Trash2, Info } from "lucide-react";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -10,6 +10,7 @@ import { useDocumentsPage } from "@/hooks/useDocumentsPage";
 import PageShell from "@/components/PageShell";
 import { PaginationComponent } from "@/components/ui/PaginationComponent";
 import type { DocumentType } from "@/types/document";
+import { EmptyState, LoadingState } from "@/components/states";
 
 const Documentos = () => {
   const {
@@ -209,20 +210,22 @@ const Documentos = () => {
                 </div>
 
                 {isSearching ? (
-                  <div className="text-center py-8 sm:py-12 space-y-3">
-                    <Loader2 className="h-8 w-8 animate-spin text-primary mx-auto" />
-                    <p className="text-sm sm:text-base text-muted-foreground">Carregando documentos...</p>
-                  </div>
+                  <LoadingState
+                    title="Carregando documentos..."
+                    description="A consulta está em andamento."
+                    className="py-8 sm:py-12"
+                  />
                 ) : filteredDocuments.length === 0 ? (
-                  <div className="text-center py-8 sm:py-12 space-y-3">
-                    <FileText className="w-10 h-10 sm:w-12 sm:h-12 text-muted-foreground mx-auto" />
-                    <p className="text-sm sm:text-base text-muted-foreground">
-                      {searchDate ? "Nenhum documento encontrado para a data selecionada" : "Nenhum documento encontrado"}
-                    </p>
-                    <p className="text-xs sm:text-sm text-muted-foreground">
-                      {searchDate ? "Tente selecionar uma data diferente ou limpar o filtro" : "Tente alterar os filtros ou entre em contato com o RH"}
-                    </p>
-                  </div>
+                  <EmptyState
+                    icon={<FileText className="w-10 h-10 sm:w-12 sm:h-12" />}
+                    title={searchDate ? "Nenhum documento encontrado para a data selecionada" : "Nenhum documento encontrado"}
+                    description={
+                      searchDate
+                        ? "Tente selecionar uma data diferente ou limpar o filtro."
+                        : "Tente alterar os filtros ou entre em contato com o RH."
+                    }
+                    className="py-8 sm:py-12"
+                  />
                 ) : (
                   <div className="space-y-4">
                     <div className="space-y-2">

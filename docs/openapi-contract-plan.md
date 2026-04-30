@@ -1,29 +1,29 @@
-# OpenAPI Contract Plan
+# Plano OpenAPI
 
-## Problema atual
+## Fonte
 
-Os contratos entre front e backend ainda sao mantidos manualmente.
+O arquivo base de contrato fica em:
 
-## Risco observado
+```text
+docs/openapi/flag-redis.openapi.json
+```
 
-Branches diferentes podem divergir em endpoints como `/geolocation/resolve` sem aviso automatico.
+Ele representa os endpoints consumidos por este front contra o backend `flag/redis`.
 
-## Proposta
+## Geração
 
-- O backend expoe OpenAPI.
-- O front gera tipos e cliente a partir do schema.
-- O CI compara o contrato para evitar regressao.
+```bash
+npm run generate:api-types
+```
 
-## Ferramentas candidatas
+Saída esperada:
 
-- `openapi-typescript`
-- `openapi-fetch`
-- `swagger-codegen` se houver necessidade de geracao mais ampla
+```text
+src/generated/api/schema.d.ts
+```
 
-## Fases
+## Regra
 
-1. Publicar o schema OpenAPI no backend.
-2. Gerar tipos no front.
-3. Trocar services manuais pelos contratos gerados onde fizer sentido.
-4. Adicionar validação de compatibilidade no CI.
-
+- Services continuam usando `api` de `src/config/api.ts`.
+- Tipos gerados servem para convergência gradual, sem reescrever a camada de service inteira.
+- Endpoints fora de escopo deste front não entram como dependência de implementação.

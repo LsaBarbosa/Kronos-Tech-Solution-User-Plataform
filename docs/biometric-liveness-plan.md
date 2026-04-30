@@ -1,26 +1,26 @@
-# Biometric Liveness Plan
+# Plano de Evolução de Liveness Biométrico
 
-## Situação atual
+## Estado Atual
 
-O front envia `livenessPassed` no payload de `POST /auth/login-face`.
-Hoje o valor vem de uma validacao minima local (`validateLiveness`) que confirma apenas uma captura de imagem valida antes do envio.
-Essa validacao confere imagem capturada, tamanho minimo e frame obtido apos inicializacao da camera.
-Essa validacao ainda e compatibilidade contratual, nao liveness biometrico real.
+O login facial envia `livenessPassed` porque esse é o contrato atual do backend. O valor não é mais fixo: ele vem de `validateLiveness()` em `FaceLoginModal`, que valida de forma mínima:
 
-## Risco
+- existe imagem capturada;
+- o frame capturado tem tamanho mínimo;
+- a câmera estava pronta;
+- a captura veio do vídeo antes do envio.
 
-Sem liveness real, a captura pode aceitar imagens estaticas e abrir margem para spoofing.
+## Limitação
 
-## Estrategia futura
+Essa validação mínima não substitui liveness biométrico real. Ela apenas evita payloads triviais sem captura válida.
 
-- Capturar multiplos frames.
-- Exigir desafio de movimento.
-- Validar piscada ou microexpressao.
-- Enviar evidencias adicionais para validacao no backend.
-- Avaliar um servico especializado se a precisao interna nao for suficiente.
+## Evolução Recomendada
 
-## Critérios de aceite
+- Capturar múltiplos frames.
+- Adicionar desafio de movimento.
+- Detectar piscada.
+- Validar sinais no backend.
+- Avaliar provedor especializado de biometria/liveness.
 
-- O liveness nao pode depender de um literal fixo.
-- O backend deve conseguir validar a evidencia recebida.
-- A UI deve explicar claramente quando a validacao e apenas parcial.
+## Critério Futuro
+
+O front deve continuar enviando `livenessPassed`, mas o backend deve ser a fonte final de decisão sobre autenticidade biométrica.

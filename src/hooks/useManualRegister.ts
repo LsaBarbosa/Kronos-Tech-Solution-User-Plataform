@@ -1,6 +1,6 @@
 import { useEffect, useState } from "react";
 import { useQuery } from "@tanstack/react-query";
-import { format, isBefore, isSameDay } from "date-fns";
+import { isBefore, isSameDay } from "date-fns";
 import { useToast } from "@/hooks/use-toast";
 import type {
   TimeOffFormState,
@@ -10,6 +10,9 @@ import type {
 } from "../types/vacation";
 import { requestTimeOff, fetchManagerOptions } from "../service/records.service";
 import { getServiceErrorMessage } from "@/service/helpers/service-error.helper";
+import { dateToBackendDatePattern } from "@/utils/date-format";
+import { getAdministrativeErrorMessage } from "@/service/helpers/admin-error-message.helper";
+import { queryKeys } from "@/lib/query-keys";
 
 type TimeOffFormErrors = Partial<Record<keyof TimeOffFormState, string>>;
 
@@ -32,7 +35,7 @@ export const useRequestManualRegistration = () => {
   const [errors, setErrors] = useState<TimeOffFormErrors>({});
 
   const managersQuery = useQuery<IManagerOption[]>({
-    queryKey: ["managerOptions"],
+    queryKey: queryKeys.managerOptions,
     queryFn: fetchManagerOptions,
   });
 
@@ -100,8 +103,8 @@ export const useRequestManualRegistration = () => {
       const backendType: TimeOffRequestType = formState.requestType;
 
       const payload: RequestTimeOffRequestPayload = { 
-        startDate: format(formState.startDate!, "dd-MM-yyyy"),
-        endDate: format(formState.endDate!, "dd-MM-yyyy"),
+        startDate: dateToBackendDatePattern(formState.startDate!),
+        endDate: dateToBackendDatePattern(formState.endDate!),
         startHour: formState.startHour,
         endHour: formState.endHour,
         managerId: formState.managerId,
@@ -123,13 +126,9 @@ export const useRequestManualRegistration = () => {
       setErrors({});
     } catch (error) {
       console.error("Erro ao solicitar:", error);
-      const errorMessage = getServiceErrorMessage(
-        error,
-        "Não foi possível processar a solicitação."
-      );
       toast({
         title: "Erro na Solicitação",
-        description: errorMessage,
+        description: getAdministrativeErrorMessage(error, "timeOff"),
         variant: "destructive",
       });
     } finally {

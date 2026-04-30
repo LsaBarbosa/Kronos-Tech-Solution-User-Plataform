@@ -282,6 +282,52 @@ describe("records.service", () => {
     expect((formData as FormData).get("request")).toBeInstanceOf(Blob);
   });
 
+  it("normaliza datas ISO de abono para dd-MM-yyyy antes de enviar", async () => {
+    const postSpy = vi.spyOn(api, "post").mockResolvedValue({ data: 123 } as never);
+
+    await requestTimeOff({
+      startDate: "2026-04-10",
+      endDate: "2026-04-11",
+      startHour: "08:00",
+      endHour: "17:00",
+      managerId: "manager-1",
+      type: "TIME_OFF_REQUEST",
+    });
+
+    const [, formData] = postSpy.mock.calls[0];
+    const requestBlob = (formData as FormData).get("request") as Blob;
+    const requestText = await new Promise<string>((resolve, reject) => {
+      const reader = new FileReader();
+      reader.onload = () => resolve(String(reader.result));
+      reader.onerror = () => reject(reader.error);
+      reader.readAsText(requestBlob);
+    });
+    const requestPayload = JSON.parse(requestText) as Record<string, unknown>;
+
+    expect(requestPayload).toMatchObject({
+      startDate: "10-04-2026",
+      endDate: "11-04-2026",
+      managerId: "manager-1",
+    });
+  });
+
+  it("bloqueia datas administrativas inválidas antes de enviar abono", async () => {
+    const postSpy = vi.spyOn(api, "post").mockResolvedValue({ data: 123 } as never);
+
+    await expect(
+      requestTimeOff({
+        startDate: "10/04/2026",
+        endDate: "2026-04-11",
+        startHour: "08:00",
+        endHour: "17:00",
+        managerId: "manager-1",
+        type: "TIME_OFF_REQUEST",
+      })
+    ).rejects.toThrow("Data inválida.");
+
+    expect(postSpy).not.toHaveBeenCalled();
+  });
+
   it("lista solicitações de abono de forma paginada", async () => {
     server.use(
       http.get("*/records/time-off/requests", () =>
@@ -337,8 +383,9 @@ describe("records.service", () => {
   });
 
   it("solicita férias e lê os retornos paginados/arrays do backend", async () => {
+    const postSpy = vi.spyOn(api, "post").mockResolvedValueOnce({ data: [11, 12] } as never);
+
     server.use(
-      http.post("*/records/vacation-request", () => HttpResponse.json([11, 12])),
       http.get("*/records/vacation-request", () =>
         HttpResponse.json({
           requests: [
@@ -362,11 +409,17 @@ describe("records.service", () => {
 
     await expect(
       requestVacation({
-        startDate: "10-04-2026",
-        endDate: "12-04-2026",
+        startDate: "2026-04-10",
+        endDate: "2026-04-12",
         managerId: "manager-1",
       })
     ).resolves.toEqual([11, 12]);
+
+    expect(postSpy).toHaveBeenCalledWith("/records/vacation-request", {
+      startDate: "10-04-2026",
+      endDate: "12-04-2026",
+      managerId: "manager-1",
+    });
 
     await expect(
       fetchVacationRequests({ page: 0, size: 5, status: "PENDING" })
