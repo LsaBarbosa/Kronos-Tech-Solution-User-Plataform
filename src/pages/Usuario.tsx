@@ -4,7 +4,7 @@ import { useState, useCallback } from "react";
 import Header from "@/components/Header";
 import Sidebar from "@/components/Sidebar";
 // 💡 Ícones que indicam funcionalidade e estado
-import { Lock, Eye, EyeOff, Save, X, Pencil, Briefcase, Phone, MapPin, AtSign, CircleUserRound, Loader2, CircleCheck, CircleX, Home, DollarSign, User2Icon, IdCard, SquareUser, ShieldCheck, ShieldOff } from "lucide-react";
+import { Lock, Eye, EyeOff, Save, X, Pencil, Briefcase, Phone, MapPin, AtSign, CircleUserRound, Loader2, CircleCheck, CircleX, Home, DollarSign, User2Icon, IdCard, SquareUser } from "lucide-react";
 // 💡 Componentes de UI
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -45,9 +45,6 @@ const Usuario = () => {
     handleSaveEmail,      // Chamada de API para salvar email
     handleSavePhone,      // Chamada de API para salvar telefone
     handleChangePassword, // Chamada de API para salvar senha
-    biometricConsentAccepted,
-    isRevokingBiometric,
-    handleRevokeBiometric,
     togglePasswordFields,
   } = useUser();
   
@@ -366,54 +363,7 @@ const Usuario = () => {
 
                       <Separator />
 
-                      {/* Biometric Consent Field */}
-                      <div className="space-y-3">
-                        <div>
-                          <Label className="text-sm font-medium text-muted-foreground">Consentimento Biométrico</Label>
-                          <div className="mt-1 p-3 bg-muted rounded-xl flex items-center justify-between gap-3 border border-border/50 shadow-inner">
-                            <div className="flex items-center gap-2">
-                              {biometricConsentAccepted ? (
-                                <ShieldCheck className="h-4 w-4 text-green-500 flex-shrink-0" />
-                              ) : (
-                                <ShieldOff className="h-4 w-4 text-destructive flex-shrink-0" />
-                              )}
-                              <p className="text-foreground font-semibold">
-                                {biometricConsentAccepted ? "Ativo" : "Revogado"}
-                              </p>
-                            </div>
-                            <Button
-                              variant="outline"
-                              size="sm"
-                              onClick={async () => {
-                                if (!biometricConsentAccepted) {
-                                  return;
-                                }
-
-                                if (!window.confirm("Deseja revogar o consentimento biométrico?")) {
-                                  return;
-                                }
-
-                                await handleRevokeBiometric();
-                              }}
-                              disabled={isRevokingBiometric || !biometricConsentAccepted}
-                              className="border-destructive/40 text-destructive hover:bg-destructive/10"
-                            >
-                              {isRevokingBiometric ? (
-                                <>
-                                  <Loader2 className="h-4 w-4 animate-spin mr-2" />
-                                  Revogando...
-                                </>
-                              ) : (
-                                "Revogar"
-                              )}
-                            </Button>
-                          </div>
-                        </div>
-                      </div>
-
-                      <Separator />
-
-               {/* Password Section */}
+                      {/* Password Section */}
                       <div className="space-y-4">
                         <div className="flex justify-between items-center">
                           <h3 className="text-md font-semibold ">Alterar Senha</h3>

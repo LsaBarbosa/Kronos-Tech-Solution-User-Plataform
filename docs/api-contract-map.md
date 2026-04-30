@@ -13,6 +13,8 @@ Branch back-end: `flag/redis`
 | Auth | `POST /auth/login-face` | Aderente | Envia `faceImageBase64` e `livenessPassed`; liveness real segue como melhoria enterprise. |
 | Auth | `POST /auth/recover-password` | Aderente | Recuperação de senha delegada ao backend. |
 | Auth | `POST /auth/reset-password` | Aderente | Reset por token temporário. |
+| Terms | `GET /terms/status` | FORA_DE_ESCOPO_OUTRO_FRONT | Endpoint documentado para guarda de contrato; este front não implementa o fluxo de termo biométrico. |
+| Terms | `POST /terms/accept-biometric` | FORA_DE_ESCOPO_OUTRO_FRONT | Endpoint documentado para guarda de contrato; este front não implementa o fluxo de termo biométrico. |
 | Terms | `DELETE /terms/revoke-biometric` | FORA_DE_ESCOPO_OUTRO_FRONT | Endpoint documentado para guarda de contrato; este front não implementa o fluxo de termo biométrico. |
 | Users | `GET /users/own-profile` | Aderente | Perfil de usuário autenticado. |
 | Users | `GET /users/search` | Aderente | Busca administrativa de usuários. |

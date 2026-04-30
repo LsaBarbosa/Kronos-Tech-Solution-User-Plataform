@@ -29,6 +29,8 @@ const FORBIDDEN_PATTERNS = [
 
 const REQUIRED_PATTERNS = [
   "/records/report",
+  "/terms/status",
+  "/terms/accept-biometric",
   "/terms/revoke-biometric",
   "/auth/login-face",
   "/documents",

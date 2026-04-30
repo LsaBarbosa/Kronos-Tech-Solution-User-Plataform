@@ -50,10 +50,6 @@ vi.mock("@/service/session-profile.service", () => ({
   },
 }));
 
-vi.mock("@/service/terms.service", () => ({
-  getBiometricTermStatus: async () => ({ accepted: true }),
-}));
-
 vi.mock("@/hooks/useDashboardData", () => ({
   useDashboardData: () => {
     const token = localStorage.getItem("token") ?? "";
