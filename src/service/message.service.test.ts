@@ -10,8 +10,12 @@ import {
 describe("message.service", () => {
   it("lista mensagens usando o envelope real da API", async () => {
     server.use(
-      http.get("*/messages", () =>
-        HttpResponse.json({
+      http.get("*/messages", ({ request }) => {
+        const url = new URL(request.url);
+        expect(url.searchParams.get("page")).toBe("0");
+        expect(url.searchParams.get("size")).toBe("10");
+
+        return HttpResponse.json({
           messages: [
             {
               messageId: "msg-1",
@@ -22,8 +26,8 @@ describe("message.service", () => {
               senderEmployeeId: "emp-1",
             },
           ],
-        })
-      )
+        });
+      })
     );
 
     await expect(fetchMessages()).resolves.toEqual([
@@ -36,6 +40,20 @@ describe("message.service", () => {
         senderEmployeeId: "emp-1",
       },
     ]);
+  });
+
+  it("lista mensagens com paginação explícita", async () => {
+    server.use(
+      http.get("*/messages", ({ request }) => {
+        const url = new URL(request.url);
+        expect(url.searchParams.get("page")).toBe("2");
+        expect(url.searchParams.get("size")).toBe("20");
+
+        return HttpResponse.json({ messages: [] });
+      })
+    );
+
+    await expect(fetchMessages({ page: 2, size: 20 })).resolves.toEqual([]);
   });
 
   it("exclui mensagem pelo endpoint correto", async () => {

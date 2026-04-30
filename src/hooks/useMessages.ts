@@ -12,6 +12,10 @@ type UserRole = "MANAGER" | "PARTNER" | "CTO" | "";
 interface UseMessagesReturn {
   messages: Message[];
   userRole: UserRole;
+  currentPage: number;
+  size: number;
+  hasPreviousPage: boolean;
+  hasNextPage: boolean;
   selectedMessage: Message | null;
   isLoading: boolean;
   isDeleting: boolean;
@@ -23,27 +27,38 @@ interface UseMessagesReturn {
   handleConfirmDelete: () => void;
   handleCancelDelete: () => void;
   handleDeleteMessage: () => Promise<void>;
+  handlePreviousPage: () => void;
+  handleNextPage: () => void;
+  setCurrentPage: (page: number) => void;
+  setSize: (size: number) => void;
 }
 
 export const useMessages = (): UseMessagesReturn => {
   const [selectedMessage, setSelectedMessage] = useState<Message | null>(null);
   const [isDialogOpen, setIsDialogOpen] = useState(false);
   const [isConfirmDeleteDialogOpen, setIsConfirmDeleteDialogOpen] = useState(false);
+  const [currentPage, setCurrentPage] = useState(0);
+  const [size, setSizeState] = useState(10);
 
   const navigate = useNavigate();
   const { toast } = useToast();
   const { role, logout } = useAuth();
   const queryClient = useQueryClient();
+  const messagesQueryKey = ["messages", currentPage, size] as const;
 
   const messagesQuery = useQuery({
-    queryKey: ["messages"],
-    queryFn: fetchMessages,
+    queryKey: messagesQueryKey,
+    queryFn: () => fetchMessages({ page: currentPage, size }),
   });
+
+  const messages = messagesQuery.data ?? [];
+  const hasPreviousPage = currentPage > 0;
+  const hasNextPage = messages.length >= size;
 
   const deleteMutation = useMutation({
     mutationFn: deleteMessage,
     onSuccess: async () => {
-      queryClient.setQueryData<Message[]>(["messages"], (current = []) =>
+      queryClient.setQueryData<Message[]>(messagesQueryKey, (current = []) =>
         current.filter((message) => message.messageId !== selectedMessage?.messageId)
       );
       await queryClient.invalidateQueries({ queryKey: ["messages"] });
@@ -101,6 +116,21 @@ export const useMessages = (): UseMessagesReturn => {
     }
   }, [deleteMutation, logout, navigate, selectedMessage]);
 
+  const handlePreviousPage = useCallback(() => {
+    if (!hasPreviousPage || messagesQuery.isFetching) return;
+    setCurrentPage((page) => Math.max(page - 1, 0));
+  }, [hasPreviousPage, messagesQuery.isFetching]);
+
+  const handleNextPage = useCallback(() => {
+    if (!hasNextPage || messagesQuery.isFetching) return;
+    setCurrentPage((page) => page + 1);
+  }, [hasNextPage, messagesQuery.isFetching]);
+
+  const setSize = useCallback((nextSize: number) => {
+    setSizeState(nextSize);
+    setCurrentPage(0);
+  }, []);
+
   const error = messagesQuery.error
     ? getServiceErrorMessage(messagesQuery.error, "Não foi possível carregar as mensagens.")
     : null;
@@ -112,8 +142,12 @@ export const useMessages = (): UseMessagesReturn => {
   }, [messagesQuery.error, logout, navigate]);
 
   return {
-    messages: messagesQuery.data ?? [],
+    messages,
     userRole: (role as UserRole) || "",
+    currentPage,
+    size,
+    hasPreviousPage,
+    hasNextPage,
     selectedMessage,
     isLoading: messagesQuery.isLoading,
     isDeleting: deleteMutation.isPending,
@@ -125,5 +159,9 @@ export const useMessages = (): UseMessagesReturn => {
     handleConfirmDelete,
     handleCancelDelete,
     handleDeleteMessage,
+    handlePreviousPage,
+    handleNextPage,
+    setCurrentPage,
+    setSize,
   };
 };

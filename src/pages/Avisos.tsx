@@ -5,7 +5,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Dialog, DialogContent, DialogHeader, DialogTitle, DialogFooter } from "@/components/ui/dialog"; 
 import { Badge } from "@/components/ui/badge";
-import { Bell, Calendar, Eye, AlertTriangle, Info, Loader2, Trash2, User } from "lucide-react"; 
+import { Bell, Calendar, ChevronLeft, ChevronRight, Eye, AlertTriangle, Info, Loader2, Trash2, User } from "lucide-react"; 
 import { useNavigate } from "react-router-dom";
 import Header from "@/components/Header";
 import Sidebar from "@/components/Sidebar";
@@ -68,6 +68,9 @@ const Avisos = () => {
     const {
         messages,
         userRole,
+        currentPage,
+        hasPreviousPage,
+        hasNextPage,
         selectedMessage,
         isLoading,
         isDeleting,
@@ -79,6 +82,8 @@ const Avisos = () => {
         handleConfirmDelete,
         handleCancelDelete,
         handleDeleteMessage,
+        handlePreviousPage,
+        handleNextPage,
     } = useMessages();
 
 
@@ -212,6 +217,31 @@ const Avisos = () => {
                                     </CardContent>
                                 </Card>
                             ))}
+                            <div className="flex flex-col sm:flex-row items-center justify-between gap-3 pt-2">
+                                <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={handlePreviousPage}
+                                    disabled={!hasPreviousPage || isLoading}
+                                    className="w-full sm:w-auto"
+                                >
+                                    <ChevronLeft className="h-4 w-4 mr-2" />
+                                    Anterior
+                                </Button>
+                                <span className="text-sm text-muted-foreground">
+                                    Página {currentPage + 1}
+                                </span>
+                                <Button
+                                    variant="outline"
+                                    size="sm"
+                                    onClick={handleNextPage}
+                                    disabled={!hasNextPage || isLoading}
+                                    className="w-full sm:w-auto"
+                                >
+                                    Próxima
+                                    <ChevronRight className="h-4 w-4 ml-2" />
+                                </Button>
+                            </div>
                         </div>
                     )}
 

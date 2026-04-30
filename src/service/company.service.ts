@@ -136,8 +136,8 @@ export const getGeolocationFromCEP = async (cep: string, number: string): Promis
 /**
  * Alterna o status (Ativo/Inativo) de uma empresa.
  */
-export const toggleCompanyStatus = async (cnpj: string, currentStatus: boolean): Promise<void> => {
-    await api.patch(buildRoute(API_ROUTES.COMPANIES, cnpj, "toggle-activate"), { active: !currentStatus });
+export const toggleCompanyStatus = async (cnpj: string): Promise<void> => {
+    await api.patch(buildRoute(API_ROUTES.COMPANIES, cnpj, "toggle-activate"));
 };
 
 // Função utilitária para formatar CNPJ (Mantida como pura)

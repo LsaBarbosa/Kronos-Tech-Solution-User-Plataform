@@ -421,24 +421,31 @@ describe("records.service", () => {
         });
       }),
       http.get("*/records/vacation-request", () =>
-        HttpResponse.json([
-          {
-            employeeId: "emp-1",
-            employeeName: "Maria",
-            startDate: "10-04-2026",
-            endDate: "12-04-2026",
-            status: "REQUEST_VACATION",
-            timeRecordIdsForApproval: [11, 12],
-          },
-          {
-            employeeId: "emp-2",
-            employeeName: "Joao",
-            startDate: "14-04-2026",
-            endDate: "16-04-2026",
-            status: "REQUEST_VACATION",
-            timeRecordIdsForApproval: [13, 14],
-          },
-        ])
+        HttpResponse.json({
+          requests: [
+            {
+              employeeId: "emp-1",
+              employeeName: "Maria",
+              startDate: "10-04-2026",
+              endDate: "12-04-2026",
+              status: "REQUEST_VACATION",
+              timeRecordIdsForApproval: [11, 12],
+            },
+            {
+              employeeId: "emp-2",
+              employeeName: "Joao",
+              startDate: "14-04-2026",
+              endDate: "16-04-2026",
+              status: "REQUEST_VACATION",
+              timeRecordIdsForApproval: [13, 14],
+            },
+          ],
+          totalPages: 1,
+          totalElements: 2,
+          currentPage: 0,
+          isFirst: true,
+          isLast: true,
+        })
       )
     );
 

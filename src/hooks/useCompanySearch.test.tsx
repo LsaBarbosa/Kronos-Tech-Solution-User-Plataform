@@ -84,6 +84,10 @@ describe("useCompanySearch", () => {
         state: "SP",
         neighborhood: "Centro",
       },
+      location: {
+        latitude: -23.55052,
+        longitude: -46.633308,
+      },
     } as any);
 
     mockUpdateCompany.mockResolvedValue(undefined);
@@ -138,6 +142,10 @@ describe("useCompanySearch", () => {
           postalCode: "01311000",
           number: "200",
         },
+        location: {
+          latitude: -23.55052,
+          longitude: -46.633308,
+        },
       })
     );
   });
@@ -153,6 +161,6 @@ describe("useCompanySearch", () => {
       await result.current.handleToggleStatus(result.current.empresas[0]);
     });
 
-    expect(mockToggleCompanyStatus).toHaveBeenCalledWith("12345678000199", true);
+    expect(mockToggleCompanyStatus).toHaveBeenCalledWith("12345678000199");
   });
 });

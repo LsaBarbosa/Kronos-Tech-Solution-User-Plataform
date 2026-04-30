@@ -48,8 +48,12 @@ describe("dashboard.service", () => {
 
   it("busca avisos do dashboard", async () => {
     server.use(
-      http.get("*/messages", () =>
-        HttpResponse.json({
+      http.get("*/messages", ({ request }) => {
+        const url = new URL(request.url);
+        expect(url.searchParams.get("page")).toBe("0");
+        expect(url.searchParams.get("size")).toBe("5");
+
+        return HttpResponse.json({
           messages: [
             {
               messageId: "msg-1",
@@ -60,8 +64,8 @@ describe("dashboard.service", () => {
               senderEmployeeId: "emp-1",
             },
           ],
-        })
-      )
+        });
+      })
     );
 
     await expect(fetchAllWarnings()).resolves.toHaveLength(1);

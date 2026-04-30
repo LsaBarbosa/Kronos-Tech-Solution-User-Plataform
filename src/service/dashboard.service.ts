@@ -33,7 +33,12 @@ export const fetchPendingApprovalsCount = async (): Promise<ITimeRecordApprovalP
  * Endpoint corrigido para 'messages'
  */
 export const fetchAllWarnings = async (): Promise<WarningMessage[]> => {
-    const response = await api.get<WarningMessage[]>(`/${API_ROUTES.MESSAGES}`);
+    const response = await api.get<WarningMessage[]>(buildRoute(API_ROUTES.MESSAGES), {
+        params: {
+            page: 0,
+            size: 5,
+        },
+    });
     return extractArray<WarningMessage>(response.data, ["messages"]); 
 };
 

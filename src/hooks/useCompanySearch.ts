@@ -175,7 +175,7 @@ export const useCompanySearch = (): UseCompanySearchReturn => {
     const handleToggleStatus = useCallback(async (empresa: CompanyListItem) => {
         setIsSubmitting(true);
         try {
-            await toggleCompanyStatus(empresa.cnpj, empresa.active);
+            await toggleCompanyStatus(empresa.cnpj);
             
             toast({
                 title: "Sucesso!",

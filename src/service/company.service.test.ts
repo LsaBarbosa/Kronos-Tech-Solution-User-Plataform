@@ -147,16 +147,16 @@ describe("company.service", () => {
     await expect(updateCompany("12345678000190", payload)).resolves.toBeUndefined();
   });
 
-  it("alterna status da empresa enviando o status inverso", async () => {
+  it("alterna status da empresa sem enviar body", async () => {
     server.use(
       http.patch("*/companies/:cnpj/toggle-activate", async ({ params, request }) => {
         expect(params.cnpj).toBe("12345678000190");
-        await expect(request.json()).resolves.toEqual({ active: false });
+        await expect(request.text()).resolves.toBe("");
         return new HttpResponse(null, { status: 204 });
       })
     );
 
-    await expect(toggleCompanyStatus("12345678000190", true)).resolves.toBeUndefined();
+    await expect(toggleCompanyStatus("12345678000190")).resolves.toBeUndefined();
   });
 
   it("resolve geolocalização pelo endpoint interno do backend", async () => {

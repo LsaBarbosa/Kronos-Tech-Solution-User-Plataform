@@ -23,16 +23,23 @@ export const recordsFixture = {
         },
       },
     ],
-  vacationRequests: [
-    {
-      employeeId: "emp-1",
-      employeeName: "Maria Silva",
-      startDate: "10-04-2026",
-      endDate: "12-04-2026",
-      status: "REQUEST_VACATION",
-      timeRecordIdsForApproval: [11, 12, 13],
-    },
-  ],
+  vacationRequests: {
+    requests: [
+      {
+        employeeId: "emp-1",
+        employeeName: "Maria Silva",
+        startDate: "10-04-2026",
+        endDate: "12-04-2026",
+        status: "REQUEST_VACATION",
+        timeRecordIdsForApproval: [11, 12, 13],
+      },
+    ],
+    totalPages: 1,
+    totalElements: 1,
+    currentPage: 0,
+    isFirst: true,
+    isLast: true,
+  },
   timeOffRequests: {
     records: [
       {

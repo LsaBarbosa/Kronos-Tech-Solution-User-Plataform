@@ -88,7 +88,10 @@ describe("useMessages", () => {
       expect(result.current.messages).toHaveLength(1);
     });
 
+    expect(mockFetchMessages).toHaveBeenCalledWith({ page: 0, size: 10 });
     expect(result.current.userRole).toBe("MANAGER");
+    expect(result.current.currentPage).toBe(0);
+    expect(result.current.size).toBe(10);
   });
 
   it("exclui mensagem e atualiza o estado local", async () => {
@@ -128,5 +131,40 @@ describe("useMessages", () => {
     expect(result.current.messages).toHaveLength(0);
     expect(result.current.isDialogOpen).toBe(false);
     expect(result.current.isConfirmDeleteDialogOpen).toBe(false);
+  });
+
+  it("navega mensagens usando page e size no serviço", async () => {
+    mockFetchMessages
+      .mockResolvedValueOnce(
+        Array.from({ length: 10 }, (_, index) => ({
+          messageId: `msg-${index}`,
+          title: `Aviso ${index}`,
+          messageText: "Conteudo",
+          priority: "NORMAL",
+          createdAt: "2026-04-23T10:00:00Z",
+          senderEmployeeId: "emp-1",
+        }))
+      )
+      .mockResolvedValueOnce([]);
+
+    const { result } = renderHook(() => useMessages(), { wrapper });
+
+    await waitFor(() => {
+      expect(result.current.messages).toHaveLength(10);
+    });
+
+    expect(result.current.hasNextPage).toBe(true);
+
+    await act(async () => {
+      result.current.handleNextPage();
+    });
+
+    await waitFor(() => {
+      expect(result.current.currentPage).toBe(1);
+    });
+
+    await waitFor(() => {
+      expect(mockFetchMessages).toHaveBeenLastCalledWith({ page: 1, size: 10 });
+    });
   });
 });

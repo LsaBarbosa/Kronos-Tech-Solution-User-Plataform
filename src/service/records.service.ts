@@ -15,7 +15,8 @@ import type {
   VacationApprovalRequest,
   VacationQueryParams,
   VacationRequestPageResponse,
-  VacationRequestResponse} from "@/types/vacation";
+  VacationRequestResponse,
+} from "@/types/vacation";
 import {
   EMPTY_VACATION_REQUEST_PAGE
 } from "@/types/vacation";
@@ -63,15 +64,13 @@ const extractVacationRequestPage = (
   payload: unknown
 ): VacationRequestPageResponse => {
   const pageData = extractObject<Partial<VacationRequestPageResponse>>(payload);
-  const requests = extractArray<VacationRequestResponse>(payload, [
-    "requests",
-    "vacationRequests",
-    "content",
-  ]);
+  const requests = Array.isArray(pageData.requests)
+    ? (pageData.requests as VacationRequestResponse[])
+    : [];
 
   return {
     requests,
-    totalPages: pageData.totalPages ?? (requests.length > 0 ? 1 : 0),
+    totalPages: pageData.totalPages ?? 0,
     totalElements: pageData.totalElements ?? requests.length,
     currentPage: pageData.currentPage ?? 0,
     isFirst: pageData.isFirst ?? true,
