@@ -27,6 +27,7 @@ import { PaginationComponent } from "../components/ui/PaginationComponent";
 import type { StatusRecord, TimeRecordResponse } from '../types/recordApproval';
 import { cn } from '../lib/utils';
 import { downloadDocument } from '@/service/document.service';
+import { resolveDocumentId } from '@/utils/document-resolution';
 
 // ---------------------------------------------------------------------
 // --- 1. FUNÇÕES DE UTILIDADE E TIPOS
@@ -126,9 +127,10 @@ const ManualRegisterApprovalItem: React.FC<ITimeOffRecord & {
 }> = (props) => {
     const { 
         timeRecordId, employeeData, startWork, endWork, startHour, endHour, 
-        hoursWork, statusRecord, documentDownloadPath, employeeId, 
+        hoursWork, statusRecord, employeeId, 
         handleAction, handleDownload, isMutating 
     } = props;
+    const documentId = resolveDocumentId(props);
     
     const isDesktop = useIsDesktop();
     
@@ -164,12 +166,12 @@ const ManualRegisterApprovalItem: React.FC<ITimeOffRecord & {
                 <TableCell>{renderStatusBadge(statusRecord)}</TableCell>
                 <TableCell className="text-right flex justify-end gap-2">
                     
-                    {documentDownloadPath && (
+                    {documentId && (
                         <Button
                             variant="outline"
                             size="icon"
                             title="Baixar Comprovante"
-                            onClick={() => handleDownload(documentDownloadPath, employeeId)}
+                            onClick={() => handleDownload(documentId, employeeId)}
                             disabled={isMutating}
                         >
                             <Download className="h-4 w-4" />
@@ -249,12 +251,12 @@ const ManualRegisterApprovalItem: React.FC<ITimeOffRecord & {
             </CardContent>
             
             <div className="flex justify-end space-x-3 p-4 pt-0 border-t bg-muted/50 dark:bg-muted/30">
-                {documentDownloadPath && (
+                {documentId && (
                     <Button
                         variant="ghost"
                         size="sm"
                         title="Baixar Comprovante"
-                        onClick={() => handleDownload(documentDownloadPath, employeeId)}
+                        onClick={() => handleDownload(documentId, employeeId)}
                         disabled={isMutating}
                     >
                         <Download className="h-4 w-4 mr-1 text-primary" />

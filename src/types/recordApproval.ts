@@ -44,7 +44,9 @@ export interface TimeRecordResponse {
   active: boolean;
   employeeId: string;
   employeeData: RecordEmployeeData;
-  documentDownloadPath?: string;
+  documentId?: string | null;
+  documentDownloadUrl?: string | null;
+  documentDownloadPath?: string | null;
 }
 
 export interface TimeRecordPageResponse {
@@ -64,7 +66,9 @@ export interface TimeRecordApprovalResponse {
   newEndWork: string;
   currentStartWork: string;
   currentEndWork: string | null;
-  documentDownloadPath?: string;
+  documentId?: string | null;
+  documentDownloadUrl?: string | null;
+  documentDownloadPath?: string | null;
 }
 
 export interface TimeRecordApprovalPageResponse {

@@ -25,7 +25,9 @@ export const statusMap: Record<string, string> = {
 };
 // Interface DetailedReportItem simplificada (sem a lista 'breaks')
 export interface DetailedReportItem {
-    documentDownloadPath: string;
+    documentId?: string | null;
+    documentDownloadUrl?: string | null;
+    documentDownloadPath?: string | null;
     id?: string;
     timeRecordId?: number;
     startWork: string; // DD-MM-YYYY

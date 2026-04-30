@@ -39,7 +39,8 @@ const baseRecord = {
   employeeData: {
     employeeName: "Maria Silva",
   },
-  documentDownloadPath: "doc-1",
+  documentId: "doc-1",
+  documentDownloadPath: "/documents/doc-legado",
 };
 
 describe("ResultadosRelatorioDetalhado", () => {

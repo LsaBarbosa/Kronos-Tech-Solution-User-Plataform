@@ -8,6 +8,7 @@ import type { DetailedReportItem} from "@/utils/report-utils";
 import { getStatusColor, statusMap } from "@/utils/report-utils"; 
 import { useToast } from "@/hooks/use-toast";
 import { downloadDocument } from "@/service/document.service";
+import { resolveDocumentId } from "@/utils/document-resolution";
 import { Button } from "./ui/button";
 import { PaginationComponent } from "./ui/PaginationComponent";
 import {
@@ -265,6 +266,7 @@ export const ResultadosRelatorioDetalhado: React.FC<ResultadosDetalhadoProps> = 
                                 <div className="p-4 grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
                                     {dayRecords.map((item, index) => {
                                         const isBreak = item.statusRecord === 'IMPLICIT_BREAK';
+                                        const documentId = resolveDocumentId(item);
                                         return (
                                             <Card
                                                 key={item.timeRecordId || index}
@@ -322,14 +324,14 @@ export const ResultadosRelatorioDetalhado: React.FC<ResultadosDetalhadoProps> = 
                                                     )}
 
                                                     <div className="flex justify-between items-center pt-2 mt-1">
-                                                        {item.documentDownloadPath ? (
+                                                        {documentId ? (
                                                             <Button
                                                                 variant="ghost"
                                                                 size="sm"
                                                                 className="h-7 px-2 text-xs gap-1.5 text-primary hover:text-primary hover:bg-primary/10"
                                                                 onClick={(e) => {
                                                                     e.stopPropagation();
-                                                                    handleDocumentDownload(item.documentDownloadPath!, item.employeeId, item.employeeData.employeeName);
+                                                                    handleDocumentDownload(documentId, item.employeeId, item.employeeData.employeeName);
                                                                 }}
                                                             >
                                                                 <FileText className="h-3.5 w-3.5" />
