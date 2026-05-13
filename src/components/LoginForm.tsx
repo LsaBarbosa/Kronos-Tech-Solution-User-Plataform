@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
@@ -7,7 +7,7 @@ import Clock from "@/components/Clock";
 import { Eye, EyeOff, ScanFace } from "lucide-react"; // Adicionado ScanFace
 import { toast } from "@/hooks/use-toast";
 import FaceLoginModal from "@/components/FaceLoginModal"; // Import do novo modal
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useLocation } from "react-router-dom";
 import { loginWithPassword } from "@/service/auth.service";
 import { useAuth } from "@/context/AuthContext";
 import { getServiceErrorMessage } from "@/service/helpers/service-error.helper";
@@ -20,7 +20,14 @@ const LoginForm = () => {
   const [isFaceLoginOpen, setIsFaceLoginOpen] = useState(false); // Estado do modal facial
 
   const navigate = useNavigate();
+  const location = useLocation();
   const { login } = useAuth();
+
+  useEffect(() => {
+    if ((location.state as Record<string, unknown>)?.reason === "session_expired") {
+      toast.error("Tempo de sessão expirado.");
+    }
+  }, []);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();

@@ -102,6 +102,13 @@ const ensureCorrelationIdHeader = (headers: unknown) => {
   typedHeaders["X-Correlation-Id"] = correlationId;
 };
 
+type SessionExpiredCallback = (reason: "expired" | "revoked") => void;
+let onSessionExpiredCallback: SessionExpiredCallback | null = null;
+
+export const registerSessionExpiredHandler = (cb: SessionExpiredCallback) => {
+  onSessionExpiredCallback = cb;
+};
+
 const rejectApiError = (error: unknown) => {
   const serviceError = normalizeServiceError(error);
 
@@ -170,6 +177,11 @@ api.interceptors.response.use(
       }
 
       if (status === 403 && !data?.type) {
+        return rejectApiError(error);
+      }
+
+      if (status === 401) {
+        onSessionExpiredCallback?.("expired");
         return rejectApiError(error);
       }
     }

@@ -7,6 +7,8 @@ import {
   useState,
   type ReactNode,
 } from "react";
+import { useNavigate } from "react-router-dom";
+import { api, registerSessionExpiredHandler } from "@/config/api";
 import { isAuthServiceError } from "@/service/helpers/service-error.helper";
 import { loadSessionProfile } from "@/service/session-profile.service";
 import type { UserAccountData, UserData } from "@/types/user";
@@ -34,6 +36,7 @@ interface AuthContextValue {
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
 
 export const AuthProvider = ({ children }: { children: ReactNode }) => {
+  const navigate = useNavigate();
   const [status, setStatus] = useState<AuthStatus>("checking");
   const [user, setUser] = useState<AuthUser | null>(null);
   const [token, setToken] = useState<string | null>(() => readStoredValue("token"));
@@ -44,6 +47,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     setUser(null);
     setStatus("unauthenticated");
   }, []);
+
+  const handleSessionExpired = useCallback(() => {
+    clearSession();
+    navigate("/login", { state: { reason: "session_expired" }, replace: true });
+  }, [clearSession, navigate]);
 
   const checkSession = useCallback(async () => {
     const storedToken = readStoredValue("token");
@@ -86,9 +94,19 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     [checkSession]
   );
 
-  const logout = useCallback(() => {
-    clearSession();
+  const logout = useCallback(async () => {
+    try {
+      await api.post("/auth/logout");
+    } catch {
+      // silenciar erro: se falhar, ainda limpa a sessão local
+    } finally {
+      clearSession();
+    }
   }, [clearSession]);
+
+  useEffect(() => {
+    registerSessionExpiredHandler(handleSessionExpired);
+  }, [handleSessionExpired]);
 
   useEffect(() => {
     void checkSession();
