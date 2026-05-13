@@ -13,6 +13,12 @@ coverage
 dist-ssr
 *.local
 
+# Environment variables
+.env
+.env.local
+.env.*.local
+# .env.example and .env.production are committed as templates
+
 # Editor directories and files
 .vscode/*
 !.vscode/extensions.json
