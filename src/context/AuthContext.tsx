@@ -94,8 +94,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     [checkSession]
   );
 
-  const logout = useCallback(() => {
-    clearSession();
+  const logout = useCallback(async () => {
+    try {
+      await api.post("/auth/logout");
+    } catch {
+      // silenciar erro: se falhar, ainda limpa a sessão local
+    } finally {
+      clearSession();
+    }
   }, [clearSession]);
 
   useEffect(() => {

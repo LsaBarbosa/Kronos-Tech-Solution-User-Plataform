@@ -6,4 +6,5 @@ export const authHandlers = [
   http.post("*/auth/login-face", () => HttpResponse.json(authFixture.faceLoginResponse)),
   http.post("*/auth/recover-password", () => new HttpResponse(null, { status: 204 })),
   http.post("*/auth/reset-password", () => new HttpResponse(null, { status: 204 })),
+  http.post("*/auth/logout", () => new HttpResponse(null, { status: 204 })),
 ];
