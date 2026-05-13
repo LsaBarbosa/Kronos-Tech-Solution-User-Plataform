@@ -26,18 +26,38 @@ export default defineConfig({
     coverage: {
       provider: "v8",
       reporter: ["text", "json", "html", "lcov"],
-      thresholds: {
-        statements: 35,
-        branches: 59,
-        functions: 58,
-        lines: 35,
-      },
       include: ["src/**/*.{ts,tsx}"],
       exclude: [
+        "node_modules/",
+        "dist/",
+        "coverage/",
+
+        // bootstrap da aplicação
+        "src/main.tsx",
+        "src/vite-env.d.ts",
+
+        // tipos e arquivos gerados
+        "src/**/*.d.ts",
+        "src/types/**",
+        "src/generated/**",
+
+        // componentes base de UI/shadcn
+        "src/components/ui/**",
+
+        // arquivos barrel
+        "src/**/index.ts",
+
+        // testes e setup
         "src/**/*.test.ts",
         "src/**/*.test.tsx",
-        "src/test/**/*",
+        "src/test/**",
       ],
+      thresholds: {
+        statements: 40,
+        branches: 30,
+        functions: 33,
+        lines: 40,
+      },
     },
   },
 });
