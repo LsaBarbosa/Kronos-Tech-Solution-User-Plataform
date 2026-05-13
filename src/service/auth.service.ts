@@ -22,8 +22,15 @@ export interface FaceLoginPayload {
 export const loginWithPassword = async (payload: LoginPayload): Promise<LoginResponse> => {
     const response = await api.post<LoginResponse>(buildRoute(API_ROUTES.AUTH, "login"), payload);
 
-    if (!response.data?.token) {
-        throw new Error("Resposta de login sem token.");
+    console.log("[auth.service] Login response:", { status: response.status, data: response.data });
+
+    if (!response.data) {
+        throw new Error("Resposta de login vazia do servidor.");
+    }
+
+    if (!response.data.token) {
+        console.error("[auth.service] Token ausente na resposta. Response data:", response.data);
+        throw new Error("Resposta de login sem token. Verifique se o backend está retornando o token corretamente.");
     }
 
     return response.data;
@@ -35,8 +42,15 @@ export const loginWithPassword = async (payload: LoginPayload): Promise<LoginRes
 export const loginWithFace = async (payload: FaceLoginPayload): Promise<LoginResponse> => {
     const response = await api.post<LoginResponse>(buildRoute(API_ROUTES.AUTH, "login-face"), payload);
 
-    if (!response.data?.token) {
-        throw new Error("Resposta de login facial sem token.");
+    console.log("[auth.service] Face login response:", { status: response.status, data: response.data });
+
+    if (!response.data) {
+        throw new Error("Resposta de login facial vazia do servidor.");
+    }
+
+    if (!response.data.token) {
+        console.error("[auth.service] Token ausente na resposta facial. Response data:", response.data);
+        throw new Error("Resposta de login facial sem token. Verifique se o backend está retornando o token corretamente.");
     }
 
     return response.data;

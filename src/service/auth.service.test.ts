@@ -72,4 +72,28 @@ describe("auth.service", () => {
       loginWithFace({ faceImageBase64: "imagem-base64", livenessPassed })
     ).rejects.toThrow("Face nao reconhecida.");
   });
+
+  it("lança erro descritivo quando a resposta nao contem token", async () => {
+    server.use(
+      http.post("*/auth/login", () => HttpResponse.json({ token: null }))
+    );
+
+    await expect(
+      loginWithPassword({ username: "ana", password: "senha123" })
+    ).rejects.toThrow(
+      "Resposta de login sem token. Verifique se o backend está retornando o token corretamente."
+    );
+  });
+
+  it("lança erro descritivo quando a resposta esta vazia", async () => {
+    server.use(
+      http.post("*/auth/login", () => HttpResponse.json({}))
+    );
+
+    await expect(
+      loginWithPassword({ username: "ana", password: "senha123" })
+    ).rejects.toThrow(
+      "Resposta de login sem token. Verifique se o backend está retornando o token corretamente."
+    );
+  });
 });
