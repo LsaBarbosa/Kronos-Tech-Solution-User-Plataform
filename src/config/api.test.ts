@@ -35,20 +35,36 @@ describe("api", () => {
   });
 
   it("nao preserva Content-Type application/json em envio multipart", async () => {
-    server.use(
-      http.post("http://localhost:3000/upload", ({ request }) => {
-        return HttpResponse.json({
-          contentType: request.headers.get("content-type"),
-        });
-      })
-    );
-
     const formData = new FormData();
     formData.append("file", new File(["conteudo"], "teste.pdf", { type: "application/pdf" }));
 
-    const response = await api.post("http://localhost:3000/upload", formData);
+    let observedContentType: unknown;
 
-    expect(response.data.contentType).not.toBe("application/json");
+    const customAdapter = async (config: any) => {
+      const headers = config.headers as any;
+
+      observedContentType =
+        typeof headers.get === "function"
+          ? headers.get("Content-Type")
+          : headers["Content-Type"] ?? headers["content-type"];
+
+      return {
+        data: { ok: true },
+        status: 200,
+        statusText: "OK",
+        headers: {},
+        config,
+      };
+    };
+
+    await api.post("http://localhost:3000/upload", formData, {
+      headers: {
+        "Content-Type": "application/json",
+      },
+      adapter: customAdapter as any,
+    });
+
+    expect(observedContentType).not.toBe("application/json");
   });
 
   it("monta URL de redirecionamento para aceite de termos", () => {

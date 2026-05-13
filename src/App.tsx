@@ -66,11 +66,11 @@ const renderProtectedRoleRoute = ({
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <ThemeProvider>
-      <AuthProvider>
-        <TooltipProvider>
-          <Toaster />
-          <AppErrorBoundary>
-            <BrowserRouter>
+      <BrowserRouter>
+        <AuthProvider>
+          <TooltipProvider>
+            <Toaster />
+            <AppErrorBoundary>
               <Suspense fallback={<PageFallback />}>
                 <Routes>
                   <Route path={APP_PATHS.root} element={<TokenRedirect />} />
@@ -109,10 +109,10 @@ const App = () => (
                   <Route path="*" element={<NotFound />} />
                 </Routes>
               </Suspense>
-            </BrowserRouter>
-          </AppErrorBoundary>
-        </TooltipProvider>
-      </AuthProvider>
+            </AppErrorBoundary>
+          </TooltipProvider>
+        </AuthProvider>
+      </BrowserRouter>
     </ThemeProvider>
   </QueryClientProvider>
 );

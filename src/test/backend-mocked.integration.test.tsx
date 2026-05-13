@@ -1,7 +1,7 @@
 import { HttpResponse, http } from "msw";
 import { render, screen, waitFor } from "@testing-library/react";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 import { AuthProvider } from "@/context/AuthContext";
 import ProtectedRoute from "@/components/ProtectedRoute";
 import { loginWithPassword } from "@/service/auth.service";
@@ -16,6 +16,7 @@ import {
   approveVacationRequest,
   fetchDetailedReport,
 } from "@/service/records.service";
+import { api } from "@/config/api";
 import { server } from "@/test/mocks/server";
 
 const makeJwt = (payload: Record<string, unknown>) => {
@@ -153,11 +154,19 @@ describe("backend mocked integration", () => {
       type: "application/pdf",
     });
 
-    server.use(
-      http.post("*/documents", () => new HttpResponse(null, { status: 201 }))
-    );
+    const postSpy = vi.spyOn(api, "post").mockResolvedValue({ data: undefined });
 
     await expect(uploadDocument(file, "emp-1", "PAYSLIP")).resolves.toBeUndefined();
+
+    expect(postSpy).toHaveBeenCalledTimes(1);
+    const [url, body] = postSpy.mock.calls[0];
+    expect(url).toBe("/documents");
+    expect(body).toBeInstanceOf(FormData);
+    expect((body as FormData).get("employeeId")).toBe("emp-1");
+    expect((body as FormData).get("type")).toBe("PAYSLIP");
+    expect((body as FormData).get("file")).toBe(file);
+
+    postSpy.mockRestore();
   });
 
   it("gera relatório detalhado via backend mockado", async () => {
@@ -218,16 +227,8 @@ describe("backend mocked integration", () => {
   });
 
   it("solicita abono com multipart e aprova férias pelo backend", async () => {
-    server.use(
-      http.post("*/records/time-off/request", () => HttpResponse.json(77)),
-      http.patch("*/records/vacation-request/approve", async ({ request }) => {
-        const body = await request.json();
-
-        expect(body).toEqual({ timeRecordIds: [11, 12] });
-
-        return new HttpResponse(null, { status: 204 });
-      })
-    );
+    const postSpy = vi.spyOn(api, "post").mockResolvedValue({ data: 77 });
+    const patchSpy = vi.spyOn(api, "patch").mockResolvedValue({ data: undefined });
 
     await expect(
       requestTimeOff(
@@ -243,6 +244,21 @@ describe("backend mocked integration", () => {
       )
     ).resolves.toBe(77);
 
+    expect(postSpy).toHaveBeenCalledTimes(1);
+    const [postUrl, postBody] = postSpy.mock.calls[0];
+    expect(postUrl).toBe("/records/time-off/request");
+    expect(postBody).toBeInstanceOf(FormData);
+    expect((postBody as FormData).get("request")).toBeDefined();
+    expect((postBody as FormData).get("document")).toBeDefined();
+
     await expect(approveVacationRequest([11, 12])).resolves.toBeUndefined();
+
+    expect(patchSpy).toHaveBeenCalledTimes(1);
+    const [patchUrl, patchBody] = patchSpy.mock.calls[0];
+    expect(patchUrl).toBe("/records/vacation-request/approve");
+    expect(patchBody).toEqual({ timeRecordIds: [11, 12] });
+
+    postSpy.mockRestore();
+    patchSpy.mockRestore();
   });
 });

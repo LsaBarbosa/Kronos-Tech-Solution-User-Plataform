@@ -105,14 +105,14 @@ describe("App routes", () => {
 
     render(
       <ThemeProvider>
-        <AuthProvider>
-          <MemoryRouter initialEntries={["/dashboard"]}>
+        <MemoryRouter initialEntries={["/dashboard"]}>
+          <AuthProvider>
             <Routes>
               <Route path="/dashboard" element={<Dashboard />} />
               <Route path="/meus-documentos" element={<LocationProbe />} />
             </Routes>
-          </MemoryRouter>
-        </AuthProvider>
+          </AuthProvider>
+        </MemoryRouter>
       </ThemeProvider>
     );
 

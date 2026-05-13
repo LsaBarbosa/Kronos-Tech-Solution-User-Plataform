@@ -1,6 +1,7 @@
 import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { delay, HttpResponse, http } from "msw";
+import { MemoryRouter } from "react-router-dom";
 import { describe, expect, it } from "vitest";
 import { AuthProvider, useAuth } from "./AuthContext";
 import { server } from "@/test/mocks/server";
@@ -27,9 +28,11 @@ const AuthProbe = () => {
 
 const renderAuthProvider = () =>
   render(
-    <AuthProvider>
-      <AuthProbe />
-    </AuthProvider>
+    <MemoryRouter>
+      <AuthProvider>
+        <AuthProbe />
+      </AuthProvider>
+    </MemoryRouter>
   );
 
 describe("AuthProvider", () => {
