@@ -1,6 +1,6 @@
 import axios from "axios";
 import { normalizeServiceError } from "@/service/helpers/service-error.helper";
-import { getCurrentLocationHref, readStoredValue, redirectBrowserTo } from "@/lib/browser";
+import { getCurrentLocationHref, redirectBrowserTo } from "@/lib/browser";
 import { captureError } from "@/lib/observability";
 
 const DEFAULT_LOCAL_API_BASE_URL = ["http://localhost", "8080"].join(":");
@@ -131,20 +131,14 @@ export const api = axios.create({
   },
 });
 
-// Interceptor de Requisição (Para injetar o Token automaticamente)
+// Interceptor de Requisição
 api.interceptors.request.use(
   (config) => {
-    const token = readStoredValue("token"); // Ou onde você guarda o token
-
     config.headers = config.headers ?? {};
     ensureCorrelationIdHeader(config.headers);
 
     if (isFormDataPayload(config.data)) {
       clearContentTypeHeader(config.headers);
-    }
-
-    if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
     }
 
     return config;
