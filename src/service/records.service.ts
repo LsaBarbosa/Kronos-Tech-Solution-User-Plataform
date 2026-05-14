@@ -224,7 +224,7 @@ export const rejectVacationRequest = async (timeRecordIds: number[]): Promise<vo
 
 export const fetchManagerOptions = async (): Promise<ManagerOption[]> => {
   const response = await api.get<UserSearchListResponse>(buildRoute(API_ROUTES.USERS, "search"), {
-    params: { active: true },
+    params: { active: true, size: 999 },
   });
 
   return extractArray<UserSearchListItem>(response.data, ["users"])
