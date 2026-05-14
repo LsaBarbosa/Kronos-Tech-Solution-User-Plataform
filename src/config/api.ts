@@ -2,6 +2,7 @@ import axios from "axios";
 import { normalizeServiceError } from "@/service/helpers/service-error.helper";
 import { getCurrentLocationHref, redirectBrowserTo } from "@/lib/browser";
 import { captureError } from "@/lib/observability";
+import { fetchCsrfToken, invalidateCsrfToken } from "@/service/csrf.service";
 
 const DEFAULT_LOCAL_API_BASE_URL = ["http://localhost", "8080"].join(":");
 
@@ -109,6 +110,25 @@ export const registerSessionExpiredHandler = (cb: SessionExpiredCallback) => {
   onSessionExpiredCallback = cb;
 };
 
+const isStateChangingMethod = (method?: string): boolean => {
+  if (!method) return false;
+  const upperMethod = method.toUpperCase();
+  return ["POST", "PUT", "PATCH", "DELETE"].includes(upperMethod);
+};
+
+const endpoints_exempt_from_csrf = [
+  "/auth/login",
+  "/auth/login-face",
+  "/auth/logout",
+  "/auth/recover-password",
+  "/auth/reset-password",
+  "/auth/csrf",
+];
+
+const isCsrfRequired = (url: string): boolean => {
+  return !endpoints_exempt_from_csrf.some((exempt) => url.includes(exempt));
+};
+
 const rejectApiError = (error: unknown) => {
   const serviceError = normalizeServiceError(error);
 
@@ -133,7 +153,7 @@ export const api = axios.create({
 
 // Interceptor de Requisição
 api.interceptors.request.use(
-  (config) => {
+  async (config) => {
     config.headers = config.headers ?? {};
     ensureCorrelationIdHeader(config.headers);
 
@@ -141,17 +161,35 @@ api.interceptors.request.use(
       clearContentTypeHeader(config.headers);
     }
 
+    // Inject CSRF token for state-changing methods
+    if (isStateChangingMethod(config.method) && isCsrfRequired(config.url || "")) {
+      try {
+        const csrfToken = await fetchCsrfToken();
+        const headers = config.headers as Record<string, string>;
+        headers[csrfToken.headerName] = csrfToken.token;
+      } catch (error) {
+        // Log the error but don't fail the request
+        console.error("Failed to fetch CSRF token:", error);
+      }
+    }
+
     return config;
   },
   (error) => Promise.reject(normalizeServiceError(error))
 );
 
-// Interceptor de Resposta (Para pegar o erro 403 dos Termos)
+// Interceptor de Resposta (Para pegar o erro 403 dos Termos e CSRF)
 api.interceptors.response.use(
   (response) => response,
   (error) => {
     if (error.response) {
       const { status, data } = error.response;
+
+      // Handle CSRF errors
+      if (status === 403 && data?.kind === "CSRF_INVALID") {
+        invalidateCsrfToken();
+        return rejectApiError(error);
+      }
 
       // LÓGICA DO REDIRECIONAMENTO DOS TERMOS
       if (status === 403 && data?.type === "TERMS_NOT_ACCEPTED") {

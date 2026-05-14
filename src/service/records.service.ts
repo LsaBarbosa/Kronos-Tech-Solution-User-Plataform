@@ -64,6 +64,20 @@ const validateReportParams = (params: DetailedReportQueryParams) => {
 const extractVacationRequestPage = (
   payload: unknown
 ): VacationRequestPageResponse => {
+  // Backend returns raw array, not paginated object
+  if (Array.isArray(payload)) {
+    const requests = payload as VacationRequestResponse[];
+    return {
+      requests,
+      totalPages: 1,
+      totalElements: requests.length,
+      currentPage: 0,
+      isFirst: true,
+      isLast: true,
+    };
+  }
+
+  // If it's an object, try to extract pagination metadata
   const pageData = extractObject<Partial<VacationRequestPageResponse>>(payload);
   const requests = Array.isArray(pageData.requests)
     ? (pageData.requests as VacationRequestResponse[])
@@ -71,7 +85,7 @@ const extractVacationRequestPage = (
 
   return {
     requests,
-    totalPages: pageData.totalPages ?? 0,
+    totalPages: pageData.totalPages ?? 1,
     totalElements: pageData.totalElements ?? requests.length,
     currentPage: pageData.currentPage ?? 0,
     isFirst: pageData.isFirst ?? true,
