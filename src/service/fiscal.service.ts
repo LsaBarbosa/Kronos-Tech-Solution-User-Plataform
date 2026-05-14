@@ -1,13 +1,6 @@
 import { api } from "@/config/api";
-import { API_ROUTES, buildRoute } from "@/config/api-routes";
+import { API_ROUTES, LEGAL_PATHS, buildRoute } from "@/config/api-routes";
 import type { AxiosResponse, AxiosResponseHeaders, RawAxiosResponseHeaders } from "axios";
-
-const FISCAL_ENDPOINTS = {
-  mirror: buildRoute(API_ROUTES.LEGAL, "espelho-ponto"),
-  technicalCertificate: buildRoute(API_ROUTES.LEGAL, "technical-certificate"),
-  afd: buildRoute(API_ROUTES.LEGAL, "afd"),
-  aej: buildRoute(API_ROUTES.LEGAL, "aej"),
-} as const;
 
 const FISCAL_FILE_NAMES = {
   mirror: (startDate: string, endDate: string) => `Espelho_${startDate}_${endDate}.pdf`,
@@ -74,7 +67,7 @@ const downloadFiscalBlob = (
 
 export const FiscalService = {
   downloadMirror: async (startDate: string, endDate: string, targetEmployeeId?: string) => {
-    const response = await api.get(FISCAL_ENDPOINTS.mirror, {
+    const response = await api.get(buildRoute(API_ROUTES.LEGAL, LEGAL_PATHS.MIRROR), {
       params: {
         startDate,
         endDate,
@@ -87,7 +80,7 @@ export const FiscalService = {
   },
 
   downloadTechnicalCertificate: async () => {
-    const response = await api.get(FISCAL_ENDPOINTS.technicalCertificate, {
+    const response = await api.get(buildRoute(API_ROUTES.LEGAL, LEGAL_PATHS.TECHNICAL_CERTIFICATE), {
       responseType: "blob",
     });
 
@@ -95,7 +88,7 @@ export const FiscalService = {
   },
 
   downloadAfd: async () => {
-    const response = await api.get(FISCAL_ENDPOINTS.afd, {
+    const response = await api.get(buildRoute(API_ROUTES.LEGAL, LEGAL_PATHS.AFD), {
       responseType: "blob",
     });
 
@@ -103,7 +96,7 @@ export const FiscalService = {
   },
 
   downloadAej: async (startDate: string, endDate: string) => {
-    const response = await api.get(FISCAL_ENDPOINTS.aej, {
+    const response = await api.get(buildRoute(API_ROUTES.LEGAL, LEGAL_PATHS.AEJ), {
       params: { startDate, endDate },
       responseType: "blob",
     });

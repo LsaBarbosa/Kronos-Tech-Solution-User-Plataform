@@ -5,6 +5,7 @@ export type ServiceErrorKind =
   | "auth"
   | "terms"
   | "rateLimit"
+  | "conflict"
   | "serviceUnavailable"
   | "http"
   | "network"
@@ -47,6 +48,7 @@ const DEFAULT_MESSAGES: Record<ServiceErrorKind, string> = {
   auth: "Sessão expirada ou acesso não autorizado.",
   terms: "Aceite dos termos de uso pendente.",
   rateLimit: "Processamento em andamento. Aguarde alguns instantes e tente novamente.",
+  conflict: "Já existe um registro com esses dados.",
   serviceUnavailable: "Serviço temporariamente indisponível. Tente novamente em instantes.",
   http: "Erro ao processar solicitação.",
   network: "Erro de conexão. Verifique sua internet e tente novamente.",
@@ -139,6 +141,10 @@ const getErrorKind = (status?: number, data?: unknown): ServiceErrorKind => {
 
   if (status === 400) {
     return "validation";
+  }
+
+  if (status === 409) {
+    return "conflict";
   }
 
   if (status === 429) {

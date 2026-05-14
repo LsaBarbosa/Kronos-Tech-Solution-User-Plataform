@@ -127,4 +127,24 @@ describe("service-error.helper", () => {
       "Serviço temporariamente indisponível. Tente novamente em instantes."
     );
   });
+
+  it("converte 409 em conflito com mensagem amigável", () => {
+    const error = normalizeServiceError(axiosError(409));
+    expect(error).toMatchObject({
+      kind: "conflict",
+      status: 409,
+      message: "Já existe um registro com esses dados.",
+    });
+  });
+
+  it("mantém detalhe do backend para 409 quando existir", () => {
+    const error = normalizeHttpResponseError(409, {
+      detail: "CPF já cadastrado no sistema.",
+    });
+    expect(error).toMatchObject({
+      kind: "conflict",
+      status: 409,
+      message: "CPF já cadastrado no sistema.",
+    });
+  });
 });
