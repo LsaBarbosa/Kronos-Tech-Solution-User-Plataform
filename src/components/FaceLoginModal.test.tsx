@@ -178,4 +178,24 @@ describe("FaceLoginModal", () => {
     expect(authLoginMock).not.toHaveBeenCalled();
     expect(navigateMock).not.toHaveBeenCalled();
   });
+
+  it("exibe mensagem de erro quando câmera é negada pelo usuário", async () => {
+    const cameraError = new Error("Permission denied");
+    (cameraError as any).name = "NotAllowedError";
+
+    Object.defineProperty(navigator, "mediaDevices", {
+      configurable: true,
+      value: {
+        getUserMedia: vi.fn().mockRejectedValue(cameraError),
+      },
+    });
+
+    renderFaceLoginModal();
+
+    await waitFor(() => {
+      expect(mockToast.error).toHaveBeenCalledWith(
+        "Erro ao acessar a webcam. Verifique as permissões."
+      );
+    });
+  });
 });
