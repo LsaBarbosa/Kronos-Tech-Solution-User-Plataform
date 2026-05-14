@@ -36,8 +36,8 @@ const Sidebar = ({ isOpen, toggleSidebar }: SidebarProps) => {
     toggleSidebar();
   };
 
-  const handleLogout = () => {
-    logout();
+  const handleLogout = async () => {
+    await logout();
     navigate(APP_PATHS.login, { replace: true });
     toggleSidebar();
   };
