@@ -1,4 +1,4 @@
-export const formatSalary = (salary: number | undefined) => {
+export const formatSalary = (salary: number | null | undefined) => {
   if (salary === undefined || salary === null) return "N/A";
   return new Intl.NumberFormat("pt-BR", {
     style: "currency",

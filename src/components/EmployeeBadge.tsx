@@ -81,7 +81,6 @@ const EmployeeBadge = ({ userData, isLoading, onUpdateSuccess }: EmployeeBadgePr
       onUpdateSuccess();
 
     } catch (error) {
-      console.error(error);
       toast.error("Ocorreu um erro ao atualizar o perfil.");
       setTempData({
         fullName: userData?.fullName || "",
@@ -109,7 +108,7 @@ const EmployeeBadge = ({ userData, isLoading, onUpdateSuccess }: EmployeeBadgePr
     toggleEdit(field);
   };
   
-  const formatSalary = (salary: number | undefined) => {
+  const formatSalary = (salary: number | null | undefined) => {
     if (salary === undefined || salary === null) return "N/A";
     return new Intl.NumberFormat('pt-BR', {
       style: 'currency',

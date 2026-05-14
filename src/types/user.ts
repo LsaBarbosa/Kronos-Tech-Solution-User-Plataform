@@ -48,7 +48,7 @@ export interface UserData {
   maskedCpf: string;
   jobPosition: string;
   email: string;
-  salary: number;
+  salary: number | null;
   phone: string;
   address: {
     street: string;
@@ -60,9 +60,9 @@ export interface UserData {
   companyName: string;
   lastSeenMessageTimestamp: string | null;
   homeOffice: boolean;
-  
+
   // A role é injetada a partir do token no hook para conveniência
-  role?: 'PARTNER' | 'MANAGER' | 'ADMIN' | 'CTO' | 'USER' | string; 
+  role?: 'PARTNER' | 'MANAGER' | 'ADMIN' | 'CTO' | 'USER' | string;
   lastLogin?: string; // Mantido
 }
 
@@ -70,7 +70,7 @@ export interface UserData {
  * Interface para os dados necessários para a mudança de senha.
  */
 export interface ChangePasswordData {
-  currentPassword?: string;
+  currentPassword: string;
   newPassword: string;
   confirmPassword: string;
 }

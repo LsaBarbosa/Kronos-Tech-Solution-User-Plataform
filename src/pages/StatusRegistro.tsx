@@ -119,7 +119,7 @@ const StatusRegistro = () => {
             const data = await fetchReportEmployees(activeStatus);
             setEmployees(data);
             // 💡 CORREÇÃO: Lógica de verificação de funcionário selecionado
-            if (!employees.some(emp => emp.employeeId === selectedEmployee) && data.length > 0) {
+            if (!data.some(emp => emp.employeeId === selectedEmployee) && data.length > 0) {
                 setSelectedEmployee(data[0].employeeId); 
             } else if (!selectedEmployee && data.length > 0) {
                 setSelectedEmployee(data[0].employeeId);
@@ -129,7 +129,7 @@ const StatusRegistro = () => {
         } catch (error) {
             console.error("Erro ao buscar funcionários:", error);
         }
-    }, [authStatus, employeeActive, role, selectedEmployee, user, employees]);
+    }, [authStatus, employeeActive, role, selectedEmployee, user]);
 
     // 2. Busca de Registros (Lógica de Search Original)
     const handleSearch = async () => {

@@ -104,7 +104,6 @@ export const useUser = (): UseUserReturn => {
         "Erro ao carregar dados",
         "Não foi possível carregar as informações detalhadas."
       );
-      console.error(error);
     } finally {
       setIsLoading(false);
     }

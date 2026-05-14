@@ -7,6 +7,7 @@ import { useAuth } from "@/context/AuthContext";
 import { getServiceErrorMessage } from "@/service/helpers/service-error.helper";
 import { getAdministrativeErrorMessage } from "@/service/helpers/admin-error-message.helper";
 import { fetchReportEmployees } from "@/service/records.service";
+import { dateToBackendDatePattern } from "@/utils/date-format";
 import type { Employee } from "@/utils/report-utils";
 
 // Componentes UI
@@ -112,8 +113,8 @@ export default function EspelhoPonto() {
       // Define inicio e fim do mês
       const year = date.getFullYear();
       const month = date.getMonth();
-      const startDate = new Date(year, month, 1).toISOString().split('T')[0];
-      const endDate = new Date(year, month + 1, 0).toISOString().split('T')[0];
+      const startDate = dateToBackendDatePattern(new Date(year, month, 1));
+      const endDate = dateToBackendDatePattern(new Date(year, month + 1, 0));
       const targetEmployeeId = canSelectEmployee && selectedEmployeeId ? selectedEmployeeId : undefined;
 
       toast({
@@ -129,7 +130,6 @@ export default function EspelhoPonto() {
         variant: "default",
       });
     } catch (error) {
-      console.error(error);
       toast({
         variant: "destructive",
         title: "Erro no Download",

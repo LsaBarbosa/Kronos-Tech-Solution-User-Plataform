@@ -158,7 +158,6 @@ const FaceLoginModal = ({ isOpen, onOpenChange }: FaceLoginModalProps) => {
             navigate("/dashboard", { replace: true });
 
         } catch (error: unknown) {
-            console.error(error);
             toast.error(
                 getServiceErrorMessage(error, "Rosto não reconhecido ou não cadastrado.")
             );

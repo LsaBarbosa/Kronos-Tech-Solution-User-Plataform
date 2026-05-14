@@ -1,16 +1,17 @@
 import { useState, useCallback } from "react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { 
-  Calendar as CalendarIcon, 
-  Download, 
-  Scale, 
-  AlertCircle, 
-  FileCode, 
-  FileSignature, 
-  BadgeCheck 
+import {
+  Calendar as CalendarIcon,
+  Download,
+  Scale,
+  AlertCircle,
+  FileCode,
+  FileSignature,
+  BadgeCheck
 } from "lucide-react";
 import { cn } from "@/lib/utils";
+import { dateToBackendDatePattern } from "@/utils/date-format";
 
 // UI Components
 import { Button } from "@/components/ui/button";
@@ -67,10 +68,10 @@ export default function AuditoriaFiscal() {
     try {
       const year = date?.getFullYear() || 2024;
       const month = date?.getMonth() || 0;
-      
+
       // Define inicio e fim do mês
-      const startDate = new Date(year, month, 1).toISOString().split('T')[0];
-      const endDate = new Date(year, month + 1, 0).toISOString().split('T')[0];
+      const startDate = dateToBackendDatePattern(new Date(year, month, 1));
+      const endDate = dateToBackendDatePattern(new Date(year, month + 1, 0));
 
       toast({ title: "Processando...", description: `Gerando arquivo ${reportType}...` });
 
@@ -88,7 +89,6 @@ export default function AuditoriaFiscal() {
 
       toast({ title: "Sucesso!", description: "Arquivo baixado com sucesso.", variant: "default" });
     } catch (error) {
-      console.error(error);
       toast({
         variant: "destructive",
         title: "Erro",
