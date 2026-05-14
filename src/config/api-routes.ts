@@ -33,3 +33,57 @@ export const LEGAL_PATHS = {
   AFD: "afd",
   AEJ: "aej",
 } as const;
+
+export const DOCUMENT_PATHS = {
+  UPLOAD: "",
+  DOWNLOAD: (documentId: string) => documentId,
+  DELETE: (documentId: string) => documentId,
+} as const;
+
+export const RECORD_PATHS = {
+  CHECKIN: "checkin",
+  PENDING_APPROVALS: "pending-approvals",
+  REPORT: "report",
+  APPROVE: (timeRecordId: number | string) => `approve/${timeRecordId}`,
+  REJECT: (timeRecordId: number | string) => `reject/${timeRecordId}`,
+  UPDATE_STATUS: (employeeId: string, timeRecordId: string) => `update/status/${employeeId}/${timeRecordId}`,
+  TOGGLE_ACTIVATE: (employeeId: string, timeRecordId: string) => `toggle-activate/${employeeId}/${timeRecordId}`,
+  UPDATE_TIME_RECORD: (timeRecordId: number | string) => `update/time-record/${timeRecordId}`,
+  DELETE: (employeeId: string, timeRecordId: number | string) => `${employeeId}/${timeRecordId}`,
+  VACATION_REQUEST: "vacation-request",
+  VACATION_APPROVE: "vacation-request/approve",
+  VACATION_REJECT: "vacation-request/reject",
+  TIME_OFF_REQUEST: "time-off/request",
+  TIME_OFF_REQUESTS: "time-off/requests",
+  TIME_OFF_APPROVE: (timeRecordId: number) => `time-off/approve/${timeRecordId}`,
+  TIME_OFF_REJECT: (timeRecordId: number) => `time-off/reject/${timeRecordId}`,
+} as const;
+
+export const VACATION_PATHS = {
+  REQUEST: "vacation-request",
+  APPROVE: "vacation-request/approve",
+  REJECT: "vacation-request/reject",
+} as const;
+
+export const USER_PATHS = {
+  SEARCH: "search",
+  CHECK_USERNAME: "check-username",
+  TOGGLE_ACTIVATE: (userId: string) => `toggle-activate/${userId}`,
+  UPDATE: (userId: string) => `${userId}`,
+} as const;
+
+export const EMPLOYEE_PATHS = {
+  CHECK_CPF: "check-cpf",
+  OWN_PROFILE: "own-profile",
+  MARK_MESSAGES_SEEN: "mark-messages-seen",
+} as const;
+
+export const COMPANY_PATHS = {
+  SEARCH: (cnpj: string) => cnpj,
+  TOGGLE_ACTIVATE: (cnpj: string) => `${cnpj}/toggle-activate`,
+  UPDATE: (cnpj: string) => cnpj,
+} as const;
+
+export const MESSAGE_PATHS = {
+  DELETE: (messageId: string) => messageId,
+} as const;

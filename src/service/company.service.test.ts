@@ -191,7 +191,7 @@ describe("company.service", () => {
     );
 
     await expect(fetchCompanyDetails("00000000000000")).rejects.toMatchObject({
-      kind: "http",
+      kind: "notFound",
       status: 404,
       message: "Empresa nao encontrada.",
       response: {

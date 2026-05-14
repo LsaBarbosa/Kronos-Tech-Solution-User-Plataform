@@ -96,6 +96,10 @@ export interface TimeOffQueryParams {
   status: RecordApprovalFilterStatus;
 }
 
+export interface TimeOffCreatedResponse {
+  timeRecordId: number;
+}
+
 export type EmployeeData = RecordEmployeeData;
 export type ITimeRecordApprovalResponse = TimeRecordApprovalResponse;
 export type ITimeRecordApprovalPageResponse = TimeRecordApprovalPageResponse;
@@ -103,3 +107,4 @@ export type IPendingApprovalQueryParams = PendingApprovalQueryParams;
 export type IUpdateStatusRequest = RecordStatusUpdateRequest;
 export type ITimeOffQueryParams = TimeOffQueryParams;
 export type ITimeRecordPageResponse = TimeRecordPageResponse;
+export type ITimeOffCreatedResponse = TimeOffCreatedResponse;

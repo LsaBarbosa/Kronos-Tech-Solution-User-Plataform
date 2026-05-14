@@ -2,6 +2,7 @@
 
 import { api } from "@/config/api";
 import { API_ROUTES, buildRoute } from "@/config/api-routes";
+import { PAGINATION_DEFAULTS } from "@/constants/pagination";
 import type { Message, MessagePayload } from "@/types/message";
 import type { EmployeeListItem } from "@/types/document";
 import { extractArray } from "@/service/helpers/response-normalizer.helper";
@@ -13,20 +14,17 @@ export interface MessageQueryParams {
     size?: number;
 }
 
-const DEFAULT_MESSAGES_PAGE = 0;
-const DEFAULT_MESSAGES_SIZE = 10;
-
 /**
  * Busca todas as mensagens visíveis para o usuário logado (usado em Avisos.tsx).
  */
 export const fetchMessages = async (params: MessageQueryParams = {}): Promise<Message[]> => {
     const response = await api.get<Message[]>(buildRoute(API_ROUTES.MESSAGES), {
         params: {
-            page: params.page ?? DEFAULT_MESSAGES_PAGE,
-            size: params.size ?? DEFAULT_MESSAGES_SIZE,
+            page: params.page ?? PAGINATION_DEFAULTS.DEFAULT_PAGE,
+            size: params.size ?? PAGINATION_DEFAULTS.DEFAULT_PAGE_SIZE,
         },
     });
-    return extractArray<Message>(response.data, ["messages"]); 
+    return extractArray<Message>(response.data, ["messages"]);
 };
 
 /**

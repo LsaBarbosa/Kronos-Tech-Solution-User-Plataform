@@ -6,6 +6,9 @@ export type ServiceErrorKind =
   | "terms"
   | "rateLimit"
   | "conflict"
+  | "notFound"
+  | "fileTooLarge"
+  | "unsupportedMediaType"
   | "serviceUnavailable"
   | "http"
   | "network"
@@ -16,11 +19,20 @@ export interface ServiceErrorResponse {
   data?: unknown;
 }
 
+export interface ValidationError {
+  field?: string;
+  message?: string;
+  name?: string;
+  userMessage?: string;
+}
+
 export class ServiceError extends Error {
   kind: ServiceErrorKind;
   status?: number;
   data?: unknown;
   response?: ServiceErrorResponse;
+  validationErrors?: ValidationError[];
+  redirectUrl?: string;
 
   constructor(
     message: string,
@@ -28,10 +40,14 @@ export class ServiceError extends Error {
       kind,
       status,
       data,
+      validationErrors,
+      redirectUrl,
     }: {
       kind: ServiceErrorKind;
       status?: number;
       data?: unknown;
+      validationErrors?: ValidationError[];
+      redirectUrl?: string;
     }
   ) {
     super(message);
@@ -40,6 +56,8 @@ export class ServiceError extends Error {
     this.status = status;
     this.data = data;
     this.response = status ? { status, data } : undefined;
+    this.validationErrors = validationErrors;
+    this.redirectUrl = redirectUrl;
   }
 }
 
@@ -49,6 +67,9 @@ const DEFAULT_MESSAGES: Record<ServiceErrorKind, string> = {
   terms: "Aceite dos termos de uso pendente.",
   rateLimit: "Processamento em andamento. Aguarde alguns instantes e tente novamente.",
   conflict: "Já existe um registro com esses dados.",
+  notFound: "Recurso não encontrado.",
+  fileTooLarge: "Arquivo excede o tamanho máximo permitido.",
+  unsupportedMediaType: "Tipo de arquivo não permitido.",
   serviceUnavailable: "Serviço temporariamente indisponível. Tente novamente em instantes.",
   http: "Erro ao processar solicitação.",
   network: "Erro de conexão. Verifique sua internet e tente novamente.",
@@ -143,8 +164,20 @@ const getErrorKind = (status?: number, data?: unknown): ServiceErrorKind => {
     return "validation";
   }
 
+  if (status === 404) {
+    return "notFound";
+  }
+
   if (status === 409) {
     return "conflict";
+  }
+
+  if (status === 413) {
+    return "fileTooLarge";
+  }
+
+  if (status === 415) {
+    return "unsupportedMediaType";
   }
 
   if (status === 429) {
@@ -181,7 +214,23 @@ export const normalizeHttpResponseError = (
   const kind = getErrorKind(status, data);
   const message = extractMessage(data) || getFallbackMessage(kind, status);
 
-  return new ServiceError(message, { kind, status, data });
+  const validationErrors: ValidationError[] | undefined =
+    isRecord(data) && Array.isArray(data.validationErrors)
+      ? (data.validationErrors as ValidationError[])
+      : undefined;
+
+  const redirectUrl: string | undefined =
+    isRecord(data) && typeof data.redirectUrl === "string"
+      ? data.redirectUrl
+      : undefined;
+
+  return new ServiceError(message, {
+    kind,
+    status,
+    data,
+    validationErrors,
+    redirectUrl,
+  });
 };
 
 export const normalizeServiceError = (error: unknown): ServiceError => {

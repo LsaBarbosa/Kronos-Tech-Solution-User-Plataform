@@ -2,8 +2,9 @@
 
 import { api } from "@/config/api";
 import { API_ROUTES, buildRoute } from "@/config/api-routes";
+import { PAGINATION_DEFAULTS } from "@/constants/pagination";
 import type { ITimeRecordApprovalPageResponse } from "@/types/recordApproval";
-import type { WarningMessage } from "@/types/dashboard"; 
+import type { WarningMessage } from "@/types/dashboard";
 // 💡 CORREÇÃO 6: Importando UserData do local correto
 import type { UserData } from "@/types/user";
 import { extractArray, extractObject } from "@/service/helpers/response-normalizer.helper";
@@ -35,11 +36,11 @@ export const fetchPendingApprovalsCount = async (): Promise<ITimeRecordApprovalP
 export const fetchAllWarnings = async (): Promise<WarningMessage[]> => {
     const response = await api.get<WarningMessage[]>(buildRoute(API_ROUTES.MESSAGES), {
         params: {
-            page: 0,
-            size: 5,
+            page: PAGINATION_DEFAULTS.DEFAULT_PAGE,
+            size: PAGINATION_DEFAULTS.PENDING_APPROVALS_PAGE_SIZE, // 5 items for dashboard warnings
         },
     });
-    return extractArray<WarningMessage>(response.data, ["messages"]); 
+    return extractArray<WarningMessage>(response.data, ["messages"]);
 };
 
 /**

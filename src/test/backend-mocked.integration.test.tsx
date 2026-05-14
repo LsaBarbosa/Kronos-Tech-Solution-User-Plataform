@@ -227,7 +227,7 @@ describe("backend mocked integration", () => {
   });
 
   it("solicita abono com multipart e aprova férias pelo backend", async () => {
-    const postSpy = vi.spyOn(api, "post").mockResolvedValue({ data: 77 });
+    const postSpy = vi.spyOn(api, "post").mockResolvedValue({ data: { timeRecordId: 77 } });
     const patchSpy = vi.spyOn(api, "patch").mockResolvedValue({ data: undefined });
 
     await expect(

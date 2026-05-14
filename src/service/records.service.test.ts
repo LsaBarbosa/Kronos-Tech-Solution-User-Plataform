@@ -6,6 +6,7 @@ import {
   approveTimeRecordChange,
   approveTimeOff,
   approveVacationRequest,
+  deleteTimeRecord,
   fetchDetailedReport,
   fetchManagerOptions,
   fetchPendingApprovals,
@@ -141,6 +142,14 @@ describe("records.service", () => {
     await expect(rejectTimeRecordChange(10)).resolves.toBeUndefined();
   });
 
+  it("deleta registro de tempo com sucesso", async () => {
+    server.use(
+      http.delete("*/records/emp-1/10", () => new HttpResponse(null, { status: 204 }))
+    );
+
+    await expect(deleteTimeRecord("emp-1", "10")).resolves.toBeUndefined();
+  });
+
   it("atualiza status e alterna ativacao do registro", async () => {
     server.use(
       http.put("*/records/update/status/emp-1/10", async ({ request }) => {
@@ -256,7 +265,7 @@ describe("records.service", () => {
   });
 
   it("solicita abono com multipart no endpoint correto", async () => {
-    const postSpy = vi.spyOn(api, "post").mockResolvedValue({ data: 123 } as never);
+    const postSpy = vi.spyOn(api, "post").mockResolvedValue({ data: { timeRecordId: 123 } } as never);
 
     await expect(
       requestTimeOff(
@@ -283,7 +292,7 @@ describe("records.service", () => {
   });
 
   it("normaliza datas ISO de abono para dd-MM-yyyy antes de enviar", async () => {
-    const postSpy = vi.spyOn(api, "post").mockResolvedValue({ data: 123 } as never);
+    const postSpy = vi.spyOn(api, "post").mockResolvedValue({ data: { timeRecordId: 123 } } as never);
 
     await requestTimeOff({
       startDate: "2026-04-10",

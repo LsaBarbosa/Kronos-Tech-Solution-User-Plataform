@@ -1,12 +1,14 @@
 import { api } from "@/config/api";
 import { API_ROUTES, buildRoute } from "@/config/api-routes";
 import { extractArray, extractObject } from "@/service/helpers/response-normalizer.helper";
+import { PAGINATION_DEFAULTS } from "@/constants/pagination";
 import type { DetailedReportItem, Employee } from "@/utils/report-utils";
 import type {
   PendingApprovalQueryParams,
   TimeOffQueryParams,
   TimeRecordApprovalPageResponse,
   TimeRecordPageResponse,
+  TimeOffCreatedResponse,
 } from "@/types/recordApproval";
 import type {
   ManagerOption,
@@ -133,6 +135,13 @@ export const rejectTimeRecordChange = async (timeRecordId: number): Promise<void
   await api.patch(`${RECORDS_BASE_URL}/reject/${timeRecordId}`);
 };
 
+export const deleteTimeRecord = async (
+  employeeId: string,
+  timeRecordId: string | number
+): Promise<void> => {
+  await api.delete(`${RECORDS_BASE_URL}/${employeeId}/${timeRecordId}`);
+};
+
 export const updateRecordStatus = async (
   employeeId: string,
   timeRecordId: string,
@@ -175,8 +184,8 @@ export const requestTimeOff = async (
     formData.append("document", document, document.name);
   }
 
-  const response = await api.post<number>(`${RECORDS_BASE_URL}/time-off/request`, formData);
-  return response.data;
+  const response = await api.post<TimeOffCreatedResponse>(`${RECORDS_BASE_URL}/time-off/request`, formData);
+  return response.data.timeRecordId;
 };
 
 export const listTimeOffRequests = async (
@@ -252,7 +261,7 @@ export const fetchManagerOptions = async (): Promise<ManagerOption[]> => {
 export const fetchPendingVacationCount = async (): Promise<number> => {
   const response = await api.get<unknown>(`${RECORDS_BASE_URL}/vacation-request`, {
     params: {
-      page: 0,
+      page: PAGINATION_DEFAULTS.DEFAULT_PAGE,
       size: 1,
       status: "PENDING",
     },

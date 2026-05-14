@@ -9,6 +9,7 @@ import {
 } from "react";
 import { useNavigate } from "react-router-dom";
 import { api, registerSessionExpiredHandler } from "@/config/api";
+import { invalidateCsrfToken } from "@/service/csrf.service";
 import { isAuthServiceError } from "@/service/helpers/service-error.helper";
 import { loadSessionProfile } from "@/service/session-profile.service";
 import type { UserAccountData, UserData } from "@/types/user";
@@ -77,9 +78,14 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
 
   const logout = useCallback(async () => {
     try {
-      await api.post("/auth/logout");
+      const response = await api.post("/auth/logout");
+      if (response.status !== 204) {
+        throw new Error("Logout falhou. Resposta inesperada do servidor.");
+      }
+      invalidateCsrfToken();
     } catch (error) {
       console.warn("Erro ao fazer logout:", error);
+      invalidateCsrfToken();
     } finally {
       clearSession();
     }

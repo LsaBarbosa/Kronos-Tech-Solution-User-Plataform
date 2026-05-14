@@ -2,9 +2,10 @@ import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { delay, HttpResponse, http } from "msw";
 import { MemoryRouter } from "react-router-dom";
-import { describe, expect, it, beforeEach } from "vitest";
+import { describe, expect, it, beforeEach, vi } from "vitest";
 import { AuthProvider, useAuth } from "./AuthContext";
 import { server } from "@/test/mocks/server";
+import * as csrfService from "@/service/csrf.service";
 
 const AuthProbe = () => {
   const { status, role, user, isAuthenticated, logout, login } = useAuth();
@@ -132,6 +133,72 @@ describe("AuthProvider", () => {
     expect(screen.getByTestId("user")).toHaveTextContent("");
     expect(screen.getByTestId("role")).toHaveTextContent("");
     expect(screen.getByTestId("is-authenticated")).toHaveTextContent("false");
+  });
+
+  it("logout invalida cache de CSRF token", async () => {
+    const invalidateSpy = vi.spyOn(csrfService, "invalidateCsrfToken");
+
+    server.use(
+      http.get("*/employee/own-profile", () =>
+        HttpResponse.json({
+          employeeId: "e-1",
+          fullName: "Ana",
+          role: "MANAGER",
+          accountData: {
+            userId: "u-1",
+            username: "ana",
+          },
+        })
+      ),
+      http.post("*/auth/logout", () => new HttpResponse(null, { status: 204 }))
+    );
+
+    renderAuthProvider();
+
+    await waitFor(() => {
+      expect(screen.getByTestId("status")).toHaveTextContent("authenticated");
+    });
+
+    await userEvent.click(screen.getByRole("button", { name: "Logout" }));
+
+    await waitFor(() => {
+      expect(invalidateSpy).toHaveBeenCalled();
+    });
+
+    invalidateSpy.mockRestore();
+  });
+
+  it("logout invalida CSRF mesmo em erro", async () => {
+    const invalidateSpy = vi.spyOn(csrfService, "invalidateCsrfToken");
+
+    server.use(
+      http.get("*/employee/own-profile", () =>
+        HttpResponse.json({
+          employeeId: "e-1",
+          fullName: "Ana",
+          role: "MANAGER",
+          accountData: {
+            userId: "u-1",
+            username: "ana",
+          },
+        })
+      ),
+      http.post("*/auth/logout", () => new HttpResponse(null, { status: 500 }))
+    );
+
+    renderAuthProvider();
+
+    await waitFor(() => {
+      expect(screen.getByTestId("status")).toHaveTextContent("authenticated");
+    });
+
+    await userEvent.click(screen.getByRole("button", { name: "Logout" }));
+
+    await waitFor(() => {
+      expect(invalidateSpy).toHaveBeenCalled();
+    });
+
+    invalidateSpy.mockRestore();
   });
 
   it("login recarrega a sessao", async () => {

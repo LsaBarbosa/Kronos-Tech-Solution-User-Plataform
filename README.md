@@ -43,8 +43,9 @@ npm run test:coverage
 npm run analyze
 ```
 
-## Contrato com Backend
+## Escopo e Arquitetura
 
+- **Escopo dos repositórios:** [docs/architecture/repository-scope.md](docs/architecture/repository-scope.md) — Define responsabilidades entre User-Plataform e User-Register
 - Mapa de endpoints: [docs/api-contract-map.md](docs/api-contract-map.md)
 - Inventário HTTP: [docs/frontend-http-inventory.md](docs/frontend-http-inventory.md)
 - Aderência ao backend `flag/redis`: [docs/flag-redis-adherence.md](docs/flag-redis-adherence.md)
@@ -64,4 +65,11 @@ npm run analyze
 
 ## Fora de Escopo Neste Front
 
-Fluxos de registro de ponto e termo biométrico pertencem a outro front-end. Este projeto mantém guardas de contrato e documentação, mas não implementa esses fluxos.
+Os seguintes fluxos pertencem a `Kronos-Tech-Solution-User-Register` (aplicação de registro de ponto):
+
+- ❌ `POST /records/checkin` — Marcação de ponto
+- ❌ Captura facial para batida
+- ❌ Geolocalização para marcação
+- ❌ Fluxo completo de liveness para ponto
+
+Este projeto mantém apenas documentação e contratos de guarda, sem implementação. Para detalhes de escopo, veja [docs/architecture/repository-scope.md](docs/architecture/repository-scope.md).
