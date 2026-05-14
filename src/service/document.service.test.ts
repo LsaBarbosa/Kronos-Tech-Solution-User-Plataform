@@ -207,4 +207,20 @@ describe("document.service", () => {
       },
     ]);
   });
+
+  it("bloqueia upload com arquivo acima de 5MB antes da chamada HTTP", async () => {
+    const postSpy = vi.spyOn(api, "post").mockResolvedValue({} as never);
+    const largeFile = new File(
+      [new Uint8Array(5 * 1024 * 1024 + 1)],
+      "grande.pdf",
+      { type: "application/pdf" }
+    );
+
+    await expect(uploadDocument(largeFile, "emp-1", "PAYSLIP")).rejects.toThrow(
+      "O arquivo excede o limite de 5MB."
+    );
+
+    expect(postSpy).not.toHaveBeenCalled();
+    postSpy.mockRestore();
+  });
 });
