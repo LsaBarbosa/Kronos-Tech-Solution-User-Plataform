@@ -1,11 +1,11 @@
 import { HttpResponse, http } from "msw";
-import { describe, expect, it } from "vitest";
-import { api, buildTermsRedirectUrl } from "./api";
+import { describe, expect, it, vi } from "vitest";
+import { api, buildTermsRedirectUrl, registerSessionExpiredHandler } from "./api";
 import { server } from "@/test/mocks/server";
 
 describe("api", () => {
-  it("adiciona Authorization com o token do localStorage", async () => {
-    localStorage.setItem("token", "abc-123");
+  it("nao injeta Authorization header em requisicoes normais", async () => {
+    localStorage.clear();
 
     server.use(
       http.get("http://localhost:3000/health", ({ request }) => {
@@ -17,7 +17,7 @@ describe("api", () => {
 
     const response = await api.get("http://localhost:3000/health");
 
-    expect(response.data).toEqual({ authorization: "Bearer abc-123" });
+    expect(response.data).toEqual({ authorization: null });
   });
 
   it("adiciona X-Correlation-Id em todas as requisicoes", async () => {
@@ -143,5 +143,22 @@ describe("api", () => {
       status,
       message,
     });
+  });
+
+  it("chama callback de sessao expirada em resposta 401", async () => {
+    const expiredCallback = vi.fn();
+    registerSessionExpiredHandler(expiredCallback);
+
+    server.use(
+      http.get("http://localhost:3000/protected", () =>
+        new HttpResponse(null, { status: 401 })
+      )
+    );
+
+    await expect(api.get("http://localhost:3000/protected")).rejects.toMatchObject({
+      kind: "auth",
+      status: 401,
+    });
+    expect(expiredCallback).toHaveBeenCalledWith("expired");
   });
 });
