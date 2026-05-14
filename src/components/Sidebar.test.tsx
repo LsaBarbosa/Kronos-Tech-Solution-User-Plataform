@@ -42,11 +42,11 @@ vi.mock("react-router-dom", async () => {
 const mockUseAuth = vi.mocked(useAuth);
 
 const setRole = (role: "CTO" | "MANAGER" | "PARTNER" | "") => {
+  logoutMock.mockResolvedValue(undefined);
   mockUseAuth.mockReturnValue({
     status: "authenticated",
     user: null,
     role,
-    token: "token-valido",
     isAuthenticated: true,
     checkSession: vi.fn(),
     login: vi.fn(),
