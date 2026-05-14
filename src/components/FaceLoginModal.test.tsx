@@ -115,7 +115,7 @@ describe("FaceLoginModal", () => {
   });
 
   it("chama o service corretamente com a imagem capturada", async () => {
-    mockLoginWithFace.mockResolvedValue({ token: "token-face" });
+    mockLoginWithFace.mockResolvedValue(undefined);
     const user = userEvent.setup();
     const livenessPassed = Boolean("captured-face");
 
@@ -145,7 +145,7 @@ describe("FaceLoginModal", () => {
   });
 
   it("atualiza sessao global e redireciona no login facial com sucesso", async () => {
-    mockLoginWithFace.mockResolvedValue({ token: "token-face" });
+    mockLoginWithFace.mockResolvedValue(undefined);
     const user = userEvent.setup();
 
     renderFaceLoginModal();
@@ -153,7 +153,7 @@ describe("FaceLoginModal", () => {
     await user.click(screen.getByRole("button", { name: /confirmar/i }));
 
     await waitFor(() => {
-      expect(authLoginMock).toHaveBeenCalledWith("token-face");
+      expect(authLoginMock).toHaveBeenCalledWith();
     });
     expect(mockToast.success).toHaveBeenCalledWith(
       "Identidade confirmada! Acessando plataforma...",

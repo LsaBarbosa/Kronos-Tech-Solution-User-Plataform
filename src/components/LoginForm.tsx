@@ -27,15 +27,15 @@ const LoginForm = () => {
     if ((location.state as Record<string, unknown>)?.reason === "session_expired") {
       toast.error("Tempo de sessão expirado.");
     }
-  }, []);
+  }, [location]);
 
   const handleLogin = async (e: React.FormEvent) => {
     e.preventDefault();
     setIsSubmitting(true);
 
     try {
-      const data = await loginWithPassword({ username, password });
-      await login(data.token);
+      await loginWithPassword({ username, password });
+      await login();
 
       toast.success("Login realizado com sucesso!");
       navigate("/dashboard", { replace: true });

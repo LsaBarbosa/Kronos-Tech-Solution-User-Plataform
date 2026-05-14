@@ -81,7 +81,7 @@ describe("LoginForm", () => {
   });
 
   it("chama o service com as credenciais do formulario", async () => {
-    mockLoginWithPassword.mockResolvedValue({ token: "token-gerado" });
+    mockLoginWithPassword.mockResolvedValue(undefined);
 
     renderLoginForm();
     await fillAndSubmit();
@@ -94,14 +94,14 @@ describe("LoginForm", () => {
     });
   });
 
-  it("persiste token via AuthContext e redireciona apos login de sucesso", async () => {
-    mockLoginWithPassword.mockResolvedValue({ token: "token-gerado" });
+  it("atualiza sessao global via AuthContext e redireciona apos login de sucesso", async () => {
+    mockLoginWithPassword.mockResolvedValue(undefined);
 
     renderLoginForm();
     await fillAndSubmit();
 
     await waitFor(() => {
-      expect(authLoginMock).toHaveBeenCalledWith("token-gerado");
+      expect(authLoginMock).toHaveBeenCalledWith();
     });
     expect(mockToast.success).toHaveBeenCalledWith("Login realizado com sucesso!");
     expect(navigateMock).toHaveBeenCalledWith("/dashboard", { replace: true });

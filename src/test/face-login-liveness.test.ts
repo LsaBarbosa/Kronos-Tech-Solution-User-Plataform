@@ -4,11 +4,11 @@
  * Garantias:
  * 1. loginWithFace envia `livenessPassed` no payload.
  * 2. O campo `livenessPassed` aceita booleano vindo de variável, não literal.
- * 3. Resposta sem token lança erro.
+ * 3. Resposta 204 No Content é tratada corretamente.
  */
 
 import { HttpResponse, http } from "msw";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, beforeEach } from "vitest";
 import { loginWithFace } from "@/service/auth.service";
 import { server } from "@/test/mocks/server";
 
@@ -16,16 +16,18 @@ import { server } from "@/test/mocks/server";
 const MOCK_FACE_BASE64 = "AAABBBCCC_MOCK_IMAGE_DATA";
 
 describe("loginWithFace — contrato de liveness (História 1.1)", () => {
-  it("envia livenessPassed=true quando o estado indica que passou", async () => {
-    // Simula o estado que o FaceLoginModal definiria após validateLiveness
-    const livenessPassed = true;
+  beforeEach(() => {
+    server.resetHandlers();
+  });
 
+  it("envia livenessPassed=true quando o estado indica que passou", async () => {
+    const livenessPassed = true;
     let capturedBody: Record<string, unknown> | null = null;
 
     server.use(
       http.post("*/auth/login-face", async ({ request }) => {
         capturedBody = (await request.json()) as Record<string, unknown>;
-        return HttpResponse.json({ token: "face-token-ok" });
+        return new HttpResponse(null, { status: 204 });
       })
     );
 
@@ -33,20 +35,17 @@ describe("loginWithFace — contrato de liveness (História 1.1)", () => {
 
     expect(capturedBody).not.toBeNull();
     expect(capturedBody).toHaveProperty("faceImageBase64", MOCK_FACE_BASE64);
-    // Campo livenessPassed deve estar presente no payload enviado ao backend.
     expect(capturedBody).toHaveProperty("livenessPassed", true);
   });
 
   it("envia livenessPassed=false quando a validação não passou", async () => {
-    // Simula o cenário onde validateLiveness retornou false
     const livenessPassed = false;
-
     let capturedBody: Record<string, unknown> | null = null;
 
     server.use(
       http.post("*/auth/login-face", async ({ request }) => {
         capturedBody = (await request.json()) as Record<string, unknown>;
-        return HttpResponse.json({ token: "face-token-ok" });
+        return new HttpResponse(null, { status: 204 });
       })
     );
 
@@ -56,7 +55,7 @@ describe("loginWithFace — contrato de liveness (História 1.1)", () => {
     expect(capturedBody).toHaveProperty("livenessPassed", false);
   });
 
-  it("lança erro quando o backend retorna resposta sem token", async () => {
+  it("lança erro quando o backend retorna status code diferente de 204", async () => {
     const livenessPassed = Boolean(MOCK_FACE_BASE64);
 
     server.use(
@@ -67,7 +66,7 @@ describe("loginWithFace — contrato de liveness (História 1.1)", () => {
 
     await expect(
       loginWithFace({ faceImageBase64: MOCK_FACE_BASE64, livenessPassed })
-    ).rejects.toThrow("Resposta de login facial sem token.");
+    ).rejects.toThrow("Login facial falhou. Resposta inesperada do servidor.");
   });
 
   it("lança erro quando o backend retorna 401", async () => {

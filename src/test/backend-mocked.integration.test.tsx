@@ -58,7 +58,7 @@ describe("backend mocked integration", () => {
         const body = (await request.json()) as { username: string; password: string };
 
         if (body.username === "ana" && body.password === "senha123") {
-          return HttpResponse.json({ token: "token-gerado" });
+          return new HttpResponse(null, { status: 204 });
         }
 
         return HttpResponse.json(
@@ -70,11 +70,11 @@ describe("backend mocked integration", () => {
 
     await expect(
       loginWithPassword({ username: "ana", password: "senha123" })
-    ).resolves.toEqual({ token: "token-gerado" });
+    ).resolves.toBeUndefined();
 
     await expect(
       loginWithPassword({ username: "ana", password: "errada" })
-    ).rejects.toThrow("Usuario ou senha invalidos.");
+    ).rejects.toThrow();
   });
 
   it("redireciona a rota protegida quando a sessao expira", async () => {

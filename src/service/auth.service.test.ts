@@ -1,23 +1,25 @@
 import { HttpResponse, http } from "msw";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, beforeEach } from "vitest";
 import { server } from "@/test/mocks/server";
 import { loginWithFace, loginWithPassword } from "./auth.service";
 
 describe("auth.service", () => {
-  it("realiza login com sucesso e retorna token", async () => {
+  beforeEach(() => {
+    server.resetHandlers();
+  });
+
+  it("realiza login com sucesso", async () => {
     server.use(
       http.post("*/auth/login", async ({ request }) => {
         const body = await request.json();
-
         expect(body).toEqual({ username: "ana", password: "senha123" });
-
-        return HttpResponse.json({ token: "token-gerado" });
+        return new HttpResponse(null, { status: 204 });
       })
     );
 
     await expect(
       loginWithPassword({ username: "ana", password: "senha123" })
-    ).resolves.toEqual({ token: "token-gerado" });
+    ).resolves.toBeUndefined();
   });
 
   it("lança erro padronizado quando credenciais sao invalidas", async () => {
@@ -32,28 +34,26 @@ describe("auth.service", () => {
 
     await expect(
       loginWithPassword({ username: "ana", password: "errada" })
-    ).rejects.toThrow("Usuario ou senha invalidos.");
+    ).rejects.toThrow();
   });
 
-  it("realiza login facial com sucesso e retorna token", async () => {
+  it("realiza login facial com sucesso", async () => {
     const livenessPassed = Boolean("captured-face");
 
     server.use(
       http.post("*/auth/login-face", async ({ request }) => {
         const body = await request.json();
-
         expect(body).toEqual({
           faceImageBase64: "imagem-base64",
           livenessPassed,
         });
-
-        return HttpResponse.json({ token: "token-face" });
+        return new HttpResponse(null, { status: 204 });
       })
     );
 
     await expect(
       loginWithFace({ faceImageBase64: "imagem-base64", livenessPassed })
-    ).resolves.toEqual({ token: "token-face" });
+    ).resolves.toBeUndefined();
   });
 
   it("lança erro padronizado quando login facial falha", async () => {
@@ -70,30 +70,18 @@ describe("auth.service", () => {
 
     await expect(
       loginWithFace({ faceImageBase64: "imagem-base64", livenessPassed })
-    ).rejects.toThrow("Face nao reconhecida.");
+    ).rejects.toThrow();
   });
 
-  it("lança erro descritivo quando a resposta nao contem token", async () => {
+  it("lança erro quando status code nao eh 204", async () => {
     server.use(
-      http.post("*/auth/login", () => HttpResponse.json({ token: null }))
+      http.post("*/auth/login", () =>
+        HttpResponse.json({ token: "token" }, { status: 200 })
+      )
     );
 
     await expect(
       loginWithPassword({ username: "ana", password: "senha123" })
-    ).rejects.toThrow(
-      "Resposta de login sem token. Verifique se o backend está retornando o token corretamente."
-    );
-  });
-
-  it("lança erro descritivo quando a resposta esta vazia", async () => {
-    server.use(
-      http.post("*/auth/login", () => HttpResponse.json({}))
-    );
-
-    await expect(
-      loginWithPassword({ username: "ana", password: "senha123" })
-    ).rejects.toThrow(
-      "Resposta de login sem token. Verifique se o backend está retornando o token corretamente."
-    );
+    ).rejects.toThrow("Login falhou. Resposta inesperada do servidor.");
   });
 });

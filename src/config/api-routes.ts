@@ -7,6 +7,7 @@ export const API_ROUTES = {
   LEGAL: "legal",
   MESSAGES: "messages",
   RECORDS: "records",
+  TERMS: "terms",
   USERS: "users",
 } as const;
 

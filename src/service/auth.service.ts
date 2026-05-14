@@ -7,53 +7,33 @@ export interface LoginPayload {
     password: string;
 }
 
-export interface LoginResponse {
-    token: string;
-}
-
 export interface FaceLoginPayload {
     faceImageBase64: string;
     livenessPassed?: boolean;
 }
 
 /**
- * Autentica usuário e senha no backend e retorna o token de sessão.
+ * Autentica usuário e senha no backend.
+ * O backend retorna 204 No Content com Set-Cookie header.
  */
-export const loginWithPassword = async (payload: LoginPayload): Promise<LoginResponse> => {
-    const response = await api.post<LoginResponse>(buildRoute(API_ROUTES.AUTH, "login"), payload);
-
-    console.log("[auth.service] Login response:", { status: response.status, data: response.data });
-
-    if (!response.data) {
-        throw new Error("Resposta de login vazia do servidor.");
+export const loginWithPassword = async (payload: LoginPayload): Promise<void> => {
+    const response = await api.post(buildRoute(API_ROUTES.AUTH, "login"), payload);
+    // Resposta esperada: 204 No Content com Set-Cookie header
+    if (response.status !== 204) {
+        throw new Error("Login falhou. Resposta inesperada do servidor.");
     }
-
-    if (!response.data.token) {
-        console.error("[auth.service] Token ausente na resposta. Response data:", response.data);
-        throw new Error("Resposta de login sem token. Verifique se o backend está retornando o token corretamente.");
-    }
-
-    return response.data;
 };
 
 /**
- * Autentica por biometria facial e retorna o token de sessão.
+ * Autentica por biometria facial.
+ * O backend retorna 204 No Content com Set-Cookie header.
  */
-export const loginWithFace = async (payload: FaceLoginPayload): Promise<LoginResponse> => {
-    const response = await api.post<LoginResponse>(buildRoute(API_ROUTES.AUTH, "login-face"), payload);
-
-    console.log("[auth.service] Face login response:", { status: response.status, data: response.data });
-
-    if (!response.data) {
-        throw new Error("Resposta de login facial vazia do servidor.");
+export const loginWithFace = async (payload: FaceLoginPayload): Promise<void> => {
+    const response = await api.post(buildRoute(API_ROUTES.AUTH, "login-face"), payload);
+    // Resposta esperada: 204 No Content com Set-Cookie header
+    if (response.status !== 204) {
+        throw new Error("Login facial falhou. Resposta inesperada do servidor.");
     }
-
-    if (!response.data.token) {
-        console.error("[auth.service] Token ausente na resposta facial. Response data:", response.data);
-        throw new Error("Resposta de login facial sem token. Verifique se o backend está retornando o token corretamente.");
-    }
-
-    return response.data;
 };
 
 /**
