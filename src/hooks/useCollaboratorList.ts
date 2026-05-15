@@ -100,11 +100,25 @@ export const useCollaboratorList = () => {
           ? usersByUsername.get(normalizeUsername(employee.username))
           : undefined;
 
+        // Normalização de status: prioridade user.active > employee.active
+        const userActive =
+          typeof user?.active === "boolean"
+            ? user.active
+            : undefined;
+
+        const employeeActive =
+          typeof employee?.active === "boolean"
+            ? employee.active
+            : false;
+
+        const normalizedActive = userActive ?? employeeActive;
+
         if (user) {
           return {
             ...employee,
             ...user,
-            enabled: user.active,
+            active: normalizedActive,
+            enabled: normalizedActive,
           };
         }
 
@@ -113,8 +127,10 @@ export const useCollaboratorList = () => {
           userId: "N/A",
           username: "Sem Usuário",
           role: "PARTNER",
+          active: employee.active,
           enabled: employee.active,
-        };
+          employeeId: employee.employeeId,
+        } as CombinedColaborator;
       });
 
       setColaboradores(combinedData);
@@ -235,7 +251,7 @@ export const useCollaboratorList = () => {
       number: colaborador.address.number,
       username: colaborador.username,
       role: colaborador.role,
-      enabled: colaborador.enabled,
+      enabled: colaborador.active,
       homeOffice: colaborador.homeOffice,
       workStartTime: colaborador.workStartTime,
       workEndTime: colaborador.workEndTime,

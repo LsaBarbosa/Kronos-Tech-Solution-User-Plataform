@@ -68,7 +68,7 @@ export { Pagination, PaginationContent, PaginationItem, PaginationLink, Paginati
 export { Toggle, toggleVariants } from "./toggle"
 export { ToggleGroup, ToggleGroupItem } from "./toggle-group"
 export { Collapsible, CollapsibleTrigger, CollapsibleContent } from "./collapsible"
-export { Command, CommandDialog, CommandInput, CommandList, CommandEmpty, CommandGroup, CommandItem, CommandLabel, CommandSeparator, CommandShortcut } from "./command"
+export { Command, CommandDialog, CommandInput, CommandList, CommandEmpty, CommandGroup, CommandItem, CommandSeparator, CommandShortcut } from "./command"
 export { ScrollArea, ScrollBar } from "./scroll-area"
 export { HoverCard, HoverCardTrigger, HoverCardContent } from "./hover-card"
 export { Carousel, CarouselContent, CarouselItem, CarouselPrevious, CarouselNext } from "./carousel"

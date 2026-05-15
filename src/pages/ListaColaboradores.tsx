@@ -243,11 +243,16 @@ const ListaColaboradores = () => {
                               <CardTitle className="text-xl group-hover:text-primary transition-colors duration-300 flex items-center gap-2">
                                 <User className="w-5 h-5" />
                                 {colaborador.fullName}
-                                {!colaborador.active && (
-                                  <Badge variant="destructive" className="ml-2 text-xs px-2 py-0.5 h-5">
-                                    Inativo
-                                  </Badge>
-                                )}
+                                <Badge
+                                  variant={colaborador.active ? "default" : "destructive"}
+                                  className={
+                                    colaborador.active
+                                      ? "ml-2 text-xs px-2 py-0.5 h-5 bg-green-100 text-green-700 border-green-200 hover:bg-green-100 dark:bg-green-900/30 dark:text-green-400 dark:border-green-800"
+                                      : "ml-2 text-xs px-2 py-0.5 h-5"
+                                  }
+                                >
+                                  {colaborador.active ? "Ativo" : "Inativo"}
+                                </Badge>
                               </CardTitle>
                               <Badge className="w-fit bg-primary/10 text-primary border-primary/20 hover:bg-primary/20 mt-2">
                                 {colaborador.jobPosition}
@@ -288,17 +293,13 @@ const ListaColaboradores = () => {
                             <AlertDialog>
                               <AlertDialogTrigger asChild>
                                 <button
-                                  // Muda a cor e ícone baseados no status.
-                                  // Se ativo (clicar para desativar) -> hover vermelho.
-                                  // Se inativo (clicar para ativar) -> hover verde.
-                                  className={`p-2 text-muted-foreground rounded-full transition-all duration-200 hover:scale-110 
+                                  className={`p-2 text-muted-foreground rounded-full transition-all duration-200 hover:scale-110
                                     ${colaborador.active
                                       ? "hover:text-destructive hover:bg-destructive/10"
-                                      : "hover:text-green-600 hover:bg-green-100"
+                                      : "hover:text-green-600 hover:bg-green-100 dark:hover:bg-green-900/30"
                                     }`}
                                   title={colaborador.active ? "Desativar colaborador" : "Ativar colaborador"}
                                 >
-                                  {/* Ícone Power para representar o Toggle */}
                                   <Power className="w-4 h-4" />
                                 </button>
                               </AlertDialogTrigger>
@@ -321,8 +322,8 @@ const ListaColaboradores = () => {
                                   <AlertDialogAction
                                     onClick={() => handleToggleUserStatus(colaborador.userId, colaborador.active)}
                                     className={`${colaborador.active
-                                      ? "bg-destructive hover:bg-destructive/90 text-destructive-foreground" // Botão vermelho para desativar
-                                      : "bg-green-600 hover:bg-green-700 text-white" // Botão verde para ativar
+                                      ? "bg-destructive hover:bg-destructive/90 text-destructive-foreground"
+                                      : "bg-green-600 hover:bg-green-700 text-white dark:bg-green-700 dark:hover:bg-green-800"
                                       }`}
                                   >
                                     {colaborador.active ? "Desativar" : "Ativar"}
