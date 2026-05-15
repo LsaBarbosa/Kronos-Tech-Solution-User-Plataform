@@ -44,6 +44,7 @@ import {
   getFirstName,
   getSecondName,
 } from "@/utils/dashboard-utils";
+import { getDashboardCardsLayoutByRole, type DashboardCardConfig } from "@/utils/dashboard-cards-config";
 
 type DashboardTone = "purple" | "blue" | "cyan" | "success" | "warning" | "danger";
 
@@ -213,6 +214,43 @@ const DashboardSection = ({ title, description, children, action, className }: D
     {children}
   </section>
 );
+
+const DashboardCustomCard = ({
+  card,
+  onClick,
+  onKeyDown,
+}: {
+  card: DashboardCardConfig;
+  onClick: () => void;
+  onKeyDown: (event: KeyboardEvent<HTMLElement>) => void;
+}) => {
+  const toneClass = toneClasses[card.tone];
+
+  return (
+    <Card
+      className={cn(dashboardCardClassName, interactiveCardClassName, "overflow-hidden")}
+      onClick={onClick}
+      onKeyDown={onKeyDown}
+      role="button"
+      tabIndex={0}
+      aria-label={card.ariaLabel}
+    >
+      <CardContent className="relative p-5">
+        <div className={cn("absolute inset-x-0 top-0 h-1 bg-gradient-to-r", toneClass.accent)} />
+        <div className="flex items-start justify-between gap-4">
+          <div className="min-w-0">
+            <p className="text-sm font-medium text-[#6B7280]">{card.title}</p>
+            <p className={cn("mt-2 text-3xl font-bold text-[#111827]", toneClass.text)}>{card.value}</p>
+            <p className="mt-2 text-sm text-[#6B7280]">{card.description}</p>
+          </div>
+          <div className={cn("flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-xl", toneClass.icon)}>
+            <card.icon className="h-6 w-6" aria-hidden="true" />
+          </div>
+        </div>
+      </CardContent>
+    </Card>
+  );
+};
 
 const DashboardMetricCard = ({
   icon: Icon,
@@ -488,51 +526,144 @@ const Dashboard = () => {
             <DashboardSkeletonCard />
             <DashboardSkeletonCard />
           </div>
-        ) : (
-          <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
-            <DashboardMetricCard
-              icon={ClockIcon}
-              title="Jornada"
-              value="Online"
-              description="Relógio e relatório de ponto"
-              tone="blue"
-              onClick={handleClockCardClick}
-              onKeyDown={getCardKeyDownHandler(handleClockCardClick)}
-              ariaLabel="Abrir relatório de ponto"
-            />
-            <DashboardMetricCard
-              icon={hasApprovalPermission ? AlertTriangle : Zap}
-              title={hasApprovalPermission ? "Pendências" : "Acesso rápido"}
-              value={pendingValue}
-              description={hasApprovalPermission ? "Ponto, férias e abonos" : "Documentos, férias e abonos"}
-              tone={pendingTone}
-              onClick={hasApprovalPermission ? handleApprovalClick : () => navigate(APP_PATHS.meusDocumentos)}
-              onKeyDown={getCardKeyDownHandler(hasApprovalPermission ? handleApprovalClick : () => navigate(APP_PATHS.meusDocumentos))}
-              ariaLabel={hasApprovalPermission ? "Abrir apuração de horas" : "Abrir resumo de acesso rápido"}
-              isLoading={countsAreLoading}
-            />
-            <DashboardMetricCard
-              icon={MessageSquareWarning}
-              title="Avisos"
-              value={newWarnings.length}
-              description={newWarnings.length > 0 ? "Novas mensagens internas" : "Nenhuma mensagem nova"}
-              tone={warningTone}
-              onClick={!isManager && newWarnings.length > 0 ? handleAvisosCardClick : undefined}
-              onKeyDown={!isManager && newWarnings.length > 0 ? getCardKeyDownHandler(handleAvisosCardClick) : undefined}
-              ariaLabel={!isManager && newWarnings.length > 0 ? "Abrir avisos recentes" : undefined}
-            />
-            <DashboardMetricCard
-              icon={Building}
-              title="Perfil"
-              value={roleLabel}
-              description={userData?.companyName || "Empresa não informada"}
-              tone="purple"
-              onClick={handleDetailsCardClick}
-              onKeyDown={getCardKeyDownHandler(handleDetailsCardClick)}
-              ariaLabel="Abrir detalhes do colaborador"
-            />
-          </div>
-        )}
+        ) : (() => {
+          const cardsLayout = getDashboardCardsLayoutByRole(userData?.role || "");
+          const hasCustomCards = Object.values(cardsLayout).some(
+            (card): card is DashboardCardConfig => card !== null && card !== "keep-default"
+          );
+
+          const isCustomCard = (card: unknown): card is DashboardCardConfig =>
+            card !== null && card !== "keep-default" && typeof card === "object";
+
+          return (
+            <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
+              {hasCustomCards ? (
+                <>
+                  {cardsLayout.card1 === "keep-default" ? (
+                    <DashboardMetricCard
+                      icon={ClockIcon}
+                      title="Jornada"
+                      value="Online"
+                      description="Relógio e relatório de ponto"
+                      tone="blue"
+                      onClick={handleClockCardClick}
+                      onKeyDown={getCardKeyDownHandler(handleClockCardClick)}
+                      ariaLabel="Abrir relatório de ponto"
+                    />
+                  ) : isCustomCard(cardsLayout.card1) ? (
+                    <DashboardCustomCard
+                      card={cardsLayout.card1}
+                      onClick={() => navigate((cardsLayout.card1 as DashboardCardConfig).route)}
+                      onKeyDown={getCardKeyDownHandler(() => navigate((cardsLayout.card1 as DashboardCardConfig).route))}
+                    />
+                  ) : null}
+
+                  {cardsLayout.card2 === "keep-default" ? (
+                    <DashboardMetricCard
+                      icon={hasApprovalPermission ? AlertTriangle : Zap}
+                      title={hasApprovalPermission ? "Pendências" : "Acesso rápido"}
+                      value={pendingValue}
+                      description={hasApprovalPermission ? "Ponto, férias e abonos" : "Documentos, férias e abonos"}
+                      tone={pendingTone}
+                      onClick={hasApprovalPermission ? handleApprovalClick : () => navigate(APP_PATHS.meusDocumentos)}
+                      onKeyDown={getCardKeyDownHandler(hasApprovalPermission ? handleApprovalClick : () => navigate(APP_PATHS.meusDocumentos))}
+                      ariaLabel={hasApprovalPermission ? "Abrir apuração de horas" : "Abrir resumo de acesso rápido"}
+                      isLoading={countsAreLoading}
+                    />
+                  ) : isCustomCard(cardsLayout.card2) ? (
+                    <DashboardCustomCard
+                      card={cardsLayout.card2}
+                      onClick={() => navigate((cardsLayout.card2 as DashboardCardConfig).route)}
+                      onKeyDown={getCardKeyDownHandler(() => navigate((cardsLayout.card2 as DashboardCardConfig).route))}
+                    />
+                  ) : null}
+
+                  {cardsLayout.card3 === "keep-default" ? (
+                    <DashboardMetricCard
+                      icon={MessageSquareWarning}
+                      title="Avisos"
+                      value={newWarnings.length}
+                      description={newWarnings.length > 0 ? "Novas mensagens internas" : "Nenhuma mensagem nova"}
+                      tone={warningTone}
+                      onClick={!isManager && newWarnings.length > 0 ? handleAvisosCardClick : undefined}
+                      onKeyDown={!isManager && newWarnings.length > 0 ? getCardKeyDownHandler(handleAvisosCardClick) : undefined}
+                      ariaLabel={!isManager && newWarnings.length > 0 ? "Abrir avisos recentes" : undefined}
+                    />
+                  ) : isCustomCard(cardsLayout.card3) ? (
+                    <DashboardCustomCard
+                      card={cardsLayout.card3}
+                      onClick={() => navigate((cardsLayout.card3 as DashboardCardConfig).route)}
+                      onKeyDown={getCardKeyDownHandler(() => navigate((cardsLayout.card3 as DashboardCardConfig).route))}
+                    />
+                  ) : null}
+
+                  {cardsLayout.card4 === "keep-default" ? (
+                    <DashboardMetricCard
+                      icon={Building}
+                      title="Perfil"
+                      value={roleLabel}
+                      description={userData?.companyName || "Empresa não informada"}
+                      tone="purple"
+                      onClick={handleDetailsCardClick}
+                      onKeyDown={getCardKeyDownHandler(handleDetailsCardClick)}
+                      ariaLabel="Abrir detalhes do colaborador"
+                    />
+                  ) : isCustomCard(cardsLayout.card4) ? (
+                    <DashboardCustomCard
+                      card={cardsLayout.card4}
+                      onClick={() => navigate((cardsLayout.card4 as DashboardCardConfig).route)}
+                      onKeyDown={getCardKeyDownHandler(() => navigate((cardsLayout.card4 as DashboardCardConfig).route))}
+                    />
+                  ) : null}
+                </>
+              ) : (
+                <>
+                  <DashboardMetricCard
+                    icon={ClockIcon}
+                    title="Jornada"
+                    value="Online"
+                    description="Relógio e relatório de ponto"
+                    tone="blue"
+                    onClick={handleClockCardClick}
+                    onKeyDown={getCardKeyDownHandler(handleClockCardClick)}
+                    ariaLabel="Abrir relatório de ponto"
+                  />
+                  <DashboardMetricCard
+                    icon={hasApprovalPermission ? AlertTriangle : Zap}
+                    title={hasApprovalPermission ? "Pendências" : "Acesso rápido"}
+                    value={pendingValue}
+                    description={hasApprovalPermission ? "Ponto, férias e abonos" : "Documentos, férias e abonos"}
+                    tone={pendingTone}
+                    onClick={hasApprovalPermission ? handleApprovalClick : () => navigate(APP_PATHS.meusDocumentos)}
+                    onKeyDown={getCardKeyDownHandler(hasApprovalPermission ? handleApprovalClick : () => navigate(APP_PATHS.meusDocumentos))}
+                    ariaLabel={hasApprovalPermission ? "Abrir apuração de horas" : "Abrir resumo de acesso rápido"}
+                    isLoading={countsAreLoading}
+                  />
+                  <DashboardMetricCard
+                    icon={MessageSquareWarning}
+                    title="Avisos"
+                    value={newWarnings.length}
+                    description={newWarnings.length > 0 ? "Novas mensagens internas" : "Nenhuma mensagem nova"}
+                    tone={warningTone}
+                    onClick={!isManager && newWarnings.length > 0 ? handleAvisosCardClick : undefined}
+                    onKeyDown={!isManager && newWarnings.length > 0 ? getCardKeyDownHandler(handleAvisosCardClick) : undefined}
+                    ariaLabel={!isManager && newWarnings.length > 0 ? "Abrir avisos recentes" : undefined}
+                  />
+                  <DashboardMetricCard
+                    icon={Building}
+                    title="Perfil"
+                    value={roleLabel}
+                    description={userData?.companyName || "Empresa não informada"}
+                    tone="purple"
+                    onClick={handleDetailsCardClick}
+                    onKeyDown={getCardKeyDownHandler(handleDetailsCardClick)}
+                    ariaLabel="Abrir detalhes do colaborador"
+                  />
+                </>
+              )}
+            </div>
+          );
+        })()}
 
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
           <Card
