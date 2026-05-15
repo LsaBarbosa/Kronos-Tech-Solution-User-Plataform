@@ -53,6 +53,10 @@ export { Slider } from "./slider"
 export { EmptyState, type EmptyStateProps } from "./empty-state"
 export { ErrorState, type ErrorStateProps } from "./error-state"
 
+// Feedback & Modals
+export { ToastMessage, type ToastMessageProps } from "./toast-message"
+export { LoadingSpinner, type LoadingSpinnerProps } from "./loading-spinner"
+
 // Data Display
 export { DataTable, type DataTableProps, type DataTableColumn } from "./data-table"
 export { TableActions, type TableActionsProps, type TableAction } from "./table-actions"
