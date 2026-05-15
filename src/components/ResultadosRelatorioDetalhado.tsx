@@ -148,7 +148,7 @@ export const ResultadosRelatorioDetalhado: React.FC<ResultadosDetalhadoProps> = 
 
     if (!reportData || reportData.length === 0) {
         return (
-            <Card className="shadow-card border-t-4 border-t-muted mb-8">
+            <Card className="shadow-card border-t-4 border-t-muted dark:border-t-[#5B47A8] dark:bg-slate-800/80 mb-8">
                 <CardContent className="py-8 text-center text-muted-foreground">
                     Nenhum registro encontrado para o período.
                 </CardContent>
@@ -159,14 +159,14 @@ export const ResultadosRelatorioDetalhado: React.FC<ResultadosDetalhadoProps> = 
     return (
        <div className="space-y-6">
             {/* CARD DE RESUMO GERAL */}
-            <Card className="bg-primary/5 border-primary/20 shadow-sm">
+            <Card className="bg-primary/5 dark:bg-slate-800/50 border-primary/20 dark:border-[#5B47A8] shadow-sm">
                 <CardContent className="flex flex-row items-center justify-between p-6">
                     <div className="space-y-3 w-full">
                         {/* Saldo Total */}
                         <div>
                             <p className="text-sm font-medium text-muted-foreground">Saldo Total do Período Selecionado</p>
                             <div className="flex items-baseline gap-2">
-                                <span className={`text-3xl font-bold ${totalPeriodBalance.startsWith('-') ? 'text-destructive' : 'text-green-600'}`}>
+                                <span className={`text-3xl font-bold ${totalPeriodBalance.startsWith('-') ? 'text-destructive' : 'text-[#10B981] dark:text-[#34D399]'}`}>
                                     {totalPeriodBalance}
                                 </span>
                                 <span className="text-sm text-muted-foreground">horas</span>
@@ -195,7 +195,7 @@ export const ResultadosRelatorioDetalhado: React.FC<ResultadosDetalhadoProps> = 
             </Card>
 
             {/* LISTA PRINCIPAL */}
-            <Card className="shadow-card border-t-4 border-t-primary mb-8" ref={resultsRef}>
+            <Card className="shadow-card border-t-4 border-t-primary dark:border-t-[#A78BFA] dark:bg-slate-800/80 mb-8" ref={resultsRef}>
                 <CardHeader className="flex flex-row justify-between items-start" ref={cardHeaderRef}>
                     <div>
                         <CardTitle>Resultados do Relatório</CardTitle>
@@ -206,11 +206,21 @@ export const ResultadosRelatorioDetalhado: React.FC<ResultadosDetalhadoProps> = 
                     
                     {/* BOTÕES DE EXPORTAÇÃO - Agora usam as props passadas pelo pai */}
                     <div className="flex flex-col gap-2">
-                        <Button variant="outline" size="sm" onClick={onDownloadPDF} className="gap-2 w-full justify-start">
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={onDownloadPDF}
+                            className="gap-2 w-full justify-start border-[#E5E7EB] dark:border-[#404854] text-[#374151] dark:text-[#F8FAFC] hover:border-[#C4B5FD] dark:hover:border-[#5B47A8] hover:bg-[#F8FAFC] dark:hover:bg-[#404854]"
+                        >
                             <Download className="h-4 w-4" />
                             Exportar PDF
                         </Button>
-                        <Button variant="outline" size="sm" onClick={onDownloadCSV} className="gap-2 w-full justify-start">
+                        <Button
+                            variant="outline"
+                            size="sm"
+                            onClick={onDownloadCSV}
+                            className="gap-2 w-full justify-start border-[#E5E7EB] dark:border-[#404854] text-[#374151] dark:text-[#F8FAFC] hover:border-[#C4B5FD] dark:hover:border-[#5B47A8] hover:bg-[#F8FAFC] dark:hover:bg-[#404854]"
+                        >
                             <FileText className="h-4 w-4" />
                             Exportar CSV
                         </Button>
@@ -234,9 +244,9 @@ export const ResultadosRelatorioDetalhado: React.FC<ResultadosDetalhadoProps> = 
                         const dailyWorkedHours = formatMinutesToTime(dailyWorkedMinutes);
 
                         return (
-                            <div key={dateKey} className="border rounded-lg bg-slate-50/50 dark:bg-slate-900/20 overflow-hidden">
+                            <div key={dateKey} className="border border-[#E5E7EB] dark:border-[#334155] rounded-lg bg-slate-50/50 dark:bg-slate-900/20 overflow-hidden">
                                 {/* Cabeçalho do Dia */}
-                                <div className="bg-muted/30 p-3 border-b flex flex-wrap justify-between items-center gap-2">
+                                <div className="bg-muted/30 dark:bg-slate-800/40 p-3 border-b border-[#E5E7EB] dark:border-[#334155] flex flex-wrap justify-between items-center gap-2">
                                     <div className="flex items-center gap-2">
                                         <CalendarIcon className="h-5 w-5 text-primary" />
                                         <h3 className="font-semibold text-lg capitalize text-foreground">
@@ -246,16 +256,16 @@ export const ResultadosRelatorioDetalhado: React.FC<ResultadosDetalhadoProps> = 
                                     
                                     {/* Infos do Dia: Saldo e Horas Trabalhadas */}
                                     <div className="flex flex-col items-end gap-1 sm:flex-row sm:gap-4 sm:items-center">
-                                        <div className="flex items-center gap-2 bg-background px-3 py-1 rounded-md shadow-sm border border-transparent">
+                                        <div className="flex items-center gap-2 bg-background dark:bg-slate-700/50 px-3 py-1 rounded-md shadow-sm border border-[#E5E7EB] dark:border-[#404854]">
                                             <span className="text-xs font-medium text-muted-foreground">Horas trabalhadas:</span>
                                             <span className="font-bold text-foreground">
                                                 {dailyWorkedHours}
                                             </span>
                                         </div>
 
-                                        <div className="flex items-center gap-2 bg-background px-3 py-1 rounded-md shadow-sm border">
+                                        <div className="flex items-center gap-2 bg-background dark:bg-slate-700/50 px-3 py-1 rounded-md shadow-sm border border-[#E5E7EB] dark:border-[#404854]">
                                             <span className="text-xs font-medium text-muted-foreground">Saldo do Dia:</span>
-                                            <span className={`font-bold ${isNegativeBalance ? 'text-destructive' : 'text-green-600'}`}>
+                                            <span className={`font-bold ${isNegativeBalance ? 'text-destructive' : 'text-[#10B981] dark:text-[#34D399]'}`}>
                                                 {dailyBalance}
                                             </span>
                                         </div>
@@ -272,9 +282,9 @@ export const ResultadosRelatorioDetalhado: React.FC<ResultadosDetalhadoProps> = 
                                                 key={item.timeRecordId || index}
                                                 className={`
                                                     border-l-4 shadow-sm transition-all duration-200
-                                                    ${isBreak 
-                                                        ? 'border-l-gray-400 bg-gray-100/50 dark:bg-gray-800/50 cursor-default' 
-                                                        : 'border-l-primary bg-card hover:shadow-md cursor-pointer group'}
+                                                    ${isBreak
+                                                        ? 'border-l-[#9CA3AF] dark:border-l-[#6B7280] bg-[#F8FAFC] dark:bg-slate-800/50 cursor-default'
+                                                        : 'border-l-primary bg-card dark:bg-slate-800/80 hover:shadow-md hover:border-[#C4B5FD] dark:hover:border-[#8B5CF6] cursor-pointer group'}
                                                 `}
                                                 onClick={() => !isBreak && onEditRecord(item)}
                                             >
@@ -303,10 +313,10 @@ export const ResultadosRelatorioDetalhado: React.FC<ResultadosDetalhadoProps> = 
                                                     </div>
 
                                                     {((item.latitude && item.longitude) || (item.endLatitude && item.endLongitude)) && (
-                                                        <div className="flex flex-col pt-2 border-t border-border/50 gap-1.5 mt-2 bg-muted/20 p-2 rounded text-xs">
+                                                        <div className="flex flex-col pt-2 border-t border-[#E5E7EB] dark:border-[#404854] gap-1.5 mt-2 bg-muted/20 dark:bg-slate-700/30 p-2 rounded text-xs">
                                                             {item.latitude && (
                                                                 <div className="flex items-start gap-1.5">
-                                                                    <MapPin className="h-3 w-3 mt-0.5 text-green-600 shrink-0" />
+                                                                    <MapPin className="h-3 w-3 mt-0.5 text-[#10B981] dark:text-[#34D399] shrink-0" />
                                                                     <span className="text-muted-foreground line-clamp-2">
                                                                         {formatCoordinates(item.latitude, item.longitude)}
                                                                     </span>

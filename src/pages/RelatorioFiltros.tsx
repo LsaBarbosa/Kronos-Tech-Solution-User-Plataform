@@ -323,23 +323,23 @@ export const RelatorioFiltros: React.FC<RelatorioFiltrosProps> = ({
                     )}
 
                     {/* CARGA HORÁRIA */}
-                    {setReferenceTime && (
-                        <div className="space-y-3 relative">
-                            <Label htmlFor="reference-time" className="text-sm font-semibold text-foreground flex items-center gap-2">
-                                <div className="w-1.5 h-1.5 rounded-full bg-primary"></div>
-                                Carga Horária diária
-                            </Label>
-                            <div className="relative group">
-                                <Input
-                                    id="reference-time"
-                                    type="time"
-                                    value={referenceTime}
-                                    onChange={(e) => setReferenceTime(e.target.value)}
-                                    className="focus:border-primary focus:ring-2 focus:ring-primary/40 border-primary/30 bg-background hover:border-primary/50 transition-all duration-200 shadow-sm"
-                                />
-                            </div>
+                    <div className="space-y-3 relative">
+                        <Label htmlFor="reference-time" className="text-sm font-semibold text-foreground flex items-center gap-2">
+                            <div className="w-1.5 h-1.5 rounded-full bg-primary"></div>
+                            Carga Horária diária
+                        </Label>
+                        <div className="relative group">
+                            <Input
+                                id="reference-time"
+                                type="time"
+                                value={referenceTime || "08:00"}
+                                onChange={(e) => setReferenceTime(e.target.value)}
+                                placeholder="08:00"
+                                className="focus:border-primary focus:ring-2 focus:ring-primary/40 border-primary/30 bg-background dark:bg-slate-700/50 dark:border-[#5B47A8] hover:border-primary/50 dark:hover:border-[#8B5CF6] transition-all duration-200 shadow-sm"
+                            />
                         </div>
-                    )}
+                        <p className="text-xs text-muted-foreground">Informe a jornada diária usada para cálculo do saldo. Formato: HH:mm (ex: 08:00)</p>
+                    </div>
 
                     {/* STATUS DE REGISTRO */}
                     <div className="space-y-3 relative">

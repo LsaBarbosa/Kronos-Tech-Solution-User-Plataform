@@ -30,9 +30,9 @@ import { ResultadosRelatorioDetalhado } from "@/components/ResultadosRelatorioDe
 import { RegistroEdicaoModal } from "@/components/RegistroEdicaoModal";
 
 // UI
-import { Card } from "@/components/ui/card";
+import { Card, CardContent } from "@/components/ui/card";
 import { RelatorioFiltros } from "./RelatorioFiltros";
-import { Info } from "lucide-react";
+import { Info, BarChart3, Loader2, CalendarDays } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
 import { downloadCsvFile, loadPdfLibraries } from "@/utils/report-export";
@@ -50,7 +50,7 @@ type AutoTableCell =
 const RelatorioDetalhado = () => {
     const [sidebarOpen, setSidebarOpen] = useState(false);
     const [selectedDates, setSelectedDates] = useState<Date[]>([]);
-    const [referenceTime] = useState("08:00");
+    const [referenceTime, setReferenceTime] = useState("08:00");
     const [selectedEmployee, setSelectedEmployee] = useState("");
     const [employeeActive, setEmployeeActive] = useState("active");
     const [isActive, setIsActive] = useState(true);
@@ -188,8 +188,23 @@ const RelatorioDetalhado = () => {
         void fetchManagers();
     }, [fetchEmployees, fetchManagers]);
 
+    // === VALIDAÇÃO DE CARGA HORÁRIA ===
+    const isValidReferenceTime = (time: string): boolean => {
+        const REFERENCE_TIME_REGEX = /^([01]\d|2[0-3]):[0-5]\d$/;
+        return REFERENCE_TIME_REGEX.test(time);
+    };
+
     // === BUSCA ===
     const handleSearch = async () => {
+        if (!referenceTime || !isValidReferenceTime(referenceTime)) {
+            toast({
+                title: "Validação",
+                description: "Informe a carga horária diária no formato HH:mm. Exemplo: 08:00.",
+                variant: "destructive",
+            });
+            return;
+        }
+
         setReportData([]);
         setIsLoading(true);
 
@@ -535,23 +550,59 @@ const RelatorioDetalhado = () => {
 
     const handleToggleSidebar = () => setSidebarOpen((prev) => !prev);
 
+    const formatCurrentDate = () =>
+        new Intl.DateTimeFormat("pt-BR", {
+            weekday: "long",
+            day: "2-digit",
+            month: "long",
+        }).format(new Date());
+
     return (
         <PageShell
             sidebarOpen={sidebarOpen}
             toggleSidebar={handleToggleSidebar}
-            mainClassName="pt-16 mobile-container py-4 sm:py-20 space-y-6 sm:space-y-8 relative z-10"
+            mainClassName="pt-16 px-4 py-5 sm:px-6 sm:py-8 lg:px-8 relative z-10 bg-[#F8FAFC] dark:bg-[#0F172A]"
         >
-                <div className="space-y-6 sm:space-y-8 relative z-10">
-                    <div className="mb-8">
-                        <h1 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-foreground to-primary bg-clip-text text-transparent page-title">
-                            Relatório De Horas
-                        </h1>
-                        <p className="text-muted-foreground">
-                            Gere relatórios detalhados com informações completas de registros de ponto
-                        </p>
-                    </div>
+                <div className="mx-auto w-full max-w-7xl space-y-6 pb-10 relative z-10">
+                    <section className="overflow-hidden rounded-2xl border border-[#C4B5FD]/60 bg-[linear-gradient(135deg,#7C3AED_0%,#3B82F6_58%,#67E8F9_100%)] p-5 text-white shadow-[0_24px_70px_-34px_rgba(59,130,246,0.65)] sm:p-7">
+                        <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
+                            <div className="max-w-3xl">
+                                <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-white/25 bg-white/15 px-3 py-1 text-sm font-medium text-white shadow-sm backdrop-blur">
+                                    <BarChart3 className="h-4 w-4" aria-hidden="true" />
+                                    Relatório Detalhado
+                                </div>
+                                <h1 className="text-3xl font-bold leading-tight text-white sm:text-4xl">
+                                    Relatório de Horas
+                                </h1>
+                                <p className="mt-3 max-w-2xl text-base leading-7 text-white/90 sm:text-lg">
+                                    Gere relatórios detalhados com informações completas de registros de ponto
+                                </p>
+                                <div className="mt-5 flex flex-wrap gap-2">
+                                    <span className="inline-flex items-center gap-2 rounded-full bg-white/15 px-3 py-1.5 text-sm font-medium text-white">
+                                        <CalendarDays className="h-4 w-4" aria-hidden="true" />
+                                        {formatCurrentDate()}
+                                    </span>
+                                </div>
+                            </div>
+                            <div className="hidden lg:flex items-center justify-center">
+                                <div className="relative">
+                                    <div className="absolute inset-0 bg-white/20 rounded-full blur-2xl" />
+                                    <BarChart3 className="h-32 w-32 text-white/30 relative z-10" aria-hidden="true" />
+                                </div>
+                            </div>
+                        </div>
+                    </section>
 
-                    {reportData.length > 0 && (
+                    {isLoading && (
+                        <Card className="shadow-card border-primary/20">
+                            <CardContent className="py-12 flex flex-col items-center gap-3">
+                                <Loader2 className="h-8 w-8 animate-spin text-primary" aria-hidden="true" />
+                                <p className="text-muted-foreground text-sm">Buscando registros...</p>
+                            </CardContent>
+                        </Card>
+                    )}
+
+                    {!isLoading && reportData.length > 0 && (
                         <ResultadosRelatorioDetalhado
                             reportData={reportData}
                             statusFilter={status}
@@ -568,6 +619,7 @@ const RelatorioDetalhado = () => {
                         selectedDates={selectedDates}
                         setSelectedDates={setSelectedDates}
                         referenceTime={referenceTime}
+                        setReferenceTime={setReferenceTime}
                         selectedEmployee={selectedEmployee}
                         setSelectedEmployee={setSelectedEmployee}
                         employeeActive={employeeActive}
@@ -586,16 +638,14 @@ const RelatorioDetalhado = () => {
                         isLoading={isLoading}
                     />
 
-                    <Card className="border-l-4 border-l-primary shadow-card">
-                        <RegistroEdicaoModal
-                            isOpen={editModalOpen}
-                            setIsOpen={setEditModalOpen}
-                            managers={managers}
-                            selectedRecord={selectedRecord}
-                            onSaveRecord={handleSaveRecord}
-                            form={form}
-                        />
-                    </Card>
+                    <RegistroEdicaoModal
+                        isOpen={editModalOpen}
+                        setIsOpen={setEditModalOpen}
+                        managers={managers}
+                        selectedRecord={selectedRecord}
+                        onSaveRecord={handleSaveRecord}
+                        form={form}
+                    />
                 </div>
         </PageShell>
     );
