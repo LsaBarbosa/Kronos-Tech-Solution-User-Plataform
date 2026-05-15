@@ -5,7 +5,7 @@ import { ChevronLeft, ChevronRight, Loader2 } from "lucide-react"
 interface DataTableColumn<T> {
   key: keyof T | string
   header: string | React.ReactNode
-  render?: (value: any, row: T) => React.ReactNode
+  render?: (value: T[keyof T], row: T) => React.ReactNode
   className?: string
   headerClassName?: string
   sortable?: boolean
@@ -36,7 +36,7 @@ interface DataTableProps<T> {
   actionsClassName?: string
 }
 
-const DataTable = React.forwardRef<HTMLTableElement, DataTableProps<any>>(
+const DataTable = React.forwardRef<HTMLTableElement, DataTableProps<Record<string, unknown>>>(
   ({
     columns,
     data,
@@ -56,7 +56,7 @@ const DataTable = React.forwardRef<HTMLTableElement, DataTableProps<any>>(
     renderActions,
     actionsClassName,
   }, ref) => {
-    const getRowKey = (row: any) => {
+    const getRowKey = (row: Record<string, unknown>) => {
       return typeof rowKey === "string" ? row[rowKey] : rowKey
     }
 
