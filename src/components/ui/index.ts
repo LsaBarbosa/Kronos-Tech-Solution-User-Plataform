@@ -50,6 +50,12 @@ export { Alert, AlertTitle, AlertDescription } from "./alert"
 export { Skeleton } from "./skeleton"
 export { Progress } from "./progress"
 export { Slider } from "./slider"
+export { EmptyState, type EmptyStateProps } from "./empty-state"
+export { ErrorState, type ErrorStateProps } from "./error-state"
+
+// Data Display
+export { DataTable, type DataTableProps, type DataTableColumn } from "./data-table"
+export { TableActions, type TableActionsProps, type TableAction } from "./table-actions"
 
 // Pagination
 export { Pagination, PaginationContent, PaginationItem, PaginationLink, PaginationPrevious, PaginationNext, PaginationEllipsis } from "./pagination"
