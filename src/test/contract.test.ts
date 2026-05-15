@@ -219,12 +219,15 @@ describe("Contract tests — Front-end vs Back-end", () => {
       }
     });
 
-    it("erro 403 com type TERMS_NOT_ACCEPTED é tratado como terms", async () => {
+    it.each([
+      ["code", "TERMS_NOT_ACCEPTED"],
+      ["type", "TERMS_NOT_ACCEPTED"],
+    ])("erro 403 com %s TERMS_NOT_ACCEPTED é tratado como terms", async (field, value) => {
       server.use(
         http.post("*/action", () =>
           HttpResponse.json(
             {
-              type: "TERMS_NOT_ACCEPTED",
+              [field]: value,
               message: "Aceitar termos",
               redirect_url: "https://terms.example.com",
               status: 403,

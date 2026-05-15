@@ -68,6 +68,28 @@ export const createCorrelationId = () => {
   return `kronos-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`;
 };
 
+const getErrorCode = (data: unknown): string | undefined => {
+  if (!data || typeof data !== "object") {
+    return undefined;
+  }
+
+  const record = data as Record<string, unknown>;
+
+  if (typeof record.code === "string") {
+    return record.code;
+  }
+
+  if (typeof record.type === "string") {
+    return record.type;
+  }
+
+  if (typeof record.kind === "string") {
+    return record.kind;
+  }
+
+  return undefined;
+};
+
 const ensureCorrelationIdHeader = (headers: unknown) => {
   if (!headers || typeof headers !== "object") {
     return;
@@ -178,18 +200,22 @@ api.interceptors.response.use(
   (error) => {
     if (error.response) {
       const { status, data } = error.response;
+      const errorCode = getErrorCode(data);
 
       // Handle CSRF errors
-      if (status === 403 && data?.kind === "CSRF_INVALID") {
+      if (
+        status === 403 &&
+        (errorCode === "CSRF_TOKEN_INVALID" || errorCode === "CSRF_INVALID")
+      ) {
         invalidateCsrfToken();
         return rejectApiError(error);
       }
 
-      if (status === 403 && data?.type === "TERMS_NOT_ACCEPTED") {
+      if (status === 403 && errorCode === "TERMS_NOT_ACCEPTED") {
         return rejectApiError(error);
       }
 
-      if (status === 403 && !data?.type) {
+      if (status === 403 && !errorCode) {
         return rejectApiError(error);
       }
 

@@ -10,7 +10,7 @@ describe("admin-error-message.helper", () => {
     });
 
     expect(getAdministrativeErrorMessage(error, "document")).toBe(
-      "O arquivo enviado não é aceito. Use PDF, JPG, PNG, DOC ou DOCX."
+      "O arquivo enviado não é aceito. Use PDF, JPG, JPEG ou PNG."
     );
   });
 

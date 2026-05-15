@@ -31,7 +31,7 @@ export const getAdministrativeErrorMessage = (
 
   if (domain === "document") {
     if (comparable.includes("tipo") || comparable.includes("extensao") || comparable.includes("mime")) {
-      return "O arquivo enviado não é aceito. Use PDF, JPG, PNG, DOC ou DOCX.";
+      return "O arquivo enviado não é aceito. Use PDF, JPG, JPEG ou PNG.";
     }
 
     if (comparable.includes("tamanho") || comparable.includes("limite") || comparable.includes("large")) {

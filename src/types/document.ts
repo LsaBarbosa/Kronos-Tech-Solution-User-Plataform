@@ -33,15 +33,13 @@ export interface UploadData {
 }
 
 export const MAX_UPLOAD_SIZE_BYTES = 5 * 1024 * 1024; // 5MB
-export const ALLOWED_MIME_TYPES = [".pdf", ".jpg", ".jpeg", ".png", ".docx", ".doc"];
+export const ALLOWED_MIME_TYPES = [".pdf", ".jpg", ".jpeg", ".png"];
 export const ALLOWED_ACCEPT_STRING = ALLOWED_MIME_TYPES.join(", ");
 
 const ALLOWED_FILE_MIME_TYPES = [
   "application/pdf",
   "image/jpeg",
   "image/png",
-  "application/vnd.openxmlformats-officedocument.wordprocessingml.document",
-  "application/msword",
 ];
 
 export const isAllowedDocumentFile = (file: File) => {

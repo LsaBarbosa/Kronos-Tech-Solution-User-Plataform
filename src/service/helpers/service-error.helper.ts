@@ -79,6 +79,26 @@ const DEFAULT_MESSAGES: Record<ServiceErrorKind, string> = {
 const isRecord = (value: unknown): value is Record<string, unknown> =>
   typeof value === "object" && value !== null;
 
+const getApiErrorCode = (data: unknown): string | undefined => {
+  if (!isRecord(data)) {
+    return undefined;
+  }
+
+  if (typeof data.code === "string") {
+    return data.code;
+  }
+
+  if (typeof data.type === "string") {
+    return data.type;
+  }
+
+  if (typeof data.kind === "string") {
+    return data.kind;
+  }
+
+  return undefined;
+};
+
 const firstString = (values: unknown[]): string | undefined => {
   for (const value of values) {
     if (typeof value === "string" && value.trim()) {
@@ -188,7 +208,7 @@ const getErrorKind = (status?: number, data?: unknown): ServiceErrorKind => {
     return "serviceUnavailable";
   }
 
-  if (status === 403 && isRecord(data) && data.type === "TERMS_NOT_ACCEPTED") {
+  if (status === 403 && getApiErrorCode(data) === "TERMS_NOT_ACCEPTED") {
     return "terms";
   }
 

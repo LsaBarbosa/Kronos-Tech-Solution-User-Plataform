@@ -2,6 +2,7 @@ import { HttpResponse, http } from "msw";
 import { describe, expect, it, vi } from "vitest";
 import { api, registerSessionExpiredHandler } from "./api";
 import * as browser from "@/lib/browser";
+import * as csrfService from "@/service/csrf.service";
 import { server } from "@/test/mocks/server";
 
 describe("api", () => {
@@ -68,14 +69,17 @@ describe("api", () => {
     expect(observedContentType).not.toBe("application/json");
   });
 
-  it("trata 403 TERMS_NOT_ACCEPTED sem redirecionamento externo", async () => {
+  it.each([
+    ["code", "TERMS_NOT_ACCEPTED"],
+    ["type", "TERMS_NOT_ACCEPTED"],
+  ])("trata 403 TERMS_NOT_ACCEPTED em %s sem redirecionamento externo", async (field, value) => {
     const redirectSpy = vi.spyOn(browser, "redirectBrowserTo").mockImplementation(() => undefined);
 
     server.use(
       http.get("http://localhost:3000/terms-protected", () =>
         HttpResponse.json(
           {
-            type: "TERMS_NOT_ACCEPTED",
+            [field]: value,
             redirect_url: "https://terms.example.com/",
           },
           { status: 403 }
@@ -91,13 +95,32 @@ describe("api", () => {
       response: {
         status: 403,
         data: {
-          type: "TERMS_NOT_ACCEPTED",
+          [field]: value,
         },
       },
       redirectUrl: "https://terms.example.com/",
     });
     expect(redirectSpy).not.toHaveBeenCalled();
   });
+
+  it.each(["CSRF_TOKEN_INVALID", "CSRF_INVALID"])(
+    "invalida cache de CSRF quando o back retorna %s",
+    async (code) => {
+      const invalidateSpy = vi.spyOn(csrfService, "invalidateCsrfToken");
+
+      server.use(
+        http.post("http://localhost:3000/csrf-protected", () =>
+          HttpResponse.json({ code }, { status: 403 })
+        )
+      );
+
+      await expect(api.post("http://localhost:3000/csrf-protected", {})).rejects.toMatchObject({
+        status: 403,
+      });
+      expect(invalidateSpy).toHaveBeenCalled();
+      invalidateSpy.mockRestore();
+    }
+  );
 
   it("propaga responses de erro com status, payload e mensagem padronizada", async () => {
     server.use(

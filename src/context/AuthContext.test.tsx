@@ -108,7 +108,7 @@ describe("AuthProvider", () => {
       http.get("*/employee/own-profile", () =>
         HttpResponse.json(
           {
-            type: "TERMS_NOT_ACCEPTED",
+            code: "TERMS_NOT_ACCEPTED",
             message: "Aceite de termo pendente",
           },
           { status: 403 }

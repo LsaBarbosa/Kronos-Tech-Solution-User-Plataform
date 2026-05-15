@@ -516,7 +516,7 @@ export function RequestManualRegistration() {
                             </div>
                           )}
                           <FormDescription className="mt-4">
-                            Formatos aceitos: PDF, JPEG, PNG, DOCX, DOC. <br />
+                            Formatos aceitos: PDF, JPG, JPEG ou PNG. <br />
                             Limite de {(MAX_UPLOAD_SIZE_BYTES / 1024 / 1024).toFixed(0)}MB.
                           </FormDescription>
                         </FormItem>
