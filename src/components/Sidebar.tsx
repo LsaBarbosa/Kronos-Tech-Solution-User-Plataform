@@ -13,6 +13,7 @@ import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
 import { ADMIN_MENU_GROUPS, APP_PATHS, APP_ROUTE_META, type AppRole, type AppRouteMeta } from "@/config/app-routes";
+import { sidebarStyles, layoutColors } from "@/utils/layout-colors";
 
 interface SidebarProps {
   isOpen: boolean;
@@ -54,60 +55,63 @@ const Sidebar = ({ isOpen, toggleSidebar }: SidebarProps) => {
     <>
       <div
         className={cn(
-          "fixed inset-0 bg-black/50 z-40 transition-opacity duration-300",
+          sidebarStyles.overlay,
           isOpen ? "opacity-100 visible" : "opacity-0 invisible pointer-events-none"
         )}
         onClick={toggleSidebar}
+        role="presentation"
       />
 
       <div
         className={cn(
-          "fixed top-0 left-0 z-50 h-full w-80 bg-background border-r border-border shadow-xl transform transition-transform duration-200 ease-in-out",
+          sidebarStyles.container,
           isOpen ? "translate-x-0" : "-translate-x-full"
         )}
+        role="navigation"
+        aria-label="Menu principal"
       >
-        <div className="flex items-center justify-between p-4 border-b border-border">
-          <h2 className="text-xl font-bold text-foreground">Menu</h2>
+        <div className={sidebarStyles.header}>
+          <h2 className="text-lg font-semibold text-foreground">Menu</h2>
           <Button
             variant="ghost"
             size="icon"
             onClick={toggleSidebar}
             aria-label="Fechar menu lateral"
-            className="hover:bg-primary/10 hover:text-primary transition-colors"
+            className="hover:bg-primary/10 hover:text-primary focus-visible:ring-2 focus-visible:ring-primary/30 transition-colors"
           >
             <X className="h-5 w-5" />
           </Button>
         </div>
 
-        <div className="p-4 flex-1 space-y-2 flex flex-col h-full overflow-y-auto">
-          <div className="space-y-2">
+        <div className={sidebarStyles.menuContainer}>
+          <div className={sidebarStyles.menuGroup}>
             
             {/* Início */}
             <Button
               variant="ghost"
-              className="w-full justify-start sidebar-fixed-height px-4 text-left hover:bg-primary/10 hover:text-foreground transition-colors group"
+              className={sidebarStyles.menuItem.primary}
               onClick={() => goTo(APP_PATHS.dashboard)}
             >
-              <Home className="mr-3 sidebar-icon-sm text-primary group-hover:text-primary transition-colors" />
+              <Home className={sidebarStyles.menuIcon.primary} />
               <span className="font-medium sidebar-text-sm">{APP_ROUTE_META.dashboard.label}</span>
             </Button>
 
             {/* Relatório de Horas */}
             <Button
               variant="ghost"
-              className="w-full justify-start sidebar-fixed-height px-4 text-left hover:bg-primary/10 hover:text-foreground transition-colors group"
+              className={sidebarStyles.menuItem.primary}
               onClick={() => goTo(APP_PATHS.relatorioDetalhado)}
             >
-              <BarChart3 className="mr-3 sidebar-icon-sm text-primary group-hover:text-primary transition-colors" />
+              <BarChart3 className={sidebarStyles.menuIcon.primary} />
               <span className="font-medium sidebar-text-sm">{APP_ROUTE_META.relatorioDetalhado.label}</span>
             </Button>
 
             <Button
               variant="ghost"
-              className="w-full justify-start sidebar-fixed-height px-4 text-left hover:bg-primary/10 hover:text-foreground transition-colors group"
+              className={sidebarStyles.menuItem.primary}
               onClick={() => goTo(APP_PATHS.espelhoPonto)}
             >
-              <CalendarRange className="mr-3 sidebar-icon-sm text-primary group-hover:text-primary transition-colors" />
+              <CalendarRange className={sidebarStyles.menuIcon.primary} />
               <span className="font-medium sidebar-text-sm">{APP_ROUTE_META.espelhoPonto.label}</span>
             </Button>
        
@@ -115,10 +119,10 @@ const Sidebar = ({ isOpen, toggleSidebar }: SidebarProps) => {
             {/* Usuário */}
             <Button
               variant="ghost"
-              className="w-full justify-start sidebar-fixed-height px-4 text-left hover:bg-primary/10 hover:text-foreground transition-colors group"
+              className={sidebarStyles.menuItem.primary}
               onClick={() => goTo(APP_PATHS.usuario)}
             >
-              <User className="mr-3 sidebar-icon-sm text-primary group-hover:text-primary transition-colors" />
+              <User className={sidebarStyles.menuIcon.primary} />
               <span className="font-medium sidebar-text-sm">{APP_ROUTE_META.usuario.label}</span>
             </Button>
 
@@ -126,10 +130,10 @@ const Sidebar = ({ isOpen, toggleSidebar }: SidebarProps) => {
             {isCto && (
               <Button
                 variant="ghost"
-                className="w-full justify-start sidebar-fixed-height px-4 text-left hover:bg-primary/10 hover:text-foreground transition-colors group"
+                className={sidebarStyles.menuItem.primary}
                 onClick={() => goTo(APP_PATHS.empresa)}
               >
-                <Building2 className="mr-3 sidebar-icon-sm text-primary group-hover:text-primary transition-colors" />
+                <Building2 className={sidebarStyles.menuIcon.primary} />
                 <span className="font-medium sidebar-text-sm">{APP_ROUTE_META.empresa.label}</span>
               </Button>
             )}
@@ -137,28 +141,28 @@ const Sidebar = ({ isOpen, toggleSidebar }: SidebarProps) => {
             {/* Ações Rápidas (Férias, Manual, Avisos) */}
             <Button
               variant="ghost"
-              className="w-full justify-start sidebar-fixed-height px-4 text-left hover:bg-primary/10 hover:text-foreground transition-colors group"
+              className={sidebarStyles.menuItem.primary}
               onClick={() => goTo(APP_PATHS.solicitarFerias)}
             >
-              <TreePalm className="mr-3 sidebar-icon-sm text-primary group-hover:text-primary transition-colors" />
+              <TreePalm className={sidebarStyles.menuIcon.primary} />
               <span className="font-medium sidebar-text-sm">{APP_ROUTE_META.solicitarFerias.label}</span>
             </Button>
              
             <Button
               variant="ghost"
-              className="w-full justify-start sidebar-fixed-height px-4 text-left hover:bg-primary/10 hover:text-foreground transition-colors group"
+              className={sidebarStyles.menuItem.primary}
               onClick={() => goTo(APP_PATHS.solicitarAbono)}
             >
-              <TimerReset className="mr-3 sidebar-icon-sm text-primary group-hover:text-primary transition-colors" />
+              <TimerReset className={sidebarStyles.menuIcon.primary} />
               <span className="font-medium sidebar-text-sm">{APP_ROUTE_META.solicitarAbono.label}</span>
             </Button>
 
             <Button
               variant="ghost"
-              className="w-full justify-start sidebar-fixed-height px-4 text-left hover:bg-primary/10 hover:text-foreground transition-colors group"
+              className={sidebarStyles.menuItem.primary}
               onClick={() => goTo(APP_PATHS.avisos)}
             >
-              <BellMinus className="mr-3 sidebar-icon-sm text-primary group-hover:text-primary transition-colors" />
+              <BellMinus className={sidebarStyles.menuIcon.primary} />
               <span className="font-medium sidebar-text-sm">{APP_ROUTE_META.avisos.label}</span>
             </Button>
 
@@ -167,21 +171,21 @@ const Sidebar = ({ isOpen, toggleSidebar }: SidebarProps) => {
               <CollapsibleTrigger asChild>
                 <Button
                   variant="ghost"
-                  className="w-full justify-start sidebar-fixed-height px-4 text-left hover:bg-primary/10 hover:text-foreground transition-colors group"
+                  className={sidebarStyles.menuItem.primary}
                 >
-                  <Folder className="mr-3 sidebar-icon-sm text-primary group-hover:text-primary transition-colors" />
+                  <Folder className={sidebarStyles.menuIcon.primary} />
                   <span className="font-medium flex-1 sidebar-text-sm">Documentos</span>
                   {documentosOpen ? (
-                    <ChevronDown className="sidebar-icon-xs text-muted-foreground group-hover:text-foreground transition-colors" />
+                    <ChevronDown className={sidebarStyles.menuIcon.chevron} />
                   ) : (
-                    <ChevronRight className="sidebar-icon-xs text-muted-foreground group-hover:text-foreground transition-colors" />
+                    <ChevronRight className={sidebarStyles.menuIcon.chevron} />
                   )}
                 </Button>
               </CollapsibleTrigger>
               <CollapsibleContent className="space-y-1">
                 <Button
                   variant="ghost"
-                  className="w-full justify-start sidebar-fixed-height-sm px-4 pl-12 text-left sidebar-text-sm hover:bg-primary/10 hover:text-foreground transition-colors"
+                  className={sidebarStyles.menuItem.secondary}
                   onClick={() => goTo(APP_PATHS.documentos)}
                 >
                   <FolderOpen className="mr-2 sidebar-icon-xs" />
@@ -189,7 +193,7 @@ const Sidebar = ({ isOpen, toggleSidebar }: SidebarProps) => {
                 </Button>
                 <Button
                   variant="ghost"
-                  className="w-full justify-start sidebar-fixed-height-sm px-4 pl-12 text-left sidebar-text-sm hover:bg-primary/10 hover:text-foreground transition-colors"
+                  className={sidebarStyles.menuItem.secondary}
                   onClick={() => goTo(APP_PATHS.enviarDocumentoColaborador)}
                 >
                   <FilePlus className="mr-2 sidebar-icon-xs" />
@@ -205,14 +209,14 @@ const Sidebar = ({ isOpen, toggleSidebar }: SidebarProps) => {
                 <CollapsibleTrigger asChild>
                   <Button
                     variant="ghost"
-                    className="w-full justify-start sidebar-fixed-height px-4 text-left hover:bg-primary/10 hover:text-foreground transition-colors group"
+                    className={sidebarStyles.menuItem.primary}
                   >
-                    <Shield className="mr-3 sidebar-icon-sm text-primary group-hover:text-primary transition-colors" />
+                    <Shield className={sidebarStyles.menuIcon.primary} />
                     <span className="font-medium flex-1 sidebar-text-sm">Administrador</span>
                     {administradorOpen ? (
-                      <ChevronDown className="sidebar-icon-xs text-muted-foreground group-hover:text-foreground transition-colors" />
+                      <ChevronDown className={sidebarStyles.menuIcon.chevron} />
                     ) : (
-                      <ChevronRight className="sidebar-icon-xs text-muted-foreground group-hover:text-foreground transition-colors" />
+                      <ChevronRight className={sidebarStyles.menuIcon.chevron} />
                     )}
                   </Button>
                 </CollapsibleTrigger>
@@ -226,30 +230,30 @@ const Sidebar = ({ isOpen, toggleSidebar }: SidebarProps) => {
                         variant="ghost"
                         className="w-full justify-start sidebar-fixed-height-sm px-4 pl-12 text-left sidebar-text-sm hover:bg-primary/10 hover:text-foreground transition-colors group"
                       >
-                        <Users className="mr-2 sidebar-icon-xs text-muted-foreground group-hover:text-foreground transition-colors" />
+                        <Users className={sidebarStyles.menuIcon.secondary} />
                         <span className="flex-1">Colaboradores</span>
                         {colaboradoresOpen ? (
-                          <ChevronDown className="sidebar-icon-xxs text-muted-foreground group-hover:text-foreground transition-colors" />
+                          <ChevronDown className={sidebarStyles.menuIcon.chevron} />
                         ) : (
-                          <ChevronRight className="sidebar-icon-xxs text-muted-foreground group-hover:text-foreground transition-colors" />
+                          <ChevronRight className={sidebarStyles.menuIcon.chevron} />
                         )}
                       </Button>
                     </CollapsibleTrigger>
                     <CollapsibleContent className="space-y-1">
                       <Button
                         variant="ghost"
-                        className="w-full justify-start sidebar-fixed-height-xs px-4 pl-20 text-left sidebar-text-xs hover:bg-primary/10 hover:text-foreground transition-colors"
+                        className={sidebarStyles.menuItem.tertiary}
                         onClick={() => goTo(APP_PATHS.listaColaboradores)}
                       >
-                        <UserCheck className="mr-2 sidebar-icon-xxs" />
+                        <UserCheck className={sidebarStyles.menuIcon.tertiary} />
                         <span>{APP_ROUTE_META.listaColaboradores.label}</span>
                       </Button>
                       <Button
                         variant="ghost"
-                        className="w-full justify-start sidebar-fixed-height-xs px-4 pl-20 text-left sidebar-text-xs hover:bg-primary/10 hover:text-foreground transition-colors"
+                        className={sidebarStyles.menuItem.tertiary}
                         onClick={() => goTo(APP_PATHS.criarColaborador)}
                       >
-                        <UserPlus className="mr-2 sidebar-icon-xxs" />
+                        <UserPlus className={sidebarStyles.menuIcon.tertiary} />
                         <span>{APP_ROUTE_META.criarColaborador.label}</span>
                       </Button>
                     </CollapsibleContent>
@@ -264,30 +268,30 @@ const Sidebar = ({ isOpen, toggleSidebar }: SidebarProps) => {
                         variant="ghost"
                         className="w-full justify-start sidebar-fixed-height-sm px-4 pl-12 text-left sidebar-text-sm hover:bg-primary/10 hover:text-foreground transition-colors group"
                       >
-                        <Clock className="mr-2 sidebar-icon-xs text-muted-foreground group-hover:text-foreground transition-colors" />
+                        <Clock className={sidebarStyles.menuIcon.secondary} />
                         <span className="flex-1">Folha de Ponto</span>
                         {folhaDePontoOpen ? (
-                          <ChevronDown className="sidebar-icon-xxs text-muted-foreground group-hover:text-foreground transition-colors" />
+                          <ChevronDown className={sidebarStyles.menuIcon.chevron} />
                         ) : (
-                          <ChevronRight className="sidebar-icon-xxs text-muted-foreground group-hover:text-foreground transition-colors" />
+                          <ChevronRight className={sidebarStyles.menuIcon.chevron} />
                         )}
                       </Button>
                     </CollapsibleTrigger>
                     <CollapsibleContent className="space-y-1">
                       <Button
                         variant="ghost"
-                        className="w-full justify-start sidebar-fixed-height-xs px-4 pl-20 text-left sidebar-text-xs hover:bg-primary/10 hover:text-foreground transition-colors"
+                        className={sidebarStyles.menuItem.tertiary}
                         onClick={() => goTo(APP_PATHS.apuracaoHoras)}
                       >
-                        <Calculator className="mr-2 sidebar-icon-xxs" />
+                        <Calculator className={sidebarStyles.menuIcon.tertiary} />
                         <span>{APP_ROUTE_META.apuracaoHoras.label}</span>
                       </Button>
                       <Button
                         variant="ghost"
-                        className="w-full justify-start sidebar-fixed-height-xs px-4 pl-20 text-left sidebar-text-xs hover:bg-primary/10 hover:text-foreground transition-colors"
+                        className={sidebarStyles.menuItem.tertiary}
                         onClick={() => goTo(APP_PATHS.statusDoRegistro)}
                       >
-                        <ClipboardCheck className="mr-2 sidebar-icon-xxs" />
+                        <ClipboardCheck className={sidebarStyles.menuIcon.tertiary} />
                         <span>{APP_ROUTE_META.statusDoRegistro.label}</span>
                       </Button>
                     </CollapsibleContent>
@@ -302,22 +306,22 @@ const Sidebar = ({ isOpen, toggleSidebar }: SidebarProps) => {
                         variant="ghost"
                         className="w-full justify-start sidebar-fixed-height-sm px-4 pl-12 text-left sidebar-text-sm hover:bg-primary/10 hover:text-foreground transition-colors group"
                       >
-                        <TreePalm className="mr-2 sidebar-icon-xs text-muted-foreground group-hover:text-foreground transition-colors" />
+                        <TreePalm className={sidebarStyles.menuIcon.secondary} />
                         <span className="flex-1">Férias</span>
                         {adminVacationOpen ? (
-                          <ChevronDown className="sidebar-icon-xxs text-muted-foreground group-hover:text-foreground transition-colors" />
+                          <ChevronDown className={sidebarStyles.menuIcon.chevron} />
                         ) : (
-                          <ChevronRight className="sidebar-icon-xxs text-muted-foreground group-hover:text-foreground transition-colors" />
+                          <ChevronRight className={sidebarStyles.menuIcon.chevron} />
                         )}
                       </Button>
                     </CollapsibleTrigger>
                     <CollapsibleContent className="space-y-1">
                       <Button
                         variant="ghost"
-                        className="w-full justify-start sidebar-fixed-height-xs px-4 pl-20 text-left sidebar-text-xs hover:bg-primary/10 hover:text-foreground transition-colors"
+                        className={sidebarStyles.menuItem.tertiary}
                         onClick={() => goTo(APP_PATHS.ferias)}
                       >
-                        <TreePalm className="mr-2 sidebar-icon-xxs" />
+                        <TreePalm className={sidebarStyles.menuIcon.tertiary} />
                         <span>{APP_ROUTE_META.ferias.label}</span>
                       </Button>
                     </CollapsibleContent>
@@ -332,22 +336,22 @@ const Sidebar = ({ isOpen, toggleSidebar }: SidebarProps) => {
                         variant="ghost"
                         className="w-full justify-start sidebar-fixed-height-sm px-4 pl-12 text-left sidebar-text-sm hover:bg-primary/10 hover:text-foreground transition-colors group"
                       >
-                        <TimerReset className="mr-2 sidebar-icon-xs text-muted-foreground group-hover:text-foreground transition-colors" />
+                        <TimerReset className={sidebarStyles.menuIcon.secondary} />
                         <span className="flex-1">Registro Manual</span>
                         {adminTimeOffOpen ? (
-                          <ChevronDown className="sidebar-icon-xxs text-muted-foreground group-hover:text-foreground transition-colors" />
+                          <ChevronDown className={sidebarStyles.menuIcon.chevron} />
                         ) : (
-                          <ChevronRight className="sidebar-icon-xxs text-muted-foreground group-hover:text-foreground transition-colors" />
+                          <ChevronRight className={sidebarStyles.menuIcon.chevron} />
                         )}
                       </Button>
                     </CollapsibleTrigger>
                     <CollapsibleContent className="space-y-1">
                       <Button
                         variant="ghost"
-                        className="w-full justify-start sidebar-fixed-height-xs px-4 pl-20 text-left sidebar-text-xs hover:bg-primary/10 hover:text-foreground transition-colors"
+                        className={sidebarStyles.menuItem.tertiary}
                         onClick={() => goTo(APP_PATHS.aprovacoesAbono)}
                       >
-                        <Activity className="mr-2 sidebar-icon-xxs" />
+                        <Activity className={sidebarStyles.menuIcon.tertiary} />
                         <span>{APP_ROUTE_META.aprovacoesAbono.label}</span>
                       </Button>
                     </CollapsibleContent>
@@ -362,22 +366,22 @@ const Sidebar = ({ isOpen, toggleSidebar }: SidebarProps) => {
                         variant="ghost"
                         className="w-full justify-start sidebar-fixed-height-sm px-4 pl-12 text-left sidebar-text-sm hover:bg-primary/10 hover:text-foreground transition-colors group"
                       >
-                        <Scale className="mr-2 sidebar-icon-xs text-muted-foreground group-hover:text-foreground transition-colors" />
+                        <Scale className={sidebarStyles.menuIcon.secondary} />
                         <span className="flex-1">Auditoria Fiscal</span>
                         {auditoriaOpen ? (
-                          <ChevronDown className="sidebar-icon-xxs text-muted-foreground group-hover:text-foreground transition-colors" />
+                          <ChevronDown className={sidebarStyles.menuIcon.chevron} />
                         ) : (
-                          <ChevronRight className="sidebar-icon-xxs text-muted-foreground group-hover:text-foreground transition-colors" />
+                          <ChevronRight className={sidebarStyles.menuIcon.chevron} />
                         )}
                       </Button>
                     </CollapsibleTrigger>
                     <CollapsibleContent className="space-y-1">
                       <Button
                         variant="ghost"
-                        className="w-full justify-start sidebar-fixed-height-xs px-4 pl-20 text-left sidebar-text-xs hover:bg-primary/10 hover:text-foreground transition-colors"
+                        className={sidebarStyles.menuItem.tertiary}
                         onClick={() => goTo(APP_PATHS.auditoria)}
                       >
-                        <ScaleIcon className="mr-2 sidebar-icon-xxs" />
+                        <ScaleIcon className={sidebarStyles.menuIcon.tertiary} />
                         <span>{APP_ROUTE_META.auditoria.label}</span>
                       </Button>
                     </CollapsibleContent>
@@ -391,10 +395,10 @@ const Sidebar = ({ isOpen, toggleSidebar }: SidebarProps) => {
             {/* Sair */}
             <Button
               variant="ghost"
-              className="w-full justify-start sidebar-fixed-height px-4 text-left hover:bg-primary/10 hover:text-foreground transition-colors group"
+              className={sidebarStyles.menuItem.primary}
               onClick={handleLogout}
             >
-              <LogOut className="mr-3 sidebar-icon-sm text-primary group-hover:text-primary transition-colors" />
+              <LogOut className={sidebarStyles.menuIcon.primary} />
               <span className="font-medium sidebar-text-sm">Sair</span>
             </Button>
           </div>

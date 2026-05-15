@@ -45,8 +45,14 @@ import {
   getSecondName,
 } from "@/utils/dashboard-utils";
 import { getDashboardCardsLayoutByRole, type DashboardCardConfig } from "@/utils/dashboard-cards-config";
-
-type DashboardTone = "purple" | "blue" | "cyan" | "success" | "warning" | "danger";
+import {
+  dashboardToneColors,
+  priorityBadgeColors,
+  dashboardCardStyles,
+  sectionTextColors,
+  skeletonColors,
+  type DashboardTone,
+} from "@/utils/dashboard-tone-colors";
 
 interface DashboardIconProps {
   className?: string;
@@ -72,44 +78,9 @@ interface DashboardSectionProps {
   className?: string;
 }
 
-const toneClasses: Record<DashboardTone, { icon: string; accent: string; text: string }> = {
-  purple: {
-    icon: "bg-[#EDE9FE] dark:bg-[#3F3F46] text-[#7C3AED] dark:text-[#A78BFA]",
-    accent: "from-[#7C3AED] to-[#A78BFA] dark:from-[#A78BFA] dark:to-[#8B5CF6]",
-    text: "text-[#7C3AED] dark:text-[#A78BFA]",
-  },
-  blue: {
-    icon: "bg-[#DBEAFE] dark:bg-[#1E3A5F] text-[#3B82F6] dark:text-[#60A5FA]",
-    accent: "from-[#3B82F6] to-[#67E8F9] dark:from-[#60A5FA] dark:to-[#67E8F9]",
-    text: "text-[#2563EB] dark:text-[#60A5FA]",
-  },
-  cyan: {
-    icon: "bg-[#ECFEFF] dark:bg-[#1F3A4F] text-[#0891B2] dark:text-[#67E8F9]",
-    accent: "from-[#06B6D4] to-[#67E8F9] dark:from-[#67E8F9] dark:to-[#06B6D4]",
-    text: "text-[#0E7490] dark:text-[#67E8F9]",
-  },
-  success: {
-    icon: "bg-[#D1FAE5] dark:bg-[#1F3A2F] text-[#10B981] dark:text-[#34D399]",
-    accent: "from-[#10B981] to-[#67E8F9] dark:from-[#34D399] dark:to-[#67E8F9]",
-    text: "text-[#047857] dark:text-[#34D399]",
-  },
-  warning: {
-    icon: "bg-[#FEF3C7] dark:bg-[#3F2F1F] text-[#D97706] dark:text-[#FBBF24]",
-    accent: "from-[#F59E0B] to-[#FDE68A] dark:from-[#FBBF24] dark:to-[#F59E0B]",
-    text: "text-[#B45309] dark:text-[#FBBF24]",
-  },
-  danger: {
-    icon: "bg-[#FEE2E2] dark:bg-[#3F1F1F] text-[#EF4444] dark:text-[#F87171]",
-    accent: "from-[#EF4444] to-[#F59E0B] dark:from-[#F87171] dark:to-[#FB923C]",
-    text: "text-[#B91C1C] dark:text-[#F87171]",
-  },
-};
-
-const dashboardCardClassName =
-  "border-[#E5E7EB] dark:border-[#334155] bg-white/95 dark:bg-slate-800/80 shadow-[0_18px_48px_-28px_rgba(17,24,39,0.45)] dark:shadow-[0_18px_48px_-28px_rgba(0,0,0,0.6)]";
-
-const interactiveCardClassName =
-  "cursor-pointer transition-all duration-200 hover:-translate-y-0.5 hover:border-[#C4B5FD] dark:hover:border-[#8B5CF6] hover:shadow-[0_22px_60px_-30px_rgba(124,58,237,0.45)] dark:hover:shadow-[0_22px_60px_-30px_rgba(139,92,246,0.45)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#7C3AED]/30 dark:focus-visible:ring-[#A78BFA]/30 focus-visible:ring-offset-2";
+const toneClasses = dashboardToneColors;
+const dashboardCardClassName = dashboardCardStyles.base;
+const interactiveCardClassName = cn(dashboardCardStyles.base, dashboardCardStyles.interactive);
 
 const formatCurrentDate = () =>
   new Intl.DateTimeFormat("pt-BR", {
@@ -136,41 +107,35 @@ const getWarningPriorityMeta = (priority?: string) => {
   const normalizedPriority = priority?.toUpperCase();
 
   if (normalizedPriority === "CRITICAL" || normalizedPriority === "HIGH") {
-    return {
-      label: "Crítico",
-      className: "border-[#FECACA] bg-[#FEE2E2] text-[#B91C1C]",
-    };
+    return priorityBadgeColors.critical;
   }
 
   if (normalizedPriority === "ALERT" || normalizedPriority === "WARNING") {
-    return {
-      label: "Alerta",
-      className: "border-[#FDE68A] bg-[#FEF3C7] text-[#B45309]",
-    };
+    return priorityBadgeColors.alert;
   }
 
-  return {
-    label: "Normal",
-    className: "border-[#BFDBFE] bg-[#EFF6FF] text-[#2563EB]",
-  };
+  return priorityBadgeColors.normal;
 };
 
-const DashboardSkeletonCard = ({ className }: { className?: string }) => (
-  <Card className={cn(dashboardCardClassName, "overflow-hidden", className)} aria-label="Carregando bloco da dashboard">
-    <CardContent className="p-5">
-      <div className="animate-pulse space-y-5">
-        <div className="flex items-center gap-3">
-          <div className="h-11 w-11 rounded-xl bg-[#EDE9FE] dark:bg-[#3F3F46]" />
-          <div className="flex-1 space-y-2">
-            <div className="h-3 w-24 rounded-full bg-[#E5E7EB] dark:bg-[#404854]" />
-            <div className="h-5 w-32 rounded-full bg-[#DDD6FE] dark:bg-[#5B47A8]" />
+const DashboardSkeletonCard = ({ className }: { className?: string }) => {
+  const skeletonPurple = dashboardToneColors.purple.skeleton!;
+  return (
+    <Card className={cn(dashboardCardClassName, "overflow-hidden", className)} aria-label="Carregando bloco da dashboard">
+      <CardContent className="p-5">
+        <div className="animate-pulse space-y-5">
+          <div className="flex items-center gap-3">
+            <div className={`h-11 w-11 rounded-xl ${skeletonPurple.background}`} />
+            <div className="flex-1 space-y-2">
+              <div className={`h-3 w-24 rounded-full ${skeletonColors.base}`} />
+              <div className={`h-5 w-32 rounded-full ${skeletonPurple.line}`} />
+            </div>
           </div>
+          <div className={`h-16 rounded-xl ${skeletonColors.light}`} />
         </div>
-        <div className="h-16 rounded-xl bg-[#F3F4F6] dark:bg-[#404854]" />
-      </div>
-    </CardContent>
-  </Card>
-);
+      </CardContent>
+    </Card>
+  );
+};
 
 const DashboardEmptyState = ({
   icon: Icon,
@@ -181,33 +146,36 @@ const DashboardEmptyState = ({
   title: string;
   description: string;
 }) => (
-  <div className="rounded-lg border border-dashed border-[#C4B5FD] dark:border-[#5B47A8] bg-[#F8FAFC] dark:bg-[#1F293B] p-5 text-center">
-    <div className="mx-auto mb-3 flex h-11 w-11 items-center justify-center rounded-full bg-[#EDE9FE] dark:bg-[#3F3F46] text-[#7C3AED] dark:text-[#A78BFA]">
+  <div className={`rounded-lg border border-dashed ${dashboardToneColors.purple.emptyState?.border} ${dashboardToneColors.purple.emptyState?.background} p-5 text-center`}>
+    <div className={`mx-auto mb-3 flex h-11 w-11 items-center justify-center rounded-full ${dashboardToneColors.purple.emptyState?.icon}`}>
       <Icon className="h-5 w-5" aria-hidden="true" />
     </div>
-    <p className="text-sm font-semibold text-[#111827] dark:text-[#F8FAFC]">{title}</p>
-    <p className="mt-1 text-sm text-[#6B7280] dark:text-[#CBD5E1]">{description}</p>
+    <p className={`text-sm font-semibold ${sectionTextColors.title}`}>{title}</p>
+    <p className={`mt-1 text-sm ${sectionTextColors.description}`}>{description}</p>
   </div>
 );
 
-const DashboardErrorState = ({ title, description }: { title: string; description: string }) => (
-  <div className="rounded-lg border border-[#FECACA] dark:border-[#7F1D1D] bg-[#FEF2F2] dark:bg-[#2F1F1F] p-5">
-    <div className="flex items-start gap-3">
-      <AlertTriangle className="mt-0.5 h-5 w-5 flex-shrink-0 text-[#EF4444] dark:text-[#F87171]" aria-hidden="true" />
-      <div>
-        <p className="text-sm font-semibold text-[#991B1B] dark:text-[#FECACA]">{title}</p>
-        <p className="mt-1 text-sm text-[#7F1D1D] dark:text-[#FCA5A5]">{description}</p>
+const DashboardErrorState = ({ title, description }: { title: string; description: string }) => {
+  const errorColors = dashboardToneColors.danger.errorState!;
+  return (
+    <div className={`rounded-lg border ${errorColors.border} ${errorColors.background} p-5`}>
+      <div className="flex items-start gap-3">
+        <AlertTriangle className={`mt-0.5 h-5 w-5 flex-shrink-0 ${errorColors.icon}`} aria-hidden="true" />
+        <div>
+          <p className={`text-sm font-semibold ${errorColors.title}`}>{title}</p>
+          <p className={`mt-1 text-sm ${errorColors.description}`}>{description}</p>
+        </div>
       </div>
     </div>
-  </div>
-);
+  );
+};
 
 const DashboardSection = ({ title, description, children, action, className }: DashboardSectionProps) => (
   <section className={cn("space-y-4", className)}>
     <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
       <div>
-        <h2 className="text-xl font-semibold text-[#111827] dark:text-[#F8FAFC]">{title}</h2>
-        <p className="mt-1 text-sm text-[#6B7280] dark:text-[#CBD5E1]">{description}</p>
+        <h2 className={`text-xl font-semibold ${sectionTextColors.title}`}>{title}</h2>
+        <p className={`mt-1 text-sm ${sectionTextColors.description}`}>{description}</p>
       </div>
       {action}
     </div>

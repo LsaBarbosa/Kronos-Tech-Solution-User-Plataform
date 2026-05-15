@@ -114,6 +114,7 @@ Identidade visual: Roxo, Lilás e Azul
   }
 
   .dark {
+    /* Base colors for dark theme */
     --background: 240 22% 5%;
     --foreground: 248 31.1% 98%;
 
@@ -142,27 +143,54 @@ Identidade visual: Roxo, Lilás e Azul
     --input: 240 13% 20%;
     --ring: 270 100% 59%;
 
-    /* Dark theme purple accents */
+    /* Dark theme purple tokens */
+    --purple-primary: 270 100% 59%;
+    --purple-hover: 270 100% 65%;
+    --purple-light: 270 100% 15%;
     --purple-accent: 270 100% 65%;
     --purple-glow: 270 100% 59%;
-    --shadow-orange-dark: 0 0 0 1px hsl(var(--purple-primary) / 0.3), 0 0 20px hsl(var(--purple-primary) / 0.15);
-    --shadow-orange-hover-dark: 0 4px 20px -4px hsl(var(--purple-primary) / 0.4);
 
-    /* Dark theme blue accents */
+    /* Dark theme blue tokens */
+    --blue-primary: 220 100% 59%;
+    --blue-hover: 220 100% 65%;
+    --blue-light: 220 100% 15%;
     --blue-accent: 220 100% 65%;
     --blue-glow: 220 100% 59%;
 
-    /* Dark theme lilas accents */
+    /* Dark theme lilás tokens */
+    --lilas-primary: 264 97.3% 80%;
+    --lilas-hover: 264 97.3% 85%;
+    --lilas-light: 264 97.3% 15%;
     --lilas-accent: 264 97.3% 85%;
     --lilas-glow: 264 97.3% 80%;
 
-    /* Dark theme cyan accents */
+    /* Dark theme cyan tokens */
+    --cyan-primary: 188.5 100% 65%;
+    --cyan-hover: 188.5 100% 70%;
+    --cyan-light: 188.5 100% 15%;
     --cyan-accent: 188.5 100% 70%;
     --cyan-glow: 188.5 100% 65%;
 
-    /* Dark theme red accents */
+    /* Dark theme red tokens */
+    --red-primary: 359 95% 70%;
+    --red-hover: 359 95% 75%;
+    --red-light: 359 95% 15%;
     --red-accent: 359 95% 70%;
     --red-glow: 359 95% 65%;
+
+    /* Dark theme success tokens */
+    --success: 142 76% 50%;
+    --success-light: 142 76% 60%;
+
+    /* Dark theme destructive light */
+    --destructive-light: 0 84% 75%;
+
+    /* Dark theme shadow tokens */
+    --shadow-card: 0 4px 24px -6px hsl(270 100% 59% / 0.12);
+    --shadow-input: 0 2px 8px -2px hsl(270 100% 59% / 0.1);
+    --shadow-button: 0 4px 16px -4px hsl(270 100% 59% / 0.4);
+    --shadow-orange-dark: 0 0 0 1px hsl(var(--purple-primary) / 0.3), 0 0 20px hsl(var(--purple-primary) / 0.15);
+    --shadow-orange-hover-dark: 0 4px 20px -4px hsl(var(--purple-primary) / 0.4);
 
     /* Dark theme sidebar */
     --sidebar-background: 240 22% 5%;
@@ -173,7 +201,7 @@ Identidade visual: Roxo, Lilás e Azul
     --sidebar-accent-foreground: 248 31.1% 98%;
     --sidebar-border: 240 13% 20%;
     --sidebar-ring: 270 100% 59%;
-}
+  }
 
 /* Theme variants - Disabled in favor of global purple/blue/lilas identity */
 }

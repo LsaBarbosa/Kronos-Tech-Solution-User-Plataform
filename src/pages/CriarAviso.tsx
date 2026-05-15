@@ -4,12 +4,11 @@ import { useState, useCallback } from "react";
 // 💡 Imports de UI e Ícones
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Textarea } from "@/components/ui/textarea";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
 import { Label } from "@/components/ui/label";
-import { Input } from "@/components/ui/input";
-import { Checkbox } from "@/components/ui/checkbox"; 
-import { MessageSquarePlus, Send, User, Users, Loader2 } from "lucide-react"; 
+import { FormInput, TextareaInput } from "@/components/ui";
+import { Checkbox } from "@/components/ui/checkbox";
+import { MessageSquarePlus, Send, User, Users, Loader2 } from "lucide-react";
 import Header from "@/components/Header";
 import Sidebar from "@/components/Sidebar";
 
@@ -112,21 +111,15 @@ const CriarAviso = () => {
             <CardContent className="p-6 space-y-6">
               
               {/* Título do Aviso */}
-              <div className="space-y-2">
-                <Label htmlFor="title" className="text-sm font-medium text-foreground">
-                  Título do Aviso
-                </Label>
-                <Input
-                  id="title"
-                  placeholder="Ex: Mudança no Horário de Verão"
-                  value={title}
-                  onChange={(e) => setTitle(e.target.value)}
-                  className="bg-background border-input"
-                />
-                <span className="text-xs text-muted-foreground">
-                  Recomendado um título curto e direto.
-                </span>
-              </div>
+              <FormInput
+                id="title"
+                label="Título do Aviso"
+                placeholder="Ex: Mudança no Horário de Verão"
+                value={title}
+                onChange={(e) => setTitle(e.target.value)}
+                hint="Recomendado um título curto e direto."
+                className="bg-background border-input"
+              />
               
               {/* Tipo do Aviso */}
               <div className="space-y-2">
@@ -236,27 +229,25 @@ const CriarAviso = () => {
               </div>
 
               {/* Mensagem do Aviso */}
-              <div className="space-y-2 pt-4 border-t border-border/50">
-                <Label htmlFor="mensagem" className="text-sm font-medium text-foreground">
-                  Mensagem do Aviso
-                </Label>
-                <Textarea
+              <div className="pt-4 border-t border-border/50">
+                <TextareaInput
                   id="mensagem"
+                  label="Mensagem do Aviso"
                   placeholder="Digite aqui a mensagem detalhada do aviso..."
                   value={mensagem}
                   onChange={(e) => setMensagem(e.target.value)}
                   className="min-h-[200px] bg-background border-input resize-none"
+                  helperText={
+                    <div className="flex justify-between items-center">
+                      <span>{mensagem.length} caracteres</span>
+                      {mensagem.length > 500 && (
+                        <span className="text-destructive">
+                          Mensagem muito longa (recomendado até 500 caracteres)
+                        </span>
+                      )}
+                    </div>
+                  }
                 />
-                <div className="flex justify-between items-center">
-                  <span className="text-xs text-muted-foreground">
-                    {mensagem.length} caracteres
-                  </span>
-                  {mensagem.length > 500 && (
-                    <span className="text-xs text-destructive">
-                      Mensagem muito longa (recomendado até 500 caracteres)
-                    </span>
-                  )}
-                </div>
               </div>
 
               {/* Botão de Postar */}

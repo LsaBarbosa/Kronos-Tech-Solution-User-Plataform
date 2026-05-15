@@ -1,23 +1,21 @@
 import { useState, useEffect } from "react";
 import { Button } from "@/components/ui/button";
-import { Input } from "@/components/ui/input";
-import { Label } from "@/components/ui/label";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
+import { FormInput, PasswordInput, FieldGroup } from "@/components/ui";
 import Clock from "@/components/Clock";
-import { Eye, EyeOff, ScanFace } from "lucide-react"; // Adicionado ScanFace
+import { ScanFace } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
-import FaceLoginModal from "@/components/FaceLoginModal"; // Import do novo modal
+import FaceLoginModal from "@/components/FaceLoginModal";
 import { useNavigate, useLocation } from "react-router-dom";
 import { loginWithPassword } from "@/service/auth.service";
 import { useAuth } from "@/context/AuthContext";
 import { getServiceErrorMessage } from "@/service/helpers/service-error.helper";
 
 const LoginForm = () => {
-  const [showPassword, setShowPassword] = useState(false);
   const [username, setUsername] = useState("");
   const [password, setPassword] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
-  const [isFaceLoginOpen, setIsFaceLoginOpen] = useState(false); // Estado do modal facial
+  const [isFaceLoginOpen, setIsFaceLoginOpen] = useState(false);
 
   const navigate = useNavigate();
   const location = useLocation();
@@ -89,51 +87,30 @@ const LoginForm = () => {
         </CardHeader>
         <CardContent className="space-y-6">
           <form onSubmit={handleLogin} className="space-y-6">
-            <div className="space-y-2">
-              <Label htmlFor="username" className="text-sm font-medium text-black-primary">
-                Nome de Usuário
-              </Label>
-              <Input
+            <FieldGroup>
+              <FormInput
                 id="username"
                 type="text"
+                label="Nome de Usuário"
                 placeholder="seu.nome.de.usuario"
                 value={username}
                 onChange={(e) => setUsername(e.target.value)}
-                className="h-12 border-gray-border focus:border-primary focus:ring-primary shadow-input transition-smooth"
+                className="h-12"
                 required
                 disabled={isSubmitting}
               />
-            </div>
 
-            <div className="space-y-2">
-              <Label htmlFor="password" className="text-sm font-medium text-black-primary">
-                Senha
-              </Label>
-              <div className="relative">
-                <Input
-                  id="password"
-                  type={showPassword ? "text" : "password"}
-                  placeholder="••••••••"
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
-                  className="h-12 pr-12 border-gray-border focus:border-primary focus:ring-primary shadow-input transition-smooth"
-                  required
-                  disabled={isSubmitting}
-                />
-                <button
-                  type="button"
-                  onClick={() => setShowPassword(!showPassword)}
-                  className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-text hover:text-primary transition-smooth"
-                  disabled={isSubmitting}
-                >
-                  {showPassword ? (
-                    <EyeOff className="h-5 w-5" />
-                  ) : (
-                    <Eye className="h-5 w-5" />
-                  )}
-                </button>
-              </div>
-            </div>
+              <PasswordInput
+                id="password"
+                label="Senha"
+                placeholder="••••••••"
+                value={password}
+                onChange={(e) => setPassword(e.target.value)}
+                className="h-12 pr-10"
+                required
+                disabled={isSubmitting}
+              />
+            </FieldGroup>
             <div className="flex justify-center mb-4">
               <Clock />
             </div>

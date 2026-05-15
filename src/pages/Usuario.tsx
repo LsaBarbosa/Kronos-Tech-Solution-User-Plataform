@@ -12,9 +12,10 @@ import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
 // 💡 Importa o hook customizado com toda a lógica de estado, API e actions
-import { useUser } from "@/hooks/useUser"; 
+import { useUser } from "@/hooks/useUser";
 // 💡 Importa funções utilitárias (como mapeamento de cargo)
-import { getRoleDisplayName } from "@/types/dashboard"; 
+import { getRoleDisplayName } from "@/types/dashboard";
+import { usuarioPageColors } from "@/utils/usuario-colors"; 
 
 const Usuario = () => {
   // 💡 ESTADO DE UI (Sidebar e Senha) é o único estado mantido localmente
@@ -127,11 +128,11 @@ const Usuario = () => {
         {/* 💡 CORREÇÃO: Header usa 'toggleSidebar' */}
         <Header toggleSidebar={handleToggleSidebar} />
 
-      <main className="pt-16 px-4 py-5 sm:px-6 sm:py-8 lg:px-8 space-y-6 sm:space-y-8 relative z-10 bg-[#F8FAFC] dark:bg-[#0F172A]">
+      <main className={`pt-16 px-4 py-5 sm:px-6 sm:py-8 lg:px-8 space-y-6 sm:space-y-8 relative z-10 ${usuarioPageColors.main.background}`}>
           <div className="max-w-6xl mx-auto w-full space-y-8">
 
             {/* Hero Section */}
-            <section className="overflow-hidden rounded-2xl border border-[#C4B5FD]/60 bg-[linear-gradient(135deg,#7C3AED_0%,#3B82F6_58%,#67E8F9_100%)] p-5 text-white shadow-[0_24px_70px_-34px_rgba(59,130,246,0.65)] sm:p-7" role="banner">
+            <section className={`overflow-hidden rounded-2xl border border-[#C4B5FD]/60 ${usuarioPageColors.header.background} p-5 text-white ${usuarioPageColors.header.shadow} sm:p-7`} role="banner">
               <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
                 <div>
                   <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-white/25 bg-white/15 px-3 py-1 text-sm font-medium text-white">
@@ -165,8 +166,8 @@ const Usuario = () => {
               <div className="grid gap-6 lg:grid-cols-3">
 
                 {/* Column 1: Personal Data */}
-                <Card className="lg:col-span-2 overflow-hidden shadow-sm border-[#E5E7EB] dark:border-[#404854] bg-gradient-to-br from-[#F8FAFC] to-white dark:from-slate-800/50 dark:to-slate-900/30 hover:shadow-md transition-shadow">
-                  <CardHeader className="border-b border-[#E5E7EB] dark:border-[#404854] pb-4">
+                <Card className={`lg:col-span-2 overflow-hidden ${usuarioPageColors.card.base} ${usuarioPageColors.card.background} ${usuarioPageColors.card.shadow}`}>
+                  <CardHeader className={`border-b ${usuarioPageColors.card.base} pb-4`}>
                     <div className="flex items-center gap-2">
                       <div className="p-2 rounded-lg bg-primary/10">
                         <CircleUserRound className="h-5 w-5 text-primary" />
@@ -184,7 +185,7 @@ const Usuario = () => {
                         {/* Full Name */}
                         <div className="sm:col-span-2">
                           <Label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Nome Completo</Label>
-                          <div className="mt-2 p-3 bg-white/50 dark:bg-slate-700/30 rounded-lg flex items-center gap-3 border border-[#E5E7EB] dark:border-[#404854]">
+                          <div className={`mt-2 p-3 rounded-lg flex items-center gap-3 ${usuarioPageColors.cardContent.background} ${usuarioPageColors.cardContent.border}`}>
                             <User2Icon className="h-4 w-4 text-primary flex-shrink-0" />
                             <p className="text-foreground font-medium">{userData?.fullName}</p>
                           </div>
@@ -193,7 +194,7 @@ const Usuario = () => {
                         {/* CPF */}
                         <div>
                           <Label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">CPF</Label>
-                          <div className="mt-2 p-3 bg-white/50 dark:bg-slate-700/30 rounded-lg flex items-center gap-3 border border-[#E5E7EB] dark:border-[#404854]">
+                          <div className={`mt-2 p-3 rounded-lg flex items-center gap-3 ${usuarioPageColors.cardContent.background} ${usuarioPageColors.cardContent.border}`}>
                             <IdCard className="h-4 w-4 text-primary flex-shrink-0" />
                             <p className="text-foreground text-sm">{userData?.maskedCpf}</p>
                           </div>
@@ -202,7 +203,7 @@ const Usuario = () => {
                         {/* Job Position */}
                         <div>
                           <Label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Cargo</Label>
-                          <div className="mt-2 p-3 bg-white/50 dark:bg-slate-700/30 rounded-lg flex items-center gap-3 border border-[#E5E7EB] dark:border-[#404854]">
+                          <div className={`mt-2 p-3 rounded-lg flex items-center gap-3 ${usuarioPageColors.cardContent.background} ${usuarioPageColors.cardContent.border}`}>
                             <Briefcase className="h-4 w-4 text-primary flex-shrink-0" />
                             <p className="text-foreground text-sm">{userData?.jobPosition}</p>
                           </div>
@@ -215,7 +216,7 @@ const Usuario = () => {
                         {/* Salary */}
                         <div>
                           <Label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Remuneração</Label>
-                          <div className="mt-2 p-3 bg-white/50 dark:bg-slate-700/30 rounded-lg flex items-center gap-3 border border-[#E5E7EB] dark:border-[#404854]">
+                          <div className={`mt-2 p-3 rounded-lg flex items-center gap-3 ${usuarioPageColors.cardContent.background} ${usuarioPageColors.cardContent.border}`}>
                             <DollarSign className="h-4 w-4 text-primary flex-shrink-0" />
                             <p className="text-foreground text-sm">{userData?.salary}</p>
                           </div>
@@ -224,7 +225,7 @@ const Usuario = () => {
                         {/* Work Location */}
                         <div>
                           <Label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Local de Trabalho</Label>
-                          <div className="mt-2 p-3 bg-white/50 dark:bg-slate-700/30 rounded-lg flex items-center gap-3 border border-[#E5E7EB] dark:border-[#404854]">
+                          <div className={`mt-2 p-3 rounded-lg flex items-center gap-3 ${usuarioPageColors.cardContent.background} ${usuarioPageColors.cardContent.border}`}>
                             <Home className="h-4 w-4 text-primary flex-shrink-0" />
                             <p className="text-foreground text-sm">
                               {userData?.homeOffice === true ? 'Remoto' : userData?.homeOffice === false ? 'Escritório' : 'N/A'}
@@ -239,7 +240,7 @@ const Usuario = () => {
                         {/* Role */}
                         <div>
                           <Label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Tipo de Usuário</Label>
-                          <div className="mt-2 p-3 bg-white/50 dark:bg-slate-700/30 rounded-lg flex items-center gap-3 border border-[#E5E7EB] dark:border-[#404854]">
+                          <div className={`mt-2 p-3 rounded-lg flex items-center gap-3 ${usuarioPageColors.cardContent.background} ${usuarioPageColors.cardContent.border}`}>
                             <SquareUser className="h-4 w-4 text-primary flex-shrink-0" />
                             <p className="text-foreground text-sm font-medium">{getRoleDisplayName(userAccountData?.role || 'PARTNER')}</p>
                           </div>
@@ -248,7 +249,7 @@ const Usuario = () => {
                         {/* Account Status */}
                         <div>
                           <Label className="text-xs font-semibold text-muted-foreground uppercase tracking-wide">Status da Conta</Label>
-                          <div className="mt-2 p-3 bg-white/50 dark:bg-slate-700/30 rounded-lg flex items-center gap-3 border border-[#E5E7EB] dark:border-[#404854]">
+                          <div className={`mt-2 p-3 rounded-lg flex items-center gap-3 ${usuarioPageColors.cardContent.background} ${usuarioPageColors.cardContent.border}`}>
                             {userAccountData?.active ? (
                               <>
                                 <CircleCheck className="h-4 w-4 text-green-600 dark:text-green-400 flex-shrink-0" />
@@ -268,8 +269,8 @@ const Usuario = () => {
                 </Card>
 
                 {/* Column 2: Address */}
-                <Card className="overflow-hidden shadow-sm border-[#E5E7EB] dark:border-[#404854] bg-gradient-to-br from-[#F8FAFC] to-white dark:from-slate-800/50 dark:to-slate-900/30 hover:shadow-md transition-shadow">
-                  <CardHeader className="border-b border-[#E5E7EB] dark:border-[#404854] pb-4">
+                <Card className={`overflow-hidden ${usuarioPageColors.card.base} ${usuarioPageColors.card.background} ${usuarioPageColors.card.shadow}`}>
+                  <CardHeader className={`border-b ${usuarioPageColors.card.base} pb-4`}>
                     <div className="flex items-center gap-2">
                       <div className="p-2 rounded-lg bg-primary/10">
                         <MapPin className="h-5 w-5 text-primary" />
@@ -281,7 +282,7 @@ const Usuario = () => {
                     </div>
                   </CardHeader>
                   <CardContent className="space-y-5 pt-6">
-                    <div className="p-4 bg-white/50 dark:bg-slate-700/30 rounded-lg border border-[#E5E7EB] dark:border-[#404854]">
+                    <div className={`p-4 rounded-lg border ${usuarioPageColors.cardContent.background} ${usuarioPageColors.cardContent.border}`}>
                       <p className="text-foreground text-sm leading-relaxed">
                         <span className="block font-medium mb-1">{userData?.address.street}, {userData?.address.number}</span>
                         <span className="block">{userData?.address.city} - {userData?.address.state}</span>
@@ -291,8 +292,8 @@ const Usuario = () => {
                 </Card>
 
                 {/* Column 3: Contact & Security */}
-                <Card className="lg:col-span-3 overflow-hidden shadow-sm border-[#E5E7EB] dark:border-[#404854] bg-gradient-to-br from-[#F8FAFC] to-white dark:from-slate-800/50 dark:to-slate-900/30 hover:shadow-md transition-shadow">
-                  <CardHeader className="border-b border-[#E5E7EB] dark:border-[#404854] pb-4">
+                <Card className={`lg:col-span-3 overflow-hidden ${usuarioPageColors.card.base} ${usuarioPageColors.card.background} ${usuarioPageColors.card.shadow}`}>
+                  <CardHeader className={`border-b ${usuarioPageColors.card.base} pb-4`}>
                     <div className="flex items-center gap-2">
                       <div className="p-2 rounded-lg bg-primary/10">
                         <Lock className="h-5 w-5 text-primary" />
@@ -348,7 +349,7 @@ const Usuario = () => {
                               variant="outline"
                               size="sm"
                               onClick={toggleEditingEmail}
-                              className="border-[#E5E7EB] dark:border-[#404854] text-foreground hover:bg-[#F8FAFC] dark:hover:bg-slate-700/50"
+                              className="${usuarioPageColors.button.ghost}"
                             >
                               <Pencil className="h-4 w-4" />
                             </Button>
@@ -399,7 +400,7 @@ const Usuario = () => {
                               variant="outline"
                               size="sm"
                               onClick={toggleEditingPhone}
-                              className="border-[#E5E7EB] dark:border-[#404854] text-foreground hover:bg-[#F8FAFC] dark:hover:bg-slate-700/50"
+                              className="${usuarioPageColors.button.ghost}"
                             >
                               <Pencil className="h-4 w-4" />
                             </Button>
@@ -417,7 +418,7 @@ const Usuario = () => {
                             variant="outline"
                             size="sm"
                             onClick={togglePasswordFields}
-                            className="border-[#E5E7EB] dark:border-[#404854] text-foreground hover:bg-[#F8FAFC] dark:hover:bg-slate-700/50"
+                            className="${usuarioPageColors.button.ghost}"
                           >
                             {showPasswordFields ? "Cancelar" : "Alterar Senha"}
                           </Button>

@@ -36,6 +36,7 @@ import { Info, BarChart3, Loader2, CalendarDays } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
 import { downloadCsvFile, loadPdfLibraries } from "@/utils/report-export";
+import { usuarioPageColors } from "@/utils/usuario-colors";
 
 type AutoTableCell =
     | string
@@ -561,10 +562,10 @@ const RelatorioDetalhado = () => {
         <PageShell
             sidebarOpen={sidebarOpen}
             toggleSidebar={handleToggleSidebar}
-            mainClassName="pt-16 px-4 py-5 sm:px-6 sm:py-8 lg:px-8 relative z-10 bg-[#F8FAFC] dark:bg-[#0F172A]"
+            mainClassName={`pt-16 px-4 py-5 sm:px-6 sm:py-8 lg:px-8 relative z-10 ${usuarioPageColors.main.background}`}
         >
                 <div className="mx-auto w-full max-w-7xl space-y-6 pb-10 relative z-10">
-                    <section className="overflow-hidden rounded-2xl border border-[#C4B5FD]/60 bg-[linear-gradient(135deg,#7C3AED_0%,#3B82F6_58%,#67E8F9_100%)] p-5 text-white shadow-[0_24px_70px_-34px_rgba(59,130,246,0.65)] sm:p-7">
+                    <section className={`overflow-hidden rounded-2xl border border-[#C4B5FD]/60 ${usuarioPageColors.header.background} p-5 text-white ${usuarioPageColors.header.shadow} sm:p-7`}>
                         <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
                             <div className="max-w-3xl">
                                 <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-white/25 bg-white/15 px-3 py-1 text-sm font-medium text-white shadow-sm backdrop-blur">
