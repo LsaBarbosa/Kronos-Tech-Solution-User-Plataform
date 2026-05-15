@@ -243,16 +243,6 @@ const ListaColaboradores = () => {
                               <CardTitle className="text-xl group-hover:text-primary transition-colors duration-300 flex items-center gap-2">
                                 <User className="w-5 h-5" />
                                 {colaborador.fullName}
-                                <Badge
-                                  variant={colaborador.active ? "default" : "destructive"}
-                                  className={
-                                    colaborador.active
-                                      ? "ml-2 text-xs px-2 py-0.5 h-5 bg-green-100 text-green-700 border-green-200 hover:bg-green-100 dark:bg-green-900/30 dark:text-green-400 dark:border-green-800"
-                                      : "ml-2 text-xs px-2 py-0.5 h-5"
-                                  }
-                                >
-                                  {colaborador.active ? "Ativo" : "Inativo"}
-                                </Badge>
                               </CardTitle>
                               <Badge className="w-fit bg-primary/10 text-primary border-primary/20 hover:bg-primary/20 mt-2">
                                 {colaborador.jobPosition}
