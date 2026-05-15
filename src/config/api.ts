@@ -1,7 +1,14 @@
-import axios from "axios";
+import axios, { type AxiosRequestConfig } from "axios";
 import { normalizeServiceError } from "@/service/helpers/service-error.helper";
 import { captureError } from "@/lib/observability";
 import { fetchCsrfToken, invalidateCsrfToken } from "@/service/csrf.service";
+
+// Extend Axios config to include CSRF retry flag
+declare module "axios" {
+  interface AxiosRequestConfig {
+    _csrfRetry?: boolean;
+  }
+}
 
 const DEFAULT_LOCAL_API_BASE_URL = ["http://localhost", "8080"].join(":");
 
@@ -197,18 +204,39 @@ api.interceptors.request.use(
 // Interceptor de Resposta (Para pegar o erro 403 dos Termos e CSRF)
 api.interceptors.response.use(
   (response) => response,
-  (error) => {
+  async (error) => {
     if (error.response) {
       const { status, data } = error.response;
       const errorCode = getErrorCode(data);
+      const originalRequest = error.config;
 
-      // Handle CSRF errors
+      // Handle CSRF errors with automatic retry
       if (
         status === 403 &&
         (errorCode === "CSRF_TOKEN_INVALID" || errorCode === "CSRF_INVALID")
       ) {
+        // Prevent infinite retry loop
+        if (originalRequest?._csrfRetry) {
+          invalidateCsrfToken();
+          return rejectApiError(error);
+        }
+
+        // Mark this request as having attempted CSRF retry
+        originalRequest._csrfRetry = true;
         invalidateCsrfToken();
-        return rejectApiError(error);
+
+        // Fetch fresh CSRF token
+        try {
+          const csrfToken = await fetchCsrfToken();
+          const headers = originalRequest.headers as Record<string, string>;
+          headers[csrfToken.headerName] = csrfToken.token;
+
+          // Retry the original request with new CSRF token
+          return api(originalRequest);
+        } catch (retryError) {
+          console.error("Failed to retry request with fresh CSRF token:", retryError);
+          return rejectApiError(error);
+        }
       }
 
       if (status === 403 && errorCode === "TERMS_NOT_ACCEPTED") {
