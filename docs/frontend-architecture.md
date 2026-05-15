@@ -18,7 +18,7 @@ Todas as chamadas passam por `src/config/api.ts`, que aplica:
 - Autenticação via cookie HTTP-Only (sem `Authorization` header com token).
 - `X-Correlation-Id` por requisição.
 - normalização de erro em `ServiceError`.
-- redirecionamento de termos somente quando o backend retorna `TERMS_NOT_ACCEPTED`.
+- bloqueio de rotas protegidas por `TermsAcceptanceGate` quando o backend retorna `TERMS_NOT_ACCEPTED`.
 
 ## React Query
 

@@ -226,7 +226,7 @@ describe("Contract tests — Front-end vs Back-end", () => {
             {
               type: "TERMS_NOT_ACCEPTED",
               message: "Aceitar termos",
-              redirectUrl: "https://terms.example.com",
+              redirect_url: "https://terms.example.com",
               status: 403,
             },
             { status: 403 }

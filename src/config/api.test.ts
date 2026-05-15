@@ -1,6 +1,7 @@
 import { HttpResponse, http } from "msw";
 import { describe, expect, it, vi } from "vitest";
-import { api, buildTermsRedirectUrl, registerSessionExpiredHandler } from "./api";
+import { api, registerSessionExpiredHandler } from "./api";
+import * as browser from "@/lib/browser";
 import { server } from "@/test/mocks/server";
 
 describe("api", () => {
@@ -67,24 +68,15 @@ describe("api", () => {
     expect(observedContentType).not.toBe("application/json");
   });
 
-  it("monta URL de redirecionamento para aceite de termos", () => {
-    expect(
-      buildTermsRedirectUrl(
-        "https://termo.kronossolutions.tech/",
-        "http://localhost:3000/dashboard"
-      )
-    ).toBe(
-      "https://termo.kronossolutions.tech/?returnUrl=http%3A%2F%2Flocalhost%3A3000%2Fdashboard"
-    );
-  });
+  it("trata 403 TERMS_NOT_ACCEPTED sem redirecionamento externo", async () => {
+    const redirectSpy = vi.spyOn(browser, "redirectBrowserTo").mockImplementation(() => undefined);
 
-  it("trata 403 TERMS_NOT_ACCEPTED preservando dados do erro", async () => {
     server.use(
       http.get("http://localhost:3000/terms-protected", () =>
         HttpResponse.json(
           {
             type: "TERMS_NOT_ACCEPTED",
-            redirect_url: "https://termo.kronossolutions.tech/",
+            redirect_url: "https://terms.example.com/",
           },
           { status: 403 }
         )
@@ -102,7 +94,9 @@ describe("api", () => {
           type: "TERMS_NOT_ACCEPTED",
         },
       },
+      redirectUrl: "https://terms.example.com/",
     });
+    expect(redirectSpy).not.toHaveBeenCalled();
   });
 
   it("propaga responses de erro com status, payload e mensagem padronizada", async () => {

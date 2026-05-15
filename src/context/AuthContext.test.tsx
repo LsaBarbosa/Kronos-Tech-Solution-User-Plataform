@@ -103,6 +103,28 @@ describe("AuthProvider", () => {
     }
   );
 
+  it("mantem sessao autenticada quando o termo esta pendente", async () => {
+    server.use(
+      http.get("*/employee/own-profile", () =>
+        HttpResponse.json(
+          {
+            type: "TERMS_NOT_ACCEPTED",
+            message: "Aceite de termo pendente",
+          },
+          { status: 403 }
+        )
+      )
+    );
+
+    renderAuthProvider();
+
+    await waitFor(() => {
+      expect(screen.getByTestId("status")).toHaveTextContent("authenticated");
+    });
+    expect(screen.getByTestId("user")).toHaveTextContent("");
+    expect(screen.getByTestId("is-authenticated")).toHaveTextContent("true");
+  });
+
   it("logout limpa contexto localmente", async () => {
     server.use(
       http.get("*/employee/own-profile", () =>

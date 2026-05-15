@@ -53,14 +53,16 @@ Código: [`src/config/api.ts`](../src/config/api.ts) linha 179, [`src/context/Au
 ### 403 Forbidden com `TERMS_NOT_ACCEPTED`
 
 - **Significado:** Usuário deve aceitar termos de biometria ou uso
-- **Ação:** Redireciona para servidor de termos com `returnUrl` query param
+- **Ação:** Mantém a sessão autenticada e bloqueia rotas protegidas com `TermsAcceptanceGate`
 - **Fluxo:**
-  1. Backend retorna `403 { type: "TERMS_NOT_ACCEPTED", redirect_url: "..." }`
-  2. Interceptor detecta e constrói URL final: `redirect_url + ?returnUrl=<currentLocation>`
-  3. Browser redireciona para servidor de termos externo
-  4. Após aceitar, servidor redireciona de volta para `returnUrl`
+  1. Backend retorna `403 { type: "TERMS_NOT_ACCEPTED" }`
+  2. Interceptor normaliza o erro como `ServiceError.kind = "terms"`
+  3. `AuthContext.checkSession()` mantém `status="authenticated"` para permitir chamadas de termo
+  4. `TermsAcceptanceGate` consulta `GET /terms/status`
+  5. Se pendente, o modal obrigatório chama `POST /terms/accept-biometric`
+  6. Após `204`, o cache de CSRF é invalidado, a sessão é revalidada e as rotas protegidas são liberadas
 
-Código: [`src/config/api.ts`](../src/config/api.ts) linha 150–172
+Código: [`src/config/api.ts`](../src/config/api.ts), [`src/context/AuthContext.tsx`](../src/context/AuthContext.tsx), [`src/components/TermsAcceptanceGate.tsx`](../src/components/TermsAcceptanceGate.tsx)
 
 ## Tratamento de 204 No Content
 

@@ -1,6 +1,5 @@
 import axios from "axios";
 import { normalizeServiceError } from "@/service/helpers/service-error.helper";
-import { getCurrentLocationHref, redirectBrowserTo } from "@/lib/browser";
 import { captureError } from "@/lib/observability";
 import { fetchCsrfToken, invalidateCsrfToken } from "@/service/csrf.service";
 
@@ -8,11 +7,6 @@ const DEFAULT_LOCAL_API_BASE_URL = ["http://localhost", "8080"].join(":");
 
 export const API_BASE_URL =
   import.meta.env.VITE_API_BASE_URL?.trim() || DEFAULT_LOCAL_API_BASE_URL;
-
-export const buildTermsRedirectUrl = (
-  redirectBaseUrl: string,
-  currentPlatformUrl: string
-) => `${redirectBaseUrl}?returnUrl=${encodeURIComponent(currentPlatformUrl)}`;
 
 const clearContentTypeHeader = (headers: unknown) => {
   if (!headers || typeof headers !== "object") {
@@ -191,21 +185,7 @@ api.interceptors.response.use(
         return rejectApiError(error);
       }
 
-      // LÓGICA DO REDIRECIONAMENTO DOS TERMOS
       if (status === 403 && data?.type === "TERMS_NOT_ACCEPTED") {
-        // 1. Pega a URL que o backend mandou (https://termo.kronossolutions.tech/)
-        const redirectBaseUrl = data.redirect_url;
-
-        // 2. Pega a URL atual da plataforma para o usuário voltar depois
-        const currentPlatformUrl = getCurrentLocationHref();
-
-        // 3. Monta a URL final com o parâmetro de retorno
-        // Ex: https://termo...?returnUrl=https://plataforma.../dashboard
-        const finalRedirectUrl = buildTermsRedirectUrl(redirectBaseUrl, currentPlatformUrl);
-
-        // 4. Força o redirecionamento
-        redirectBrowserTo(finalRedirectUrl);
-
         return rejectApiError(error);
       }
 

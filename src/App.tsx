@@ -6,6 +6,7 @@ import { TooltipProvider } from "@/components/ui/tooltip";
 import { ThemeProvider } from "@/hooks/useTheme";
 import { AuthProvider } from "@/context/AuthContext";
 import AppErrorBoundary from "@/components/AppErrorBoundary";
+import TermsAcceptanceGate from "@/components/TermsAcceptanceGate";
 import ProtectedRoute from "./components/ProtectedRoute";
 import RoleRoute from "./components/RoleRoute";
 import { APP_PATHS, APP_ROUTE_META } from "@/config/app-routes";
@@ -79,31 +80,33 @@ const App = () => (
                   <Route path={APP_PATHS.resetarSenha} element={<ResetPassword />} />
 
                   <Route element={<ProtectedRoute />}>
-                    <Route path={APP_PATHS.dashboard} element={<Dashboard />} />
-                    <Route path={APP_PATHS.relatorioDetalhado} element={<RelatorioDetalhado />} />
-                    <Route path={APP_PATHS.espelhoPonto} element={<EspelhoPonto />} />
-                    <Route path={APP_PATHS.documentos} element={<Documentos />} />
-                    <Route path={APP_PATHS.meusDocumentos} element={<Documentos />} />
-                    <Route path={APP_PATHS.enviarDocumentos} element={<EnviarDocumentos />} />
-                    <Route path={APP_PATHS.enviarDocumentoColaborador} element={<DocumentoColaborador />} />
-                    <Route path={APP_PATHS.usuario} element={<Usuario />} />
-                    <Route path={APP_PATHS.avisos} element={<Avisos />} />
-                    <Route path={APP_PATHS.solicitarFerias} element={<RequestVacation />} />
-                    <Route path={APP_PATHS.solicitarAbono} element={<RequestManualRegistration />} />
+                    <Route element={<TermsAcceptanceGate />}>
+                      <Route path={APP_PATHS.dashboard} element={<Dashboard />} />
+                      <Route path={APP_PATHS.relatorioDetalhado} element={<RelatorioDetalhado />} />
+                      <Route path={APP_PATHS.espelhoPonto} element={<EspelhoPonto />} />
+                      <Route path={APP_PATHS.documentos} element={<Documentos />} />
+                      <Route path={APP_PATHS.meusDocumentos} element={<Documentos />} />
+                      <Route path={APP_PATHS.enviarDocumentos} element={<EnviarDocumentos />} />
+                      <Route path={APP_PATHS.enviarDocumentoColaborador} element={<DocumentoColaborador />} />
+                      <Route path={APP_PATHS.usuario} element={<Usuario />} />
+                      <Route path={APP_PATHS.avisos} element={<Avisos />} />
+                      <Route path={APP_PATHS.solicitarFerias} element={<RequestVacation />} />
+                      <Route path={APP_PATHS.solicitarAbono} element={<RequestManualRegistration />} />
 
-                    {renderProtectedRoleRoute({ routeKey: "criarAviso", element: <CriarAviso /> })}
-                    {renderProtectedRoleRoute({ routeKey: "empresa", element: <Empresa /> })}
-                    {renderProtectedRoleRoute({ routeKey: "empresaCriar", element: <CriarEmpresa /> })}
-                    {renderProtectedRoleRoute({ routeKey: "empresaBuscar", element: <BuscarEmpresa /> })}
-                    {renderProtectedRoleRoute({ routeKey: "empresaAtualizar", element: <AtualizarEmpresa /> })}
-                    {renderProtectedRoleRoute({ routeKey: "auditoria", element: <AuditoriaFiscal /> })}
-                    {renderProtectedRoleRoute({ routeKey: "criarColaborador", element: <CriarColaborador /> })}
-                    {renderProtectedRoleRoute({ routeKey: "criarAdministrador", element: <CriarManager /> })}
-                    {renderProtectedRoleRoute({ routeKey: "listaColaboradores", element: <ListaColaboradores /> })}
-                    {renderProtectedRoleRoute({ routeKey: "apuracaoHoras", element: <PendingApprovals /> })}
-                    {renderProtectedRoleRoute({ routeKey: "statusDoRegistro", element: <StatusRegistro /> })}
-                    {renderProtectedRoleRoute({ routeKey: "ferias", element: <VacationApprovals /> })}
-                    {renderProtectedRoleRoute({ routeKey: "aprovacoesAbono", element: <ManualRegisterApprovals /> })}
+                      {renderProtectedRoleRoute({ routeKey: "criarAviso", element: <CriarAviso /> })}
+                      {renderProtectedRoleRoute({ routeKey: "empresa", element: <Empresa /> })}
+                      {renderProtectedRoleRoute({ routeKey: "empresaCriar", element: <CriarEmpresa /> })}
+                      {renderProtectedRoleRoute({ routeKey: "empresaBuscar", element: <BuscarEmpresa /> })}
+                      {renderProtectedRoleRoute({ routeKey: "empresaAtualizar", element: <AtualizarEmpresa /> })}
+                      {renderProtectedRoleRoute({ routeKey: "auditoria", element: <AuditoriaFiscal /> })}
+                      {renderProtectedRoleRoute({ routeKey: "criarColaborador", element: <CriarColaborador /> })}
+                      {renderProtectedRoleRoute({ routeKey: "criarAdministrador", element: <CriarManager /> })}
+                      {renderProtectedRoleRoute({ routeKey: "listaColaboradores", element: <ListaColaboradores /> })}
+                      {renderProtectedRoleRoute({ routeKey: "apuracaoHoras", element: <PendingApprovals /> })}
+                      {renderProtectedRoleRoute({ routeKey: "statusDoRegistro", element: <StatusRegistro /> })}
+                      {renderProtectedRoleRoute({ routeKey: "ferias", element: <VacationApprovals /> })}
+                      {renderProtectedRoleRoute({ routeKey: "aprovacoesAbono", element: <ManualRegisterApprovals /> })}
+                    </Route>
                   </Route>
 
                   <Route path="*" element={<NotFound />} />

@@ -1,14 +1,14 @@
 # Aderência do Front-end ao Backend flag/redis
 
 Front-end: `Kronos-Tech-Solution-User-Plataform`  
-Branch front-end: `v4/fase4/limpeza`  
+Branch front-end: `PROD_HOSTINGER`
 Backend: `Kronos-Tech-Solutions-KTS`  
 Branch backend: `flag/redis`
 
 | Domínio | Status | Evidência |
 |---|---|---|
 | Auth | Aderente | Login por senha, recuperação/reset e login facial usam endpoints do backend. |
-| Terms | Fora de escopo neste front | Fluxo de termo biométrico pertence a outro front-end. |
+| Terms | Aderente para aceite obrigatório | `GET /terms/status` bloqueia rotas protegidas e `POST /terms/accept-biometric` registra aceite no PLATAFORM. |
 | Documents | Aderente | `GET /documents` sempre envia `type`; download usa `documentId`. |
 | Companies | Aderente | CRUD e geolocalização usam backend. |
 | Geolocation | Aderente | `POST /geolocation/resolve` existe no backend flag/redis e é consumido pelo front. |

@@ -1,7 +1,7 @@
 # Mapa de Contrato HTTP
 
 Front-end: `Kronos-Tech-Solution-User-Plataform`  
-Branch front-end: `v4/fase4/limpeza`  
+Branch front-end: `PROD_HOSTINGER`
 Back-end alvo: `Kronos-Tech-Solutions-KTS`  
 Branch back-end: `flag/redis`
 
@@ -13,9 +13,9 @@ Branch back-end: `flag/redis`
 | Auth | `POST /auth/login-face` | Aderente | Envia `faceImageBase64` e `livenessPassed`; liveness real segue como melhoria enterprise. |
 | Auth | `POST /auth/recover-password` | Aderente | Recuperação de senha delegada ao backend. |
 | Auth | `POST /auth/reset-password` | Aderente | Reset por token temporário. |
-| Terms | `GET /terms/status` | FORA_DE_ESCOPO_OUTRO_FRONT | Endpoint documentado para guarda de contrato; este front não implementa o fluxo de termo biométrico. |
-| Terms | `POST /terms/accept-biometric` | FORA_DE_ESCOPO_OUTRO_FRONT | Endpoint documentado para guarda de contrato; este front não implementa o fluxo de termo biométrico. |
-| Terms | `DELETE /terms/revoke-biometric` | FORA_DE_ESCOPO_OUTRO_FRONT | Endpoint documentado para guarda de contrato; este front não implementa o fluxo de termo biométrico. |
+| Terms | `GET /terms/status` | Aderente | `terms.service.ts` verifica aceite antes de liberar rotas protegidas. |
+| Terms | `POST /terms/accept-biometric` | Aderente | `terms.service.ts` registra aceite, usa cookie HTTP-only e invalida cache de CSRF. |
+| Terms | `DELETE /terms/revoke-biometric` | FORA_DE_ESCOPO_OUTRO_FRONT | Revogação não participa do fluxo obrigatório de login neste front. |
 | Users | `GET /users/own-profile` | Aderente | Perfil de usuário autenticado. |
 | Users | `GET /users/search` | Aderente | Busca administrativa de usuários. |
 | Users | `PUT /users/password` | Aderente | Troca de senha do usuário. |
@@ -59,7 +59,7 @@ Branch back-end: `flag/redis`
 
 ## Fora de Escopo Desta Aplicação
 
-Os fluxos de registro de ponto e termo biométrico pertencem a outro front-end. Este repositório mantém apenas guardas/documentação para evitar regressões de contrato.
+O fluxo de registro de ponto pertence a outro front-end. O aceite biométrico de login é tratado no PLATAFORM por `TermsAcceptanceGate`.
 
 ## Convenções
 

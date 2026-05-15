@@ -10,7 +10,7 @@ import {
 import { useNavigate } from "react-router-dom";
 import { api, registerSessionExpiredHandler } from "@/config/api";
 import { invalidateCsrfToken } from "@/service/csrf.service";
-import { isAuthServiceError } from "@/service/helpers/service-error.helper";
+import { normalizeServiceError } from "@/service/helpers/service-error.helper";
 import { loadSessionProfile } from "@/service/session-profile.service";
 import type { UserAccountData, UserData } from "@/types/user";
 
@@ -62,7 +62,15 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       });
       setStatus("authenticated");
     } catch (error) {
-      if (isAuthServiceError(error)) {
+      const serviceError = normalizeServiceError(error);
+
+      if (serviceError.kind === "terms") {
+        setUser(null);
+        setStatus("authenticated");
+        return;
+      }
+
+      if (serviceError.kind === "auth") {
         clearSession();
         return;
       }

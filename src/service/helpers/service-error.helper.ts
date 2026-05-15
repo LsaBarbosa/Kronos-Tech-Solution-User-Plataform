@@ -222,6 +222,8 @@ export const normalizeHttpResponseError = (
   const redirectUrl: string | undefined =
     isRecord(data) && typeof data.redirectUrl === "string"
       ? data.redirectUrl
+      : isRecord(data) && typeof data.redirect_url === "string"
+        ? data.redirect_url
       : undefined;
 
   return new ServiceError(message, {
@@ -276,5 +278,5 @@ export const getServiceErrorMessage = (
 
 export const isAuthServiceError = (error: unknown) => {
   const serviceError = normalizeServiceError(error);
-  return serviceError.kind === "auth" || serviceError.kind === "terms";
+  return serviceError.kind === "auth";
 };

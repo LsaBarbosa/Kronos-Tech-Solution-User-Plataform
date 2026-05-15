@@ -6,6 +6,7 @@ import { geolocationHandlers } from "./geolocation.handlers";
 import { legalHandlers } from "./legal.handlers";
 import { messageHandlers } from "./message.handlers";
 import { recordsHandlers } from "./records.handlers";
+import { termsHandlers } from "./terms.handlers";
 import { userHandlers } from "./user.handlers";
 
 export const handlers = [
@@ -18,4 +19,5 @@ export const handlers = [
   ...messageHandlers,
   ...recordsHandlers,
   ...legalHandlers,
+  ...termsHandlers,
 ];

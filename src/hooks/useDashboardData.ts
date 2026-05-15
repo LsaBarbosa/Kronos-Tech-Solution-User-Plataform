@@ -8,7 +8,6 @@ import type { WarningMessage} from "@/types/dashboard";
 import { hasApprovalPermission } from "@/types/dashboard";
 import type { UserData } from "@/types/user"; 
 import { isAuthServiceError, normalizeServiceError } from "@/service/helpers/service-error.helper";
-import { getCurrentLocationHref, redirectBrowserTo } from "@/lib/browser";
 import { showErrorToast } from "@/lib/feedback";
 
 interface UseDashboardDataReturn {
@@ -68,26 +67,6 @@ export const useDashboardData = (): UseDashboardDataReturn => {
 
         } catch (err: unknown) {
             const normalized = normalizeServiceError(err);
-
-            if (normalized.kind === "terms") {
-                const backendData = normalized.data as { redirect_url?: string } | undefined;
-                const termoUrl = backendData?.redirect_url;
-
-                if (termoUrl) {
-                    const currentPlatformUrl = getCurrentLocationHref();
-
-                    showErrorToast(
-                        "Termos de Uso Pendentes",
-                        "Você será redirecionado em 3 segundos para assinar o termo de consentimento."
-                    );
-
-                    setTimeout(() => {
-                        redirectBrowserTo(`${termoUrl}?returnUrl=${encodeURIComponent(currentPlatformUrl)}`);
-                    }, 3500);
-
-                    return;
-                }
-            }
 
             console.error("Erro no Dashboard:", normalized);
             if (isAuthServiceError(normalized)) {
