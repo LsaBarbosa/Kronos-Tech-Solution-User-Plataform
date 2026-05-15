@@ -74,42 +74,42 @@ interface DashboardSectionProps {
 
 const toneClasses: Record<DashboardTone, { icon: string; accent: string; text: string }> = {
   purple: {
-    icon: "bg-[#EDE9FE] text-[#7C3AED]",
-    accent: "from-[#7C3AED] to-[#A78BFA]",
-    text: "text-[#7C3AED]",
+    icon: "bg-[#EDE9FE] dark:bg-[#3F3F46] text-[#7C3AED] dark:text-[#A78BFA]",
+    accent: "from-[#7C3AED] to-[#A78BFA] dark:from-[#A78BFA] dark:to-[#8B5CF6]",
+    text: "text-[#7C3AED] dark:text-[#A78BFA]",
   },
   blue: {
-    icon: "bg-[#DBEAFE] text-[#3B82F6]",
-    accent: "from-[#3B82F6] to-[#67E8F9]",
-    text: "text-[#2563EB]",
+    icon: "bg-[#DBEAFE] dark:bg-[#1E3A5F] text-[#3B82F6] dark:text-[#60A5FA]",
+    accent: "from-[#3B82F6] to-[#67E8F9] dark:from-[#60A5FA] dark:to-[#67E8F9]",
+    text: "text-[#2563EB] dark:text-[#60A5FA]",
   },
   cyan: {
-    icon: "bg-[#ECFEFF] text-[#0891B2]",
-    accent: "from-[#06B6D4] to-[#67E8F9]",
-    text: "text-[#0E7490]",
+    icon: "bg-[#ECFEFF] dark:bg-[#1F3A4F] text-[#0891B2] dark:text-[#67E8F9]",
+    accent: "from-[#06B6D4] to-[#67E8F9] dark:from-[#67E8F9] dark:to-[#06B6D4]",
+    text: "text-[#0E7490] dark:text-[#67E8F9]",
   },
   success: {
-    icon: "bg-[#D1FAE5] text-[#10B981]",
-    accent: "from-[#10B981] to-[#67E8F9]",
-    text: "text-[#047857]",
+    icon: "bg-[#D1FAE5] dark:bg-[#1F3A2F] text-[#10B981] dark:text-[#34D399]",
+    accent: "from-[#10B981] to-[#67E8F9] dark:from-[#34D399] dark:to-[#67E8F9]",
+    text: "text-[#047857] dark:text-[#34D399]",
   },
   warning: {
-    icon: "bg-[#FEF3C7] text-[#D97706]",
-    accent: "from-[#F59E0B] to-[#FDE68A]",
-    text: "text-[#B45309]",
+    icon: "bg-[#FEF3C7] dark:bg-[#3F2F1F] text-[#D97706] dark:text-[#FBBF24]",
+    accent: "from-[#F59E0B] to-[#FDE68A] dark:from-[#FBBF24] dark:to-[#F59E0B]",
+    text: "text-[#B45309] dark:text-[#FBBF24]",
   },
   danger: {
-    icon: "bg-[#FEE2E2] text-[#EF4444]",
-    accent: "from-[#EF4444] to-[#F59E0B]",
-    text: "text-[#B91C1C]",
+    icon: "bg-[#FEE2E2] dark:bg-[#3F1F1F] text-[#EF4444] dark:text-[#F87171]",
+    accent: "from-[#EF4444] to-[#F59E0B] dark:from-[#F87171] dark:to-[#FB923C]",
+    text: "text-[#B91C1C] dark:text-[#F87171]",
   },
 };
 
 const dashboardCardClassName =
-  "border-[#E5E7EB] bg-white/95 shadow-[0_18px_48px_-28px_rgba(17,24,39,0.45)]";
+  "border-[#E5E7EB] dark:border-[#334155] bg-white/95 dark:bg-slate-800/80 shadow-[0_18px_48px_-28px_rgba(17,24,39,0.45)] dark:shadow-[0_18px_48px_-28px_rgba(0,0,0,0.6)]";
 
 const interactiveCardClassName =
-  "cursor-pointer transition-all duration-200 hover:-translate-y-0.5 hover:border-[#C4B5FD] hover:shadow-[0_22px_60px_-30px_rgba(124,58,237,0.45)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#7C3AED]/30 focus-visible:ring-offset-2";
+  "cursor-pointer transition-all duration-200 hover:-translate-y-0.5 hover:border-[#C4B5FD] dark:hover:border-[#8B5CF6] hover:shadow-[0_22px_60px_-30px_rgba(124,58,237,0.45)] dark:hover:shadow-[0_22px_60px_-30px_rgba(139,92,246,0.45)] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#7C3AED]/30 dark:focus-visible:ring-[#A78BFA]/30 focus-visible:ring-offset-2";
 
 const formatCurrentDate = () =>
   new Intl.DateTimeFormat("pt-BR", {
@@ -160,13 +160,13 @@ const DashboardSkeletonCard = ({ className }: { className?: string }) => (
     <CardContent className="p-5">
       <div className="animate-pulse space-y-5">
         <div className="flex items-center gap-3">
-          <div className="h-11 w-11 rounded-xl bg-[#EDE9FE]" />
+          <div className="h-11 w-11 rounded-xl bg-[#EDE9FE] dark:bg-[#3F3F46]" />
           <div className="flex-1 space-y-2">
-            <div className="h-3 w-24 rounded-full bg-[#E5E7EB]" />
-            <div className="h-5 w-32 rounded-full bg-[#DDD6FE]" />
+            <div className="h-3 w-24 rounded-full bg-[#E5E7EB] dark:bg-[#404854]" />
+            <div className="h-5 w-32 rounded-full bg-[#DDD6FE] dark:bg-[#5B47A8]" />
           </div>
         </div>
-        <div className="h-16 rounded-xl bg-[#F3F4F6]" />
+        <div className="h-16 rounded-xl bg-[#F3F4F6] dark:bg-[#404854]" />
       </div>
     </CardContent>
   </Card>
@@ -181,22 +181,22 @@ const DashboardEmptyState = ({
   title: string;
   description: string;
 }) => (
-  <div className="rounded-lg border border-dashed border-[#C4B5FD] bg-[#F8FAFC] p-5 text-center">
-    <div className="mx-auto mb-3 flex h-11 w-11 items-center justify-center rounded-full bg-[#EDE9FE] text-[#7C3AED]">
+  <div className="rounded-lg border border-dashed border-[#C4B5FD] dark:border-[#5B47A8] bg-[#F8FAFC] dark:bg-[#1F293B] p-5 text-center">
+    <div className="mx-auto mb-3 flex h-11 w-11 items-center justify-center rounded-full bg-[#EDE9FE] dark:bg-[#3F3F46] text-[#7C3AED] dark:text-[#A78BFA]">
       <Icon className="h-5 w-5" aria-hidden="true" />
     </div>
-    <p className="text-sm font-semibold text-[#111827]">{title}</p>
-    <p className="mt-1 text-sm text-[#6B7280]">{description}</p>
+    <p className="text-sm font-semibold text-[#111827] dark:text-[#F8FAFC]">{title}</p>
+    <p className="mt-1 text-sm text-[#6B7280] dark:text-[#CBD5E1]">{description}</p>
   </div>
 );
 
 const DashboardErrorState = ({ title, description }: { title: string; description: string }) => (
-  <div className="rounded-lg border border-[#FECACA] bg-[#FEF2F2] p-5">
+  <div className="rounded-lg border border-[#FECACA] dark:border-[#7F1D1D] bg-[#FEF2F2] dark:bg-[#2F1F1F] p-5">
     <div className="flex items-start gap-3">
-      <AlertTriangle className="mt-0.5 h-5 w-5 flex-shrink-0 text-[#EF4444]" aria-hidden="true" />
+      <AlertTriangle className="mt-0.5 h-5 w-5 flex-shrink-0 text-[#EF4444] dark:text-[#F87171]" aria-hidden="true" />
       <div>
-        <p className="text-sm font-semibold text-[#991B1B]">{title}</p>
-        <p className="mt-1 text-sm text-[#7F1D1D]">{description}</p>
+        <p className="text-sm font-semibold text-[#991B1B] dark:text-[#FECACA]">{title}</p>
+        <p className="mt-1 text-sm text-[#7F1D1D] dark:text-[#FCA5A5]">{description}</p>
       </div>
     </div>
   </div>
@@ -206,8 +206,8 @@ const DashboardSection = ({ title, description, children, action, className }: D
   <section className={cn("space-y-4", className)}>
     <div className="flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
       <div>
-        <h2 className="text-xl font-semibold text-[#111827]">{title}</h2>
-        <p className="mt-1 text-sm text-[#6B7280]">{description}</p>
+        <h2 className="text-xl font-semibold text-[#111827] dark:text-[#F8FAFC]">{title}</h2>
+        <p className="mt-1 text-sm text-[#6B7280] dark:text-[#CBD5E1]">{description}</p>
       </div>
       {action}
     </div>
@@ -239,9 +239,9 @@ const DashboardCustomCard = ({
         <div className={cn("absolute inset-x-0 top-0 h-1 bg-gradient-to-r", toneClass.accent)} />
         <div className="flex items-start justify-between gap-4">
           <div className="min-w-0">
-            <p className="text-sm font-medium text-[#6B7280]">{card.title}</p>
-            <p className={cn("mt-2 text-3xl font-bold text-[#111827]", toneClass.text)}>{card.value}</p>
-            <p className="mt-2 text-sm text-[#6B7280]">{card.description}</p>
+            <p className="text-sm font-medium text-[#6B7280] dark:text-[#CBD5E1]">{card.title}</p>
+            <p className={cn("mt-2 text-3xl font-bold text-[#111827] dark:text-[#F8FAFC]", toneClass.text)}>{card.value}</p>
+            <p className="mt-2 text-sm text-[#6B7280] dark:text-[#CBD5E1]">{card.description}</p>
           </div>
           <div className={cn("flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-xl", toneClass.icon)}>
             <card.icon className="h-6 w-6" aria-hidden="true" />
@@ -278,13 +278,13 @@ const DashboardMetricCard = ({
         <div className={cn("absolute inset-x-0 top-0 h-1 bg-gradient-to-r", toneClass.accent)} />
         <div className="flex items-start justify-between gap-4">
           <div className="min-w-0">
-            <p className="text-sm font-medium text-[#6B7280]">{title}</p>
+            <p className="text-sm font-medium text-[#6B7280] dark:text-[#CBD5E1]">{title}</p>
             {isLoading ? (
-              <div className="mt-3 h-9 w-20 animate-pulse rounded-full bg-[#EDE9FE]" />
+              <div className="mt-3 h-9 w-20 animate-pulse rounded-full bg-[#EDE9FE] dark:bg-[#3F3F46]" />
             ) : (
-              <p className={cn("mt-2 text-3xl font-bold text-[#111827]", toneClass.text)}>{value}</p>
+              <p className={cn("mt-2 text-3xl font-bold text-[#111827] dark:text-[#F8FAFC]", toneClass.text)}>{value}</p>
             )}
-            <p className="mt-2 text-sm text-[#6B7280]">{description}</p>
+            <p className="mt-2 text-sm text-[#6B7280] dark:text-[#CBD5E1]">{description}</p>
           </div>
           <div className={cn("flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-xl", toneClass.icon)}>
             <Icon className="h-6 w-6" aria-hidden="true" />
@@ -311,16 +311,16 @@ const DashboardActionButton = ({
   <button
     type="button"
     onClick={onClick}
-    className="group flex w-full items-center gap-3 rounded-lg border border-[#E5E7EB] bg-white p-3 text-left transition-all duration-200 hover:border-[#C4B5FD] hover:bg-[#F8FAFC] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#7C3AED]/30"
+    className="group flex w-full items-center gap-3 rounded-lg border border-[#E5E7EB] dark:border-[#404854] bg-white dark:bg-slate-700 p-3 text-left transition-all duration-200 hover:border-[#C4B5FD] dark:hover:border-[#5B47A8] hover:bg-[#F8FAFC] dark:hover:bg-[#404854] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#7C3AED]/30 dark:focus-visible:ring-[#A78BFA]/30"
   >
     <span className={cn("flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg", toneClasses[tone].icon)}>
       <Icon className="h-5 w-5" aria-hidden="true" />
     </span>
     <span className="min-w-0 flex-1">
-      <span className="block text-sm font-semibold text-[#111827]">{label}</span>
-      <span className="mt-0.5 block text-xs text-[#6B7280]">{description}</span>
+      <span className="block text-sm font-semibold text-[#111827] dark:text-[#F8FAFC]">{label}</span>
+      <span className="mt-0.5 block text-xs text-[#6B7280] dark:text-[#CBD5E1]">{description}</span>
     </span>
-    <ArrowRight className="h-4 w-4 flex-shrink-0 text-[#A78BFA] transition-transform group-hover:translate-x-0.5" aria-hidden="true" />
+    <ArrowRight className="h-4 w-4 flex-shrink-0 text-[#A78BFA] dark:text-[#8B5CF6] transition-transform group-hover:translate-x-0.5" aria-hidden="true" />
   </button>
 );
 
@@ -443,12 +443,12 @@ const Dashboard = () => {
               key={warning.messageId}
               type="button"
               onClick={() => void handleWarningClick()}
-              className="w-full rounded-lg border border-[#E5E7EB] bg-white p-3 text-left transition-all duration-200 hover:border-[#C4B5FD] hover:bg-[#F8FAFC] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#7C3AED]/30"
+              className="w-full rounded-lg border border-[#E5E7EB] dark:border-[#404854] bg-white dark:bg-slate-700 p-3 text-left transition-all duration-200 hover:border-[#C4B5FD] dark:hover:border-[#5B47A8] hover:bg-[#F8FAFC] dark:hover:bg-[#404854] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#7C3AED]/30 dark:focus-visible:ring-[#A78BFA]/30"
             >
               <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
                 <div className="min-w-0">
-                  <p className="line-clamp-1 text-sm font-semibold text-[#111827]">{warning.title || "Aviso"}</p>
-                  <p className="mt-1 text-xs text-[#6B7280]">{formatWarningDate(warning.createdAt)}</p>
+                  <p className="line-clamp-1 text-sm font-semibold text-[#111827] dark:text-[#F8FAFC]">{warning.title || "Aviso"}</p>
+                  <p className="mt-1 text-xs text-[#6B7280] dark:text-[#CBD5E1]">{formatWarningDate(warning.createdAt)}</p>
                 </div>
                 <span className={cn("inline-flex w-fit items-center rounded-full border px-2 py-0.5 text-xs font-semibold", priorityMeta.className)}>
                   {priorityMeta.label}
@@ -466,7 +466,7 @@ const Dashboard = () => {
       sidebarOpen={sidebarOpen}
       toggleSidebar={handleToggleSidebar}
       withBackground={false}
-      mainClassName="pt-16 px-4 py-5 sm:px-6 sm:py-8 lg:px-8 relative z-10 bg-[#F8FAFC]"
+      mainClassName="pt-16 px-4 py-5 sm:px-6 sm:py-8 lg:px-8 relative z-10 bg-[#F8FAFC] dark:bg-[#0F172A]"
     >
       <div className="mx-auto w-full max-w-7xl space-y-6 pb-10">
         <section className="overflow-hidden rounded-2xl border border-[#C4B5FD]/60 bg-[linear-gradient(135deg,#7C3AED_0%,#3B82F6_58%,#67E8F9_100%)] p-5 text-white shadow-[0_24px_70px_-34px_rgba(59,130,246,0.65)] sm:p-7">

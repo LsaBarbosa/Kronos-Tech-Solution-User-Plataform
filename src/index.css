@@ -2,102 +2,89 @@
 @tailwind components;
 @tailwind utilities;
 
-/* Definition of the design system. All colors, gradients, fonts, etc should be defined here. 
+/* Definition of the design system. All colors, gradients, fonts, etc should be defined here.
 All colors MUST be HSL.
+Identidade visual: Roxo, Lilás e Azul
 */
 
 @layer base {
   :root {
-    --background: 0 0% 98%;
-    --foreground: 0 0% 0%;
+    --background: 248 31.1% 98%;
+    --foreground: 24 9.8% 10%;
 
     --card: 0 0% 100%;
-    --card-foreground: 0 0% 0%;
+    --card-foreground: 24 9.8% 10%;
 
     --popover: 0 0% 100%;
-    --popover-foreground: 0 0% 0%;
+    --popover-foreground: 24 9.8% 10%;
 
-    --primary: 25 100% 47%;
+    --primary: 270 100% 47%;
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 0 0% 96%;
-    --secondary-foreground: 0 0% 0%;
+    --secondary: 219 14.3% 95.9%;
+    --secondary-foreground: 24 9.8% 10%;
 
-    --muted: 0 0% 96%;
-    --muted-foreground: 0 0% 45%;
+    --muted: 220 13% 91%;
+    --muted-foreground: 215 16% 41%;
 
-    --accent: 25 100% 47%;
+    --accent: 270 100% 47%;
     --accent-foreground: 0 0% 100%;
 
     /* Custom design tokens - Theme Colors */
-    --theme-primary: var(--red-primary);
-    --theme-hover: var(--red-hover);
-    --theme-light: var(--red-light);
-    --theme-accent: var(--red-accent);
-    --theme-glow: var(--red-glow);
+    --theme-primary: var(--purple-primary);
+    --theme-hover: var(--purple-hover);
+    --theme-light: var(--purple-light);
+    --theme-accent: var(--purple-accent);
+    --theme-glow: var(--purple-glow);
     --black-primary: 0 0% 0%;
-    --gray-light: 0 0% 98%;
-    --gray-border: 0 0% 90%;
-    --gray-text: 0 0% 45%;
+    --gray-light: 248 31.1% 98%;
+    --gray-border: 220 13% 91%;
+    --gray-text: 215 16% 41%;
     --success: 142 76% 36%;
     --success-light: 142 76% 50%;
     --destructive-light: 0 84% 70%;
 
-    /* Purple Theme Tokens */
+    /* Purple Theme Tokens - Primary */
     --purple-primary: 270 100% 47%;
     --purple-hover: 270 100% 42%;
     --purple-light: 270 100% 97%;
     --purple-accent: 270 100% 55%;
     --purple-glow: 270 100% 47%;
 
-    /* Blue Theme Tokens */
+    /* Blue Theme Tokens - Secondary */
     --blue-primary: 220 100% 47%;
     --blue-hover: 220 100% 42%;
     --blue-light: 220 100% 97%;
     --blue-accent: 220 100% 55%;
     --blue-glow: 220 100% 47%;
 
-    /* Yellow Theme Tokens */
-    --yellow-primary: 50 100% 47%;
-    --yellow-hover: 50 100% 42%;
-    --yellow-light: 50 100% 97%;
-    --yellow-accent: 50 100% 55%;
-    --yellow-glow: 50 100% 47%;
+    /* Lilás/Lilas - Accent */
+    --lilas-primary: 264 97.3% 75%;
+    --lilas-hover: 264 97.3% 70%;
+    --lilas-light: 264 97.3% 98%;
+    --lilas-accent: 264 97.3% 80%;
+    --lilas-glow: 264 97.3% 75%;
 
-    /* Red Theme Tokens */
+    /* Cyan - Light Accent */
+    --cyan-primary: 188.5 100% 59.2%;
+    --cyan-hover: 188.5 100% 54%;
+    --cyan-light: 188.5 100% 95%;
+    --cyan-accent: 188.5 100% 65%;
+    --cyan-glow: 188.5 100% 59.2%;
+
+    /* Red Theme Tokens - Preserved for alerts */
     --red-primary: 359 95% 60%;
     --red-hover: 359 95% 55%;
     --red-light: 359 95% 97%;
     --red-accent: 359 95% 65%;
     --red-glow: 359 95% 60%;
 
-    /* Pink Theme Tokens */
-    --pink-primary: 330 100% 47%;
-    --pink-hover: 330 100% 42%;
-    --pink-light: 330 100% 97%;
-    --pink-accent: 330 100% 55%;
-    --pink-glow: 330 100% 47%;
-
-    /* Green Theme Tokens */
-    --green-primary: 120 100% 35%;
-    --green-hover: 120 100% 30%;
-    --green-light: 120 100% 97%;
-    --green-accent: 120 100% 40%;
-    --green-glow: 120 100% 35%;
-
-    /* Gray Theme Tokens */
-    --gray-primary: 0 0% 40%;
-    --gray-hover: 0 0% 35%;
-    --gray-light-theme: 0 0% 97%;
-    --gray-accent: 0 0% 45%;
-    --gray-glow: 0 0% 40%;
-
     /* Shadows */
-    --shadow-card: 0 4px 24px -6px hsl(0 0% 0% / 0.08);
-    --shadow-input: 0 2px 8px -2px hsl(0 0% 0% / 0.05);
-    --shadow-button: 0 4px 16px -4px hsl(25 100% 47% / 0.3);
-    --shadow-orange: 0 0 0 1px hsl(var(--orange-primary) / 0.2), 0 0 20px hsl(var(--orange-primary) / 0.1);
-    --shadow-orange-hover: 0 4px 20px -4px hsl(var(--orange-primary) / 0.25);
+    --shadow-card: 0 4px 24px -6px hsl(270 100% 47% / 0.08);
+    --shadow-input: 0 2px 8px -2px hsl(270 100% 47% / 0.05);
+    --shadow-button: 0 4px 16px -4px hsl(270 100% 47% / 0.3);
+    --shadow-orange: 0 0 0 1px hsl(var(--purple-primary) / 0.2), 0 0 20px hsl(var(--purple-primary) / 0.1);
+    --shadow-orange-hover: 0 4px 20px -4px hsl(var(--purple-primary) / 0.25);
 
     /* Animations */
     --transition-smooth: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
@@ -127,140 +114,68 @@ All colors MUST be HSL.
   }
 
   .dark {
-    --background: 222.2 84% 4.9%;
-    --foreground: 210 40% 98%;
+    --background: 240 22% 5%;
+    --foreground: 248 31.1% 98%;
 
-    --card: 222.2 84% 4.9%;
-    --card-foreground: 210 40% 98%;
+    --card: 240 13% 13%;
+    --card-foreground: 248 31.1% 98%;
 
-    --popover: 222.2 84% 4.9%;
-    --popover-foreground: 210 40% 98%;
+    --popover: 240 13% 13%;
+    --popover-foreground: 248 31.1% 98%;
 
-    --primary: 25 100% 47%;
-    --primary-foreground: 210 40% 98%;
+    --primary: 270 100% 59%;
+    --primary-foreground: 240 22% 5%;
 
-    --secondary: 217.2 32.6% 17.5%;
-    --secondary-foreground: 210 40% 98%;
+    --secondary: 240 13% 20%;
+    --secondary-foreground: 248 31.1% 98%;
 
-    --muted: 217.2 32.6% 17.5%;
-    --muted-foreground: 215 20.2% 65.1%;
+    --muted: 240 13% 20%;
+    --muted-foreground: 215 13% 73%;
 
-    --accent: 217.2 32.6% 17.5%;
-    --accent-foreground: 210 40% 98%;
+    --accent: 270 100% 59%;
+    --accent-foreground: 240 22% 5%;
 
-    --destructive: 0 62.8% 30.6%;
-    --destructive-foreground: 210 40% 98%;
+    --destructive: 0 72% 51%;
+    --destructive-foreground: 240 22% 5%;
 
-    --border: 217.2 32.6% 17.5%;
-    --input: 217.2 32.6% 17.5%;
-    --ring: 25 100% 47%;
-    
-    /* Dark theme orange accents */
-    --orange-accent: 25 100% 55%;
-    --orange-glow: 25 100% 47%;
-    --shadow-orange-dark: 0 0 0 1px hsl(var(--orange-primary) / 0.3), 0 0 20px hsl(var(--orange-primary) / 0.15);
-    --shadow-orange-hover-dark: 0 4px 20px -4px hsl(var(--orange-primary) / 0.4);
+    --border: 240 13% 20%;
+    --input: 240 13% 20%;
+    --ring: 270 100% 59%;
 
     /* Dark theme purple accents */
-    --purple-accent: 270 100% 55%;
-    --purple-glow: 270 100% 47%;
+    --purple-accent: 270 100% 65%;
+    --purple-glow: 270 100% 59%;
+    --shadow-orange-dark: 0 0 0 1px hsl(var(--purple-primary) / 0.3), 0 0 20px hsl(var(--purple-primary) / 0.15);
+    --shadow-orange-hover-dark: 0 4px 20px -4px hsl(var(--purple-primary) / 0.4);
 
     /* Dark theme blue accents */
-    --blue-accent: 220 100% 55%;
-    --blue-glow: 220 100% 47%;
+    --blue-accent: 220 100% 65%;
+    --blue-glow: 220 100% 59%;
 
-    /* Dark theme yellow accents */
-    --yellow-accent: 50 100% 55%;
-    --yellow-glow: 50 100% 47%;
+    /* Dark theme lilas accents */
+    --lilas-accent: 264 97.3% 85%;
+    --lilas-glow: 264 97.3% 80%;
+
+    /* Dark theme cyan accents */
+    --cyan-accent: 188.5 100% 70%;
+    --cyan-glow: 188.5 100% 65%;
 
     /* Dark theme red accents */
-    --red-accent: 359 95% 65%;
-    --red-glow: 359 95% 60%;
+    --red-accent: 359 95% 70%;
+    --red-glow: 359 95% 65%;
 
-    /* Dark theme pink accents */
-    --pink-accent: 330 100% 55%;
-    --pink-glow: 330 100% 47%;
-
-    /* Dark theme green accents */
-    --green-accent: 120 100% 40%;
-    --green-glow: 120 100% 35%;
-
-    /* Dark theme gray accents */
-    --gray-accent: 0 0% 45%;
-    --gray-glow: 0 0% 40%;
-    --sidebar-background: 240 5.9% 10%;
-    --sidebar-foreground: 240 4.8% 95.9%;
-    --sidebar-primary: 224.3 76.3% 48%;
-    --sidebar-primary-foreground: 0 0% 100%;
-    --sidebar-accent: 240 3.7% 15.9%;
-    --sidebar-accent-foreground: 240 4.8% 95.9%;
-    --sidebar-border: 240 3.7% 15.9%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    /* Dark theme sidebar */
+    --sidebar-background: 240 22% 5%;
+    --sidebar-foreground: 248 31.1% 98%;
+    --sidebar-primary: 270 100% 59%;
+    --sidebar-primary-foreground: 240 22% 5%;
+    --sidebar-accent: 240 13% 20%;
+    --sidebar-accent-foreground: 248 31.1% 98%;
+    --sidebar-border: 240 13% 20%;
+    --sidebar-ring: 270 100% 59%;
 }
 
-/* Theme variants */
-.theme-purple {
-  --primary: var(--purple-primary);
-  --accent: var(--purple-primary);
-  --ring: var(--purple-primary);
-  --shadow-button: 0 4px 16px -4px hsl(var(--purple-primary) / 0.3);
-  --shadow-orange: 0 0 0 1px hsl(var(--purple-primary) / 0.2), 0 0 20px hsl(var(--purple-primary) / 0.1);
-  --shadow-orange-hover: 0 4px 20px -4px hsl(var(--purple-primary) / 0.25);
-}
-
-.theme-blue {
-  --primary: var(--blue-primary);
-  --accent: var(--blue-primary);
-  --ring: var(--blue-primary);
-  --shadow-button: 0 4px 16px -4px hsl(var(--blue-primary) / 0.3);
-  --shadow-orange: 0 0 0 1px hsl(var(--blue-primary) / 0.2), 0 0 20px hsl(var(--blue-primary) / 0.1);
-  --shadow-orange-hover: 0 4px 20px -4px hsl(var(--blue-primary) / 0.25);
-}
-
-.theme-yellow {
-  --primary: var(--yellow-primary);
-  --accent: var(--yellow-primary);
-  --ring: var(--yellow-primary);
-  --shadow-button: 0 4px 16px -4px hsl(var(--yellow-primary) / 0.3);
-  --shadow-orange: 0 0 0 1px hsl(var(--yellow-primary) / 0.2), 0 0 20px hsl(var(--yellow-primary) / 0.1);
-  --shadow-orange-hover: 0 4px 20px -4px hsl(var(--yellow-primary) / 0.25);
-}
-
-.theme-red {
-  --primary: var(--red-primary);
-  --accent: var(--red-primary);
-  --ring: var(--red-primary);
-  --shadow-button: 0 4px 16px -4px hsl(var(--red-primary) / 0.3);
-  --shadow-orange: 0 0 0 1px hsl(var(--red-primary) / 0.2), 0 0 20px hsl(var(--red-primary) / 0.1);
-  --shadow-orange-hover: 0 4px 20px -4px hsl(var(--red-primary) / 0.25);
-}
-
-.theme-pink {
-  --primary: var(--pink-primary);
-  --accent: var(--pink-primary);
-  --ring: var(--pink-primary);
-  --shadow-button: 0 4px 16px -4px hsl(var(--pink-primary) / 0.3);
-  --shadow-orange: 0 0 0 1px hsl(var(--pink-primary) / 0.2), 0 0 20px hsl(var(--pink-primary) / 0.1);
-  --shadow-orange-hover: 0 4px 20px -4px hsl(var(--pink-primary) / 0.25);
-}
-
-.theme-green {
-  --primary: var(--green-primary);
-  --accent: var(--green-primary);
-  --ring: var(--green-primary);
-  --shadow-button: 0 4px 16px -4px hsl(var(--green-primary) / 0.3);
-  --shadow-orange: 0 0 0 1px hsl(var(--green-primary) / 0.2), 0 0 20px hsl(var(--green-primary) / 0.1);
-  --shadow-orange-hover: 0 4px 20px -4px hsl(var(--green-primary) / 0.25);
-}
-
-.theme-gray {
-  --primary: var(--gray-primary);
-  --accent: var(--gray-primary);
-  --ring: var(--gray-primary);
-  --shadow-button: 0 4px 16px -4px hsl(var(--gray-primary) / 0.3);
-  --shadow-orange: 0 0 0 1px hsl(var(--gray-primary) / 0.2), 0 0 20px hsl(var(--gray-primary) / 0.1);
-  --shadow-orange-hover: 0 4px 20px -4px hsl(var(--gray-primary) / 0.25);
-}
+/* Theme variants - Disabled in favor of global purple/blue/lilas identity */
 }
 
 @layer base {
@@ -272,7 +187,7 @@ All colors MUST be HSL.
     @apply bg-background text-foreground font-inter;
   }
 
-  /* Orange focus states for form elements */
+  /* Purple focus states for form elements */
   input:focus, select:focus, textarea:focus, button:focus-visible {
     @apply outline-none ring-2 ring-primary/20 border-primary;
   }
@@ -284,11 +199,11 @@ All colors MUST be HSL.
 
   /* Card hover effects */
   .card-hover {
-    @apply transition-all duration-200 hover:shadow-[0_0_0_1px_hsl(var(--orange-primary)/0.2),0_4px_20px_-4px_hsl(var(--orange-primary)/0.25)];
+    @apply transition-all duration-200 hover:shadow-[0_0_0_1px_hsl(var(--purple-primary)/0.2),0_4px_20px_-4px_hsl(var(--purple-primary)/0.25)];
   }
 
   .dark .card-hover {
-    @apply hover:shadow-[0_0_0_1px_hsl(var(--orange-primary)/0.3),0_4px_20px_-4px_hsl(var(--orange-primary)/0.4)];
+    @apply hover:shadow-[0_0_0_1px_hsl(var(--purple-primary)/0.3),0_4px_20px_-4px_hsl(var(--purple-primary)/0.4)];
   }
 
   /* Mobile optimizations */
@@ -307,9 +222,9 @@ All colors MUST be HSL.
     h2 { @apply text-xl; }
     h3 { @apply text-lg; }
     
-    /* Orange focus states for mobile */
+    /* Purple focus states for mobile */
     input:focus, select:focus, textarea:focus {
-      @apply border-orange-primary ring-2 ring-orange-primary/20;
+      @apply border-primary ring-2 ring-primary/20;
     }
   }
 }
@@ -351,26 +266,32 @@ All colors MUST be HSL.
     @apply grid grid-cols-1 sm:grid-cols-2 gap-4;
   }
 
-  /* Orange accent utilities */
-  .orange-focus {
-    @apply focus:border-orange-primary focus:ring-2 focus:ring-orange-primary/20;
+  /* Purple accent utilities */
+  .purple-focus {
+    @apply focus:border-primary focus:ring-2 focus:ring-primary/20;
   }
 
-  .orange-hover-card {
-    @apply hover:shadow-[0_0_0_1px_hsl(var(--orange-primary)/0.2),0_0_20px_hsl(var(--orange-primary)/0.1)] transition-shadow duration-200;
+  .purple-hover-card {
+    @apply hover:shadow-[0_0_0_1px_hsl(var(--purple-primary)/0.2),0_0_20px_hsl(var(--purple-primary)/0.1)] transition-shadow duration-200;
   }
 
-  .dark .orange-hover-card {
-    @apply hover:shadow-[0_0_0_1px_hsl(var(--orange-primary)/0.3),0_0_20px_hsl(var(--orange-primary)/0.15)];
+  .dark .purple-hover-card {
+    @apply hover:shadow-[0_0_0_1px_hsl(var(--purple-primary)/0.3),0_0_20px_hsl(var(--purple-primary)/0.15)];
   }
 
-  .orange-underline {
-    @apply relative after:absolute after:bottom-0 after:left-0 after:w-12 after:h-0.5 after:bg-orange-primary after:rounded-full;
+  .purple-underline {
+    @apply relative after:absolute after:bottom-0 after:left-0 after:w-12 after:h-0.5 after:bg-primary after:rounded-full;
   }
 
-  .orange-sidebar-active {
-    @apply bg-orange-primary/10 text-orange-primary border-r-2 border-orange-primary;
+  .purple-sidebar-active {
+    @apply bg-primary/10 text-primary border-r-2 border-primary;
   }
+
+  /* Backward compatibility aliases */
+  .orange-focus { @apply purple-focus; }
+  .orange-hover-card { @apply purple-hover-card; }
+  .orange-underline { @apply purple-underline; }
+  .orange-sidebar-active { @apply purple-sidebar-active; }
 
   /* Mobile table alternative - stack layout */
   .mobile-stack {
