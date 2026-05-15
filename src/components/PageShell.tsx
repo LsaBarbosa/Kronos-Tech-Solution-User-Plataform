@@ -1,8 +1,6 @@
 import type { ReactNode } from "react";
-import { Link, useLocation } from "react-router-dom";
 import Sidebar from "@/components/Sidebar";
 import Header from "@/components/Header";
-import { APP_ROUTE_META } from "@/config/app-routes";
 import { cn } from "@/lib/utils";
 
 interface PageShellProps {
@@ -22,8 +20,6 @@ const PageShell = ({
   contentClassName = "flex-1 flex flex-col overflow-hidden",
   withBackground = true,
 }: PageShellProps) => {
-  const { pathname } = useLocation();
-  const currentRouteMeta = Object.values(APP_ROUTE_META).find((route) => route.path === pathname);
 
   return (
     <div className="min-h-screen bg-background relative overflow-hidden">
@@ -72,30 +68,6 @@ const PageShell = ({
       <div className={cn(contentClassName)}>
         <Header toggleSidebar={toggleSidebar} />
         <main className={mainClassName}>
-          {currentRouteMeta?.breadcrumbs?.length ? (
-            <nav aria-label="Breadcrumb" className="mb-2 text-xs sm:text-sm text-muted-foreground">
-              <ol className="flex flex-wrap items-center gap-1.5">
-                {currentRouteMeta.breadcrumbs.map((breadcrumb, index) => {
-                  const isLast = index === currentRouteMeta.breadcrumbs.length - 1;
-
-                  return (
-                    <li key={`${breadcrumb.label}-${breadcrumb.path ?? index}`} className="flex items-center gap-1.5">
-                      {breadcrumb.path && !isLast ? (
-                        <Link to={breadcrumb.path} className="hover:text-foreground transition-colors">
-                          {breadcrumb.label}
-                        </Link>
-                      ) : (
-                        <span className={isLast ? "font-medium text-foreground" : undefined}>
-                          {breadcrumb.label}
-                        </span>
-                      )}
-                      {!isLast && <span aria-hidden="true">/</span>}
-                    </li>
-                  );
-                })}
-              </ol>
-            </nav>
-          ) : null}
           {children}
         </main>
       </div>
