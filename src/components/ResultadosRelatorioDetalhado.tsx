@@ -3,7 +3,7 @@
 import React, { useEffect, useMemo, useRef, useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { CalendarIcon, Download, Edit, Coffee, FileText, MapPin, Clock } from "lucide-react";
+import { CalendarIcon, Download, Edit, Coffee, FileText, MapPin, Clock, TrendingUp } from "lucide-react";
 import type { DetailedReportItem} from "@/utils/report-utils";
 import { getStatusColor, statusMap } from "@/utils/report-utils"; 
 import { useToast } from "@/hooks/use-toast";
@@ -148,9 +148,16 @@ export const ResultadosRelatorioDetalhado: React.FC<ResultadosDetalhadoProps> = 
 
     if (!reportData || reportData.length === 0) {
         return (
-            <Card className="shadow-card border-t-4 border-t-muted dark:border-t-[#5B47A8] dark:bg-slate-800/80 mb-8">
-                <CardContent className="py-8 text-center text-muted-foreground">
-                    Nenhum registro encontrado para o período.
+            <Card className="overflow-hidden border border-dashed border-[#D1D5DB] dark:border-[#4B5563] bg-gradient-to-br from-muted/20 to-muted/5 dark:from-slate-800/40 dark:to-slate-800/20">
+                <CardContent className="py-12 px-6 text-center flex flex-col items-center gap-4">
+                    <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10 dark:bg-primary/10">
+                        <FileText className="h-6 w-6 text-primary dark:text-[#A78BFA]" />
+                    </div>
+                    <div>
+                        <p className="text-sm text-muted-foreground">
+                            Nenhum registro encontrado para o período.
+                        </p>
+                    </div>
                 </CardContent>
             </Card>
         );
@@ -158,45 +165,89 @@ export const ResultadosRelatorioDetalhado: React.FC<ResultadosDetalhadoProps> = 
 
     return (
        <div className="space-y-6">
-            {/* CARD DE RESUMO GERAL */}
-            <Card className="bg-primary/5 dark:bg-slate-800/50 border-primary/20 dark:border-[#5B47A8] shadow-sm">
-                <CardContent className="flex flex-row items-center justify-between p-6">
-                    <div className="space-y-3 w-full">
-                        {/* Saldo Total */}
-                        <div>
-                            <p className="text-sm font-medium text-muted-foreground">Saldo Total do Período Selecionado</p>
-                            <div className="flex items-baseline gap-2">
-                                <span className={`text-3xl font-bold ${totalPeriodBalance.startsWith('-') ? 'text-destructive' : 'text-[#10B981] dark:text-[#34D399]'}`}>
-                                    {totalPeriodBalance}
-                                </span>
-                                <span className="text-sm text-muted-foreground">horas</span>
+            {/* CARDS DE RESUMO - GRID MODERNO */}
+            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+                {/* Card: Saldo Total */}
+                <Card className="overflow-hidden border border-[#E5E7EB] dark:border-[#404854] bg-gradient-to-br from-[#F8FAFC] to-white dark:from-slate-800 dark:to-slate-800/80 shadow-sm hover:shadow-md transition-all duration-200">
+                    <CardContent className="p-5">
+                        <div className="flex items-start justify-between">
+                            <div className="flex-1">
+                                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Saldo do Período</p>
+                                <div className="mt-3">
+                                    <p className={`text-3xl font-bold ${totalPeriodBalance.startsWith('-') ? 'text-destructive' : 'text-[#10B981] dark:text-[#34D399]'}`}>
+                                        {totalPeriodBalance}
+                                    </p>
+                                </div>
+                            </div>
+                            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-[#10B981]/10 dark:bg-[#34D399]/10">
+                                <TrendingUp className={`h-5 w-5 ${totalPeriodBalance.startsWith('-') ? 'text-destructive' : 'text-[#10B981] dark:text-[#34D399]'}`} />
                             </div>
                         </div>
-                        
-                        {/* Divisória sutil */}
-                        <div className="h-px bg-border/50 w-1/2" />
+                    </CardContent>
+                </Card>
 
-                        {/* Total Horas Trabalhadas */}
-                        <div>
-                            <p className="text-sm font-medium text-muted-foreground">Total de horas trabalhadas</p>
-                            <div className="flex items-baseline gap-2">
-                                <span className="text-2xl font-bold text-foreground">
-                                    {totalPeriodHours}
-                                </span>
-                                <span className="text-sm text-muted-foreground">horas</span>
+                {/* Card: Horas Trabalhadas */}
+                <Card className="overflow-hidden border border-[#E5E7EB] dark:border-[#404854] bg-gradient-to-br from-[#F8FAFC] to-white dark:from-slate-800 dark:to-slate-800/80 shadow-sm hover:shadow-md transition-all duration-200">
+                    <CardContent className="p-5">
+                        <div className="flex items-start justify-between">
+                            <div className="flex-1">
+                                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Horas Trabalhadas</p>
+                                <div className="mt-3">
+                                    <p className="text-3xl font-bold text-foreground">
+                                        {totalPeriodHours}
+                                    </p>
+                                </div>
+                            </div>
+                            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10 dark:bg-[#A78BFA]/10">
+                                <Clock className="h-5 w-5 text-primary dark:text-[#A78BFA]" />
                             </div>
                         </div>
-                    </div>
-                    
-                    <div className="bg-background p-4 rounded-full shadow-sm self-start mt-2">
-                        <Clock className="h-8 w-8 text-primary" />
-                    </div>
-                </CardContent>
-            </Card>
+                    </CardContent>
+                </Card>
+
+                {/* Card: Total de Registros */}
+                <Card className="overflow-hidden border border-[#E5E7EB] dark:border-[#404854] bg-gradient-to-br from-[#F8FAFC] to-white dark:from-slate-800 dark:to-slate-800/80 shadow-sm hover:shadow-md transition-all duration-200">
+                    <CardContent className="p-5">
+                        <div className="flex items-start justify-between">
+                            <div className="flex-1">
+                                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Registros</p>
+                                <div className="mt-3">
+                                    <p className="text-3xl font-bold text-foreground">
+                                        {totalElements}
+                                    </p>
+                                </div>
+                            </div>
+                            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-500/10 dark:bg-[#67E8F9]/10">
+                                <FileText className="h-5 w-5 text-blue-600 dark:text-[#67E8F9]" />
+                            </div>
+                        </div>
+                    </CardContent>
+                </Card>
+
+                {/* Card: Carga Horária de Referência */}
+                <Card className="overflow-hidden border border-[#E5E7EB] dark:border-[#404854] bg-gradient-to-br from-[#F8FAFC] to-white dark:from-slate-800 dark:to-slate-800/80 shadow-sm hover:shadow-md transition-all duration-200">
+                    <CardContent className="p-5">
+                        <div className="flex items-start justify-between">
+                            <div className="flex-1">
+                                <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Carga Horária</p>
+                                <div className="mt-3">
+                                    <p className="text-3xl font-bold text-foreground">
+                                        {referenceTime}
+                                    </p>
+                                </div>
+                            </div>
+                            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-cyan-500/10 dark:bg-[#06B6D4]/10">
+                                <Clock className="h-5 w-5 text-cyan-600 dark:text-[#06B6D4]" />
+                            </div>
+                        </div>
+                    </CardContent>
+                </Card>
+            </div>
 
             {/* LISTA PRINCIPAL */}
-            <Card className="shadow-card border-t-4 border-t-primary dark:border-t-[#A78BFA] dark:bg-slate-800/80 mb-8" ref={resultsRef}>
-                <CardHeader className="flex flex-row justify-between items-start" ref={cardHeaderRef}>
+            <Card className="overflow-hidden border border-[#E5E7EB] dark:border-[#404854] bg-card dark:bg-slate-800/80 shadow-sm" ref={resultsRef}>
+                <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-primary to-blue-500" />
+                <CardHeader className="flex flex-col sm:flex-row justify-between items-start gap-4 border-b border-[#E5E7EB] dark:border-[#404854]" ref={cardHeaderRef}>
                     <div>
                         <CardTitle>Resultados do Relatório</CardTitle>
                         <CardDescription>
@@ -204,13 +255,13 @@ export const ResultadosRelatorioDetalhado: React.FC<ResultadosDetalhadoProps> = 
                         </CardDescription> 
                     </div>
                     
-                    {/* BOTÕES DE EXPORTAÇÃO - Agora usam as props passadas pelo pai */}
-                    <div className="flex flex-col gap-2">
+                    {/* BOTÕES DE EXPORTAÇÃO - Modernizados */}
+                    <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
                         <Button
                             variant="outline"
                             size="sm"
                             onClick={onDownloadPDF}
-                            className="gap-2 w-full justify-start border-[#E5E7EB] dark:border-[#404854] text-[#374151] dark:text-[#F8FAFC] hover:border-[#C4B5FD] dark:hover:border-[#5B47A8] hover:bg-[#F8FAFC] dark:hover:bg-[#404854]"
+                            className="gap-2 border border-[#E5E7EB] dark:border-[#404854] text-[#374151] dark:text-[#F8FAFC] bg-white dark:bg-slate-700/50 hover:bg-primary/5 dark:hover:bg-primary/10 hover:border-primary/40 dark:hover:border-primary/40 transition-all justify-start sm:justify-center"
                         >
                             <Download className="h-4 w-4" />
                             Exportar PDF
@@ -219,7 +270,7 @@ export const ResultadosRelatorioDetalhado: React.FC<ResultadosDetalhadoProps> = 
                             variant="outline"
                             size="sm"
                             onClick={onDownloadCSV}
-                            className="gap-2 w-full justify-start border-[#E5E7EB] dark:border-[#404854] text-[#374151] dark:text-[#F8FAFC] hover:border-[#C4B5FD] dark:hover:border-[#5B47A8] hover:bg-[#F8FAFC] dark:hover:bg-[#404854]"
+                            className="gap-2 border border-[#E5E7EB] dark:border-[#404854] text-[#374151] dark:text-[#F8FAFC] bg-white dark:bg-slate-700/50 hover:bg-primary/5 dark:hover:bg-primary/10 hover:border-primary/40 dark:hover:border-primary/40 transition-all justify-start sm:justify-center"
                         >
                             <FileText className="h-4 w-4" />
                             Exportar CSV
@@ -244,9 +295,9 @@ export const ResultadosRelatorioDetalhado: React.FC<ResultadosDetalhadoProps> = 
                         const dailyWorkedHours = formatMinutesToTime(dailyWorkedMinutes);
 
                         return (
-                            <div key={dateKey} className="border border-[#E5E7EB] dark:border-[#334155] rounded-lg bg-slate-50/50 dark:bg-slate-900/20 overflow-hidden">
+                            <Card key={dateKey} className="overflow-hidden border border-[#E5E7EB] dark:border-[#404854] bg-card dark:bg-slate-800/60 shadow-sm">
                                 {/* Cabeçalho do Dia */}
-                                <div className="bg-muted/30 dark:bg-slate-800/40 p-3 border-b border-[#E5E7EB] dark:border-[#334155] flex flex-wrap justify-between items-center gap-2">
+                                <div className="bg-gradient-to-r from-muted/30 to-primary/5 dark:from-slate-800/40 dark:to-primary/10 p-4 border-b border-[#E5E7EB] dark:border-[#404854] flex flex-wrap justify-between items-center gap-3">
                                     <div className="flex items-center gap-2">
                                         <CalendarIcon className="h-5 w-5 text-primary" />
                                         <h3 className="font-semibold text-lg capitalize text-foreground">
@@ -281,13 +332,14 @@ export const ResultadosRelatorioDetalhado: React.FC<ResultadosDetalhadoProps> = 
                                             <Card
                                                 key={item.timeRecordId || index}
                                                 className={`
-                                                    border-l-4 shadow-sm transition-all duration-200
+                                                    overflow-hidden border transition-all duration-200 relative
                                                     ${isBreak
-                                                        ? 'border-l-[#9CA3AF] dark:border-l-[#6B7280] bg-[#F8FAFC] dark:bg-slate-800/50 cursor-default'
-                                                        : 'border-l-primary bg-card dark:bg-slate-800/80 hover:shadow-md hover:border-[#C4B5FD] dark:hover:border-[#8B5CF6] cursor-pointer group'}
+                                                        ? 'border-[#D1D5DB] dark:border-[#4B5563] bg-[#F3F4F6] dark:bg-slate-700/30 cursor-default'
+                                                        : 'border-[#E5E7EB] dark:border-[#404854] bg-card dark:bg-slate-800/80 hover:shadow-md hover:border-primary/40 dark:hover:border-[#A78BFA]/40 cursor-pointer group'}
                                                 `}
                                                 onClick={() => !isBreak && onEditRecord(item)}
                                             >
+                                                {!isBreak && <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-primary to-transparent opacity-0 group-hover:opacity-100 transition-opacity" />}
                                                 <CardContent className="p-4 space-y-3">
                                                     <div className="flex justify-between items-start pb-2 border-b border-border/50">
                                                         <div className="flex flex-col">
@@ -313,32 +365,42 @@ export const ResultadosRelatorioDetalhado: React.FC<ResultadosDetalhadoProps> = 
                                                     </div>
 
                                                     {((item.latitude && item.longitude) || (item.endLatitude && item.endLongitude)) && (
-                                                        <div className="flex flex-col pt-2 border-t border-[#E5E7EB] dark:border-[#404854] gap-1.5 mt-2 bg-muted/20 dark:bg-slate-700/30 p-2 rounded text-xs">
+                                                        <div className="flex flex-col pt-3 border-t border-[#E5E7EB] dark:border-[#404854] gap-2.5 mt-3 bg-gradient-to-br from-muted/30 to-muted/10 dark:from-slate-700/20 dark:to-slate-700/10 p-3 rounded-xl text-xs">
                                                             {item.latitude && (
-                                                                <div className="flex items-start gap-1.5">
-                                                                    <MapPin className="h-3 w-3 mt-0.5 text-[#10B981] dark:text-[#34D399] shrink-0" />
-                                                                    <span className="text-muted-foreground line-clamp-2">
-                                                                        {formatCoordinates(item.latitude, item.longitude)}
-                                                                    </span>
+                                                                <div className="flex items-start gap-2">
+                                                                    <div className="flex h-6 w-6 items-center justify-center rounded-md bg-[#10B981]/10 dark:bg-[#34D399]/10 flex-shrink-0 mt-0.5">
+                                                                        <MapPin className="h-3 w-3 text-[#10B981] dark:text-[#34D399]" />
+                                                                    </div>
+                                                                    <div className="flex-1 min-w-0">
+                                                                        <p className="text-muted-foreground font-medium text-[10px] uppercase tracking-wide opacity-70">Entrada</p>
+                                                                        <p className="text-muted-foreground line-clamp-2 mt-0.5">
+                                                                            {formatCoordinates(item.latitude, item.longitude)}
+                                                                        </p>
+                                                                    </div>
                                                                 </div>
                                                             )}
                                                             {item.endLatitude && (
-                                                                <div className="flex items-start gap-1.5">
-                                                                    <MapPin className="h-3 w-3 mt-0.5 text-red-500 shrink-0" />
-                                                                    <span className="text-muted-foreground line-clamp-2">
-                                                                        {formatCoordinates(item.endLatitude, item.endLongitude)}
-                                                                    </span>
+                                                                <div className="flex items-start gap-2">
+                                                                    <div className="flex h-6 w-6 items-center justify-center rounded-md bg-destructive/10 dark:bg-red-500/10 flex-shrink-0 mt-0.5">
+                                                                        <MapPin className="h-3 w-3 text-destructive dark:text-red-400" />
+                                                                    </div>
+                                                                    <div className="flex-1 min-w-0">
+                                                                        <p className="text-muted-foreground font-medium text-[10px] uppercase tracking-wide opacity-70">Saída</p>
+                                                                        <p className="text-muted-foreground line-clamp-2 mt-0.5">
+                                                                            {formatCoordinates(item.endLatitude, item.endLongitude)}
+                                                                        </p>
+                                                                    </div>
                                                                 </div>
                                                             )}
                                                         </div>
                                                     )}
 
-                                                    <div className="flex justify-between items-center pt-2 mt-1">
+                                                    <div className="flex justify-between items-center pt-3 mt-2 border-t border-[#E5E7EB] dark:border-[#404854]">
                                                         {documentId ? (
                                                             <Button
                                                                 variant="ghost"
                                                                 size="sm"
-                                                                className="h-7 px-2 text-xs gap-1.5 text-primary hover:text-primary hover:bg-primary/10"
+                                                                className="h-8 px-2 text-xs gap-1.5 text-primary dark:text-[#A78BFA] hover:bg-primary/10 dark:hover:bg-primary/10 transition-all rounded-md"
                                                                 onClick={(e) => {
                                                                     e.stopPropagation();
                                                                     handleDocumentDownload(documentId, item.employeeId, item.employeeData.employeeName);
@@ -348,10 +410,11 @@ export const ResultadosRelatorioDetalhado: React.FC<ResultadosDetalhadoProps> = 
                                                                 Ver Anexo
                                                             </Button>
                                                         ) : <div />}
-                                                        
+
                                                         {!isBreak && (
-                                                            <div className="text-primary/50 group-hover:text-primary transition-colors">
-                                                                <Edit className="h-4 w-4" />
+                                                            <div className="flex items-center gap-1.5 text-primary/40 dark:text-[#A78BFA]/40 group-hover:text-primary dark:group-hover:text-[#A78BFA] transition-colors text-xs font-medium">
+                                                                <Edit className="h-3.5 w-3.5" />
+                                                                <span className="hidden sm:inline">Editar</span>
                                                             </div>
                                                         )}
                                                     </div>
@@ -360,7 +423,7 @@ export const ResultadosRelatorioDetalhado: React.FC<ResultadosDetalhadoProps> = 
                                         );
                                     })}
                                 </div>
-                            </div>
+                            </Card>
                         );
                     })}
 

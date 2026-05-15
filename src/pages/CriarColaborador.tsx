@@ -349,7 +349,7 @@ const CriarColaborador = () => {
                                                 onChange={handleImageUpload} 
                                                 className="flex-1 hidden" // Esconde o input file padrão
                                             />
-                                            <label htmlFor="faceImage" className="cursor-pointer flex-1 flex items-center justify-between p-2 h-10 border border-input rounded-md bg-background hover:bg-accent hover:text-accent-foreground">
+                                            <label htmlFor="faceImage" className="cursor-pointer flex-1 flex items-center justify-between p-2 h-10 border border-input rounded-md bg-background hover:border-primary/40 hover:bg-primary/10 dark:hover:bg-primary/20 hover:text-primary">
                                                 <span className="truncate text-sm text-gray-500">
                                                     {fileName || "Clique para selecionar a imagem (.jpg, .png)"}
                                                 </span>

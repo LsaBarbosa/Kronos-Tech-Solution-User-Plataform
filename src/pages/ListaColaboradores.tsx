@@ -167,7 +167,7 @@ const ListaColaboradores = () => {
                       variant="outline"
                       size="sm"
                       onClick={clearFilters}
-                      className="text-primary border-primary hover:bg-primary hover:text-primary-foreground"
+                      className="text-primary border-primary hover:bg-primary/10 dark:hover:bg-primary/20 hover:text-primary hover:border-primary/40"
                     >
                       <X className="w-4 h-4 mr-2" />
                       Limpar Filtros
@@ -741,7 +741,7 @@ const ListaColaboradores = () => {
                 <Button
                   variant="outline"
                   onClick={clearFilters}
-                  className="text-primary border-primary hover:bg-primary hover:text-primary-foreground"
+                  className="text-primary border-primary hover:bg-primary/10 dark:hover:bg-primary/20 hover:text-primary hover:border-primary/40"
                 >
                   Limpar Filtros
                 </Button>

@@ -145,7 +145,7 @@ export default function AuditoriaFiscal() {
                   <RadioGroupItem value="AEJ" id="aej" className="peer sr-only" />
                   <Label
                     htmlFor="aej"
-                    className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary cursor-pointer transition-all h-full"
+                    className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:border-primary/40 hover:bg-primary/10 dark:hover:bg-primary/20 peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary cursor-pointer transition-all h-full"
                   >
                     <FileSignature className="mb-3 h-6 w-6 text-muted-foreground peer-data-[state=checked]:text-primary" />
                     <span className="font-semibold text-sm">AEJ</span>
@@ -158,7 +158,7 @@ export default function AuditoriaFiscal() {
                   <RadioGroupItem value="AFD" id="afd" className="peer sr-only" />
                   <Label
                     htmlFor="afd"
-                    className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary cursor-pointer transition-all h-full"
+                    className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:border-primary/40 hover:bg-primary/10 dark:hover:bg-primary/20 peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary cursor-pointer transition-all h-full"
                   >
                     <FileCode className="mb-3 h-6 w-6 text-muted-foreground peer-data-[state=checked]:text-primary" />
                     <span className="font-semibold text-sm">AFD</span>
@@ -171,7 +171,7 @@ export default function AuditoriaFiscal() {
                   <RadioGroupItem value="ATESTADO" id="atestado" className="peer sr-only" />
                   <Label
                     htmlFor="atestado"
-                    className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:bg-accent hover:text-accent-foreground peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary cursor-pointer transition-all h-full"
+                    className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:border-primary/40 hover:bg-primary/10 dark:hover:bg-primary/20 peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary cursor-pointer transition-all h-full"
                   >
                     <BadgeCheck className="mb-3 h-6 w-6 text-muted-foreground peer-data-[state=checked]:text-primary" />
                     <span className="font-semibold text-sm">Atestado</span>
