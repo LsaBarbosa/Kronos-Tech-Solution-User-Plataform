@@ -50,3 +50,17 @@ export const invalidateCsrfToken = (): void => {
 export const getCachedCsrfToken = (): CsrfTokenResponse | null => {
   return cachedCsrfToken;
 };
+
+/**
+ * Pre-fetches and caches the CSRF token to avoid first-request failures.
+ * Should be called during app initialization or before performing state-changing operations.
+ * Returns a promise that resolves when the token is available or fetch fails.
+ */
+export const preloadCsrfToken = async (): Promise<void> => {
+  try {
+    await fetchCsrfToken();
+  } catch (error) {
+    // Silently fail - the token will be fetched on demand if needed
+    console.debug("CSRF token preload failed (will retry on demand):", error);
+  }
+};

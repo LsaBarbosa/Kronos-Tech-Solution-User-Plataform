@@ -2,6 +2,7 @@
 
 import { useState, useEffect, useCallback } from "react";
 import { useToast } from "@/hooks/use-toast";
+import { preloadCsrfToken } from "@/service/csrf.service";
 import PageShell from "@/components/PageShell";
 import { format } from "date-fns";
 import { useForm } from "react-hook-form";
@@ -197,6 +198,11 @@ const RelatorioDetalhado = () => {
 
     // === BUSCA ===
     const handleSearch = async () => {
+        // Guard against multiple concurrent searches
+        if (isLoading) {
+            return;
+        }
+
         if (!referenceTime || !isValidReferenceTime(referenceTime)) {
             toast({
                 title: "Validação",
@@ -210,6 +216,9 @@ const RelatorioDetalhado = () => {
         setIsLoading(true);
 
         try {
+            // Pre-load CSRF token before making the request to avoid first-request failures
+            await preloadCsrfToken();
+
             const formattedDates = selectedDates.map(date => format(date, "dd-MM-yyyy"));
             const requestBody = {
                 reference: referenceTime,
