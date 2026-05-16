@@ -9,6 +9,7 @@ import { updateEmail, updatePhone, changePassword } from "@/service/user.service
 import { loadSessionProfile } from "@/service/session-profile.service";
 import { getServiceErrorMessage, isAuthServiceError } from "@/service/helpers/service-error.helper";
 import { useAuth } from "@/context/AuthContext";
+import { preloadCsrfToken } from "@/service/csrf.service";
 
 /**
  * Interface para o retorno do hook useUser.
@@ -161,34 +162,47 @@ const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
   // --- HANDLERS DE SALVAMENTO (API) ---
 
   const handleSaveEmail = useCallback(async () => {
+    // Guard against multiple concurrent submissions
+    if (isLoading) {
+      return;
+    }
+
     if (!newEmail.trim() || !userAccountData) {
       toast({ title: "Erro", description: "O e-mail não pode ser vazio.", variant: "destructive" });
       return;
     }
-    
+
     // Simples validação de formato de e-mail (opcional, pode ser mais robusta)
     if (!/\S+@\S+\.\S+/.test(newEmail)) {
       toast({ title: "Erro", description: "O e-mail inserido não é válido.", variant: "destructive" });
       return;
     }
 
-    setIsLoading(true); // Usa o loading geral para edições de contato
+    setIsLoading(true);
     try {
+      // Pre-load CSRF token before making the request
+      await preloadCsrfToken();
+
       await updateEmail(userAccountData.employeeId, newEmail);
-      
+
       // Atualiza o estado local com o novo email formatado
       setUserData((prev) => (prev ? { ...prev, email: newEmail } : null));
       setIsEditingEmail(false);
-      
+
       toast({ title: "Sucesso", description: "E-mail atualizado.", variant: "default" });
     } catch (error) {
       handleServiceError(error, "Erro ao salvar e-mail", "Tente novamente mais tarde.");
     } finally {
       setIsLoading(false);
     }
-  }, [handleServiceError, newEmail, userAccountData, toast]);
+  }, [handleServiceError, isLoading, newEmail, userAccountData, toast]);
 
   const handleSavePhone = useCallback(async () => {
+    // Guard against multiple concurrent submissions
+    if (isLoading) {
+      return;
+    }
+
     if (!newPhone.trim() || !userAccountData) {
       toast({ title: "Erro", description: "O telefone não pode ser vazio.", variant: "destructive" });
       return;
@@ -200,24 +214,32 @@ const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
       return;
     }
 
-    setIsLoading(true); // Usa o loading geral para edições de contato
+    setIsLoading(true);
     try {
+      // Pre-load CSRF token before making the request
+      await preloadCsrfToken();
+
       await updatePhone(userAccountData.employeeId, newPhone);
-      
+
       // Atualiza o estado local com o novo telefone
       setUserData((prev) => (prev ? { ...prev, phone: newPhone } : null));
       setIsEditingPhone(false);
-      
+
       toast({ title: "Sucesso", description: "Telefone atualizado.", variant: "default" });
     } catch (error) {
       handleServiceError(error, "Erro ao salvar telefone", "Tente novamente mais tarde.");
     } finally {
       setIsLoading(false);
     }
-  }, [handleServiceError, newPhone, userAccountData, toast]);
+  }, [handleServiceError, isLoading, newPhone, userAccountData, toast]);
 
 
   const handleChangePassword = useCallback(async () => {
+    // Guard against multiple concurrent submissions
+    if (isSavingPassword) {
+      return;
+    }
+
     if (!passwordData.currentPassword || !passwordData.newPassword || !passwordData.confirmPassword) {
         toast({ title: "Erro", description: "Preencha todos os campos de senha.", variant: "destructive" });
         return;
@@ -227,21 +249,24 @@ const handlePasswordChange = (e: React.ChangeEvent<HTMLInputElement>) => {
         return;
     }
 
-    setIsSavingPassword(true);// INÍCIO DO LOADING ESPECÍFICO DE SENHA
+    setIsSavingPassword(true);
 
     try {
-      await changePassword(passwordData); // Chama o Serviço de API
-      
+      // Pre-load CSRF token before making the request
+      await preloadCsrfToken();
+
+      await changePassword(passwordData);
+
       // Limpa os campos de senha após o sucesso
-   setPasswordData({ currentPassword: "", newPassword: "", confirmPassword: "" });
+      setPasswordData({ currentPassword: "", newPassword: "", confirmPassword: "" });
       setShowPasswordFields(false);
       toast({ title: "Sucesso", description: "Senha alterada com sucesso.", variant: "default" });
     } catch (error) {
       handleServiceError(error, "Erro ao alterar senha", "Tente novamente mais tarde.");
     } finally {
-      setIsSavingPassword(false); // <--- FIM DO LOADING
+      setIsSavingPassword(false);
     }
-  }, [handleServiceError, passwordData, toast]);
+  }, [handleServiceError, isSavingPassword, passwordData, toast]);
 
   return {
     userAccountData,

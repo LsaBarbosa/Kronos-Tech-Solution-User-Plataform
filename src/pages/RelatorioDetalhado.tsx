@@ -68,6 +68,7 @@ const RelatorioDetalhado = () => {
     const [managers, setManagers] = useState<Manager[]>([]);
     const [isPartner, setIsPartner] = useState(false);
     const [isLoading, setIsLoading] = useState(false);
+    const [isSavingRecord, setIsSavingRecord] = useState(false);
     const { status: authStatus, role, user } = useAuth();
 
     // Verifica se há dados para habilitar botões de download
@@ -528,8 +529,18 @@ const RelatorioDetalhado = () => {
     };
 
     const handleSaveRecord = async (data: EditRecordFormData) => {
+        // Guard against multiple concurrent submissions
+        if (isSavingRecord) {
+            return;
+        }
+
+        setIsSavingRecord(true);
+
         try {
             if (!selectedRecord || !selectedRecord.timeRecordId) throw new Error("Registro não encontrado.");
+
+            // Pre-load CSRF token before making the request
+            await preloadCsrfToken();
 
             const formatDate = (dateString: string) => {
                 const [year, month, day] = dateString.split('-');
@@ -555,6 +566,8 @@ const RelatorioDetalhado = () => {
             const message = error instanceof Error ? error.message : "Ocorreu um erro ao salvar o ajuste.";
             console.error("Erro ao salvar:", error);
             toast({ title: "Erro", description: message, variant: "destructive" });
+        } finally {
+            setIsSavingRecord(false);
         }
     };
 
@@ -655,6 +668,7 @@ const RelatorioDetalhado = () => {
                         selectedRecord={selectedRecord}
                         onSaveRecord={handleSaveRecord}
                         form={form}
+                        isSavingRecord={isSavingRecord}
                     />
                 </div>
         </PageShell>

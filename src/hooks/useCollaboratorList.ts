@@ -1,5 +1,6 @@
 import { type ChangeEvent, useCallback, useEffect, useMemo, useState } from "react";
 import { useToast } from "@/hooks/use-toast";
+import { preloadCsrfToken } from "@/service/csrf.service";
 import {
   fetchEmployeeList,
   toggleUserStatus,
@@ -307,6 +308,11 @@ export const useCollaboratorList = () => {
   }, []);
 
   const handleSaveColaborador = useCallback(async (colaboradorId: string) => {
+    // Guard against multiple concurrent submissions
+    if (isLoading) {
+      return;
+    }
+
     const originalColaborador = colaboradores.find((c) => c.employeeId === colaboradorId);
     if (!originalColaborador) {
       toast({
@@ -360,6 +366,9 @@ export const useCollaboratorList = () => {
 
     setIsLoading(true);
     try {
+      // Pre-load CSRF token before making the request
+      await preloadCsrfToken();
+
       const bodyDataEmployee: CollaboratorEmployeePayload = {};
       const bodyDataUser: CollaboratorUserPayload = {};
 
@@ -486,6 +495,11 @@ export const useCollaboratorList = () => {
   }, [colaboradores, editedData, faceImageFile, fetchColaboradores, fileToBase64, toast]);
 
   const handleToggleUserStatus = useCallback(async (userId: string, currentStatus: boolean) => {
+    // Guard against multiple concurrent submissions
+    if (isLoading) {
+      return;
+    }
+
     if (!userId || userId === "N/A") {
       toast({
         title: "Ação Indisponível",
@@ -495,7 +509,11 @@ export const useCollaboratorList = () => {
       return;
     }
 
+    setIsLoading(true);
     try {
+      // Pre-load CSRF token before making the request
+      await preloadCsrfToken();
+
       await toggleUserStatus(userId);
       setColaboradores((prevList) => prevList.filter((colab) => colab.userId !== userId));
 
@@ -512,8 +530,10 @@ export const useCollaboratorList = () => {
         description: error instanceof Error ? error.message : "Não foi possível alterar o status do usuário.",
         variant: "destructive",
       });
+    } finally {
+      setIsLoading(false);
     }
-  }, [fetchColaboradores, toast]);
+  }, [fetchColaboradores, isLoading, toast]);
 
   return {
     sidebarOpen,

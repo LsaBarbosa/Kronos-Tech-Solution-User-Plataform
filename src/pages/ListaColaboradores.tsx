@@ -256,7 +256,8 @@ const ListaColaboradores = () => {
                           <div className="flex gap-2">
                             <button
                               onClick={() => handleSaveColaborador(colaborador.employeeId)}
-                              className="p-2 text-primary-foreground bg-primary hover:bg-primary/90 rounded-full transition-all duration-200 hover:scale-110"
+                              disabled={isLoading}
+                              className="p-2 text-primary-foreground bg-primary hover:bg-primary/90 rounded-full transition-all duration-200 hover:scale-110 disabled:opacity-50 disabled:cursor-not-allowed"
                               title="Salvar alterações"
                             >
                               <Save className="w-4 h-4" />
@@ -308,13 +309,14 @@ const ListaColaboradores = () => {
                                   </AlertDialogDescription>
                                 </AlertDialogHeader>
                                 <AlertDialogFooter>
-                                  <AlertDialogCancel>Cancelar</AlertDialogCancel>
+                                  <AlertDialogCancel disabled={isLoading}>Cancelar</AlertDialogCancel>
                                   <AlertDialogAction
                                     onClick={() => handleToggleUserStatus(colaborador.userId, colaborador.active)}
+                                    disabled={isLoading}
                                     className={`${colaborador.active
                                       ? "bg-destructive hover:bg-destructive/90 text-destructive-foreground"
                                       : "bg-green-600 hover:bg-green-700 text-white dark:bg-green-700 dark:hover:bg-green-800"
-                                      }`}
+                                      } disabled:opacity-50 disabled:cursor-not-allowed`}
                                   >
                                     {colaborador.active ? "Desativar" : "Ativar"}
                                   </AlertDialogAction>

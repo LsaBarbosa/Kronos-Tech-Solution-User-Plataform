@@ -6,7 +6,7 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { Edit } from "lucide-react";
+import { Edit, Loader2 } from "lucide-react";
 import type { UseFormReturn } from "react-hook-form";
 import type { EditRecordFormData, DetailedReportItem, Manager } from "@/utils/report-utils";
 
@@ -16,9 +16,9 @@ interface RegistroEdicaoModalProps {
     setIsOpen: React.Dispatch<React.SetStateAction<boolean>>;
     managers: Manager[];
     selectedRecord: DetailedReportItem | null;
-    // Props de Pausa Removidas
     onSaveRecord: (data: EditRecordFormData) => Promise<void>;
     form: UseFormReturn<EditRecordFormData>;
+    isSavingRecord?: boolean;
 }
 
 export const RegistroEdicaoModal: React.FC<RegistroEdicaoModalProps> = ({
@@ -27,6 +27,7 @@ export const RegistroEdicaoModal: React.FC<RegistroEdicaoModalProps> = ({
     managers,
     onSaveRecord,
     form,
+    isSavingRecord = false,
 }) => {
 
     const onSubmit = (data: EditRecordFormData) => {
@@ -112,11 +113,18 @@ export const RegistroEdicaoModal: React.FC<RegistroEdicaoModalProps> = ({
                             </FormItem>
                         )} />
                         <div className="flex justify-end space-x-4 pt-4">
-                            <Button type="button" variant="outline" onClick={() => setIsOpen(false)}>
+                            <Button type="button" variant="outline" onClick={() => setIsOpen(false)} disabled={isSavingRecord}>
                                 Cancelar
                             </Button>
-                            <Button type="submit" className="bg-primary hover:bg-primary/90">
-                                Solicitar Aprovação
+                            <Button type="submit" className="bg-primary hover:bg-primary/90" disabled={isSavingRecord}>
+                                {isSavingRecord ? (
+                                    <>
+                                        <Loader2 className="h-4 w-4 animate-spin mr-2" />
+                                        Enviando...
+                                    </>
+                                ) : (
+                                    "Solicitar Aprovação"
+                                )}
                             </Button>
                         </div>
                     </form>

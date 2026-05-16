@@ -3,6 +3,7 @@ import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { toast } from "@/hooks/use-toast";
+import { preloadCsrfToken } from "@/service/csrf.service";
 import {
   checkCpfAvailability,
   checkUsernameAvailability,
@@ -237,6 +238,11 @@ export const useCreateCollaborator = () => {
   }, [form, stepCompleted]);
 
   const handleCreateEmployee = useCallback(async (data: CollaboratorFormData) => {
+    // Guard against multiple concurrent submissions
+    if (isSubmitting) {
+      return;
+    }
+
     setIsSubmitting(true);
 
     const employeeValidation = employeeSchema.safeParse(data);
@@ -261,6 +267,8 @@ export const useCreateCollaborator = () => {
     }
 
     try {
+      // Pre-load CSRF token before making the request
+      await preloadCsrfToken();
       const employeePayload = {
         fullName: data.nomeCompleto,
         cpf: data.cpf.replace(/\D/g, ""),
@@ -305,6 +313,11 @@ export const useCreateCollaborator = () => {
   }, [cpfAvailability, faceImageBase64]);
 
   const handleCreateUser = useCallback(async (data: CollaboratorFormData) => {
+    // Guard against multiple concurrent submissions
+    if (isSubmitting) {
+      return;
+    }
+
     setIsSubmitting(true);
 
     const userValidation = userSchema.safeParse(data);
@@ -339,6 +352,9 @@ export const useCreateCollaborator = () => {
     }
 
     try {
+      // Pre-load CSRF token before making the request
+      await preloadCsrfToken();
+
       const userPayload = {
         username: data.username,
         role: data.role,
