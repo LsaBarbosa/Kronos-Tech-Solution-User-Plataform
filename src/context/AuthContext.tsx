@@ -8,7 +8,7 @@ import {
   type ReactNode,
 } from "react";
 import { useNavigate } from "react-router-dom";
-import { api, registerSessionExpiredHandler } from "@/config/api";
+import { api, registerSessionExpiredHandler, apiUrl } from "@/config/api";
 import { invalidateCsrfToken } from "@/service/csrf.service";
 import { normalizeServiceError } from "@/service/helpers/service-error.helper";
 import { loadSessionProfile } from "@/service/session-profile.service";

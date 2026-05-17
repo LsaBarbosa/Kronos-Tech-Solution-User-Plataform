@@ -12,8 +12,29 @@ declare module "axios" {
 
 const DEFAULT_LOCAL_API_BASE_URL = ["http://localhost", "8080"].join(":");
 
-export const API_BASE_URL =
-  import.meta.env.VITE_API_BASE_URL?.trim() || DEFAULT_LOCAL_API_BASE_URL;
+const normalizedApiUrl = (url: string): string => url.replace(/\/+$/, "");
+
+export const API_BASE_URL = normalizedApiUrl(
+  import.meta.env.VITE_API_BASE_URL?.trim() || DEFAULT_LOCAL_API_BASE_URL
+);
+
+export const apiUrl = (path: string): string => {
+  const normalizedPath = path.startsWith("/") ? path : `/${path}`;
+  return `${API_BASE_URL}${normalizedPath}`;
+};
+
+export const parseJsonSafely = async (response: Response): Promise<unknown> => {
+  if (response.status === 204 || response.status === 205) {
+    return null;
+  }
+
+  const text = await response.text();
+  if (!text) {
+    return null;
+  }
+
+  return JSON.parse(text);
+};
 
 const clearContentTypeHeader = (headers: unknown) => {
   if (!headers || typeof headers !== "object") {
@@ -203,7 +224,13 @@ api.interceptors.request.use(
 
 // Interceptor de Resposta (Para pegar o erro 403 dos Termos e CSRF)
 api.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    // Guarantee that status 204/205 don't try to parse JSON
+    if (response.status === 204 || response.status === 205) {
+      response.data = null;
+    }
+    return response;
+  },
   async (error) => {
     if (error.response) {
       const { status, data } = error.response;

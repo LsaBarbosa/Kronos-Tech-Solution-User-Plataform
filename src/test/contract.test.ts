@@ -25,7 +25,7 @@ describe("Contract tests — Front-end vs Back-end", () => {
       });
 
       expect(response.status).toBe(204);
-      expect(response.data).toBe("");
+      expect(response.data).toBe(null);
     });
 
     it("logout retorna 204 No Content", async () => {
