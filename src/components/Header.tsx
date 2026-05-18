@@ -1,17 +1,18 @@
 // src/components/Header.tsx
 
-import { Menu, User } from "lucide-react";
+import { Menu, Clock } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { headerStyles } from "@/utils/layout-colors";
-import { APP_PATHS } from "@/config/app-routes";
+import { useCheckin } from "@/context/CheckinContext";
 
 interface HeaderProps {
-  toggleSidebar: () => void; 
+  toggleSidebar: () => void;
 }
 
 const Header = ({ toggleSidebar }: HeaderProps) => {
   const navigate = useNavigate();
+  const { openCheckin } = useCheckin();
 
   return (
     <header className={headerStyles.container}>
@@ -40,17 +41,17 @@ const Header = ({ toggleSidebar }: HeaderProps) => {
           />
         </div>
 
-        {/* 3. Right side - My Profile Button */}
+        {/* 3. Right side - Register Point Button */}
         <div className={headerStyles.actionGroup}>
           <Button
-            onClick={() => navigate(APP_PATHS.usuario)}
+            onClick={openCheckin}
             size="sm"
             variant="default"
             className="gap-2"
-            aria-label="Ir para meu perfil"
+            aria-label="Abrir fluxo de registro de ponto"
           >
-            <User className="w-4 h-4" />
-            Meu perfil
+            <Clock className="w-4 h-4" />
+            Registrar Ponto
           </Button>
         </div>
       </div>
