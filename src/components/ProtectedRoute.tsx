@@ -1,8 +1,15 @@
+import { useEffect } from "react";
 import { Navigate, Outlet } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
 
 const ProtectedRoute = () => {
-  const { status } = useAuth();
+  const { status, checkSession } = useAuth();
+
+  useEffect(() => {
+    if (status === "checking") {
+      void checkSession();
+    }
+  }, []);
 
   if (status === "checking") {
     return (

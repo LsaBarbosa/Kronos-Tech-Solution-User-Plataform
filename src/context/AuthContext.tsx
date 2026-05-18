@@ -103,10 +103,6 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     registerSessionExpiredHandler(handleSessionExpired);
   }, [handleSessionExpired]);
 
-  useEffect(() => {
-    void checkSession();
-  }, [checkSession]);
-
   const value = useMemo<AuthContextValue>(
     () => ({
       status,
