@@ -39,6 +39,9 @@ const formSchema = z.object({
 export type CreateCompanyFormData = z.infer<typeof formSchema>;
 type CnpjAvailability = "available" | "unavailable" | "checking" | null;
 
+const MAX_GEOCODE_ATTEMPTS = 3;
+const GEOCODE_DEBOUNCE_MS = 1000;
+
 export const useCreateCompany = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
@@ -46,6 +49,7 @@ export const useCreateCompany = () => {
   const [isGeocoding, setIsGeocoding] = useState(false);
   const [cnpjAvailability, setCnpjAvailability] = useState<CnpjAvailability>(null);
   const [isCheckingCNPJ, setIsCheckingCNPJ] = useState(false);
+  const [geocodeAttempts, setGeocodeAttempts] = useState(0);
 
   const form = useForm<CreateCompanyFormData>({
     resolver: zodResolver(formSchema),
@@ -81,6 +85,7 @@ export const useCreateCompany = () => {
 
         form.setValue("location.latitude", location.latitude ?? undefined);
         form.setValue("location.longitude", location.longitude ?? undefined);
+        setGeocodeAttempts(0);
 
         toast({
           title: "Localização capturada",
@@ -88,30 +93,45 @@ export const useCreateCompany = () => {
         });
       } catch (error) {
         const message = error instanceof Error ? error.message : "Falha ao consultar a API de localização.";
+        const newAttempts = geocodeAttempts + 1;
+        setGeocodeAttempts(newAttempts);
 
-        toast({
-          title: "Erro na geolocalização",
-          description: message,
-          variant: "destructive",
-        });
-        form.setValue("location.latitude", undefined);
-        form.setValue("location.longitude", undefined);
+        if (newAttempts >= MAX_GEOCODE_ATTEMPTS) {
+          toast({
+            title: "Erro na geolocalização",
+            description: `${message} (máximo de tentativas atingido)`,
+            variant: "destructive",
+          });
+          form.setValue("location.latitude", undefined);
+          form.setValue("location.longitude", undefined);
+        } else {
+          toast({
+            title: "Erro na geolocalização",
+            description: `${message} (tentativa ${newAttempts}/${MAX_GEOCODE_ATTEMPTS})`,
+            variant: "destructive",
+          });
+        }
       } finally {
         setIsGeocoding(false);
       }
     },
-    [form, toast]
+    [form, toast, geocodeAttempts]
   );
 
   useEffect(() => {
     const normalizedCep = cep.replace(/\D/g, "");
     const isAddressReady = normalizedCep.length === 8 && numero.length > 0;
-    const isGeocodingNeeded = isAddressReady && !isGeocoding && currentLatitude === undefined;
+    const canRetry = geocodeAttempts < MAX_GEOCODE_ATTEMPTS;
+    const isGeocodingNeeded = isAddressReady && !isGeocoding && currentLatitude === undefined && canRetry;
 
-    if (isGeocodingNeeded) {
+    if (!isGeocodingNeeded) return;
+
+    const timer = setTimeout(() => {
       void handleGeocodeAddress(normalizedCep, numero);
-    }
-  }, [cep, numero, currentLatitude, handleGeocodeAddress, isGeocoding]);
+    }, GEOCODE_DEBOUNCE_MS);
+
+    return () => clearTimeout(timer);
+  }, [cep, numero, currentLatitude, handleGeocodeAddress, isGeocoding, geocodeAttempts]);
 
   const handleCheckCNPJ = useCallback(
     async (cnpjValue: string) => {
@@ -226,11 +246,16 @@ export const useCreateCompany = () => {
     [cnpjAvailability, form, navigate, toast]
   );
 
+  useEffect(() => {
+    setGeocodeAttempts(0);
+  }, [cep, numero]);
+
   const handleReset = useCallback(() => {
     form.reset();
     form.setValue("location.latitude", undefined);
     form.setValue("location.longitude", undefined);
     setCnpjAvailability(null);
+    setGeocodeAttempts(0);
   }, [form]);
 
   return {

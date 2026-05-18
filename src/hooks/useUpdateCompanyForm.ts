@@ -48,6 +48,8 @@ interface UseUpdateCompanyFormReturn {
     handleCancel: () => void;
 }
 
+const MAX_GEOCODE_ATTEMPTS = 3;
+
 export const useUpdateCompanyForm = (): UseUpdateCompanyFormReturn => {
     const [isSubmitting, setIsSubmitting] = useState(false);
     const [companies, setCompanies] = useState<CompanyListItem[]>([]);
@@ -55,6 +57,7 @@ export const useUpdateCompanyForm = (): UseUpdateCompanyFormReturn => {
     const [isLoadingDetails, setIsLoadingDetails] = useState(false);
     const [isGeocoding, setIsGeocoding] = useState(false);
     const [originalCompany, setOriginalCompany] = useState<CompanyData | null>(null);
+    const [geocodeAttempts, setGeocodeAttempts] = useState(0);
     const navigate = useNavigate();
     const { toast } = useToast();
 
@@ -163,7 +166,7 @@ export const useUpdateCompanyForm = (): UseUpdateCompanyFormReturn => {
     // --- FUNÇÃO DE SUBMISSÃO (Chamada pelo form.handleSubmit) ---
     const submitHandler = useCallback(async (values: FormData) => {
         if (!originalCompany) return;
-        
+
         const isAddressChanged = cleanCEP(values.address.postalCode) !== originalCompany.address.postalCode ||
                                 values.address.number !== originalCompany.address.number;
 
@@ -174,23 +177,34 @@ export const useUpdateCompanyForm = (): UseUpdateCompanyFormReturn => {
             let finalLocation: Location | undefined = originalCompany.location ?? undefined;
             if (isAddressChanged) {
                 setIsGeocoding(true);
-                const resolvedLocation = await getGeolocationFromCEP(
-                    cleanCEP(values.address.postalCode),
-                    values.address.number
-                );
+                try {
+                    const resolvedLocation = await getGeolocationFromCEP(
+                        cleanCEP(values.address.postalCode),
+                        values.address.number
+                    );
 
-                finalLocation = resolvedLocation;
-                form.setValue("latitude", resolvedLocation.latitude, { shouldDirty: false, shouldValidate: false });
-                form.setValue("longitude", resolvedLocation.longitude, { shouldDirty: false, shouldValidate: false });
-                toast({ title: "Geolocalização atualizada", description: "Novas coordenadas obtidas com sucesso." });
+                    finalLocation = resolvedLocation;
+                    form.setValue("latitude", resolvedLocation.latitude, { shouldDirty: false, shouldValidate: false });
+                    form.setValue("longitude", resolvedLocation.longitude, { shouldDirty: false, shouldValidate: false });
+                    toast({ title: "Geolocalização atualizada", description: "Novas coordenadas obtidas com sucesso." });
+                } catch (geoError) {
+                    const geoMessage = geoError instanceof Error ? geoError.message : "Falha ao consultar a API de localização.";
+                    toast({
+                        title: "Aviso: Endereço não geolocalizado",
+                        description: geoMessage,
+                        variant: "destructive",
+                    });
+                } finally {
+                    setIsGeocoding(false);
+                }
             }
-            
+
             const updatePayload: CompanyUpdatePayload = {
                 name: values.name,
                 email: values.email,
                 active: values.active === "true",
                 address: {
-                    postalCode: cleanCEP(values.address.postalCode), 
+                    postalCode: cleanCEP(values.address.postalCode),
                     number: values.address.number,
                 },
                 ...(finalLocation ? { location: finalLocation } : {}),
@@ -202,12 +216,12 @@ export const useUpdateCompanyForm = (): UseUpdateCompanyFormReturn => {
                 title: "Sucesso!",
                 description: `A empresa ${values.name} foi atualizada.`,
             });
-            
-            // Recarrega a lista e reseta o formulário
-            await fetchList(); 
+
+            await fetchList();
             form.reset({ selectedCnpj: "" });
             setOriginalCompany(null);
-            
+            setGeocodeAttempts(0);
+
         } catch (error) {
             const normalized = normalizeServiceError(error);
             console.error("Erro no processo de atualização:", normalized);
@@ -240,6 +254,7 @@ export const useUpdateCompanyForm = (): UseUpdateCompanyFormReturn => {
     const handleCancel = useCallback(() => {
         form.reset({ selectedCnpj: "" });
         setOriginalCompany(null);
+        setGeocodeAttempts(0);
     }, [form]);
 
 
