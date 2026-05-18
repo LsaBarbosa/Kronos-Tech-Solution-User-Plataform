@@ -34,6 +34,7 @@ import { Separator } from "@/components/ui/separator";
 import { useDashboardData } from "@/hooks/useDashboardData";
 import { useVacationCount } from "@/hooks/useVacationCount";
 import { useTimeOffCount } from "@/hooks/useTimeOffCount";
+import { CheckinDashboardCard } from "@/components/checkin/CheckinDashboardCard";
 import PageShell from "@/components/PageShell";
 import { APP_PATHS } from "@/config/app-routes";
 import { getRoleDisplayName, type WarningMessage } from "@/types/dashboard";
@@ -754,6 +755,8 @@ const Dashboard = () => {
             </CardContent>
           </Card>
         </div>
+
+        <CheckinDashboardCard />
 
         <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
           <DashboardSection

@@ -5,6 +5,8 @@ import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { ThemeProvider } from "@/hooks/useTheme";
 import { AuthProvider } from "@/context/AuthContext";
+import { CheckinProvider } from "@/context/CheckinContext";
+import { CheckinModal } from "@/components/checkin/CheckinModal";
 import AppErrorBoundary from "@/components/AppErrorBoundary";
 import TermsAcceptanceGate from "@/components/TermsAcceptanceGate";
 import ProtectedRoute from "./components/ProtectedRoute";
@@ -69,9 +71,11 @@ const App = () => (
     <ThemeProvider>
       <BrowserRouter>
         <AuthProvider>
-          <TooltipProvider>
-            <Toaster />
-            <AppErrorBoundary>
+          <CheckinProvider>
+            <TooltipProvider>
+              <Toaster />
+              <CheckinModal />
+              <AppErrorBoundary>
               <Suspense fallback={<PageFallback />}>
                 <Routes>
                   <Route path={APP_PATHS.root} element={<TokenRedirect />} />
@@ -114,6 +118,7 @@ const App = () => (
               </Suspense>
             </AppErrorBoundary>
           </TooltipProvider>
+          </CheckinProvider>
         </AuthProvider>
       </BrowserRouter>
     </ThemeProvider>

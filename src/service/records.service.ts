@@ -23,6 +23,7 @@ import {
   EMPTY_VACATION_REQUEST_PAGE
 } from "@/types/vacation";
 import type { UserSearchListItem, UserSearchListResponse } from "@/types/user";
+import type { CheckinRequest, CheckinResult } from "@/types/checkin.types";
 import { ensureBackendDatePattern } from "@/utils/date-format";
 
 const RECORDS_BASE_URL = `/${API_ROUTES.RECORDS}`;
@@ -277,4 +278,21 @@ export const fetchReportEmployees = async (active = true): Promise<Employee[]> =
   });
 
   return extractArray<Employee>(response.data, ["employees"]);
+};
+
+export const registerCheckin = async (request: CheckinRequest): Promise<CheckinResult> => {
+  const response = await api.post<unknown>(`${RECORDS_BASE_URL}/checkin`, request);
+
+  const data = extractObject<{
+    type?: string;
+    action?: string;
+    actionType?: string;
+    message?: string;
+  }>(response.data);
+
+  return {
+    actionType: data?.type ?? data?.action ?? data?.actionType ?? 'UNKNOWN',
+    message: data?.message ?? 'Registro de ponto realizado com sucesso.',
+    raw: response.data,
+  };
 };

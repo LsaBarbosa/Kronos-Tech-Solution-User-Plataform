@@ -2,6 +2,7 @@
 
 import { Menu } from "lucide-react";
 import ThemeToggle from "./ThemeToggle";
+import { CheckinButton } from "@/components/checkin/CheckinButton";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { headerStyles } from "@/utils/layout-colors";
@@ -40,8 +41,9 @@ const Header = ({ toggleSidebar }: HeaderProps) => {
           />
         </div>
 
-        {/* 3. Right side - Theme Toggle */}
-        <div className={headerStyles.actionGroup}>
+        {/* 3. Right side - Checkin Button and Theme Toggle */}
+        <div className={headerStyles.actionGroup + " flex items-center gap-2"}>
+          <CheckinButton />
           <ThemeToggle />
         </div>
       </div>

@@ -16,7 +16,7 @@ const PageShell = ({
   children,
   sidebarOpen,
   toggleSidebar,
-  mainClassName = "pt-16 mobile-container py-4 sm:py-20 space-y-6 sm:space-y-8 relative z-10",
+  mainClassName = "pt-24 sm:pt-32 mobile-container py-4 sm:py-20 space-y-6 sm:space-y-8 relative z-10",
   contentClassName = "flex-1 flex flex-col overflow-hidden",
   withBackground = true,
 }: PageShellProps) => {
