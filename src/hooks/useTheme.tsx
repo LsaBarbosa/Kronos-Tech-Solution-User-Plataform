@@ -1,9 +1,4 @@
-import { createContext, useContext, useEffect, useState, useLayoutEffect } from "react";
-import {
-  getPreferredTheme,
-  readStoredValue,
-  writeStoredValue,
-} from "@/lib/browser";
+import { createContext, useContext, useLayoutEffect } from "react";
 
 type Theme = "light" | "dark";
 
@@ -16,27 +11,18 @@ interface ThemeContextType {
 const ThemeContext = createContext<ThemeContextType | undefined>(undefined);
 
 export function ThemeProvider({ children }: { children: React.ReactNode }) {
-  const [theme, setTheme] = useState<Theme>(() => {
-    const saved = readStoredValue("kronos-theme") as Theme | null;
-    if (saved) return saved;
-    return getPreferredTheme();
-  });
+  const theme: Theme = "light";
 
   useLayoutEffect(() => {
     const html = document.documentElement;
-    if (theme === "dark") {
-      html.classList.add("dark");
-    } else {
-      html.classList.remove("dark");
-    }
-    writeStoredValue("kronos-theme", theme);
-  }, [theme]);
+    html.classList.remove("dark");
+  }, []);
 
   const toggleTheme = () => {
-    setTheme(prev => prev === "light" ? "dark" : "light");
+    // Dark theme disabled - no-op
   };
 
-  const isDark = theme === "dark";
+  const isDark = false;
 
   return (
     <ThemeContext.Provider value={{ theme, toggleTheme, isDark }}>

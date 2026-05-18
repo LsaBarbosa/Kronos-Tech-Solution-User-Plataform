@@ -1,11 +1,10 @@
 // src/components/Header.tsx
 
-import { Menu } from "lucide-react";
-import ThemeToggle from "./ThemeToggle";
-import { CheckinButton } from "@/components/checkin/CheckinButton";
+import { Menu, User } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { useNavigate } from "react-router-dom";
 import { headerStyles } from "@/utils/layout-colors";
+import { APP_PATHS } from "@/config/app-routes";
 
 interface HeaderProps {
   toggleSidebar: () => void; 
@@ -41,10 +40,18 @@ const Header = ({ toggleSidebar }: HeaderProps) => {
           />
         </div>
 
-        {/* 3. Right side - Checkin Button and Theme Toggle */}
-        <div className={headerStyles.actionGroup + " flex items-center gap-2"}>
-          <CheckinButton />
-          <ThemeToggle />
+        {/* 3. Right side - My Profile Button */}
+        <div className={headerStyles.actionGroup}>
+          <Button
+            onClick={() => navigate(APP_PATHS.usuario)}
+            size="sm"
+            variant="default"
+            className="gap-2"
+            aria-label="Ir para meu perfil"
+          >
+            <User className="w-4 h-4" />
+            Meu perfil
+          </Button>
         </div>
       </div>
     </header>

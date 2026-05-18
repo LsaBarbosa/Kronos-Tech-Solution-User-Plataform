@@ -35,10 +35,11 @@ const initialState: CheckinState = {
 
 const normalizeCheckinError = (error: unknown): CheckinError => {
   if (typeof error === 'object' && error !== null && 'code' in error && 'message' in error) {
+    const errorObj = error as { code: CheckinErrorCode; message: string; details?: unknown };
     return {
-      code: (error as any).code as CheckinErrorCode,
-      message: (error as any).message,
-      details: (error as any).details,
+      code: errorObj.code,
+      message: errorObj.message,
+      details: errorObj.details,
     };
   }
 
