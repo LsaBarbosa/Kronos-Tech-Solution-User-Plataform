@@ -16,10 +16,10 @@ export type UserAccountData = UserOwnProfileData;
 
 /**
  * Interface para o retorno resumido de /users/search.
- * O backend não garante employeeId nesse endpoint.
  */
 export interface UserSearchListItem {
   userId: string;
+  employeeId: string;
   username: string;
   role: "PARTNER" | "MANAGER";
   active: boolean;

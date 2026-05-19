@@ -60,6 +60,7 @@ const employee = {
 
 const user = {
   userId: "user-1",
+  employeeId: "emp-1",
   username: "base.user",
   role: "PARTNER" as const,
   active: true,
@@ -126,19 +127,15 @@ describe("useCollaboratorList", () => {
     await waitFor(() => expect(mockListUsers).toHaveBeenCalledTimes(2));
   });
 
-  it("vincula colaborador ao usuario apenas pelo username retornado em /users/search", async () => {
-    mockFetchEmployeeList.mockResolvedValue([
-      {
-        ...employee,
-        username: "Base.User ",
-      },
-    ] as never);
+  it("vincula colaborador ao usuario pelo employeeId retornado em /users/search", async () => {
+    mockFetchEmployeeList.mockResolvedValue([employee] as never);
 
     mockListUsers.mockResolvedValue([
       {
         userId: "user-99",
-        username: " base.user",
-        role: "MANAGER",
+        employeeId: "emp-1",
+        username: "different.username",
+        role: "MANAGER" as const,
         active: false,
       },
     ] as never);
@@ -150,7 +147,7 @@ describe("useCollaboratorList", () => {
     expect(result.current.colaboradores[0]).toMatchObject({
       employeeId: "emp-1",
       userId: "user-99",
-      username: " base.user",
+      username: "different.username",
       role: "MANAGER",
       enabled: false,
     });

@@ -91,14 +91,16 @@ export const useCollaboratorList = () => {
         listUsers(isActive),
       ]);
 
-      const usersByUsername = new Map<string, UserSearchListItem>();
+      const usersByEmployeeId = new Map<string, UserSearchListItem>();
       users.forEach((user) => {
-        usersByUsername.set(normalizeUsername(user.username), user);
+        if (user.employeeId) {
+          usersByEmployeeId.set(user.employeeId, user);
+        }
       });
 
       const combinedData: CombinedColaborator[] = employees.map((employee) => {
-        const user = employee.username
-          ? usersByUsername.get(normalizeUsername(employee.username))
+        const user = employee.employeeId
+          ? usersByEmployeeId.get(employee.employeeId)
           : undefined;
 
         // Normalização de status: prioridade user.active > employee.active
