@@ -8,23 +8,22 @@ export const toBackendDatePattern = (isoDate: string): string => {
     throw new Error("Data inválida.");
   }
 
-  const [year, month, day] = normalized.split("-");
-
-  if (!year || !month || !day) {
-    throw new Error("Data inválida.");
-  }
-
-  return `${day}-${month}-${year}`;
+  return normalized;
 };
 
 export const ensureBackendDatePattern = (date: string): string => {
   const normalized = date.trim();
 
-  if (BACKEND_DATE_PATTERN.test(normalized)) {
+  if (ISO_DATE_PATTERN.test(normalized)) {
     return normalized;
   }
 
-  return toBackendDatePattern(normalized);
+  if (BACKEND_DATE_PATTERN.test(normalized)) {
+    const [day, month, year] = normalized.split("-");
+    return `${year}-${month}-${day}`;
+  }
+
+  throw new Error("Data inválida.");
 };
 
 export const dateToBackendDatePattern = (date: Date): string => {
@@ -36,5 +35,5 @@ export const dateToBackendDatePattern = (date: Date): string => {
   const month = String(date.getMonth() + 1).padStart(2, "0");
   const day = String(date.getDate()).padStart(2, "0");
 
-  return toBackendDatePattern(`${year}-${month}-${day}`);
+  return `${year}-${month}-${day}`;
 };
