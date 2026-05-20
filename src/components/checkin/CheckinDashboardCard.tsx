@@ -25,9 +25,9 @@ export const CheckinDashboardCard = () => {
           <div className="flex items-center justify-between rounded-lg bg-white/50 p-3 border border-[#E5E7EB]">
             <div>
               <p className="text-xs font-medium text-[#6B7280]">Horário local</p>
-              <p className="text-sm font-semibold text-[#111827]">
+              <div className="text-sm font-semibold text-[#111827]">
                 <ClockComponent />
-              </p>
+              </div>
             </div>
           </div>
 
