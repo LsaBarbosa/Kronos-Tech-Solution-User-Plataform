@@ -173,6 +173,17 @@ const isCsrfRequired = (url: string): boolean => {
   return !endpoints_exempt_from_csrf.some((exempt) => url.includes(exempt));
 };
 
+const PUBLIC_AUTH_PATHS = [
+  "/auth/login",
+  "/auth/login-face",
+  "/auth/recover-password",
+  "/auth/reset-password",
+  "/auth/csrf",
+];
+
+const isPublicAuthRequest = (url?: string): boolean =>
+  !!url && PUBLIC_AUTH_PATHS.some((path) => url.includes(path));
+
 const rejectApiError = (error: unknown) => {
   const serviceError = normalizeServiceError(error);
 
@@ -275,7 +286,9 @@ api.interceptors.response.use(
       }
 
       if (status === 401) {
-        onSessionExpiredCallback?.("expired");
+        if (!isPublicAuthRequest(originalRequest?.url)) {
+          onSessionExpiredCallback?.("expired");
+        }
         return rejectApiError(error);
       }
     }
