@@ -214,9 +214,9 @@ export const rejectTimeOff = async (timeRecordId: number): Promise<void> => {
 
 export const requestVacation = async (data: VacationRequestPayload): Promise<number[]> => {
   const response = await api.post<number[]>(`${RECORDS_BASE_URL}/vacation-request`, {
-    ...data,
-    startDate: ensureBackendDatePattern(data.startDate),
-    endDate: ensureBackendDatePattern(data.endDate),
+    startDate: data.startDate,
+    endDate: data.endDate,
+    managerId: data.managerId,
   });
   return extractArray<number>(response.data);
 };

@@ -63,7 +63,7 @@ export const useVacationRequest = () => {
             const rawData = { startDate, endDate, managerId };
             const validatedData = VacationSchema.parse(rawData);
 
-            // 2. Formatação das Datas para o padrão do Backend ('dd-MM-yyyy')
+            // 2. Formatação das Datas para o padrão ISO do Backend ('yyyy-MM-dd')
             const formattedRequest: VacationRequestPayload = {
                 startDate: dateToBackendDatePattern(validatedData.startDate),
                 endDate: dateToBackendDatePattern(validatedData.endDate),

@@ -68,13 +68,13 @@ describe("records.service", () => {
         expect(body).toMatchObject({
           reference: "08:00",
           active: true,
-          dates: ["10-04-2026"],
+          dates: ["2026-04-10"],
         });
 
         return HttpResponse.json([
           {
             timeRecordId: 1,
-            startWork: "10-04-2026",
+            startWork: "2026-04-10",
             startHour: "08:00",
             endHour: "17:00",
             hoursWork: "09:00",
@@ -94,7 +94,7 @@ describe("records.service", () => {
       fetchDetailedReport({
         reference: "08:00",
         active: true,
-        dates: ["10-04-2026"],
+        dates: ["2026-04-10"],
         employeeId: "emp-1",
       })
     ).resolves.toEqual([
@@ -113,7 +113,7 @@ describe("records.service", () => {
       fetchDetailedReport({
         reference: "08:00",
         active: true,
-        dates: ["10-04-2026"],
+        dates: ["2026-04-10"],
       })
     ).resolves.toEqual([]);
   });
@@ -125,7 +125,7 @@ describe("records.service", () => {
       fetchDetailedReport({
         reference: "8:00",
         active: true,
-        dates: ["10-04-2026"],
+        dates: ["2026-04-10"],
       })
     ).rejects.toThrow("O campo reference deve estar no formato HH:mm.");
 
@@ -161,8 +161,8 @@ describe("records.service", () => {
       http.put("*/records/update/time-record/10", async ({ request }) => {
         const body = await request.json();
         expect(body).toEqual({
-          startDate: "10-04-2026",
-          endDate: "11-04-2026",
+          startDate: "2026-04-10",
+          endDate: "2026-04-11",
           startHour: "08:00",
           endHour: "17:00",
           managerId: "manager-1",
@@ -177,8 +177,8 @@ describe("records.service", () => {
     await expect(toggleRecordActivate("emp-1", "10")).resolves.toBeUndefined();
     await expect(
       updateTimeRecord("10", {
-        startDate: "10-04-2026",
-        endDate: "11-04-2026",
+        startDate: "2026-04-10",
+        endDate: "2026-04-11",
         startHour: "08:00",
         endHour: "17:00",
         managerId: "manager-1",
@@ -270,8 +270,8 @@ describe("records.service", () => {
     await expect(
       requestTimeOff(
         {
-          startDate: "10-04-2026",
-          endDate: "11-04-2026",
+          startDate: "2026-04-10",
+          endDate: "2026-04-11",
           startHour: "08:00",
           endHour: "17:00",
           managerId: "manager-1",
@@ -314,8 +314,8 @@ describe("records.service", () => {
     const requestPayload = JSON.parse(requestText) as Record<string, unknown>;
 
     expect(requestPayload).toMatchObject({
-      startDate: "10-04-2026",
-      endDate: "11-04-2026",
+      startDate: "2026-04-10",
+      endDate: "2026-04-11",
       managerId: "manager-1",
     });
   });
@@ -344,7 +344,7 @@ describe("records.service", () => {
           records: [
             {
               timeRecordId: 1,
-              startWork: "10-04-2026",
+              startWork: "2026-04-10",
               startHour: "08:00",
               endWork: null,
               endHour: "17:00",
@@ -401,8 +401,8 @@ describe("records.service", () => {
             {
               employeeId: "emp-1",
               employeeName: "Maria",
-              startDate: "10-04-2026",
-              endDate: "12-04-2026",
+              startDate: "2026-04-10",
+              endDate: "2026-04-12",
               status: "REQUEST_VACATION",
               timeRecordIdsForApproval: [11, 12],
             },
@@ -425,8 +425,8 @@ describe("records.service", () => {
     ).resolves.toEqual([11, 12]);
 
     expect(postSpy).toHaveBeenCalledWith("/records/vacation-request", {
-      startDate: "10-04-2026",
-      endDate: "12-04-2026",
+      startDate: "2026-04-10",
+      endDate: "2026-04-12",
       managerId: "manager-1",
     });
 
@@ -437,8 +437,8 @@ describe("records.service", () => {
         {
           employeeId: "emp-1",
           employeeName: "Maria",
-          startDate: "10-04-2026",
-          endDate: "12-04-2026",
+          startDate: "2026-04-10",
+          endDate: "2026-04-12",
           status: "REQUEST_VACATION",
           timeRecordIdsForApproval: [11, 12],
         },
@@ -488,8 +488,8 @@ describe("records.service", () => {
             {
               employeeId: "emp-1",
               employeeName: "Maria",
-              startDate: "10-04-2026",
-              endDate: "12-04-2026",
+              startDate: "2026-04-10",
+              endDate: "2026-04-12",
               status: "REQUEST_VACATION",
               timeRecordIdsForApproval: [11, 12],
             },
