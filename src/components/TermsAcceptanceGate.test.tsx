@@ -12,6 +12,7 @@ const authMocks = vi.hoisted(() => ({
 const termsMocks = vi.hoisted(() => ({
   acceptBiometricTerms: vi.fn(),
   checkTermsStatus: vi.fn(),
+  getCurrentBiometricTerm: vi.fn(),
 }));
 
 vi.mock("@/context/AuthContext", () => ({
@@ -24,6 +25,7 @@ vi.mock("@/context/AuthContext", () => ({
 vi.mock("@/service/terms.service", () => ({
   acceptBiometricTerms: termsMocks.acceptBiometricTerms,
   checkTermsStatus: termsMocks.checkTermsStatus,
+  getCurrentBiometricTerm: termsMocks.getCurrentBiometricTerm,
 }));
 
 const renderGate = () =>
@@ -63,8 +65,17 @@ describe("TermsAcceptanceGate", () => {
     authMocks.logout.mockReset();
     termsMocks.acceptBiometricTerms.mockReset();
     termsMocks.checkTermsStatus.mockReset();
+    termsMocks.getCurrentBiometricTerm.mockReset();
     authMocks.checkSession.mockResolvedValue(undefined);
     termsMocks.acceptBiometricTerms.mockResolvedValue(undefined);
+    termsMocks.getCurrentBiometricTerm.mockResolvedValue({
+      type: "BIOMETRIC_CONSENT_TERM",
+      version: "2026.05.21",
+      title: "Termo de Consentimento Biométrico",
+      content: "Conteúdo do termo biométrico.",
+      contentHashSha256: "current-hash",
+      active: true,
+    });
   });
 
   it("renderiza o conteudo protegido quando o termo ja foi aceito", async () => {
@@ -103,7 +114,10 @@ describe("TermsAcceptanceGate", () => {
     await userEvent.click(acceptButton);
 
     await waitFor(() => {
-      expect(termsMocks.acceptBiometricTerms).toHaveBeenCalledTimes(1);
+      expect(termsMocks.acceptBiometricTerms).toHaveBeenCalledWith({
+        version: "2026.05.21",
+        contentHashSha256: "current-hash",
+      });
       expect(authMocks.checkSession).toHaveBeenCalledTimes(1);
     });
     expect(await screen.findByText("Conteudo protegido")).toBeInTheDocument();
@@ -133,5 +147,22 @@ describe("TermsAcceptanceGate", () => {
     await userEvent.click(screen.getByRole("button", { name: /Tentar novamente/i }));
 
     expect(await screen.findByText("Conteudo protegido")).toBeInTheDocument();
+  });
+
+  it("renderiza o termo retornado pelo backend quando o aceite está pendente", async () => {
+    termsMocks.checkTermsStatus.mockResolvedValue(false);
+    termsMocks.getCurrentBiometricTerm.mockResolvedValue({
+      type: "BIOMETRIC_CONSENT_TERM",
+      version: "2026.05.21",
+      title: "Termo de Consentimento Biométrico",
+      content: "Linha 1 do termo.\n\n- Item A",
+      contentHashSha256: "current-hash",
+      active: true,
+    });
+
+    renderGate();
+
+    expect(await screen.findByText(/Linha 1 do termo\./i)).toBeInTheDocument();
+    expect(screen.getByText(/Versão: 2026.05.21/i)).toBeInTheDocument();
   });
 });

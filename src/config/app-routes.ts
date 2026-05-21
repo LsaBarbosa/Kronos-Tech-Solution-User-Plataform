@@ -58,6 +58,7 @@ export const APP_PATHS = {
   ferias: "/ferias",
   aprovacoesAbono: "/aprovacoes-abono",
   meusDocumentos: "/meus-documentos",
+  privacidade: "/privacidade",
 } as const;
 
 export const APP_ROUTE_META = {
@@ -202,6 +203,9 @@ export const APP_ROUTE_META = {
   }),
   meusDocumentos: defineRoute(APP_PATHS.meusDocumentos, "Meus Documentos", {
     breadcrumbs: [{ label: "Início", path: APP_PATHS.dashboard }, { label: "Meus Documentos", path: APP_PATHS.meusDocumentos }],
+  }),
+  privacidade: defineRoute(APP_PATHS.privacidade, "Privacidade e Dados", {
+    breadcrumbs: [{ label: "Início", path: APP_PATHS.dashboard }, { label: "Privacidade e Dados", path: APP_PATHS.privacidade }],
   }),
 } as const;
 

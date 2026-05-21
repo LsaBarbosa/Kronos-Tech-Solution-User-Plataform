@@ -15,7 +15,12 @@ import { ScrollArea } from "@/components/ui/scroll-area";
 import { toast } from "@/hooks/use-toast";
 import { useAuth } from "@/context/AuthContext";
 import { normalizeServiceError } from "@/service/helpers/service-error.helper";
-import { acceptBiometricTerms, checkTermsStatus } from "@/service/terms.service";
+import {
+  acceptBiometricTerms,
+  checkTermsStatus,
+  getCurrentBiometricTerm,
+  type CurrentBiometricTermResponse,
+} from "@/service/terms.service";
 
 type TermsGateStatus = "checking" | "accepted" | "pending" | "error";
 
@@ -28,6 +33,8 @@ const TermsAcceptanceGate = () => {
   const [hasConfirmed, setHasConfirmed] = useState(false);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [currentTerm, setCurrentTerm] =
+    useState<CurrentBiometricTermResponse | null>(null);
   const scrollAreaRef = useRef<HTMLDivElement | null>(null);
 
   const verifyTermsStatus = useCallback(async () => {
@@ -35,10 +42,18 @@ const TermsAcceptanceGate = () => {
     setErrorMessage(null);
     setHasConfirmed(false);
     setHasScrolledToEnd(false);
+    setCurrentTerm(null);
 
     try {
       const accepted = await checkTermsStatus();
-      setStatus(accepted ? "accepted" : "pending");
+      if (accepted) {
+        setStatus("accepted");
+        return;
+      }
+
+      const term = await getCurrentBiometricTerm();
+      setCurrentTerm(term);
+      setStatus("pending");
     } catch (error) {
       const serviceError = normalizeServiceError(error);
       setErrorMessage(serviceError.message);
@@ -89,7 +104,7 @@ const TermsAcceptanceGate = () => {
   }, [handleTermsScroll, status]);
 
   const handleAcceptTerms = async () => {
-    if (!hasScrolledToEnd || !hasConfirmed || isSubmitting) {
+    if (!hasScrolledToEnd || !hasConfirmed || isSubmitting || currentTerm === null) {
       return;
     }
 
@@ -97,7 +112,10 @@ const TermsAcceptanceGate = () => {
     setErrorMessage(null);
 
     try {
-      await acceptBiometricTerms();
+      await acceptBiometricTerms({
+        version: currentTerm.version,
+        contentHashSha256: currentTerm.contentHashSha256,
+      });
       await checkSession();
       toast({
         title: "Termo aceito",
@@ -136,6 +154,7 @@ const TermsAcceptanceGate = () => {
 
   const canAccept = hasScrolledToEnd && hasConfirmed && !isSubmitting;
   const isError = status === "error";
+  const termTitle = currentTerm?.title ?? "Termo de Consentimento Biométrico";
 
   return (
     <AlertDialog open>
@@ -153,7 +172,7 @@ const TermsAcceptanceGate = () => {
               <AlertDialogTitle>
                 {isError
                   ? "Não foi possível verificar o termo"
-                  : "Termo de Consentimento Biométrico"}
+                  : termTitle}
               </AlertDialogTitle>
               <AlertDialogDescription>
                 {isError
@@ -179,33 +198,16 @@ const TermsAcceptanceGate = () => {
               <div className="space-y-4 pr-4 text-sm leading-6 text-foreground">
                 <div className="flex items-center gap-2 font-medium">
                   <FileText className="h-4 w-4 text-primary" aria-hidden="true" />
-                  Consentimento para uso de biometria
+                  {currentTerm?.type === "BIOMETRIC_CONSENT_TERM"
+                    ? "Consentimento para uso de biometria"
+                    : "Termo legal"}
                 </div>
-                <p>
-                  Declaro estar ciente de que a Kronos Tech Solutions poderá tratar dados
-                  biométricos vinculados à minha conta para autenticação, prevenção de fraude,
-                  segurança operacional e comprovação de identidade nos fluxos autorizados da
-                  plataforma.
-                </p>
-                <p>
-                  O tratamento será realizado conforme as políticas internas de segurança,
-                  controle de acesso, retenção e auditoria, usando os dados apenas para as
-                  finalidades relacionadas à identificação do usuário e à proteção da conta.
-                </p>
-                <p>
-                  Estou ciente de que o aceite será registrado eletronicamente, incluindo data,
-                  hora, usuário autenticado e demais informações técnicas necessárias para
-                  comprovação do consentimento.
-                </p>
-                <p>
-                  A recusa impede o uso das áreas protegidas que dependem deste consentimento.
-                  A ação alternativa disponível nesta tela é sair da aplicação e manter o acesso
-                  bloqueado até que o termo seja aceito.
-                </p>
-                <p>
-                  Ao confirmar, autorizo o registro do aceite do Termo de Consentimento
-                  Biométrico e a atualização da minha sessão de acesso na plataforma.
-                </p>
+                <div className="rounded-md border bg-background/80 p-3 text-xs text-muted-foreground">
+                  Versão: {currentTerm?.version ?? "indisponível"}
+                </div>
+                <div className="whitespace-pre-wrap">
+                  {currentTerm?.content ?? "Carregando termo biométrico ativo..."}
+                </div>
               </div>
             </ScrollArea>
 

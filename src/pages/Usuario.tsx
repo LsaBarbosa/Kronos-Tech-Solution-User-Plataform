@@ -11,6 +11,7 @@ import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
+import BiometricConsentCard from "@/components/privacy/BiometricConsentCard";
 // 💡 Importa o hook customizado com toda a lógica de estado, API e actions
 import { useUser } from "@/hooks/useUser";
 // 💡 Importa funções utilitárias (como mapeamento de cargo)
@@ -523,6 +524,10 @@ const Usuario = () => {
                     </div>
                   </CardContent>
                 </Card>
+
+                <div className="lg:col-span-3">
+                  <BiometricConsentCard />
+                </div>
               </div>
             )}
           </div>

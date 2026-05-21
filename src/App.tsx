@@ -44,6 +44,7 @@ const RequestManualRegistration = lazy(() =>
     default: module.RequestManualRegistration,
   }))
 );
+const PrivacyCenter = lazy(() => import("./pages/PrivacyCenter"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
 const PageFallback = () => (
@@ -96,6 +97,7 @@ const App = () => (
                       <Route path={APP_PATHS.avisos} element={<Avisos />} />
                       <Route path={APP_PATHS.solicitarFerias} element={<RequestVacation />} />
                       <Route path={APP_PATHS.solicitarAbono} element={<RequestManualRegistration />} />
+                      <Route path={APP_PATHS.privacidade} element={<PrivacyCenter />} />
 
                       {renderProtectedRoleRoute({ routeKey: "criarAviso", element: <CriarAviso /> })}
                       {renderProtectedRoleRoute({ routeKey: "empresa", element: <Empresa /> })}

@@ -1,10 +1,10 @@
 // src/components/Sidebar.tsx
 
-import { 
-  X, Home, BarChart3, ChevronDown, ChevronRight, User, Shield, Users, 
-  Clock, FilePlus, LogOut, UserCheck, UserPlus, Folder, FolderOpen, 
+import {
+  X, Home, BarChart3, ChevronDown, ChevronRight, User, Shield, Users,
+  Clock, FilePlus, LogOut, UserCheck, UserPlus, Folder, FolderOpen,
   Calculator, ClipboardCheck, Building2, BellMinus, TreePalm, TimerReset, Activity,
-  CalendarRange, Scale, ScaleIcon,
+  CalendarRange, Scale, ScaleIcon, Lock,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
@@ -392,6 +392,16 @@ const Sidebar = ({ isOpen, toggleSidebar }: SidebarProps) => {
               </Collapsible>
             )}
             
+            {/* Privacidade */}
+            <Button
+              variant="ghost"
+              className={sidebarStyles.menuItem.primary}
+              onClick={() => goTo(APP_PATHS.privacidade)}
+            >
+              <Lock className={sidebarStyles.menuIcon.primary} />
+              <span className="font-medium sidebar-text-sm">{APP_ROUTE_META.privacidade.label}</span>
+            </Button>
+
             {/* Sair */}
             <Button
               variant="ghost"

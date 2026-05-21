@@ -5,6 +5,7 @@ export const API_ROUTES = {
   EMPLOYEE: "employee",
   GEOLOCATION: "geolocation",
   LEGAL: "legal",
+  LGPD: "lgpd",
   MESSAGES: "messages",
   RECORDS: "records",
   TERMS: "terms",
@@ -23,6 +24,7 @@ export const AUTH_PATHS = {
 
 export const TERMS_PATHS = {
   STATUS: "status",
+  CURRENT_BIOMETRIC: "biometric/current",
   ACCEPT_BIOMETRIC: "accept-biometric",
   REVOKE_BIOMETRIC: "revoke-biometric",
 } as const;
@@ -86,4 +88,10 @@ export const COMPANY_PATHS = {
 
 export const MESSAGE_PATHS = {
   DELETE: (messageId: string) => messageId,
+} as const;
+
+export const LGPD_PATHS = {
+  REQUESTS: "requests",
+  EMPLOYEE_EXPORT: (employeeId: string) => `employees/${employeeId}/export`,
+  EMPLOYEE_ANONYMIZE: (employeeId: string) => `employees/${employeeId}/anonymize`,
 } as const;
