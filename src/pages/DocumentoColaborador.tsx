@@ -6,7 +6,7 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Label } from "@/components/ui/label";
 import { Input } from "@/components/ui/input";
 import { FileText, Info, Loader2, MessageSquareWarningIcon, Upload, UserCheck, UserX, X } from "lucide-react";
-import { ALLOWED_MIME_TYPES, ALLOWED_ACCEPT_STRING } from "@/types/document";
+import { ALLOWED_MIME_TYPES, ALLOWED_ACCEPT_STRING, DOCUMENT_TYPE_OPTIONS, type DocumentType } from "@/types/document";
 import { useCollaboratorDocumentUpload } from "@/hooks/useCollaboratorDocumentUpload";
 
 export default function EnviarDocumentos() {
@@ -16,6 +16,8 @@ export default function EnviarDocumentos() {
     employees,
     selectedEmployeeId,
     setSelectedEmployeeId,
+    selectedDocumentType,
+    setSelectedDocumentType,
     activeEmployeeFilter,
     setActiveEmployeeFilter,
     selectedFile,
@@ -152,6 +154,28 @@ export default function EnviarDocumentos() {
                 )}
 
                 <div className="space-y-2">
+                  <Label htmlFor="document-type" className="text-sm font-medium text-foreground">
+                    Tipo de Documento
+                  </Label>
+                  <Select
+                    value={selectedDocumentType}
+                    onValueChange={(value) => setSelectedDocumentType(value as DocumentType)}
+                    disabled={isUploading}
+                  >
+                    <SelectTrigger id="document-type" className="touch-target">
+                      <SelectValue placeholder="Selecione o tipo de documento" />
+                    </SelectTrigger>
+                    <SelectContent>
+                      {DOCUMENT_TYPE_OPTIONS.map((option) => (
+                        <SelectItem key={option.value} value={option.value}>
+                          {option.label}
+                        </SelectItem>
+                      ))}
+                    </SelectContent>
+                  </Select>
+                </div>
+
+                <div className="space-y-2">
                   <Label htmlFor="file-upload" className="text-sm font-medium text-foreground flex items-center gap-2">
                     <FileText className="h-4 w-4" /> Selecionar Arquivo
                   </Label>
@@ -230,7 +254,7 @@ export default function EnviarDocumentos() {
                 <div className="pt-2 sm:pt-4">
                   <Button
                     onClick={handleUpload}
-                    disabled={!selectedFile || (!isPartner && !selectedEmployeeId) || isUploading}
+                    disabled={!selectedFile || !selectedDocumentType || (!isPartner && !selectedEmployeeId) || isUploading}
                     className="w-full bg-gradient-to-r from-primary to-primary/80 hover:from-primary/90 hover:to-primary/70 text-primary-foreground shadow-lg hover:shadow-xl transition-all duration-300 touch-target disabled:opacity-50 disabled:cursor-not-allowed"
                     size="lg"
                   >

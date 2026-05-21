@@ -159,12 +159,11 @@ describe("backend mocked integration", () => {
     await expect(uploadDocument(file, "emp-1", "PAYSLIP")).resolves.toBeUndefined();
 
     expect(postSpy).toHaveBeenCalledTimes(1);
-    const [url, body] = postSpy.mock.calls[0];
+    const [url, body, options] = postSpy.mock.calls[0];
     expect(url).toBe("/documents");
     expect(body).toBeInstanceOf(FormData);
-    expect((body as FormData).get("employeeId")).toBe("emp-1");
-    expect((body as FormData).get("type")).toBe("PAYSLIP");
     expect((body as FormData).get("file")).toBe(file);
+    expect((options as any).params).toEqual({ employeeId: "emp-1", type: "PAYSLIP" });
 
     postSpy.mockRestore();
   });

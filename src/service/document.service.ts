@@ -167,8 +167,8 @@ export const uploadDocument = async (
 
   const formData = new FormData();
   formData.append("file", file);
-  formData.append("employeeId", employeeId);
-  formData.append("type", type);
 
-  await api.post(`/${API_ROUTES.DOCUMENTS}`, formData);
+  await api.post(`/${API_ROUTES.DOCUMENTS}`, formData, {
+    params: { employeeId, type },
+  });
 };

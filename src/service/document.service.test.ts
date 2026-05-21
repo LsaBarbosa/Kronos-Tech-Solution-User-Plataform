@@ -122,16 +122,15 @@ describe("document.service", () => {
 
     expect(postSpy).toHaveBeenCalledWith(
       "/documents",
-      expect.any(FormData)
+      expect.any(FormData),
+      expect.objectContaining({
+        params: { employeeId: "emp-1", type: "PAYSLIP" },
+      })
     );
 
     const [, formData] = postSpy.mock.calls[0];
-    expect((formData as FormData).get("employeeId")).toBe("emp-1");
-    expect((formData as FormData).get("type")).toBe("PAYSLIP");
-
-    const file = (formData as FormData).get("file");
-    expect(file).toBeInstanceOf(File);
-    expect((file as File).name).toBe("arquivo.pdf");
+    expect((formData as FormData).get("file")).toBeInstanceOf(File);
+    expect(((formData as FormData).get("file") as File).name).toBe("arquivo.pdf");
   });
 
   it("bloqueia upload com tipo de arquivo inválido antes da chamada HTTP", async () => {

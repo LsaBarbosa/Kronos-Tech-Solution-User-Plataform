@@ -36,6 +36,16 @@ export const MAX_UPLOAD_SIZE_BYTES = 5 * 1024 * 1024; // 5MB
 export const ALLOWED_MIME_TYPES = [".pdf", ".jpg", ".jpeg", ".png"];
 export const ALLOWED_ACCEPT_STRING = ALLOWED_MIME_TYPES.join(", ");
 
+export const DOCUMENT_TYPE_OPTIONS: Array<{ value: DocumentType; label: string }> = [
+  { value: "PAYSLIP", label: "Contracheque" },
+  { value: "TIME_OFF", label: "Abono / Atestado" },
+  { value: "DOCUMENTS", label: "Documentos gerais" },
+  { value: "EMPLOYEE_DOCUMENTS", label: "Documentos do colaborador" },
+  { value: "POINT_RECORD_RECEIPT", label: "Comprovante de ponto" },
+  { value: "BIOMETRIC_CONSENT_TERM", label: "Termo de consentimento biométrico" },
+  { value: "SERVICE_CONTRACT_TERMS", label: "Termos do contrato de serviço" },
+];
+
 const ALLOWED_FILE_MIME_TYPES = [
   "application/pdf",
   "image/jpeg",
