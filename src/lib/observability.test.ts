@@ -27,6 +27,35 @@ describe("observability", () => {
     });
   });
 
+  it("redacta faceImageBase64 do contexto", () => {
+    const base64Image = "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==";
+    expect(
+      sanitizeObservabilityContext({
+        operation: "biometric-login",
+        faceImageBase64: base64Image,
+        status: 401,
+      })
+    ).toEqual({
+      operation: "biometric-login",
+      faceImageBase64: "[REDACTED]",
+      status: 401,
+    });
+  });
+
+  it("redacta chaves contendo 'base64' no contexto", () => {
+    expect(
+      sanitizeObservabilityContext({
+        operation: "enrollment",
+        imageBase64Data: "someverylong" + "a".repeat(200),
+        payloadBase64: "anotherlongstring" + "b".repeat(200),
+      })
+    ).toEqual({
+      operation: "enrollment",
+      imageBase64Data: "[REDACTED]",
+      payloadBase64: "[REDACTED]",
+    });
+  });
+
   it("envia evento apenas quando observabilidade esta habilitada e endpoint existe", () => {
     vi.stubEnv("VITE_OBSERVABILITY_ENABLED", "true");
     vi.stubEnv("VITE_OBSERVABILITY_ENDPOINT", "https://obs.kronos.test/events");

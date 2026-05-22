@@ -542,18 +542,14 @@ const RelatorioDetalhado = () => {
             // Pre-load CSRF token before making the request
             await preloadCsrfToken();
 
-            const formatDate = (dateString: string) => {
-                const [year, month, day] = dateString.split('-');
-                return `${day}-${month}-${year}`;
-            };
+          const requestBody = {
+            startDate: data.startDate,
+            endDate: data.endDate,
+            startHour: data.startHour,
+            endHour: data.endHour,
+            managerId: data.managerId,
+        };
 
-            const requestBody = {
-                startDate: formatDate(data.startDate),
-                endDate: formatDate(data.endDate),
-                startHour: data.startHour,
-                endHour: data.endHour,
-                managerId: data.managerId,
-            };
 
             await updateTimeRecord(selectedRecord.timeRecordId, requestBody);
 
