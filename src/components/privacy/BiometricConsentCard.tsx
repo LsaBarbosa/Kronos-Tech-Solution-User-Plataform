@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import { Fingerprint, Loader2, RefreshCcw, ShieldCheck, ShieldOff } from "lucide-react";
+import { Fingerprint, Loader2, RefreshCcw, ShieldCheck, ShieldOff, Camera } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { toast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
@@ -7,6 +7,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { normalizeServiceError } from "@/service/helpers/service-error.helper";
 import { checkTermsStatus, revokeBiometricTerms } from "@/service/terms.service";
 import RevokeBiometricConsentDialog from "./RevokeBiometricConsentDialog";
+import BiometricEnrollmentModal from "./BiometricEnrollmentModal";
 
 type ConsentStatus = "loading" | "active" | "revoked" | "error";
 
@@ -15,6 +16,7 @@ const BiometricConsentCard = () => {
   const [status, setStatus] = useState<ConsentStatus>("loading");
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
+  const [enrollmentModalOpen, setEnrollmentModalOpen] = useState(false);
   const [isRevoking, setIsRevoking] = useState(false);
 
   const loadConsentStatus = useCallback(async () => {
@@ -149,6 +151,15 @@ const BiometricConsentCard = () => {
           <div className="flex flex-wrap gap-3">
             <Button
               type="button"
+              onClick={() => setEnrollmentModalOpen(true)}
+              disabled={!isActive || isLoading}
+              className="gap-2"
+            >
+              <Camera className="h-4 w-4" aria-hidden="true" />
+              Cadastrar Minha Biometria
+            </Button>
+            <Button
+              type="button"
               variant="destructive"
               onClick={() => setDialogOpen(true)}
               disabled={!isActive || isRevoking || isLoading}
@@ -168,6 +179,13 @@ const BiometricConsentCard = () => {
         isSubmitting={isRevoking}
         onConfirm={handleConfirmRevocation}
         onOpenChange={setDialogOpen}
+      />
+
+      <BiometricEnrollmentModal
+        open={enrollmentModalOpen}
+        onOpenChange={setEnrollmentModalOpen}
+        hasConsent={isActive}
+        onEnrollmentSuccess={() => void loadConsentStatus()}
       />
     </>
   );

@@ -25,5 +25,13 @@ export const deleteEmployee = async (employeeId: string): Promise<void> => {
   await api.delete(buildRoute(API_ROUTES.EMPLOYEE, employeeId));
 };
 
+interface BiometricEnrollmentRequest {
+  faceImageBase64: string;
+}
+
+export const enrollBiometric = async (request: BiometricEnrollmentRequest): Promise<void> => {
+  await api.post(`${API_ROUTES.EMPLOYEE}/me/biometric-enrollment`, request);
+};
+
 export type EmployeeCreationPayload = CollaboratorCreationPayload;
 export type EmployeeCreationResponse = CollaboratorCreationResponse;

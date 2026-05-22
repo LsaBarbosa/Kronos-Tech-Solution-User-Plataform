@@ -436,21 +436,14 @@ const ListaColaboradores = () => {
                           </div>
                         </div>
 
-                          {/* Image Upload */}
-                        <div className="space-y-2 pt-4 border-t border-dashed">
-                          <Label htmlFor="face-image-upload" className="text-muted-foreground flex items-center gap-2">
-                             <Camera className="w-4 h-4" />
-                             Nova Imagem de Face (Opcional):
+                          {/* LGPD-S01-01: Biometric enrollment by data subject only */}
+                        <div className="space-y-2 pt-4 border-t border-dashed bg-blue-50 dark:bg-blue-950 rounded-md p-3">
+                          <Label className="text-muted-foreground flex items-center gap-2">
+                             <Sparkles className="w-4 h-4 text-blue-600" />
+                             Cadastro de Biometria:
                           </Label>
-                          <Input
-                            id="face-image-upload"
-                            type="file"
-                            accept="image/*"
-                            onChange={handleFileChange}
-                            className="flex-1 h-10 focus:border-primary file:text-sm file:font-semibold"
-                          />
                           <p className="text-xs text-muted-foreground">
-                            {faceImageFile ? `Arquivo selecionado: ${faceImageFile.name}` : 'Selecione uma nova imagem.'}
+                            A biometria facial é um dado sensível e deve ser cadastrada pelo próprio colaborador após aceitar o termo de consentimento no Centro de Privacidade.
                           </p>
                         </div>
                           {/* CPF, Email, Phone, Salary, Address Inputs... (Mantidos) */}

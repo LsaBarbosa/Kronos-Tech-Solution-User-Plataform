@@ -420,17 +420,14 @@ export const useCollaboratorList = () => {
       }
       if (JSON.stringify(editedData.fixedWorkDays) !== JSON.stringify(originalColaborador.fixedWorkDays)) bodyDataEmployee.fixedWorkDays = editedData.fixedWorkDays;
 
+      // LGPD-S01-01: Face enrollment must be done by data subject via biometric enrollment endpoint
       if (faceImageFile) {
-        try {
-          const base64Image = await fileToBase64(faceImageFile);
-          bodyDataEmployee.faceImageBase64 = base64Image;
-          toast({
-            title: "Imagem detectada",
-            description: "Nova imagem de face será enviada para atualização do reconhecimento.",
-          });
-        } catch (error) {
-          throw new Error("Falha ao processar a imagem de face.");
-        }
+        toast({
+          title: "Bloqueado",
+          description: "A biometria facial deve ser cadastrada pelo próprio colaborador após aceitar o termo de consentimento.",
+          variant: "destructive",
+        });
+        throw new Error("Face enrollment is restricted to data subject only (LGPD-S01-01)");
       }
 
       const hasAddressChange =
@@ -454,7 +451,7 @@ export const useCollaboratorList = () => {
         bodyDataUser.enabled = editedData.enabled;
       }
 
-      if (Object.keys(bodyDataEmployee).length === 0 && Object.keys(bodyDataUser).length === 0 && !faceImageFile) {
+      if (Object.keys(bodyDataEmployee).length === 0 && Object.keys(bodyDataUser).length === 0) {
         toast({
           title: "Nenhuma alteração",
           description: "Nenhum dado foi alterado para ser salvo.",
@@ -466,7 +463,7 @@ export const useCollaboratorList = () => {
 
       const promises: Array<Promise<unknown>> = [];
 
-      if (Object.keys(bodyDataEmployee).length > 0 || faceImageFile) {
+      if (Object.keys(bodyDataEmployee).length > 0) {
         promises.push(updateCollaborator(colaboradorId, bodyDataEmployee));
       }
 
