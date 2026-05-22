@@ -1,9 +1,9 @@
 import { useEffect, useState } from "react";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
-import { listLgpdRequests, type LgpdRequestResponse, type LgpdRequestStatus } from "@/service/lgpd.service";
+import { listLgpdRequests, type LgpdRequestResponse, type LgpdRequestStatus, type LgpdRequestType } from "@/service/lgpd.service";
 import { getServiceErrorMessage } from "@/service/helpers/service-error.helper";
-import { LGPD_REQUEST_TYPE_LABELS, type LgpdRequestType } from "./LgpdRequestForm";
+import { LGPD_REQUEST_TYPE_LABELS } from "@/constants/lgpd.constants";
 
 interface LgpdRequestsListProps {
   refreshKey: number;

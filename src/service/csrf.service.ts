@@ -61,6 +61,6 @@ export const preloadCsrfToken = async (): Promise<void> => {
     await fetchCsrfToken();
   } catch (error) {
     // Silently fail - the token will be fetched on demand if needed
-    console.debug("CSRF token preload failed (will retry on demand):", error);
+    console.warn("CSRF token preload failed (will retry on demand):", error);
   }
 };

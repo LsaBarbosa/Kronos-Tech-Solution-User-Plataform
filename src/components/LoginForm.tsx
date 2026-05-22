@@ -6,6 +6,7 @@ import Clock from "@/components/Clock";
 import { ScanFace } from "lucide-react";
 import { toast } from "@/hooks/use-toast";
 import FaceLoginModal from "@/components/FaceLoginModal";
+import { BiometricConsentGuard } from "@/components/BiometricConsentGuard";
 import { useNavigate, useLocation } from "react-router-dom";
 import { loginWithPassword } from "@/service/auth.service";
 import { useAuth } from "@/context/AuthContext";
@@ -157,10 +158,14 @@ const LoginForm = () => {
       </Card>
 
       {/* Componente do Modal Facial */}
-      <FaceLoginModal 
-        isOpen={isFaceLoginOpen} 
-        onOpenChange={setIsFaceLoginOpen} 
-      />
+      {isFaceLoginOpen && (
+        <BiometricConsentGuard onCancel={() => setIsFaceLoginOpen(false)}>
+          <FaceLoginModal
+            isOpen={isFaceLoginOpen}
+            onOpenChange={setIsFaceLoginOpen}
+          />
+        </BiometricConsentGuard>
+      )}
 
     </div>
   );

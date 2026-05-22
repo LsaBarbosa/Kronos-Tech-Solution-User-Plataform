@@ -59,6 +59,11 @@ export const APP_PATHS = {
   aprovacoesAbono: "/aprovacoes-abono",
   meusDocumentos: "/meus-documentos",
   privacidade: "/privacidade",
+  lgpdAdminRequests: "/lgpd/admin/requests",
+  lgpdAdminRequestDetails: "/lgpd/admin/requests/:requestId",
+  lgpdAdminInventory: "/lgpd/admin/inventory",
+  lgpdAdminInventoryForm: "/lgpd/admin/inventory/novo",
+  lgpdAdminInventoryEdit: "/lgpd/admin/inventory/:processCode/editar",
 } as const;
 
 export const APP_ROUTE_META = {
@@ -207,6 +212,47 @@ export const APP_ROUTE_META = {
   privacidade: defineRoute(APP_PATHS.privacidade, "Privacidade e Dados", {
     breadcrumbs: [{ label: "Início", path: APP_PATHS.dashboard }, { label: "Privacidade e Dados", path: APP_PATHS.privacidade }],
   }),
+  lgpdAdminRequests: defineRoute(APP_PATHS.lgpdAdminRequests, "Solicitações LGPD", {
+    allowedRoles: ["CTO", "MANAGER"],
+    breadcrumbs: [
+      { label: "Início", path: APP_PATHS.dashboard },
+      { label: "Solicitações LGPD", path: APP_PATHS.lgpdAdminRequests },
+    ],
+  }),
+  lgpdAdminRequestDetails: defineRoute(APP_PATHS.lgpdAdminRequestDetails, "Detalhes da Solicitação", {
+    allowedRoles: ["CTO", "MANAGER"],
+    showInMenu: false,
+    breadcrumbs: [
+      { label: "Início", path: APP_PATHS.dashboard },
+      { label: "Solicitações LGPD", path: APP_PATHS.lgpdAdminRequests },
+      { label: "Detalhes da Solicitação", path: APP_PATHS.lgpdAdminRequestDetails },
+    ],
+  }),
+  lgpdAdminInventory: defineRoute(APP_PATHS.lgpdAdminInventory, "Inventário de Tratamento", {
+    allowedRoles: ["CTO"],
+    breadcrumbs: [
+      { label: "Início", path: APP_PATHS.dashboard },
+      { label: "Inventário de Tratamento", path: APP_PATHS.lgpdAdminInventory },
+    ],
+  }),
+  lgpdAdminInventoryForm: defineRoute(APP_PATHS.lgpdAdminInventoryForm, "Novo Processo", {
+    allowedRoles: ["CTO"],
+    showInMenu: false,
+    breadcrumbs: [
+      { label: "Início", path: APP_PATHS.dashboard },
+      { label: "Inventário de Tratamento", path: APP_PATHS.lgpdAdminInventory },
+      { label: "Novo Processo", path: APP_PATHS.lgpdAdminInventoryForm },
+    ],
+  }),
+  lgpdAdminInventoryEdit: defineRoute(APP_PATHS.lgpdAdminInventoryEdit, "Editar Processo", {
+    allowedRoles: ["CTO"],
+    showInMenu: false,
+    breadcrumbs: [
+      { label: "Início", path: APP_PATHS.dashboard },
+      { label: "Inventário de Tratamento", path: APP_PATHS.lgpdAdminInventory },
+      { label: "Editar Processo", path: APP_PATHS.lgpdAdminInventoryEdit },
+    ],
+  }),
 } as const;
 
 export const ADMIN_MENU_GROUPS = {
@@ -215,4 +261,5 @@ export const ADMIN_MENU_GROUPS = {
   vacation: [APP_ROUTE_META.ferias],
   timeOff: [APP_ROUTE_META.aprovacoesAbono],
   audit: [APP_ROUTE_META.auditoria],
+  lgpd: [APP_ROUTE_META.lgpdAdminRequests, APP_ROUTE_META.lgpdAdminInventory],
 } as const;

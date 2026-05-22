@@ -36,6 +36,62 @@ export interface LgpdRequestResponse {
   resolvedByUserId: string | null;
 }
 
+export interface EmployeeSummaryResponse {
+  employeeId: string;
+  fullName: string;
+  email: string;
+  jobPosition: string;
+}
+
+export interface CompanySummaryResponse {
+  companyId: string;
+  cnpj: string;
+  tradeName: string;
+}
+
+export interface UserSummaryResponse {
+  userId: string;
+  username: string;
+  role: "CTO" | "MANAGER" | "PARTNER";
+}
+
+export interface LgpdRequestAdminListResponse {
+  requestId: string;
+  employeeFullName: string;
+  companyName: string;
+  type: LgpdRequestType;
+  status: LgpdRequestStatus;
+  createdAt: string;
+  assignedToName: string | null;
+  updatedAt: string;
+  isOverdue: boolean;
+}
+
+export interface LgpdRequestDetailsResponse {
+  request: LgpdRequestResponse;
+  employee: EmployeeSummaryResponse;
+  company: CompanySummaryResponse;
+  assignedTo: UserSummaryResponse | null;
+  history: LgpdRequestHistoryItem[];
+}
+
+export interface LgpdRequestHistoryItem {
+  historyId: string;
+  requestId: string;
+  status: LgpdRequestStatus;
+  notes: string | null;
+  changedByUsername: string | null;
+  createdAt: string;
+}
+
+export interface PaginatedResponse<T> {
+  content: T[];
+  totalElements: number;
+  totalPages: number;
+  currentPage: number;
+  size: number;
+}
+
 export interface CreateLgpdRequestPayload {
   type: LgpdRequestType;
   description: string;
@@ -56,6 +112,84 @@ export const exportEmployeeData = async (employeeId: string): Promise<Blob> => {
   const response = await api.get<Blob>(
     buildRoute(API_ROUTES.LGPD, LGPD_PATHS.EMPLOYEE_EXPORT(employeeId)),
     { responseType: "blob" }
+  );
+  return response.data;
+};
+
+export const listAdminRequests = async (
+  page: number = 0,
+  size: number = 10,
+  type?: LgpdRequestType,
+  status?: LgpdRequestStatus,
+  companyId?: string
+): Promise<PaginatedResponse<LgpdRequestAdminListResponse>> => {
+  const params = new URLSearchParams();
+  params.append("page", page.toString());
+  params.append("size", size.toString());
+  if (type) params.append("type", type);
+  if (status) params.append("status", status);
+  if (companyId) params.append("companyId", companyId);
+
+  const response = await api.get<PaginatedResponse<LgpdRequestAdminListResponse>>(
+    buildRoute(API_ROUTES.LGPD, LGPD_PATHS.ADMIN_REQUESTS),
+    { params: Object.fromEntries(params) }
+  );
+  return response.data;
+};
+
+export const getAdminRequestDetails = async (
+  requestId: string
+): Promise<LgpdRequestDetailsResponse> => {
+  const response = await api.get<LgpdRequestDetailsResponse>(
+    buildRoute(API_ROUTES.LGPD, LGPD_PATHS.ADMIN_REQUEST_DETAILS(requestId))
+  );
+  return response.data;
+};
+
+export const assignRequest = async (
+  requestId: string,
+  assignedToUserId: string
+): Promise<LgpdRequestResponse> => {
+  const response = await api.patch<LgpdRequestResponse>(
+    buildRoute(API_ROUTES.LGPD, LGPD_PATHS.ASSIGN_REQUEST(requestId)),
+    { assignedToUserId }
+  );
+  return response.data;
+};
+
+export const addNote = async (
+  requestId: string,
+  publicNote: string,
+  internalNote?: string
+): Promise<LgpdRequestResponse> => {
+  const response = await api.post<LgpdRequestResponse>(
+    buildRoute(API_ROUTES.LGPD, LGPD_PATHS.ADD_NOTE(requestId)),
+    { publicNote, internalNote }
+  );
+  return response.data;
+};
+
+export const completeRequest = async (
+  requestId: string,
+  publicResolutionNotes: string,
+  internalNotes?: string
+): Promise<LgpdRequestResponse> => {
+  const response = await api.post<LgpdRequestResponse>(
+    buildRoute(API_ROUTES.LGPD, LGPD_PATHS.COMPLETE_REQUEST(requestId)),
+    { publicResolutionNotes, internalNotes }
+  );
+  return response.data;
+};
+
+export const rejectRequest = async (
+  requestId: string,
+  closedReason: string,
+  publicNote: string,
+  internalNote?: string
+): Promise<LgpdRequestResponse> => {
+  const response = await api.post<LgpdRequestResponse>(
+    buildRoute(API_ROUTES.LGPD, LGPD_PATHS.REJECT_REQUEST(requestId)),
+    { closedReason, publicNote, internalNote }
   );
   return response.data;
 };

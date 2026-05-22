@@ -4,7 +4,7 @@ import {
   X, Home, BarChart3, ChevronDown, ChevronRight, User, Shield, Users,
   Clock, FilePlus, LogOut, UserCheck, UserPlus, Folder, FolderOpen,
   Calculator, ClipboardCheck, Building2, BellMinus, TreePalm, TimerReset, Activity,
-  CalendarRange, Scale, ScaleIcon, Lock,
+  CalendarRange, Scale, ScaleIcon, Lock, FileText,
 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Collapsible, CollapsibleContent, CollapsibleTrigger } from "@/components/ui/collapsible";
@@ -29,6 +29,8 @@ const Sidebar = ({ isOpen, toggleSidebar }: SidebarProps) => {
   const [adminTimeOffOpen, setAdminTimeOffOpen] = useState(false);
   // 🆕 Estado para o novo subgrupo Auditoria
   const [auditoriaOpen, setAuditoriaOpen] = useState(false);
+  // 🆕 Estado para o novo subgrupo LGPD
+  const [lgpdOpen, setLgpdOpen] = useState(false);
   
   const navigate = useNavigate();
   const { logout, role } = useAuth();
@@ -387,7 +389,37 @@ const Sidebar = ({ isOpen, toggleSidebar }: SidebarProps) => {
                     </CollapsibleContent>
                   </Collapsible>
                   )}
-        
+
+                  {/* 🆕 7.6 LGPD (Privacidade e Dados) */}
+                  {canAccessRoute(APP_ROUTE_META.lgpdAdminRequests) && (
+                  <Collapsible open={lgpdOpen} onOpenChange={setLgpdOpen}>
+                    <CollapsibleTrigger asChild>
+                      <Button
+                        variant="ghost"
+                        className="w-full justify-start sidebar-fixed-height-sm px-4 pl-12 text-left sidebar-text-sm hover:bg-primary/10 hover:text-foreground transition-colors group"
+                      >
+                        <FileText className={sidebarStyles.menuIcon.secondary} />
+                        <span className="flex-1">LGPD</span>
+                        {lgpdOpen ? (
+                          <ChevronDown className={sidebarStyles.menuIcon.chevron} />
+                        ) : (
+                          <ChevronRight className={sidebarStyles.menuIcon.chevron} />
+                        )}
+                      </Button>
+                    </CollapsibleTrigger>
+                    <CollapsibleContent className="space-y-1">
+                      <Button
+                        variant="ghost"
+                        className={sidebarStyles.menuItem.tertiary}
+                        onClick={() => goTo(APP_PATHS.lgpdAdminRequests)}
+                      >
+                        <FileText className={sidebarStyles.menuIcon.tertiary} />
+                        <span>{APP_ROUTE_META.lgpdAdminRequests.label}</span>
+                      </Button>
+                    </CollapsibleContent>
+                  </Collapsible>
+                  )}
+
                 </CollapsibleContent>
               </Collapsible>
             )}

@@ -8,7 +8,6 @@ import { AuthProvider } from "@/context/AuthContext";
 import { CheckinProvider } from "@/context/CheckinContext";
 import { CheckinModal } from "@/components/checkin/CheckinModal";
 import AppErrorBoundary from "@/components/AppErrorBoundary";
-import TermsAcceptanceGate from "@/components/TermsAcceptanceGate";
 import ProtectedRoute from "./components/ProtectedRoute";
 import RoleRoute from "./components/RoleRoute";
 import { APP_PATHS, APP_ROUTE_META } from "@/config/app-routes";
@@ -45,6 +44,26 @@ const RequestManualRegistration = lazy(() =>
   }))
 );
 const PrivacyCenter = lazy(() => import("./pages/PrivacyCenter"));
+const AdminLgpdRequests = lazy(() =>
+  import("./components/privacy/AdminLgpdRequests").then((module) => ({
+    default: module.AdminLgpdRequests,
+  }))
+);
+const AdminLgpdRequestDetails = lazy(() =>
+  import("./components/privacy/AdminLgpdRequestDetails").then((module) => ({
+    default: module.AdminLgpdRequestDetails,
+  }))
+);
+const AdminInventory = lazy(() =>
+  import("./components/privacy/AdminInventory").then((module) => ({
+    default: module.AdminInventory,
+  }))
+);
+const InventoryForm = lazy(() =>
+  import("./components/privacy/InventoryForm").then((module) => ({
+    default: module.InventoryForm,
+  }))
+);
 const NotFound = lazy(() => import("./pages/NotFound"));
 
 const PageFallback = () => (
@@ -85,34 +104,37 @@ const App = () => (
                   <Route path={APP_PATHS.resetarSenha} element={<ResetPassword />} />
 
                   <Route element={<ProtectedRoute />}>
-                    <Route element={<TermsAcceptanceGate />}>
-                      <Route path={APP_PATHS.dashboard} element={<Dashboard />} />
-                      <Route path={APP_PATHS.relatorioDetalhado} element={<RelatorioDetalhado />} />
-                      <Route path={APP_PATHS.espelhoPonto} element={<EspelhoPonto />} />
-                      <Route path={APP_PATHS.documentos} element={<Documentos />} />
-                      <Route path={APP_PATHS.meusDocumentos} element={<Documentos />} />
-                      <Route path={APP_PATHS.enviarDocumentos} element={<EnviarDocumentos />} />
-                      <Route path={APP_PATHS.enviarDocumentoColaborador} element={<DocumentoColaborador />} />
-                      <Route path={APP_PATHS.usuario} element={<Usuario />} />
-                      <Route path={APP_PATHS.avisos} element={<Avisos />} />
-                      <Route path={APP_PATHS.solicitarFerias} element={<RequestVacation />} />
-                      <Route path={APP_PATHS.solicitarAbono} element={<RequestManualRegistration />} />
-                      <Route path={APP_PATHS.privacidade} element={<PrivacyCenter />} />
+                    <Route path={APP_PATHS.dashboard} element={<Dashboard />} />
+                    <Route path={APP_PATHS.relatorioDetalhado} element={<RelatorioDetalhado />} />
+                    <Route path={APP_PATHS.espelhoPonto} element={<EspelhoPonto />} />
+                    <Route path={APP_PATHS.documentos} element={<Documentos />} />
+                    <Route path={APP_PATHS.meusDocumentos} element={<Documentos />} />
+                    <Route path={APP_PATHS.enviarDocumentos} element={<EnviarDocumentos />} />
+                    <Route path={APP_PATHS.enviarDocumentoColaborador} element={<DocumentoColaborador />} />
+                    <Route path={APP_PATHS.usuario} element={<Usuario />} />
+                    <Route path={APP_PATHS.avisos} element={<Avisos />} />
+                    <Route path={APP_PATHS.solicitarFerias} element={<RequestVacation />} />
+                    <Route path={APP_PATHS.solicitarAbono} element={<RequestManualRegistration />} />
+                    <Route path={APP_PATHS.privacidade} element={<PrivacyCenter />} />
 
-                      {renderProtectedRoleRoute({ routeKey: "criarAviso", element: <CriarAviso /> })}
-                      {renderProtectedRoleRoute({ routeKey: "empresa", element: <Empresa /> })}
-                      {renderProtectedRoleRoute({ routeKey: "empresaCriar", element: <CriarEmpresa /> })}
-                      {renderProtectedRoleRoute({ routeKey: "empresaBuscar", element: <BuscarEmpresa /> })}
-                      {renderProtectedRoleRoute({ routeKey: "empresaAtualizar", element: <AtualizarEmpresa /> })}
-                      {renderProtectedRoleRoute({ routeKey: "auditoria", element: <AuditoriaFiscal /> })}
-                      {renderProtectedRoleRoute({ routeKey: "criarColaborador", element: <CriarColaborador /> })}
-                      {renderProtectedRoleRoute({ routeKey: "criarAdministrador", element: <CriarManager /> })}
-                      {renderProtectedRoleRoute({ routeKey: "listaColaboradores", element: <ListaColaboradores /> })}
-                      {renderProtectedRoleRoute({ routeKey: "apuracaoHoras", element: <PendingApprovals /> })}
-                      {renderProtectedRoleRoute({ routeKey: "statusDoRegistro", element: <StatusRegistro /> })}
-                      {renderProtectedRoleRoute({ routeKey: "ferias", element: <VacationApprovals /> })}
-                      {renderProtectedRoleRoute({ routeKey: "aprovacoesAbono", element: <ManualRegisterApprovals /> })}
-                    </Route>
+                    {renderProtectedRoleRoute({ routeKey: "criarAviso", element: <CriarAviso /> })}
+                    {renderProtectedRoleRoute({ routeKey: "empresa", element: <Empresa /> })}
+                    {renderProtectedRoleRoute({ routeKey: "empresaCriar", element: <CriarEmpresa /> })}
+                    {renderProtectedRoleRoute({ routeKey: "empresaBuscar", element: <BuscarEmpresa /> })}
+                    {renderProtectedRoleRoute({ routeKey: "empresaAtualizar", element: <AtualizarEmpresa /> })}
+                    {renderProtectedRoleRoute({ routeKey: "auditoria", element: <AuditoriaFiscal /> })}
+                    {renderProtectedRoleRoute({ routeKey: "criarColaborador", element: <CriarColaborador /> })}
+                    {renderProtectedRoleRoute({ routeKey: "criarAdministrador", element: <CriarManager /> })}
+                    {renderProtectedRoleRoute({ routeKey: "listaColaboradores", element: <ListaColaboradores /> })}
+                    {renderProtectedRoleRoute({ routeKey: "apuracaoHoras", element: <PendingApprovals /> })}
+                    {renderProtectedRoleRoute({ routeKey: "statusDoRegistro", element: <StatusRegistro /> })}
+                    {renderProtectedRoleRoute({ routeKey: "ferias", element: <VacationApprovals /> })}
+                    {renderProtectedRoleRoute({ routeKey: "aprovacoesAbono", element: <ManualRegisterApprovals /> })}
+                    {renderProtectedRoleRoute({ routeKey: "lgpdAdminRequests", element: <AdminLgpdRequests /> })}
+                    {renderProtectedRoleRoute({ routeKey: "lgpdAdminRequestDetails", element: <AdminLgpdRequestDetails /> })}
+                    {renderProtectedRoleRoute({ routeKey: "lgpdAdminInventory", element: <AdminInventory /> })}
+                    {renderProtectedRoleRoute({ routeKey: "lgpdAdminInventoryForm", element: <InventoryForm /> })}
+                    {renderProtectedRoleRoute({ routeKey: "lgpdAdminInventoryEdit", element: <InventoryForm /> })}
                   </Route>
 
                   <Route path="*" element={<NotFound />} />

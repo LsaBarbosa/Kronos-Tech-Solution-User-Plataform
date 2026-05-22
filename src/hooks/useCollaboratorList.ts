@@ -494,7 +494,7 @@ export const useCollaboratorList = () => {
       setEditedData({});
       setFaceImageFile(null);
     }
-  }, [colaboradores, editedData, faceImageFile, fetchColaboradores, fileToBase64, toast]);
+  }, [isLoading, colaboradores, editedData, faceImageFile, fetchColaboradores, fileToBase64, toast]);
 
   const handleToggleUserStatus = useCallback(async (userId: string, currentStatus: boolean) => {
     // Guard against multiple concurrent submissions

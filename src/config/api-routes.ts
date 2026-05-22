@@ -94,4 +94,13 @@ export const LGPD_PATHS = {
   REQUESTS: "requests",
   EMPLOYEE_EXPORT: (employeeId: string) => `employees/${employeeId}/export`,
   EMPLOYEE_ANONYMIZE: (employeeId: string) => `employees/${employeeId}/anonymize`,
+  ADMIN_REQUESTS: "admin/requests",
+  ADMIN_REQUEST_DETAILS: (requestId: string) => `admin/requests/${requestId}`,
+  ASSIGN_REQUEST: (requestId: string) => `admin/requests/${requestId}/assign`,
+  ADD_NOTE: (requestId: string) => `admin/requests/${requestId}/notes`,
+  COMPLETE_REQUEST: (requestId: string) => `admin/requests/${requestId}/complete`,
+  REJECT_REQUEST: (requestId: string) => `admin/requests/${requestId}/reject`,
+  INVENTORY: "inventory",
+  INVENTORY_ACTIVE: "inventory/active",
+  INVENTORY_BY_CODE: (processCode: string) => `inventory/${processCode}`,
 } as const;

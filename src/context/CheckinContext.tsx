@@ -1,8 +1,8 @@
 import {
-  createContext,
   useCallback,
   useContext,
   useMemo,
+  useRef,
   useState,
   type ReactNode,
 } from 'react';
@@ -11,14 +11,12 @@ import { getCurrentLocation } from '@/utils/geolocation.util';
 import { startCameraStream, stopCameraStream } from '@/utils/camera.util';
 import { extractBase64FromDataUrl } from '@/utils/base64-image.util';
 import { normalizeServiceError } from '@/service/helpers/service-error.helper';
+import { CheckinContext } from '@/context/CheckinContextDef';
 import type {
-  CheckinContextValue,
   CheckinState,
   CheckinError,
   CheckinErrorCode,
 } from '@/types/checkin.types';
-
-const CheckinContext = createContext<CheckinContextValue | undefined>(undefined);
 
 const initialState: CheckinState = {
   status: 'idle',
@@ -87,7 +85,7 @@ const normalizeCheckinError = (error: unknown): CheckinError => {
 
 export const CheckinProvider = ({ children }: { children: ReactNode }) => {
   const [state, setState] = useState<CheckinState>(initialState);
-  let cameraStream: MediaStream | null = null;
+  const cameraStreamRef = useRef<MediaStream | null>(null);
 
   const openCheckin = useCallback(() => {
     setState((prev) => ({
@@ -100,9 +98,9 @@ export const CheckinProvider = ({ children }: { children: ReactNode }) => {
   }, []);
 
   const closeCheckin = useCallback(() => {
-    if (cameraStream) {
-      stopCameraStream(cameraStream);
-      cameraStream = null;
+    if (cameraStreamRef.current) {
+      stopCameraStream(cameraStreamRef.current);
+      cameraStreamRef.current = null;
     }
 
     setState((prev) => ({
@@ -112,9 +110,9 @@ export const CheckinProvider = ({ children }: { children: ReactNode }) => {
   }, []);
 
   const resetCheckin = useCallback(() => {
-    if (cameraStream) {
-      stopCameraStream(cameraStream);
-      cameraStream = null;
+    if (cameraStreamRef.current) {
+      stopCameraStream(cameraStreamRef.current);
+      cameraStreamRef.current = null;
     }
 
     setState(initialState);
@@ -162,12 +160,12 @@ export const CheckinProvider = ({ children }: { children: ReactNode }) => {
     }));
 
     try {
-      cameraStream = await startCameraStream();
+      cameraStreamRef.current = await startCameraStream();
       setState((prev) => ({
         ...prev,
         status: 'camera_ready',
       }));
-      return cameraStream;
+      return cameraStreamRef.current;
     } catch (error) {
       const normalizedError = normalizeCheckinError(error);
       setState((prev) => ({

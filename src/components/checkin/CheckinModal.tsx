@@ -1,5 +1,6 @@
 import { useEffect, useRef } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { BiometricConsentGuard } from '@/components/BiometricConsentGuard';
 import { useCheckin } from '@/context/CheckinContext';
 import { CheckinLocationStep } from './CheckinLocationStep';
 import { CheckinCameraStep } from './CheckinCameraStep';
@@ -7,8 +8,8 @@ import { CheckinConfirmationStep } from './CheckinConfirmationStep';
 import { CheckinResult } from './CheckinResult';
 import { CheckinErrorAlert } from './CheckinErrorAlert';
 
-export const CheckinModal = () => {
-  const { state, closeCheckin } = useCheckin();
+const CheckinModalContent = () => {
+  const { state } = useCheckin();
   const cameraStreamRef = useRef<MediaStream | null>(null);
 
   useEffect(() => {
@@ -70,7 +71,7 @@ export const CheckinModal = () => {
   };
 
   return (
-    <Dialog open={state.isModalOpen} onOpenChange={closeCheckin}>
+    <Dialog open={state.isModalOpen} onOpenChange={() => {}}>
       <DialogContent className="sm:max-w-[425px]">
         <DialogHeader>
           <DialogTitle>{getTitle()}</DialogTitle>
@@ -80,5 +81,19 @@ export const CheckinModal = () => {
         </div>
       </DialogContent>
     </Dialog>
+  );
+};
+
+export const CheckinModal = () => {
+  const { state, closeCheckin } = useCheckin();
+
+  if (!state.isModalOpen) {
+    return null;
+  }
+
+  return (
+    <BiometricConsentGuard onCancel={closeCheckin}>
+      <CheckinModalContent />
+    </BiometricConsentGuard>
   );
 };

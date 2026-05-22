@@ -11,36 +11,13 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { FieldGroup } from "@/components/ui";
 import { toast } from "@/hooks/use-toast";
-import { createLgpdRequest, type LgpdRequestType } from "@/service/lgpd.service";
+import { createLgpdRequest } from "@/service/lgpd.service";
 import { getServiceErrorMessage } from "@/service/helpers/service-error.helper";
+import { LGPD_REQUEST_TYPE_LABELS, LGPD_REQUEST_TYPES } from "@/constants/lgpd.constants";
 
 interface LgpdRequestFormProps {
   onSuccess: () => void;
 }
-
-export const LGPD_REQUEST_TYPE_LABELS: Record<LgpdRequestType, string> = {
-  CONFIRM_PROCESSING: "Confirmação de tratamento",
-  ACCESS: "Acesso aos meus dados",
-  CORRECTION: "Correção de dados",
-  ANONYMIZATION: "Anonimização",
-  BLOCKING: "Bloqueio de tratamento",
-  DELETION: "Exclusão de dados",
-  PORTABILITY: "Portabilidade de dados",
-  CONSENT_REVOCATION: "Revogação de consentimento",
-  SHARING_INFORMATION: "Informações sobre compartilhamento",
-};
-
-export const LGPD_REQUEST_TYPES: LgpdRequestType[] = [
-  "CONFIRM_PROCESSING",
-  "ACCESS",
-  "CORRECTION",
-  "ANONYMIZATION",
-  "BLOCKING",
-  "DELETION",
-  "PORTABILITY",
-  "CONSENT_REVOCATION",
-  "SHARING_INFORMATION",
-];
 
 const LgpdRequestForm = ({ onSuccess }: LgpdRequestFormProps) => {
   const [requestType, setRequestType] = useState<LgpdRequestType | "">("");

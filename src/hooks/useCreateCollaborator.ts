@@ -310,7 +310,7 @@ export const useCreateCollaborator = () => {
     } finally {
       setIsSubmitting(false);
     }
-  }, [cpfAvailability, faceImageBase64]);
+  }, [isSubmitting, cpfAvailability, faceImageBase64]);
 
   const handleCreateUser = useCallback(async (data: CollaboratorFormData) => {
     // Guard against multiple concurrent submissions
@@ -382,7 +382,7 @@ export const useCreateCollaborator = () => {
     } finally {
       setIsSubmitting(false);
     }
-  }, [form, savedEmployeeId, usernameAvailability]);
+  }, [isSubmitting, form, savedEmployeeId, usernameAvailability]);
 
   const onSubmit = useCallback((data: CollaboratorFormData) => {
     if (!stepCompleted) {

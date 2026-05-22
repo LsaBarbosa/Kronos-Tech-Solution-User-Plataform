@@ -9,7 +9,7 @@ const ProtectedRoute = () => {
     if (status === "checking") {
       void checkSession();
     }
-  }, []);
+  }, [status, checkSession]);
 
   if (status === "checking") {
     return (
