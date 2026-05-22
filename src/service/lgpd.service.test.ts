@@ -18,7 +18,7 @@ describe("lgpd.service", () => {
       http.post("*/lgpd/requests", async ({ request }) => {
         const body = await request.json();
         expect(body).toEqual({
-          requestType: "ACCESS",
+          type: "ACCESS",
           description: "Solicitar acesso aos meus dados",
         });
         return new HttpResponse(null, { status: 201 });
@@ -27,7 +27,7 @@ describe("lgpd.service", () => {
 
     await expect(
       createLgpdRequest({
-        requestType: "ACCESS",
+        type: "ACCESS",
         description: "Solicitar acesso aos meus dados",
       })
     ).resolves.toBeUndefined();
@@ -37,26 +37,36 @@ describe("lgpd.service", () => {
     const mockRequests: LgpdRequestResponse[] = [
       {
         requestId: "req-001",
+        employeeId: "emp-001",
+        requestedByUserId: "user-001",
+        companyId: "company-001",
         requestType: "ACCESS",
         status: "OPEN",
         description: "Acesso aos dados",
-        openedAt: "2026-05-21T10:00:00Z",
-        closedAt: null,
+        resolutionNotes: null,
+        createdAt: "2026-05-21T10:00:00Z",
+        updatedAt: "2026-05-21T10:00:00Z",
+        resolvedAt: null,
+        resolvedByUserId: null,
       },
       {
         requestId: "req-002",
+        employeeId: "emp-001",
+        requestedByUserId: "user-001",
+        companyId: "company-001",
         requestType: "DELETION",
         status: "COMPLETED",
         description: "Exclusão de dados",
-        openedAt: "2026-05-20T10:00:00Z",
-        closedAt: "2026-05-21T15:00:00Z",
+        resolutionNotes: "Atendido",
+        createdAt: "2026-05-20T10:00:00Z",
+        updatedAt: "2026-05-21T15:00:00Z",
+        resolvedAt: "2026-05-21T15:00:00Z",
+        resolvedByUserId: "user-002",
       },
     ];
 
     server.use(
-      http.get("*/lgpd/requests", () =>
-        HttpResponse.json({ content: mockRequests }, { status: 200 })
-      )
+      http.get("*/lgpd/requests", () => HttpResponse.json(mockRequests, { status: 200 }))
     );
 
     const result = await listLgpdRequests();
@@ -66,9 +76,7 @@ describe("lgpd.service", () => {
 
   it("retorna array vazio quando nenhuma solicitação existe", async () => {
     server.use(
-      http.get("*/lgpd/requests", () =>
-        HttpResponse.json({ content: [] }, { status: 200 })
-      )
+      http.get("*/lgpd/requests", () => HttpResponse.json([], { status: 200 }))
     );
 
     const result = await listLgpdRequests();
@@ -100,7 +108,7 @@ describe("lgpd.service", () => {
 
     await expect(
       createLgpdRequest({
-        requestType: "ACCESS",
+        type: "ACCESS",
         description: "Solicitar acesso",
       })
     ).rejects.toThrow();

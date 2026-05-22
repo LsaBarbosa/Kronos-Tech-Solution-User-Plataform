@@ -3,6 +3,7 @@ import userEvent from "@testing-library/user-event";
 import { MemoryRouter, Route, Routes, useLocation } from "react-router-dom";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import { AuthProvider } from "@/context/AuthContext";
+import { CheckinProvider } from "@/context/CheckinContext";
 import { ThemeProvider } from "@/hooks/useTheme";
 import Dashboard from "./pages/Dashboard";
 
@@ -107,10 +108,12 @@ describe("App routes", () => {
       <ThemeProvider>
         <MemoryRouter initialEntries={["/dashboard"]}>
           <AuthProvider>
-            <Routes>
-              <Route path="/dashboard" element={<Dashboard />} />
-              <Route path="/meus-documentos" element={<LocationProbe />} />
-            </Routes>
+            <CheckinProvider>
+              <Routes>
+                <Route path="/dashboard" element={<Dashboard />} />
+                <Route path="/meus-documentos" element={<LocationProbe />} />
+              </Routes>
+            </CheckinProvider>
           </AuthProvider>
         </MemoryRouter>
       </ThemeProvider>

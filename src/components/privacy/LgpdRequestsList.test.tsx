@@ -20,19 +20,31 @@ describe("LgpdRequestsList", () => {
     const mockRequests: LgpdRequestResponse[] = [
       {
         requestId: "req-001",
+        employeeId: "emp-001",
+        requestedByUserId: "user-001",
+        companyId: "company-001",
         requestType: "ACCESS",
         status: "OPEN",
         description: "Solicitação de acesso aos dados",
-        openedAt: "2026-05-21T10:00:00Z",
-        closedAt: null,
+        resolutionNotes: null,
+        createdAt: "2026-05-21T10:00:00Z",
+        updatedAt: "2026-05-21T10:00:00Z",
+        resolvedAt: null,
+        resolvedByUserId: null,
       },
       {
         requestId: "req-002",
+        employeeId: "emp-001",
+        requestedByUserId: "user-001",
+        companyId: "company-001",
         requestType: "DELETION",
         status: "COMPLETED",
         description: "Solicitação de exclusão de dados",
-        openedAt: "2026-05-20T10:00:00Z",
-        closedAt: "2026-05-21T15:00:00Z",
+        resolutionNotes: "Atendido",
+        createdAt: "2026-05-20T10:00:00Z",
+        updatedAt: "2026-05-21T15:00:00Z",
+        resolvedAt: "2026-05-21T15:00:00Z",
+        resolvedByUserId: "user-002",
       },
     ];
 
@@ -65,11 +77,17 @@ describe("LgpdRequestsList", () => {
     const mockRequests: LgpdRequestResponse[] = [
       {
         requestId: "req-001",
+        employeeId: "emp-001",
+        requestedByUserId: "user-001",
+        companyId: "company-001",
         requestType: "ACCESS",
         status: "OPEN",
         description: "Teste",
-        openedAt: "2026-05-21T10:00:00Z",
-        closedAt: null,
+        resolutionNotes: null,
+        createdAt: "2026-05-21T10:00:00Z",
+        updatedAt: "2026-05-21T10:00:00Z",
+        resolvedAt: null,
+        resolvedByUserId: null,
       },
     ];
 
@@ -97,5 +115,32 @@ describe("LgpdRequestsList", () => {
     expect(
       screen.getByText("Acompanhe o status de suas solicitações")
     ).toBeInTheDocument();
+  });
+
+  it("renderiza abertura com createdAt e fechamento com resolvedAt", async () => {
+    lgpdMocks.listLgpdRequests.mockResolvedValue([
+      {
+        requestId: "req-003",
+        employeeId: "emp-001",
+        requestedByUserId: "user-001",
+        companyId: "company-001",
+        requestType: "ACCESS",
+        status: "COMPLETED",
+        description: "Teste de datas",
+        resolutionNotes: "Atendido",
+        createdAt: "2026-05-21T10:00:00Z",
+        updatedAt: "2026-05-21T15:00:00Z",
+        resolvedAt: "2026-05-21T15:00:00Z",
+        resolvedByUserId: "user-002",
+      },
+    ]);
+
+    render(<LgpdRequestsList refreshKey={0} />);
+
+    await waitFor(() => {
+      expect(screen.getByText("Data de Abertura")).toBeInTheDocument();
+    });
+
+    expect(screen.getByText("Data de Fechamento")).toBeInTheDocument();
   });
 });

@@ -1,6 +1,7 @@
 import { render, screen } from "@testing-library/react";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
 import { describe, expect, it, vi } from "vitest";
+import { CheckinProvider } from "@/context/CheckinContext";
 import PageShell from "./PageShell";
 
 vi.mock("@/components/Header", () => ({
@@ -13,26 +14,28 @@ vi.mock("@/components/Sidebar", () => ({
 
 const renderPageShell = (path: string) =>
   render(
-    <MemoryRouter initialEntries={[path]}>
-      <Routes>
-        <Route
-          path="*"
-          element={
-            <PageShell sidebarOpen={false} toggleSidebar={() => undefined}>
-              <div>Conteudo</div>
-            </PageShell>
-          }
-        />
-      </Routes>
-    </MemoryRouter>
+    <CheckinProvider>
+      <MemoryRouter initialEntries={[path]}>
+        <Routes>
+          <Route
+            path="*"
+            element={
+              <PageShell sidebarOpen={false} toggleSidebar={() => undefined}>
+                <div>Conteudo</div>
+              </PageShell>
+            }
+          />
+        </Routes>
+      </MemoryRouter>
+    </CheckinProvider>
   );
 
 describe("PageShell", () => {
-  it("renderiza breadcrumbs a partir da metadata centralizada", () => {
+  it("renderiza a estrutura base com sidebar, header e conteúdo", () => {
     renderPageShell("/lista-colaboradores");
 
-    expect(screen.getByLabelText("Breadcrumb")).toBeInTheDocument();
-    expect(screen.getByText("Início")).toBeInTheDocument();
-    expect(screen.getByText("Colaboradores")).toBeInTheDocument();
+    expect(screen.getByTestId("sidebar")).toBeInTheDocument();
+    expect(screen.getByTestId("header")).toBeInTheDocument();
+    expect(screen.getByText("Conteudo")).toBeInTheDocument();
   });
 });

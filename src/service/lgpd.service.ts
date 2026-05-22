@@ -23,20 +23,22 @@ export type LgpdRequestStatus =
 
 export interface LgpdRequestResponse {
   requestId: string;
+  employeeId: string;
+  requestedByUserId: string;
+  companyId: string;
   requestType: LgpdRequestType;
   status: LgpdRequestStatus;
   description: string;
-  openedAt: string;
-  closedAt: string | null;
+  resolutionNotes: string | null;
+  createdAt: string;
+  updatedAt: string;
+  resolvedAt: string | null;
+  resolvedByUserId: string | null;
 }
 
 export interface CreateLgpdRequestPayload {
-  requestType: LgpdRequestType;
+  type: LgpdRequestType;
   description: string;
-}
-
-export interface ListLgpdRequestsResponse {
-  content: LgpdRequestResponse[];
 }
 
 export const createLgpdRequest = async (payload: CreateLgpdRequestPayload): Promise<void> => {
@@ -44,10 +46,10 @@ export const createLgpdRequest = async (payload: CreateLgpdRequestPayload): Prom
 };
 
 export const listLgpdRequests = async (): Promise<LgpdRequestResponse[]> => {
-  const response = await api.get<ListLgpdRequestsResponse>(
+  const response = await api.get<LgpdRequestResponse[]>(
     buildRoute(API_ROUTES.LGPD, LGPD_PATHS.REQUESTS)
   );
-  return response.data.content || [];
+  return Array.isArray(response.data) ? response.data : [];
 };
 
 export const exportEmployeeData = async (employeeId: string): Promise<Blob> => {

@@ -59,8 +59,8 @@ const renderLoginForm = () =>
 const fillAndSubmit = async () => {
   const user = userEvent.setup();
 
-  await user.type(screen.getByLabelText("Nome de Usuário"), "ana");
-  await user.type(screen.getByLabelText("Senha"), "senha123");
+  await user.type(screen.getByLabelText(/Nome de Usuário/i), "ana");
+  await user.type(screen.getByLabelText(/^Senha/i), "senha123");
   await user.click(screen.getByRole("button", { name: "Entrar" }));
 };
 

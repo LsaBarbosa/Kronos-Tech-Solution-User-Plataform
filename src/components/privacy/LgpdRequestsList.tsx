@@ -165,12 +165,12 @@ const LgpdRequestsList = ({ refreshKey }: LgpdRequestsListProps) => {
               <div className="grid grid-cols-2 gap-4 text-xs text-muted-foreground">
                 <div>
                   <p className="font-medium text-foreground">Data de Abertura</p>
-                  <p>{formatDate(request.openedAt)}</p>
+                  <p>{formatDate(request.createdAt)}</p>
                 </div>
-                {request.closedAt && (
+                {request.resolvedAt && (
                   <div>
                     <p className="font-medium text-foreground">Data de Fechamento</p>
-                    <p>{formatDate(request.closedAt)}</p>
+                    <p>{formatDate(request.resolvedAt)}</p>
                   </div>
                 )}
               </div>

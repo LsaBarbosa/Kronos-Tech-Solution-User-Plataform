@@ -1,7 +1,7 @@
-import { act, renderHook, waitFor } from "@testing-library/react";
+import { act, renderHook } from "@testing-library/react";
 import type { ReactNode } from "react";
 import { MemoryRouter } from "react-router-dom";
-import { beforeEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { APP_PATHS } from "@/config/app-routes";
 import { useCreateCompany } from "./useCreateCompany";
 import {
@@ -44,6 +44,7 @@ const wrapper = ({ children }: { children: ReactNode }) => (
 
 describe("useCreateCompany", () => {
   beforeEach(() => {
+    vi.useFakeTimers();
     vi.clearAllMocks();
     mockCheckCompanyCnpjAvailability.mockResolvedValue(true);
     mockCreateCompany.mockResolvedValue(undefined);
@@ -51,6 +52,10 @@ describe("useCreateCompany", () => {
       latitude: -23.55052,
       longitude: -46.633308,
     });
+  });
+
+  afterEach(() => {
+    vi.useRealTimers();
   });
 
   it("cria apenas a empresa na etapa 1 e navega para a criação do administrador", async () => {
@@ -64,17 +69,17 @@ describe("useCreateCompany", () => {
       result.current.form.setValue("address.number", "100");
     });
 
-    await waitFor(() => {
-      expect(mockGetGeolocationFromCEP).toHaveBeenCalledWith("01001000", "100");
+    await act(async () => {
+      await vi.advanceTimersByTimeAsync(1000);
     });
+
+    expect(mockGetGeolocationFromCEP).toHaveBeenCalledWith("01001000", "100");
 
     await act(async () => {
       await result.current.handleCheckCNPJ("12345678000199");
     });
 
-    await waitFor(() => {
-      expect(result.current.cnpjAvailability).toBe("available");
-    });
+    expect(result.current.cnpjAvailability).toBe("available");
 
     await act(async () => {
       await result.current.form.handleSubmit(result.current.onSubmit)();

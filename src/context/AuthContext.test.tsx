@@ -6,9 +6,46 @@ import { describe, expect, it, beforeEach, vi } from "vitest";
 import { AuthProvider, useAuth } from "./AuthContext";
 import { server } from "@/test/mocks/server";
 import * as csrfService from "@/service/csrf.service";
+import { ServiceError } from "@/service/helpers/service-error.helper";
+import { loadSessionProfile } from "@/service/session-profile.service";
+
+vi.mock("@/service/session-profile.service", () => ({
+  loadSessionProfile: vi.fn(),
+}));
+
+const mockLoadSessionProfile = vi.mocked(loadSessionProfile);
+
+const sessionProfile = {
+  accountData: {
+    userId: "u-1",
+    username: "ana",
+    role: "MANAGER",
+    active: true,
+    employeeId: "e-1",
+  },
+  profileData: {
+    employeeId: "e-1",
+    fullName: "Ana",
+    email: "ana@kronos.test",
+    phone: "11999990000",
+    role: "MANAGER",
+    companyName: "Kronos Tech",
+    lastSeenMessageTimestamp: null,
+  },
+  userData: {
+    employeeId: "e-1",
+    fullName: "Ana",
+    email: "ana@kronos.test",
+    phone: "11999990000",
+    role: "MANAGER",
+    companyName: "Kronos Tech",
+    lastSeenMessageTimestamp: null,
+  },
+  role: "MANAGER",
+} as const;
 
 const AuthProbe = () => {
-  const { status, role, user, isAuthenticated, logout, login } = useAuth();
+  const { status, role, user, isAuthenticated, logout, login, checkSession } = useAuth();
 
   return (
     <div>
@@ -21,6 +58,9 @@ const AuthProbe = () => {
       </button>
       <button type="button" onClick={() => void login()}>
         Login
+      </button>
+      <button type="button" onClick={() => void checkSession()}>
+        CheckSession
       </button>
     </div>
   );
@@ -38,6 +78,8 @@ const renderAuthProvider = () =>
 describe("AuthProvider", () => {
   beforeEach(() => {
     server.resetHandlers();
+    vi.clearAllMocks();
+    mockLoadSessionProfile.mockResolvedValue(sessionProfile);
   });
 
   it("deve iniciar com status checking", () => {
@@ -62,21 +104,8 @@ describe("AuthProvider", () => {
   });
 
   it("deve mudar para authenticated quando a sessao for valida", async () => {
-    server.use(
-      http.get("*/employee/own-profile", () =>
-        HttpResponse.json({
-          employeeId: "e-1",
-          fullName: "Ana",
-          role: "MANAGER",
-          accountData: {
-            userId: "u-1",
-            username: "ana",
-          },
-        })
-      )
-    );
-
     renderAuthProvider();
+    await userEvent.click(screen.getByRole("button", { name: "CheckSession" }));
 
     await waitFor(() => {
       expect(screen.getByTestId("status")).toHaveTextContent("authenticated");
@@ -88,13 +117,12 @@ describe("AuthProvider", () => {
   it.each([401, 403])(
     "deve mudar para unauthenticated em caso de %i",
     async (statusCode) => {
-      server.use(
-        http.get("*/employee/own-profile", () =>
-          HttpResponse.json({}, { status: statusCode })
-        )
+      mockLoadSessionProfile.mockRejectedValueOnce(
+        new ServiceError("Sessão expirada", { kind: "auth", status: statusCode })
       );
 
       renderAuthProvider();
+      await userEvent.click(screen.getByRole("button", { name: "CheckSession" }));
 
       await waitFor(() => {
         expect(screen.getByTestId("status")).toHaveTextContent("unauthenticated");
@@ -104,19 +132,19 @@ describe("AuthProvider", () => {
   );
 
   it("mantem sessao autenticada quando o termo esta pendente", async () => {
-    server.use(
-      http.get("*/employee/own-profile", () =>
-        HttpResponse.json(
-          {
-            code: "TERMS_NOT_ACCEPTED",
-            message: "Aceite de termo pendente",
-          },
-          { status: 403 }
-        )
-      )
+    mockLoadSessionProfile.mockRejectedValueOnce(
+      new ServiceError("Aceite de termo pendente", {
+        kind: "terms",
+        status: 403,
+        data: {
+          code: "TERMS_NOT_ACCEPTED",
+          message: "Aceite de termo pendente",
+        },
+      })
     );
 
     renderAuthProvider();
+    await userEvent.click(screen.getByRole("button", { name: "CheckSession" }));
 
     await waitFor(() => {
       expect(screen.getByTestId("status")).toHaveTextContent("authenticated");
@@ -127,21 +155,11 @@ describe("AuthProvider", () => {
 
   it("logout limpa contexto localmente", async () => {
     server.use(
-      http.get("*/employee/own-profile", () =>
-        HttpResponse.json({
-          employeeId: "e-1",
-          fullName: "Ana",
-          role: "MANAGER",
-          accountData: {
-            userId: "u-1",
-            username: "ana",
-          },
-        })
-      ),
       http.post("*/auth/logout", () => new HttpResponse(null, { status: 204 }))
     );
 
     renderAuthProvider();
+    await userEvent.click(screen.getByRole("button", { name: "CheckSession" }));
 
     await waitFor(() => {
       expect(screen.getByTestId("status")).toHaveTextContent("authenticated");
@@ -161,21 +179,11 @@ describe("AuthProvider", () => {
     const invalidateSpy = vi.spyOn(csrfService, "invalidateCsrfToken");
 
     server.use(
-      http.get("*/employee/own-profile", () =>
-        HttpResponse.json({
-          employeeId: "e-1",
-          fullName: "Ana",
-          role: "MANAGER",
-          accountData: {
-            userId: "u-1",
-            username: "ana",
-          },
-        })
-      ),
       http.post("*/auth/logout", () => new HttpResponse(null, { status: 204 }))
     );
 
     renderAuthProvider();
+    await userEvent.click(screen.getByRole("button", { name: "CheckSession" }));
 
     await waitFor(() => {
       expect(screen.getByTestId("status")).toHaveTextContent("authenticated");
@@ -194,21 +202,11 @@ describe("AuthProvider", () => {
     const invalidateSpy = vi.spyOn(csrfService, "invalidateCsrfToken");
 
     server.use(
-      http.get("*/employee/own-profile", () =>
-        HttpResponse.json({
-          employeeId: "e-1",
-          fullName: "Ana",
-          role: "MANAGER",
-          accountData: {
-            userId: "u-1",
-            username: "ana",
-          },
-        })
-      ),
       http.post("*/auth/logout", () => new HttpResponse(null, { status: 500 }))
     );
 
     renderAuthProvider();
+    await userEvent.click(screen.getByRole("button", { name: "CheckSession" }));
 
     await waitFor(() => {
       expect(screen.getByTestId("status")).toHaveTextContent("authenticated");
@@ -224,21 +222,8 @@ describe("AuthProvider", () => {
   });
 
   it("login recarrega a sessao", async () => {
-    server.use(
-      http.get("*/employee/own-profile", () =>
-        HttpResponse.json({
-          employeeId: "e-1",
-          fullName: "Ana",
-          role: "MANAGER",
-          accountData: {
-            userId: "u-1",
-            username: "ana",
-          },
-        })
-      )
-    );
-
     renderAuthProvider();
+    await userEvent.click(screen.getByRole("button", { name: "CheckSession" }));
 
     await waitFor(() => {
       expect(screen.getByTestId("status")).toHaveTextContent("authenticated");
@@ -249,5 +234,6 @@ describe("AuthProvider", () => {
     await waitFor(() => {
       expect(screen.getByTestId("status")).toHaveTextContent("authenticated");
     });
+    expect(mockLoadSessionProfile).toHaveBeenCalledTimes(2);
   });
 });

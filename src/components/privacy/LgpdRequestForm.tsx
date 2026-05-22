@@ -61,7 +61,7 @@ const LgpdRequestForm = ({ onSuccess }: LgpdRequestFormProps) => {
 
     try {
       await createLgpdRequest({
-        requestType: requestType as LgpdRequestType,
+        type: requestType as LgpdRequestType,
         description: description.trim(),
       });
 

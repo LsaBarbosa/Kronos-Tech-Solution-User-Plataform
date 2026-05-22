@@ -1,4 +1,4 @@
-import { render, screen } from "@testing-library/react";
+import { fireEvent, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import LgpdRequestForm from "./LgpdRequestForm";
@@ -72,5 +72,29 @@ describe("LgpdRequestForm", () => {
     render(<LgpdRequestForm onSuccess={mockOnSuccess} />);
 
     expect(screen.getByText("0/1000 caracteres")).toBeInTheDocument();
+  });
+
+  it("envia payload com type e descrição sem espaços extras", async () => {
+    const { container } = render(<LgpdRequestForm onSuccess={mockOnSuccess} />);
+
+    const requestTypeSelect = container.querySelector("select");
+    if (!requestTypeSelect) {
+      throw new Error("Hidden select not found");
+    }
+
+    fireEvent.change(requestTypeSelect, { target: { value: "ACCESS" } });
+    await userEvent.type(
+      screen.getByPlaceholderText(/Descreva sua solicitação/),
+      "  Solicitar acesso aos meus dados  "
+    );
+    await userEvent.click(screen.getByRole("button", { name: /Enviar Solicitação/i }));
+
+    await waitFor(() => {
+      expect(lgpdMocks.createLgpdRequest).toHaveBeenCalledWith({
+        type: "ACCESS",
+        description: "Solicitar acesso aos meus dados",
+      });
+    });
+    expect(mockOnSuccess).toHaveBeenCalledTimes(1);
   });
 });
