@@ -57,7 +57,7 @@ export const listInventories = async (
   params.append("size", size.toString());
 
   const response = await api.get<PaginatedInventoryResponse>(
-    buildRoute(API_ROUTES.LGPD, LGPD_PATHS.INVENTORY),
+    `/${LGPD_PATHS.INVENTORY}`,
     { params: Object.fromEntries(params) }
   );
   return response.data;
@@ -72,7 +72,7 @@ export const listActiveInventories = async (
   params.append("size", size.toString());
 
   const response = await api.get<PaginatedInventoryResponse>(
-    buildRoute(API_ROUTES.LGPD, LGPD_PATHS.INVENTORY_ACTIVE),
+    `/${LGPD_PATHS.INVENTORY_ACTIVE}`,
     { params: Object.fromEntries(params) }
   );
   return response.data;
@@ -82,7 +82,7 @@ export const getInventoryByProcessCode = async (
   processCode: string
 ): Promise<DataProcessingInventoryResponse> => {
   const response = await api.get<DataProcessingInventoryResponse>(
-    buildRoute(API_ROUTES.LGPD, LGPD_PATHS.INVENTORY_BY_CODE(processCode))
+    `/${LGPD_PATHS.INVENTORY_BY_CODE(processCode)}`
   );
   return response.data;
 };
@@ -91,7 +91,7 @@ export const createInventory = async (
   payload: CreateInventoryPayload
 ): Promise<DataProcessingInventoryResponse> => {
   const response = await api.post<DataProcessingInventoryResponse>(
-    buildRoute(API_ROUTES.LGPD, LGPD_PATHS.INVENTORY),
+    `/${LGPD_PATHS.INVENTORY}`,
     payload
   );
   return response.data;
@@ -102,7 +102,7 @@ export const updateInventory = async (
   payload: CreateInventoryPayload
 ): Promise<DataProcessingInventoryResponse> => {
   const response = await api.patch<DataProcessingInventoryResponse>(
-    buildRoute(API_ROUTES.LGPD, LGPD_PATHS.INVENTORY_BY_ID(inventoryId)),
+    `/${LGPD_PATHS.INVENTORY_BY_ID(inventoryId)}`,
     payload
   );
   return response.data;
