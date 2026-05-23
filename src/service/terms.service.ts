@@ -1,65 +1,36 @@
-import { api } from "@/config/api";
-import { API_ROUTES, TERMS_PATHS, buildRoute } from "@/config/api-routes";
-import { invalidateCsrfToken } from "@/service/csrf.service";
+import { api } from '@/config/api'
+import { ConsentHistoryResponse, CurrentLegalTextResponse } from '@/types/legal'
 
-export interface TermsStatusResponse {
-  accepted: boolean;
+const TERMS_BASE = 'terms'
+
+export const getConsentHistory = async (): Promise<ConsentHistoryResponse[]> => {
+  const response = await api.get<ConsentHistoryResponse[]>(
+    `${TERMS_BASE}/consents/history`
+  )
+  return Array.isArray(response.data) ? response.data : []
 }
 
-export interface CurrentBiometricTermResponse {
-  type: "BIOMETRIC_CONSENT_TERM";
-  version: string;
-  title: string;
-  content: string;
-  contentHashSha256: string;
-  active: boolean;
+export const getCurrentBiometricTerm = async (): Promise<CurrentLegalTextResponse> => {
+  const response = await api.get<CurrentLegalTextResponse>(
+    `${TERMS_BASE}/biometric/current`
+  )
+  return response.data
 }
 
-export interface AcceptBiometricTermsPayload {
-  version: string;
-  contentHashSha256: string;
+export const checkTermsStatus = async (): Promise<{ accepted: boolean }> => {
+  const response = await api.get<{ accepted: boolean }>(
+    `${TERMS_BASE}/status`
+  )
+  return response.data
 }
 
-export const checkTermsStatus = async (): Promise<boolean> => {
-  const response = await api.get<TermsStatusResponse>(
-    buildRoute(API_ROUTES.TERMS, TERMS_PATHS.STATUS)
-  );
-
-  return response.data.accepted === true;
-};
-
-export const getCurrentBiometricTerm =
-  async (): Promise<CurrentBiometricTermResponse> => {
-    const response = await api.get<CurrentBiometricTermResponse>(
-      buildRoute(API_ROUTES.TERMS, TERMS_PATHS.CURRENT_BIOMETRIC)
-    );
-
-    return response.data;
-  };
-
-export const acceptBiometricTerms = async (
-  payload: AcceptBiometricTermsPayload
-): Promise<void> => {
-  const response = await api.post(
-    buildRoute(API_ROUTES.TERMS, TERMS_PATHS.ACCEPT_BIOMETRIC),
-    payload
-  );
-
-  if (response.status !== 204) {
-    throw new Error("Falha ao registrar o aceite do termo.");
-  }
-
-  invalidateCsrfToken();
-};
+export const acceptBiometricTerms = async (payload: {
+  version: string
+  contentHashSha256: string
+}): Promise<void> => {
+  await api.post(`${TERMS_BASE}/accept-biometric`, payload)
+}
 
 export const revokeBiometricTerms = async (): Promise<void> => {
-  const response = await api.delete(
-    buildRoute(API_ROUTES.TERMS, TERMS_PATHS.REVOKE_BIOMETRIC)
-  );
-
-  if (response.status !== 204) {
-    throw new Error("Falha ao revogar o consentimento biométrico.");
-  }
-
-  invalidateCsrfToken();
-};
+  await api.delete(`${TERMS_BASE}/revoke-biometric`)
+}

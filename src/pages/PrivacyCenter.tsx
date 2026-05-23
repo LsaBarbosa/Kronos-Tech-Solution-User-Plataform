@@ -9,6 +9,10 @@ import { toast } from "@/hooks/use-toast";
 import BiometricConsentCard from "@/components/privacy/BiometricConsentCard";
 import LgpdRequestForm from "@/components/privacy/LgpdRequestForm";
 import LgpdRequestsList from "@/components/privacy/LgpdRequestsList";
+import ConsentHistoryCard from "@/components/privacy/ConsentHistoryCard";
+import RevocationInfoCard from "@/components/privacy/RevocationInfoCard";
+import DPOContactCard from "@/components/privacy/DPOContactCard";
+import PrivacyPolicyCard from "@/components/privacy/PrivacyPolicyCard";
 import { exportEmployeeData } from "@/service/lgpd.service";
 import { getServiceErrorMessage } from "@/service/helpers/service-error.helper";
 import { useAuth } from "@/context/AuthContext";
@@ -131,6 +135,58 @@ const PrivacyCenter = () => {
                 <LgpdRequestForm onSuccess={() => setRefreshKey((k) => k + 1)} />
                 <LgpdRequestsList refreshKey={refreshKey} />
               </div>
+            </section>
+
+            <Separator />
+
+            {/* Consent History Section */}
+            <section>
+              <div className="mb-4">
+                <h2 className="text-xl font-semibold mb-1">Histórico de Termos Aceitos</h2>
+                <p className="text-sm text-muted-foreground">
+                  Visualize um histórico completo de todos os consentimentos que você forneceu
+                </p>
+              </div>
+              <ConsentHistoryCard />
+            </section>
+
+            <Separator />
+
+            {/* Revocation Information Section */}
+            <section>
+              <div className="mb-4">
+                <h2 className="text-xl font-semibold mb-1">Revogação de Consentimentos</h2>
+                <p className="text-sm text-muted-foreground">
+                  Entenda como funciona e quais são as consequências da revogação
+                </p>
+              </div>
+              <RevocationInfoCard />
+            </section>
+
+            <Separator />
+
+            {/* Privacy Policy Section */}
+            <section>
+              <div className="mb-4">
+                <h2 className="text-xl font-semibold mb-1">Política de Privacidade</h2>
+                <p className="text-sm text-muted-foreground">
+                  Leia nossa política completa de privacidade e proteção de dados pessoais
+                </p>
+              </div>
+              <PrivacyPolicyCard />
+            </section>
+
+            <Separator />
+
+            {/* DPO Contact Section */}
+            <section>
+              <div className="mb-4">
+                <h2 className="text-xl font-semibold mb-1">Contato do Encarregado de Dados</h2>
+                <p className="text-sm text-muted-foreground">
+                  Fale diretamente com nosso Data Protection Officer sobre privacidade
+                </p>
+              </div>
+              <DPOContactCard />
             </section>
           </div>
         </div>
