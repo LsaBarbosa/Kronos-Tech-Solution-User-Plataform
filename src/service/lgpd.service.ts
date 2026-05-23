@@ -1,5 +1,6 @@
 import { api } from "@/config/api";
 import { API_ROUTES, LGPD_PATHS, buildRoute } from "@/config/api-routes";
+import { LgpdEmployeeExportResponse } from "@/types/legal";
 
 export type LgpdRequestType =
   | "CONFIRM_PROCESSING"
@@ -157,10 +158,11 @@ export const listLgpdRequests = async (): Promise<LgpdRequestResponse[]> => {
   return Array.isArray(response.data) ? response.data : [];
 };
 
-export const exportEmployeeData = async (employeeId: string): Promise<Blob> => {
-  const response = await api.get<Blob>(
-    buildRoute(API_ROUTES.LGPD, LGPD_PATHS.EMPLOYEE_EXPORT(employeeId)),
-    { responseType: "blob" }
+export const exportEmployeeData = async (
+  employeeId: string
+): Promise<LgpdEmployeeExportResponse> => {
+  const response = await api.get<LgpdEmployeeExportResponse>(
+    buildRoute(API_ROUTES.LGPD, LGPD_PATHS.EMPLOYEE_EXPORT(employeeId))
   );
   return response.data;
 };

@@ -18,6 +18,7 @@ import ExportManifestDisplay, { ExportManifest } from "@/components/privacy/Expo
 import { exportEmployeeData } from "@/service/lgpd.service";
 import { getServiceErrorMessage } from "@/service/helpers/service-error.helper";
 import { useAuth } from "@/context/AuthContext";
+import { LgpdEmployeeExportResponse } from "@/types/legal";
 
 const PrivacyCenter = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -38,12 +39,15 @@ const PrivacyCenter = () => {
     setIsExporting(true);
 
     try {
-      const blob = await exportEmployeeData(user.profile.employeeId);
+      const exportResponse = await exportEmployeeData(user.profile.employeeId);
 
+      // Generate download file from the actual backend response
+      const json = JSON.stringify(exportResponse, null, 2);
+      const blob = new Blob([json], { type: "application/json" });
       const url = URL.createObjectURL(blob);
       const link = document.createElement("a");
       link.href = url;
-      link.download = `meus-dados-${new Date().getTime()}.json`;
+      link.download = `meus-dados-${exportResponse.manifest.exportId || new Date().getTime()}.json`;
       document.body.appendChild(link);
       link.click();
       document.body.removeChild(link);
@@ -52,21 +56,8 @@ const PrivacyCenter = () => {
       // Show success message
       toast.success("Dados exportados com sucesso!");
 
-      // Display export manifest (Task 06-02)
-      setExportManifest({
-        exportedAt: new Date().toISOString(),
-        includedGeolocation: false,
-        sections: [
-          "CPF",
-          "CONTACT",
-          "SALARY",
-          "DOCUMENTS",
-          "TIME_RECORDS",
-          "MESSAGES",
-          "AUDIT_LOGS",
-          "CONSENTS",
-        ],
-      });
+      // Display the actual backend manifest
+      setExportManifest(exportResponse.manifest);
     } catch (error) {
       toast.error(
         getServiceErrorMessage(error, "Erro ao exportar dados. Tente novamente.")

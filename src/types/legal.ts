@@ -25,3 +25,131 @@ export interface CurrentLegalTextResponse {
   contentHashSha256: string
   active: boolean
 }
+
+export interface LgpdExportManifest {
+  exportId: string
+  exportedAt: string
+  requestedByUserId?: string
+  targetEmployeeId?: string
+  includePreciseGeolocation: boolean
+  sections: string[]
+  warnings?: string[]
+}
+
+export interface ExportedEmployee {
+  employeeId: string
+  fullName: string
+  cpf?: string
+  pis?: string
+  jobPosition: string
+  email: string
+  salary?: number
+  phone?: string
+  birthDate?: string
+  mothersName?: string
+  nationality?: string
+  maritalStatus?: string
+  educationLevel?: string
+  address?: ExportedAddress
+  createdAt?: string
+  updatedAt?: string
+}
+
+export interface ExportedAddress {
+  street: string
+  number: string
+  zipCode: string
+  city: string
+  state: string
+  country?: string
+  complement?: string
+}
+
+export interface ExportedUser {
+  userId: string
+  username: string
+  email: string
+  role: string
+  createdAt?: string
+}
+
+export interface ExportedCompany {
+  companyId: string
+  cnpj: string
+  tradeName: string
+  legalName?: string
+  email?: string
+  phone?: string
+}
+
+export interface ExportedDocumentMetadata {
+  documentId: string
+  type: string
+  fileName: string
+  contentType: string
+  checksum: string
+  uploadedAt: string
+  sizeBytes?: number
+}
+
+export interface ExportedTimeRecord {
+  recordId: string
+  recordDate: string
+  startTime: string
+  endTime?: string
+  breakDuration?: number
+  status: string
+  notes?: string
+  latitude?: number
+  longitude?: number
+}
+
+export interface ExportedMessage {
+  messageId: string
+  title: string
+  priority: string
+  sendDate: string
+  readDate?: string
+  senderName?: string
+  content?: string
+}
+
+export interface ExportedAuditLog {
+  logId: string
+  action: string
+  timestamp: string
+  resourceType: string
+  resourceId?: string
+  details?: string
+}
+
+export interface ExportedLegalConsent {
+  consentId: string
+  type: ConsentType
+  status: string
+  grantedAt: string
+  revokedAt?: string
+  version?: string
+  purpose?: string
+}
+
+export interface ExportedBiometricStatus {
+  hasFaceImage: boolean
+  hasActiveBiometricConsent: boolean
+  biometricAuthenticationEnabled: boolean
+  biometricConsentDocuments: number
+}
+
+export interface LgpdEmployeeExportResponse {
+  manifest: LgpdExportManifest
+  employee?: ExportedEmployee
+  user?: ExportedUser
+  company?: ExportedCompany
+  documents?: ExportedDocumentMetadata[]
+  timeRecords?: ExportedTimeRecord[]
+  messages?: ExportedMessage[]
+  auditLogs?: ExportedAuditLog[]
+  legalConsents?: ExportedLegalConsent[]
+  biometricStatus?: ExportedBiometricStatus
+  exportedAt?: string
+}

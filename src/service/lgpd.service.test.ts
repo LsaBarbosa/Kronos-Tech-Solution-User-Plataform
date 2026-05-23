@@ -7,6 +7,7 @@ import {
   exportEmployeeData,
   type LgpdRequestResponse,
 } from "./lgpd.service";
+import { LgpdEmployeeExportResponse } from "@/types/legal";
 
 describe("lgpd.service", () => {
   beforeEach(() => {
@@ -83,20 +84,54 @@ describe("lgpd.service", () => {
     expect(result).toEqual([]);
   });
 
-  it("exporta dados do colaborador como blob", async () => {
-    const jsonData = JSON.stringify({ id: "emp-001" });
-    const buffer = new TextEncoder().encode(jsonData);
+  it("exporta dados do colaborador com manifesto real do back-end", async () => {
+    const mockExportResponse: LgpdEmployeeExportResponse = {
+      manifest: {
+        exportId: "export-123",
+        exportedAt: "2026-05-23T10:00:00Z",
+        requestedByUserId: "user-001",
+        targetEmployeeId: "emp-001",
+        includePreciseGeolocation: true,
+        sections: ["employee", "documents", "timeRecords"],
+        warnings: ["Este arquivo contém dados pessoais"],
+      },
+      employee: {
+        employeeId: "emp-001",
+        fullName: "João Silva",
+        jobPosition: "Desenvolvedor",
+        email: "joao@example.com",
+      },
+      user: {
+        userId: "user-001",
+        username: "joao.silva",
+        email: "joao@example.com",
+        role: "PARTNER",
+      },
+      company: {
+        companyId: "company-001",
+        cnpj: "12.345.678/0001-90",
+        tradeName: "Tech Solutions",
+      },
+      documents: [],
+      timeRecords: [],
+      messages: [],
+      auditLogs: [],
+      legalConsents: [],
+      exportedAt: "2026-05-23T10:00:00Z",
+    };
 
     server.use(
       http.get("*/lgpd/employees/emp-001/export", () =>
-        HttpResponse.arrayBuffer(buffer, {
-          headers: { "Content-Type": "application/json" },
-        })
+        HttpResponse.json(mockExportResponse, { status: 200 })
       )
     );
 
     const result = await exportEmployeeData("emp-001");
-    expect(result).toBeInstanceOf(Blob);
+    expect(result).toEqual(mockExportResponse);
+    expect(result.manifest).toBeDefined();
+    expect(result.manifest.exportId).toBe("export-123");
+    expect(result.manifest.includePreciseGeolocation).toBe(true);
+    expect(result.manifest.sections).toContain("documents");
   });
 
   it("lança erro quando criar solicitação falha", async () => {

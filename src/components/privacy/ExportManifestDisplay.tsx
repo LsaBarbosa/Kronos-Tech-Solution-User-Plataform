@@ -1,12 +1,9 @@
 import { X, CheckCircle2, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
+import { LgpdExportManifest } from "@/types/legal";
 
-export interface ExportManifest {
-  exportedAt: string;
-  includedGeolocation: boolean;
-  sections: string[];
-}
+export type ExportManifest = LgpdExportManifest;
 
 interface ExportManifestDisplayProps {
   manifest: ExportManifest;
