@@ -1,11 +1,12 @@
 import { useState } from "react";
-import { Loader2, Camera, AlertCircle } from "lucide-react";
+import { Loader2, Camera, AlertCircle, CheckCircle2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "@/hooks/use-toast";
 import { enrollBiometric } from "@/service/employee.service";
+import { useLivenessDetection } from "@/hooks/useLivenessDetection";
 
 interface BiometricEnrollmentModalProps {
   open: boolean;
@@ -22,6 +23,8 @@ const BiometricEnrollmentModal = ({
 }: BiometricEnrollmentModalProps) => {
   const [faceImageFile, setFaceImageFile] = useState<File | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [livenessPassed, setLivenessPassed] = useState(false);
+  const { isDetecting, error: livenessError, performLivenessCheck } = useLivenessDetection();
 
   const fileToBase64 = (file: File): Promise<string> => {
     return new Promise((resolve, reject) => {
@@ -39,9 +42,34 @@ const BiometricEnrollmentModal = ({
     });
   };
 
-  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+  const handleFileChange = async (e: React.ChangeEvent<HTMLInputElement>) => {
     if (e.target.files && e.target.files[0]) {
-      setFaceImageFile(e.target.files[0]);
+      const file = e.target.files[0];
+      setFaceImageFile(file);
+      setLivenessPassed(false);
+
+      // Perform liveness detection on the selected image
+      try {
+        const base64Image = await fileToBase64(file);
+        const livenessResult = await performLivenessCheck(base64Image);
+        setLivenessPassed(livenessResult);
+
+        if (!livenessResult && !livenessError) {
+          toast({
+            title: "Verificação de liveness falhou",
+            description: "Não foi possível detectar um rosto válido na imagem.",
+            variant: "destructive",
+          });
+        }
+      } catch (error) {
+        console.error("Erro ao processar imagem:", error);
+        setLivenessPassed(false);
+        toast({
+          title: "Erro ao processar imagem",
+          description: error instanceof Error ? error.message : "Tente novamente.",
+          variant: "destructive",
+        });
+      }
     }
   };
 
@@ -64,6 +92,15 @@ const BiometricEnrollmentModal = ({
       return;
     }
 
+    if (!livenessPassed) {
+      toast({
+        title: "Verificação de liveness não passou",
+        description: "A verificação de liveness é obrigatória. Tente com outra imagem.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setIsSubmitting(true);
 
     try {
@@ -71,6 +108,7 @@ const BiometricEnrollmentModal = ({
 
       await enrollBiometric({
         faceImageBase64: base64Image,
+        livenessPassed: true,
       });
 
       toast({
@@ -79,6 +117,7 @@ const BiometricEnrollmentModal = ({
       });
 
       setFaceImageFile(null);
+      setLivenessPassed(false);
       onOpenChange(false);
       onEnrollmentSuccess?.();
     } catch (error) {
@@ -126,13 +165,32 @@ const BiometricEnrollmentModal = ({
               type="file"
               accept="image/*"
               onChange={handleFileChange}
-              disabled={!hasConsent || isSubmitting}
+              disabled={!hasConsent || isSubmitting || isDetecting}
               className="cursor-pointer"
             />
-            {faceImageFile && (
-              <p className="text-xs text-muted-foreground">
-                Arquivo selecionado: {faceImageFile.name}
-              </p>
+            {isDetecting && (
+              <div className="flex items-center gap-2 text-sm text-muted-foreground">
+                <Loader2 className="h-4 w-4 animate-spin" />
+                Verificando liveness...
+              </div>
+            )}
+            {faceImageFile && !isDetecting && (
+              <div className="space-y-2">
+                <p className="text-xs text-muted-foreground">
+                  Arquivo selecionado: {faceImageFile.name}
+                </p>
+                {livenessPassed ? (
+                  <div className="flex items-center gap-2 rounded-md bg-emerald-500/10 p-2 text-xs text-emerald-700">
+                    <CheckCircle2 className="h-4 w-4" />
+                    Verificação de liveness passou ✓
+                  </div>
+                ) : livenessError ? (
+                  <div className="flex items-center gap-2 rounded-md bg-red-500/10 p-2 text-xs text-red-700">
+                    <AlertCircle className="h-4 w-4" />
+                    {livenessError}
+                  </div>
+                ) : null}
+              </div>
             )}
           </div>
 
@@ -148,10 +206,10 @@ const BiometricEnrollmentModal = ({
         </div>
 
         <div className="flex gap-2 justify-end">
-          <Button variant="outline" onClick={() => onOpenChange(false)}>
+          <Button variant="outline" onClick={() => onOpenChange(false)} disabled={isSubmitting || isDetecting}>
             Cancelar
           </Button>
-          <Button onClick={handleEnroll} disabled={!hasConsent || !faceImageFile || isSubmitting}>
+          <Button onClick={handleEnroll} disabled={!hasConsent || !faceImageFile || !livenessPassed || isSubmitting || isDetecting}>
             {isSubmitting ? (
               <>
                 <Loader2 className="h-4 w-4 animate-spin mr-2" />

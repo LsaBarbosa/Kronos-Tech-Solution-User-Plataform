@@ -27,6 +27,7 @@ export const deleteEmployee = async (employeeId: string): Promise<void> => {
 
 interface BiometricEnrollmentRequest {
   faceImageBase64: string;
+  livenessPassed?: boolean;
 }
 
 export const enrollBiometric = async (request: BiometricEnrollmentRequest): Promise<void> => {

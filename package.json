@@ -53,6 +53,7 @@
     "date-fns": "^3.6.0",
     "date-fns-holiday-br": "^1.0.7",
     "embla-carousel-react": "^8.6.0",
+    "face-api.js": "^0.22.2",
     "holidays-br": "^1.0.1",
     "input-otp": "^1.4.2",
     "jspdf": "^4.2.1",
