@@ -13,6 +13,8 @@ import ConsentHistoryCard from "@/components/privacy/ConsentHistoryCard";
 import RevocationInfoCard from "@/components/privacy/RevocationInfoCard";
 import DPOContactCard from "@/components/privacy/DPOContactCard";
 import PrivacyPolicyCard from "@/components/privacy/PrivacyPolicyCard";
+import ExportConfirmationModal from "@/components/privacy/ExportConfirmationModal";
+import ExportManifestDisplay, { ExportManifest } from "@/components/privacy/ExportManifestDisplay";
 import { exportEmployeeData } from "@/service/lgpd.service";
 import { getServiceErrorMessage } from "@/service/helpers/service-error.helper";
 import { useAuth } from "@/context/AuthContext";
@@ -20,12 +22,14 @@ import { useAuth } from "@/context/AuthContext";
 const PrivacyCenter = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [refreshKey, setRefreshKey] = useState(0);
+  const [showExportModal, setShowExportModal] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
+  const [exportManifest, setExportManifest] = useState<ExportManifest | null>(null);
   const { user } = useAuth();
 
   const handleToggleSidebar = useCallback(() => setSidebarOpen((prev) => !prev), []);
 
-  const handleExportData = async () => {
+  const handleExportDataConfirmed = async () => {
     if (!user?.profile?.employeeId) {
       toast.error("ID do colaborador não disponível.");
       return;
@@ -45,7 +49,24 @@ const PrivacyCenter = () => {
       document.body.removeChild(link);
       URL.revokeObjectURL(url);
 
+      // Show success message
       toast.success("Dados exportados com sucesso!");
+
+      // Display export manifest (Task 06-02)
+      setExportManifest({
+        exportedAt: new Date().toISOString(),
+        includedGeolocation: false,
+        sections: [
+          "CPF",
+          "CONTACT",
+          "SALARY",
+          "DOCUMENTS",
+          "TIME_RECORDS",
+          "MESSAGES",
+          "AUDIT_LOGS",
+          "CONSENTS",
+        ],
+      });
     } catch (error) {
       toast.error(
         getServiceErrorMessage(error, "Erro ao exportar dados. Tente novamente.")
@@ -53,6 +74,14 @@ const PrivacyCenter = () => {
     } finally {
       setIsExporting(false);
     }
+  };
+
+  const handleExportClick = () => {
+    setShowExportModal(true);
+  };
+
+  const handleDismissManifest = () => {
+    setExportManifest(null);
   };
 
   return (
@@ -71,6 +100,13 @@ const PrivacyCenter = () => {
 
       <Header isOpen={sidebarOpen} toggleSidebar={handleToggleSidebar} />
       <Sidebar isOpen={sidebarOpen} toggleSidebar={handleToggleSidebar} />
+
+      {/* Export Confirmation Modal */}
+      <ExportConfirmationModal
+        open={showExportModal}
+        onOpenChange={setShowExportModal}
+        onConfirm={handleExportDataConfirmed}
+      />
 
       <main className="relative z-10 pt-20 lg:pt-24 pb-8 px-4 md:px-8">
         <div className="max-w-4xl mx-auto">
@@ -106,18 +142,28 @@ const PrivacyCenter = () => {
                   Baixe uma cópia de todos os seus dados pessoais em formato JSON
                 </p>
               </div>
-              <Card>
-                <CardContent className="pt-6">
-                  <Button
-                    onClick={handleExportData}
-                    disabled={isExporting}
-                    className="gap-2"
-                  >
-                    <Download className="h-4 w-4" />
-                    {isExporting ? "Exportando..." : "Exportar Meus Dados"}
-                  </Button>
-                </CardContent>
-              </Card>
+              <div className="space-y-4">
+                <Card>
+                  <CardContent className="pt-6">
+                    <Button
+                      onClick={handleExportClick}
+                      disabled={isExporting}
+                      className="gap-2"
+                    >
+                      <Download className="h-4 w-4" />
+                      Exportar Meus Dados
+                    </Button>
+                  </CardContent>
+                </Card>
+
+                {/* Export Manifest Display */}
+                {exportManifest && (
+                  <ExportManifestDisplay
+                    manifest={exportManifest}
+                    onDismiss={handleDismissManifest}
+                  />
+                )}
+              </div>
             </section>
 
             <Separator />

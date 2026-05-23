@@ -102,7 +102,7 @@ export const updateInventory = async (
   payload: CreateInventoryPayload
 ): Promise<DataProcessingInventoryResponse> => {
   const response = await api.patch<DataProcessingInventoryResponse>(
-    buildRoute(API_ROUTES.LGPD, `inventory/${inventoryId}`),
+    buildRoute(API_ROUTES.LGPD, LGPD_PATHS.INVENTORY_BY_ID(inventoryId)),
     payload
   );
   return response.data;

@@ -103,7 +103,9 @@ export const LGPD_PATHS = {
   TRANSITION_STATUS: (requestId: string) => `admin/requests/${requestId}/transition-status`,
   REQUEST_COMPLEMENT: (requestId: string) => `admin/requests/${requestId}/request-complement`,
   CANCEL_REQUEST: (requestId: string) => `admin/requests/${requestId}/cancel`,
+  ANONYMIZATION_RESULT: (requestId: string) => `admin/requests/${requestId}/anonymization-result`,
   INVENTORY: "inventory",
   INVENTORY_ACTIVE: "inventory/active",
   INVENTORY_BY_CODE: (processCode: string) => `inventory/${processCode}`,
+  INVENTORY_BY_ID: (inventoryId: string) => `inventory/${inventoryId}`,
 } as const;

@@ -114,6 +114,38 @@ export interface CancelRequestPayload {
   reason: string;
 }
 
+export interface AnonymizationSummaryResponse {
+  totalScanned: number;
+  totalAffected: number;
+  totalSkipped: number;
+  totalErrors: number;
+}
+
+export interface AnonymizationDomainResultResponse {
+  resourceType: string;
+  status: string;
+  scanned: number;
+  affected: number;
+  skipped: number;
+  errorCount: number;
+  notes: string | null;
+}
+
+export interface AnonymizationConsolidatedResultResponse {
+  consolidatedExecutionId: string;
+  employeeId: string;
+  companyId: string;
+  consolidatedStatus: "SUCCESS" | "PARTIAL_SUCCESS" | "FAILED" | "BLOCKED";
+  executionMode: "DRY_RUN" | "APPLY";
+  startedAt: string;
+  finishedAt: string;
+  durationMs: number;
+  summary: AnonymizationSummaryResponse;
+  domainResults: AnonymizationDomainResultResponse[];
+  failedDomains: string[];
+  warnings: string[];
+}
+
 export const createLgpdRequest = async (payload: CreateLgpdRequestPayload): Promise<void> => {
   await api.post(buildRoute(API_ROUTES.LGPD, LGPD_PATHS.REQUESTS), payload);
 };
@@ -242,6 +274,21 @@ export const cancelLgpdRequest = async (
     payload
   );
   return response.data;
+};
+
+export const getAnonymizationResult = async (
+  requestId: string
+): Promise<AnonymizationConsolidatedResultResponse | null> => {
+  try {
+    const response = await api.get<AnonymizationConsolidatedResultResponse>(
+      buildRoute(API_ROUTES.LGPD, LGPD_PATHS.ANONYMIZATION_RESULT(requestId))
+    );
+    return response.data || null;
+  } catch (error) {
+    // If endpoint returns 204 or not found, return null
+    console.debug("Anonymization result not available:", error);
+    return null;
+  }
 };
 
 export const getAvailableTransitions = (currentStatus: LgpdRequestStatus): LgpdRequestStatus[] => {
