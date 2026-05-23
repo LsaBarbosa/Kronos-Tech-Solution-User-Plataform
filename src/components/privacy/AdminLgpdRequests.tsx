@@ -65,9 +65,11 @@ export const AdminLgpdRequests = () => {
     "IN_ANALYSIS",
     "WAITING_CONTROLLER",
     "WAITING_LEGAL_REVIEW",
+    "WAITING_DATA_SUBJECT",
     "COMPLETED",
     "REJECTED",
     "PARTIALLY_COMPLETED",
+    "CANCELLED",
   ];
 
   const fetchRequests = async () => {
@@ -105,9 +107,11 @@ export const AdminLgpdRequests = () => {
       IN_ANALYSIS: "bg-yellow-100 text-yellow-800",
       WAITING_CONTROLLER: "bg-orange-100 text-orange-800",
       WAITING_LEGAL_REVIEW: "bg-purple-100 text-purple-800",
+      WAITING_DATA_SUBJECT: "bg-indigo-100 text-indigo-800",
       COMPLETED: "bg-green-100 text-green-800",
       REJECTED: "bg-red-100 text-red-800",
       PARTIALLY_COMPLETED: "bg-amber-100 text-amber-800",
+      CANCELLED: "bg-gray-100 text-gray-800",
     };
     return colors[status] || "bg-gray-100 text-gray-800";
   };
@@ -118,9 +122,11 @@ export const AdminLgpdRequests = () => {
       IN_ANALYSIS: "Em Análise",
       WAITING_CONTROLLER: "Aguardando Controlador",
       WAITING_LEGAL_REVIEW: "Aguardando Revisão Legal",
+      WAITING_DATA_SUBJECT: "Aguardando Sujeito de Dados",
       COMPLETED: "Concluído",
       REJECTED: "Rejeitado",
       PARTIALLY_COMPLETED: "Parcialmente Concluído",
+      CANCELLED: "Cancelado",
     };
     return labels[status] || status;
   };

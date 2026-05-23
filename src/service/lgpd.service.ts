@@ -17,9 +17,11 @@ export type LgpdRequestStatus =
   | "IN_ANALYSIS"
   | "WAITING_CONTROLLER"
   | "WAITING_LEGAL_REVIEW"
+  | "WAITING_DATA_SUBJECT"
   | "COMPLETED"
   | "REJECTED"
-  | "PARTIALLY_COMPLETED";
+  | "PARTIALLY_COMPLETED"
+  | "CANCELLED";
 
 export interface LgpdRequestResponse {
   requestId: string;
@@ -95,6 +97,21 @@ export interface PaginatedResponse<T> {
 export interface CreateLgpdRequestPayload {
   type: LgpdRequestType;
   description: string;
+}
+
+export interface LgpdRequestTransitionPayload {
+  newStatus: LgpdRequestStatus;
+  publicNotes?: string;
+  internalNotes?: string;
+  closedReason?: string;
+}
+
+export interface RequestComplementPayload {
+  message: string;
+}
+
+export interface CancelRequestPayload {
+  reason: string;
 }
 
 export const createLgpdRequest = async (payload: CreateLgpdRequestPayload): Promise<void> => {
@@ -192,4 +209,52 @@ export const rejectRequest = async (
     { closedReason, publicNote, internalNote }
   );
   return response.data;
+};
+
+export const transitionRequestStatus = async (
+  requestId: string,
+  payload: LgpdRequestTransitionPayload
+): Promise<LgpdRequestResponse> => {
+  const response = await api.post<LgpdRequestResponse>(
+    buildRoute(API_ROUTES.LGPD, LGPD_PATHS.TRANSITION_STATUS(requestId)),
+    payload
+  );
+  return response.data;
+};
+
+export const requestComplementFromDataSubject = async (
+  requestId: string,
+  payload: RequestComplementPayload
+): Promise<LgpdRequestResponse> => {
+  const response = await api.post<LgpdRequestResponse>(
+    buildRoute(API_ROUTES.LGPD, LGPD_PATHS.REQUEST_COMPLEMENT(requestId)),
+    payload
+  );
+  return response.data;
+};
+
+export const cancelLgpdRequest = async (
+  requestId: string,
+  payload: CancelRequestPayload
+): Promise<LgpdRequestResponse> => {
+  const response = await api.post<LgpdRequestResponse>(
+    buildRoute(API_ROUTES.LGPD, LGPD_PATHS.CANCEL_REQUEST(requestId)),
+    payload
+  );
+  return response.data;
+};
+
+export const getAvailableTransitions = (currentStatus: LgpdRequestStatus): LgpdRequestStatus[] => {
+  const transitions: Record<LgpdRequestStatus, LgpdRequestStatus[]> = {
+    OPEN: ["IN_ANALYSIS", "REJECTED", "CANCELLED"],
+    IN_ANALYSIS: ["WAITING_CONTROLLER", "REJECTED", "CANCELLED"],
+    WAITING_CONTROLLER: ["WAITING_LEGAL_REVIEW", "REJECTED", "CANCELLED"],
+    WAITING_LEGAL_REVIEW: ["WAITING_DATA_SUBJECT", "COMPLETED", "PARTIALLY_COMPLETED", "REJECTED", "CANCELLED"],
+    WAITING_DATA_SUBJECT: ["IN_ANALYSIS", "COMPLETED", "PARTIALLY_COMPLETED", "REJECTED", "CANCELLED"],
+    COMPLETED: [],
+    REJECTED: [],
+    PARTIALLY_COMPLETED: [],
+    CANCELLED: [],
+  };
+  return transitions[currentStatus] || [];
 };

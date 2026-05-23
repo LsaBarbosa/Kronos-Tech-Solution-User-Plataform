@@ -9,8 +9,13 @@ import {
   completeRequest,
   rejectRequest,
   addNote,
+  transitionRequestStatus,
+  requestComplementFromDataSubject,
+  cancelLgpdRequest,
+  getAvailableTransitions,
   type LgpdRequestDetailsResponse,
   type LgpdRequestStatus,
+  type LgpdRequestTransitionPayload,
 } from "@/service/lgpd.service";
 const formatDate = (dateString: string | Date): string => {
   try {
@@ -37,6 +42,13 @@ export const AdminLgpdRequestDetails = () => {
   const [resolutionNotes, setResolutionNotes] = useState("");
   const [rejectionReason, setRejectionReason] = useState("");
   const [rejectionNote, setRejectionNote] = useState("");
+  const [showTransitionDialog, setShowTransitionDialog] = useState(false);
+  const [selectedTransition, setSelectedTransition] = useState<LgpdRequestStatus | null>(null);
+  const [transitionNotes, setTransitionNotes] = useState("");
+  const [complementMessage, setComplementMessage] = useState("");
+  const [showComplementDialog, setShowComplementDialog] = useState(false);
+  const [cancelReason, setCancelReason] = useState("");
+  const [showCancelDialog, setShowCancelDialog] = useState(false);
 
   useEffect(() => {
     const fetchDetails = async () => {
@@ -89,9 +101,11 @@ export const AdminLgpdRequestDetails = () => {
       IN_ANALYSIS: "bg-yellow-100 text-yellow-800",
       WAITING_CONTROLLER: "bg-orange-100 text-orange-800",
       WAITING_LEGAL_REVIEW: "bg-purple-100 text-purple-800",
+      WAITING_DATA_SUBJECT: "bg-indigo-100 text-indigo-800",
       COMPLETED: "bg-green-100 text-green-800",
       REJECTED: "bg-red-100 text-red-800",
       PARTIALLY_COMPLETED: "bg-amber-100 text-amber-800",
+      CANCELLED: "bg-gray-100 text-gray-800",
     };
     return colors[status] || "bg-gray-100 text-gray-800";
   };
@@ -102,9 +116,11 @@ export const AdminLgpdRequestDetails = () => {
       IN_ANALYSIS: "Em Análise",
       WAITING_CONTROLLER: "Aguardando Controlador",
       WAITING_LEGAL_REVIEW: "Aguardando Revisão Legal",
+      WAITING_DATA_SUBJECT: "Aguardando Sujeito de Dados",
       COMPLETED: "Concluído",
       REJECTED: "Rejeitado",
       PARTIALLY_COMPLETED: "Parcialmente Concluído",
+      CANCELLED: "Cancelado",
     };
     return labels[status] || status;
   };
@@ -147,6 +163,97 @@ export const AdminLgpdRequestDetails = () => {
       }
     } catch (err) {
       alert("Erro ao rejeitar solicitação: " + (err instanceof Error ? err.message : "Erro desconhecido"));
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const handleTransition = async () => {
+    if (!requestId || !selectedTransition) {
+      alert("Status de transição é obrigatório");
+      return;
+    }
+
+    const payload: LgpdRequestTransitionPayload = {
+      newStatus: selectedTransition,
+      publicNotes: transitionNotes.trim() || undefined,
+      internalNotes: undefined,
+      closedReason:
+        selectedTransition === "REJECTED" && rejectionReason.trim()
+          ? rejectionReason.trim()
+          : undefined,
+    };
+
+    try {
+      setActionLoading(true);
+      await transitionRequestStatus(requestId, payload);
+      alert("Solicitação transicionada com sucesso!");
+      if (requestId) {
+        const updated = await getAdminRequestDetails(requestId);
+        setRequest(updated);
+        setShowTransitionDialog(false);
+        setSelectedTransition(null);
+        setTransitionNotes("");
+      }
+    } catch (err) {
+      alert(
+        "Erro ao transicionar solicitação: " +
+          (err instanceof Error ? err.message : "Erro desconhecido")
+      );
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const handleRequestComplement = async () => {
+    if (!requestId || !complementMessage.trim()) {
+      alert("Mensagem é obrigatória");
+      return;
+    }
+
+    try {
+      setActionLoading(true);
+      await requestComplementFromDataSubject(requestId, {
+        message: complementMessage.trim(),
+      });
+      alert("Solicitação de complemento enviada com sucesso!");
+      if (requestId) {
+        const updated = await getAdminRequestDetails(requestId);
+        setRequest(updated);
+        setShowComplementDialog(false);
+        setComplementMessage("");
+      }
+    } catch (err) {
+      alert(
+        "Erro ao solicitar complemento: " +
+          (err instanceof Error ? err.message : "Erro desconhecido")
+      );
+    } finally {
+      setActionLoading(false);
+    }
+  };
+
+  const handleCancel = async () => {
+    if (!requestId || !cancelReason.trim()) {
+      alert("Motivo do cancelamento é obrigatório");
+      return;
+    }
+
+    try {
+      setActionLoading(true);
+      await cancelLgpdRequest(requestId, { reason: cancelReason.trim() });
+      alert("Solicitação cancelada com sucesso!");
+      if (requestId) {
+        const updated = await getAdminRequestDetails(requestId);
+        setRequest(updated);
+        setShowCancelDialog(false);
+        setCancelReason("");
+      }
+    } catch (err) {
+      alert(
+        "Erro ao cancelar solicitação: " +
+          (err instanceof Error ? err.message : "Erro desconhecido")
+      );
     } finally {
       setActionLoading(false);
     }
@@ -218,66 +325,204 @@ export const AdminLgpdRequestDetails = () => {
                 </div>
               )}
 
-              {request.request.status !== "COMPLETED" && request.request.status !== "REJECTED" && (
+              {!["COMPLETED", "REJECTED", "PARTIALLY_COMPLETED", "CANCELLED"].includes(
+                request.request.status
+              ) && (
                 <div className="space-y-4 pt-4 border-t">
-                  <div>
-                    <label className="text-sm font-medium text-foreground mb-2 block">Nota de Resolução</label>
-                    <textarea
-                      value={resolutionNotes}
-                      onChange={(e) => setResolutionNotes(e.target.value)}
-                      placeholder="Descreva a resolução da solicitação"
-                      className="w-full px-3 py-2 text-sm border rounded bg-white text-foreground placeholder-muted-foreground"
-                      rows={3}
-                      disabled={actionLoading}
-                    />
-                  </div>
-                  <div className="flex gap-2">
+                  <p className="text-sm font-medium text-foreground">Ações Disponíveis</p>
+                  <div className="grid grid-cols-2 gap-2">
                     <Button
-                      onClick={handleComplete}
-                      disabled={actionLoading || !resolutionNotes.trim()}
-                      className="flex-1"
-                      variant="default"
+                      onClick={() => setShowTransitionDialog(true)}
+                      disabled={actionLoading}
+                      variant="outline"
+                      size="sm"
                     >
-                      <CheckCircle className="h-4 w-4 mr-2" />
-                      Concluir
+                      <CheckCircle className="h-4 w-4 mr-1" />
+                      Transicionar
+                    </Button>
+                    {request.request.status === "WAITING_DATA_SUBJECT" && (
+                      <Button
+                        onClick={() => setShowComplementDialog(true)}
+                        disabled={actionLoading}
+                        variant="outline"
+                        size="sm"
+                      >
+                        <MessageSquare className="h-4 w-4 mr-1" />
+                        Solicitar Complemento
+                      </Button>
+                    )}
+                    <Button
+                      onClick={() => setShowCancelDialog(true)}
+                      disabled={actionLoading}
+                      variant="outline"
+                      size="sm"
+                    >
+                      Cancelar
                     </Button>
                   </div>
                 </div>
               )}
 
-              {request.request.status !== "COMPLETED" && request.request.status !== "REJECTED" && (
-                <div className="space-y-4 pt-4 border-t">
+              {showTransitionDialog && (
+                <div className="space-y-4 pt-4 border-t bg-gray-50 p-4 rounded">
                   <div>
-                    <label className="text-sm font-medium text-foreground mb-2 block">Motivo da Rejeição</label>
+                    <label className="text-sm font-medium text-foreground mb-2 block">
+                      Novo Status
+                    </label>
+                    <select
+                      value={selectedTransition || ""}
+                      onChange={(e) =>
+                        setSelectedTransition(e.target.value as LgpdRequestStatus)
+                      }
+                      className="w-full px-3 py-2 text-sm border rounded bg-white text-foreground"
+                      disabled={actionLoading}
+                    >
+                      <option value="">Selecione um status</option>
+                      {getAvailableTransitions(request.request.status).map((status) => (
+                        <option key={status} value={status}>
+                          {getStatusLabel(status)}
+                        </option>
+                      ))}
+                    </select>
+                  </div>
+
+                  {selectedTransition === "REJECTED" && (
+                    <div>
+                      <label className="text-sm font-medium text-foreground mb-2 block">
+                        Motivo da Rejeição
+                      </label>
+                      <input
+                        type="text"
+                        value={rejectionReason}
+                        onChange={(e) => setRejectionReason(e.target.value)}
+                        placeholder="Ex: Solicitação inválida"
+                        className="w-full px-3 py-2 text-sm border rounded bg-white text-foreground placeholder-muted-foreground"
+                        disabled={actionLoading}
+                      />
+                    </div>
+                  )}
+
+                  {["COMPLETED", "PARTIALLY_COMPLETED"].includes(selectedTransition || "") && (
+                    <div>
+                      <label className="text-sm font-medium text-foreground mb-2 block">
+                        Notas de Resolução
+                      </label>
+                      <textarea
+                        value={transitionNotes}
+                        onChange={(e) => setTransitionNotes(e.target.value)}
+                        placeholder="Descreva a resolução"
+                        className="w-full px-3 py-2 text-sm border rounded bg-white text-foreground placeholder-muted-foreground"
+                        rows={3}
+                        disabled={actionLoading}
+                      />
+                    </div>
+                  )}
+
+                  <div className="flex gap-2">
+                    <Button
+                      onClick={handleTransition}
+                      disabled={
+                        actionLoading ||
+                        !selectedTransition ||
+                        (selectedTransition === "REJECTED" && !rejectionReason.trim()) ||
+                        (["COMPLETED", "PARTIALLY_COMPLETED"].includes(selectedTransition || "") &&
+                          !transitionNotes.trim())
+                      }
+                      className="flex-1"
+                      variant="default"
+                    >
+                      Confirmar Transição
+                    </Button>
+                    <Button
+                      onClick={() => {
+                        setShowTransitionDialog(false);
+                        setSelectedTransition(null);
+                        setTransitionNotes("");
+                        setRejectionReason("");
+                      }}
+                      disabled={actionLoading}
+                      variant="outline"
+                      className="flex-1"
+                    >
+                      Cancelar
+                    </Button>
+                  </div>
+                </div>
+              )}
+
+              {showComplementDialog && (
+                <div className="space-y-4 pt-4 border-t bg-gray-50 p-4 rounded">
+                  <div>
+                    <label className="text-sm font-medium text-foreground mb-2 block">
+                      Mensagem de Solicitação
+                    </label>
+                    <textarea
+                      value={complementMessage}
+                      onChange={(e) => setComplementMessage(e.target.value)}
+                      placeholder="Descreva quais informações adicionais são necessárias"
+                      className="w-full px-3 py-2 text-sm border rounded bg-white text-foreground placeholder-muted-foreground"
+                      rows={4}
+                      disabled={actionLoading}
+                    />
+                  </div>
+                  <div className="flex gap-2">
+                    <Button
+                      onClick={handleRequestComplement}
+                      disabled={actionLoading || !complementMessage.trim()}
+                      className="flex-1"
+                      variant="default"
+                    >
+                      Enviar Solicitação
+                    </Button>
+                    <Button
+                      onClick={() => {
+                        setShowComplementDialog(false);
+                        setComplementMessage("");
+                      }}
+                      disabled={actionLoading}
+                      variant="outline"
+                      className="flex-1"
+                    >
+                      Cancelar
+                    </Button>
+                  </div>
+                </div>
+              )}
+
+              {showCancelDialog && (
+                <div className="space-y-4 pt-4 border-t bg-gray-50 p-4 rounded">
+                  <div>
+                    <label className="text-sm font-medium text-foreground mb-2 block">
+                      Motivo do Cancelamento
+                    </label>
                     <input
                       type="text"
-                      value={rejectionReason}
-                      onChange={(e) => setRejectionReason(e.target.value)}
-                      placeholder="Ex: Solicitação inválida, falta de documentação"
+                      value={cancelReason}
+                      onChange={(e) => setCancelReason(e.target.value)}
+                      placeholder="Explique o motivo do cancelamento"
                       className="w-full px-3 py-2 text-sm border rounded bg-white text-foreground placeholder-muted-foreground"
                       disabled={actionLoading}
                     />
                   </div>
-                  <div>
-                    <label className="text-sm font-medium text-foreground mb-2 block">Nota de Rejeição</label>
-                    <textarea
-                      value={rejectionNote}
-                      onChange={(e) => setRejectionNote(e.target.value)}
-                      placeholder="Motivo detalhado da rejeição"
-                      className="w-full px-3 py-2 text-sm border rounded bg-white text-foreground placeholder-muted-foreground"
-                      rows={3}
-                      disabled={actionLoading}
-                    />
-                  </div>
-                  <div>
+                  <div className="flex gap-2">
                     <Button
-                      onClick={handleReject}
-                      disabled={actionLoading || !rejectionReason.trim() || !rejectionNote.trim()}
+                      onClick={handleCancel}
+                      disabled={actionLoading || !cancelReason.trim()}
+                      className="flex-1"
                       variant="destructive"
-                      className="w-full"
                     >
-                      <XCircle className="h-4 w-4 mr-2" />
-                      Rejeitar
+                      Confirmar Cancelamento
+                    </Button>
+                    <Button
+                      onClick={() => {
+                        setShowCancelDialog(false);
+                        setCancelReason("");
+                      }}
+                      disabled={actionLoading}
+                      variant="outline"
+                      className="flex-1"
+                    >
+                      Voltar
                     </Button>
                   </div>
                 </div>
