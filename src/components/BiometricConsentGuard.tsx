@@ -50,8 +50,8 @@ export const BiometricConsentGuard: React.FC<BiometricConsentGuardProps> = ({
     setCurrentTerm(null);
 
     try {
-      const accepted = await checkTermsStatus();
-      if (accepted) {
+      const response = await checkTermsStatus();
+      if (response.accepted) {
         setStatus("accepted");
         return;
       }

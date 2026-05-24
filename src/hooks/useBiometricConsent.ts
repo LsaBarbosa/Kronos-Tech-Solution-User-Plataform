@@ -19,9 +19,9 @@ export const useBiometricConsent = (): UseBiometricConsentResult => {
     setError(null);
 
     try {
-      const accepted = await checkTermsStatus();
-      setHasActiveConsent(accepted);
-      return accepted;
+      const response = await checkTermsStatus();
+      setHasActiveConsent(response.accepted);
+      return response.accepted;
     } catch (err) {
       const serviceError = normalizeServiceError(err);
       setError(serviceError.message);

@@ -3,6 +3,10 @@ import { ConsentHistoryResponse, CurrentLegalTextResponse } from '@/types/legal'
 
 const TERMS_BASE = 'terms'
 
+export interface TermsStatusResponse {
+  accepted: boolean;
+}
+
 export const getConsentHistory = async (): Promise<ConsentHistoryResponse[]> => {
   const response = await api.get<ConsentHistoryResponse[]>(
     `${TERMS_BASE}/consents/history`
@@ -17,8 +21,8 @@ export const getCurrentBiometricTerm = async (): Promise<CurrentLegalTextRespons
   return response.data
 }
 
-export const checkTermsStatus = async (): Promise<{ accepted: boolean }> => {
-  const response = await api.get<{ accepted: boolean }>(
+export const checkTermsStatus = async (): Promise<TermsStatusResponse> => {
+  const response = await api.get<TermsStatusResponse>(
     `${TERMS_BASE}/status`
   )
   return response.data

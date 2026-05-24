@@ -36,8 +36,26 @@ describe("BiometricConsentCard", () => {
     termsMocks.revokeBiometricTerms.mockResolvedValue(undefined);
   });
 
+  it("exibe consentimento ativo quando accepted=true", async () => {
+    termsMocks.checkTermsStatus.mockResolvedValue({ accepted: true });
+
+    render(<BiometricConsentCard />);
+
+    expect(await screen.findByText("Consentimento ativo")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /Revogar biometria/i })).not.toBeDisabled();
+  });
+
+  it("exibe consentimento revogado quando accepted=false", async () => {
+    termsMocks.checkTermsStatus.mockResolvedValue({ accepted: false });
+
+    render(<BiometricConsentCard />);
+
+    expect(await screen.findByText("Consentimento revogado ou pendente")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /Revogar biometria/i })).toBeDisabled();
+  });
+
   it("exibe consentimento ativo e permite abrir o dialogo de revogacao", async () => {
-    termsMocks.checkTermsStatus.mockResolvedValue(true);
+    termsMocks.checkTermsStatus.mockResolvedValue({ accepted: true });
 
     render(<BiometricConsentCard />);
 
@@ -51,7 +69,7 @@ describe("BiometricConsentCard", () => {
   });
 
   it("revoga a biometria e atualiza a sessao apos confirmar", async () => {
-    termsMocks.checkTermsStatus.mockResolvedValue(true);
+    termsMocks.checkTermsStatus.mockResolvedValue({ accepted: true });
 
     render(<BiometricConsentCard />);
 
@@ -66,7 +84,7 @@ describe("BiometricConsentCard", () => {
   });
 
   it("permite cancelar a revogacao", async () => {
-    termsMocks.checkTermsStatus.mockResolvedValue(true);
+    termsMocks.checkTermsStatus.mockResolvedValue({ accepted: true });
 
     render(<BiometricConsentCard />);
 
@@ -85,7 +103,7 @@ describe("BiometricConsentCard", () => {
   it("mostra erro e permite recarregar o status", async () => {
     termsMocks.checkTermsStatus
       .mockRejectedValueOnce(new Error("Falha ao consultar status"))
-      .mockResolvedValueOnce(false);
+      .mockResolvedValueOnce({ accepted: false });
 
     render(<BiometricConsentCard />);
 

@@ -40,35 +40,59 @@ const ExportConfirmationModal = ({
         </DialogHeader>
 
         <div className="space-y-4 py-4">
-          {/* Warning Box */}
-          <div className="rounded-lg border border-amber-200 bg-amber-50 p-4">
-            <p className="text-sm font-semibold text-amber-900 mb-3">
-              O arquivo pode conter informações sensíveis:
+          {/* What's Included */}
+          <div className="rounded-lg border border-slate-200 bg-slate-50 p-4">
+            <p className="text-sm font-semibold text-slate-900 mb-2">
+              O arquivo incluirá todos os seus dados armazenados:
             </p>
-            <ul className="text-xs text-amber-800 space-y-1 ml-4 list-disc">
-              <li>CPF, PIS, RG</li>
-              <li>Endereço residencial completo</li>
-              <li>Informações de salário e benefícios</li>
+            <ul className="text-xs text-slate-700 space-y-1 ml-4 list-disc">
+              <li>Informações pessoais (CPF, RG, endereço)</li>
+              <li>Dados de contrato e folha de pagamento</li>
+              <li>Registro de ponto e geolocalização</li>
               <li>Documentos e anexos enviados</li>
-              <li>Histórico completo de ponto</li>
-              <li>Geolocalização com coordenadas precisas</li>
-              <li>Mensagens internas</li>
-              <li>Logs de atividades</li>
-              <li>Registros de consentimentos</li>
+              <li>Mensagens e comunicações internas</li>
+              <li>Histórico de atividades e logs</li>
+              <li>Dados de consentimento e preferências</li>
             </ul>
           </div>
 
-          {/* Security Notice */}
-          <div className="rounded-lg border border-blue-200 bg-blue-50 p-3">
-            <p className="text-xs text-blue-900">
-              <strong>Segurança:</strong> Guarde este arquivo em local seguro e não compartilhe com terceiros. O arquivo contém informações que identificam você pessoalmente.
+          {/* Sensitive Data Warning */}
+          <div className="rounded-lg border border-amber-200 bg-amber-50 p-4">
+            <p className="text-sm font-semibold text-amber-900 mb-2">
+              ⚠️ Dados sensíveis inclusos
+            </p>
+            <p className="text-xs text-amber-800">
+              Este arquivo pode conter informações sensíveis como biometria, dados de saúde em documentos, ou coordenadas geográficas precisas. Trate-o com cuidado.
+            </p>
+          </div>
+
+          {/* Security Instructions */}
+          <div className="rounded-lg border border-blue-200 bg-blue-50 p-4">
+            <p className="text-sm font-semibold text-blue-900 mb-2">
+              🔒 Como armazenar com segurança
+            </p>
+            <ul className="text-xs text-blue-800 space-y-1 ml-4 list-disc">
+              <li>Salve em local seguro no seu computador</li>
+              <li>Proteja com uma senha se possível</li>
+              <li>Não compartilhe o arquivo com terceiros</li>
+              <li>Considere armazená-lo em mídia criptografada</li>
+            </ul>
+          </div>
+
+          {/* Download and Audit Info */}
+          <div className="rounded-lg border border-slate-200 bg-slate-50 p-4">
+            <p className="text-xs text-slate-700">
+              <strong>📥 Download:</strong> O arquivo será baixado diretamente no navegador.
+            </p>
+            <p className="text-xs text-slate-700 mt-2">
+              <strong>📋 Auditoria:</strong> Esta exportação será registrada nos logs de auditoria para conformidade com LGPD.
             </p>
           </div>
 
           {/* Confirmation Prompt */}
           <div className="space-y-2">
             <p className="text-sm font-semibold text-foreground">
-              Deseja continuar com a exportação?
+              Entendo os riscos e desejo continuar com a exportação.
             </p>
           </div>
         </div>

@@ -10,24 +10,38 @@ describe("terms.service", () => {
   });
 
   describe("checkTermsStatus", () => {
-    it("retorna true quando o termo ja foi aceito", async () => {
+    it("retorna TermsStatusResponse com accepted=true quando o termo ja foi aceito", async () => {
       server.use(
         http.get("*/terms/status", () => {
           return HttpResponse.json({ accepted: true });
         })
       );
 
-      await expect(termsService.checkTermsStatus()).resolves.toBe(true);
+      await expect(termsService.checkTermsStatus()).resolves.toEqual({
+        accepted: true,
+      });
     });
 
-    it("retorna false quando o termo esta pendente", async () => {
+    it("retorna TermsStatusResponse com accepted=false quando o termo esta pendente", async () => {
       server.use(
         http.get("*/terms/status", () => {
           return HttpResponse.json({ accepted: false });
         })
       );
 
-      await expect(termsService.checkTermsStatus()).resolves.toBe(false);
+      await expect(termsService.checkTermsStatus()).resolves.toEqual({
+        accepted: false,
+      });
+    });
+
+    it("trata erro de rede corretamente", async () => {
+      server.use(
+        http.get("*/terms/status", () => {
+          return HttpResponse.json({ error: "Server error" }, { status: 500 });
+        })
+      );
+
+      await expect(termsService.checkTermsStatus()).rejects.toThrow();
     });
   });
 

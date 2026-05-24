@@ -24,8 +24,8 @@ const BiometricConsentCard = () => {
     setErrorMessage(null);
 
     try {
-      const accepted = await checkTermsStatus();
-      setStatus(accepted ? "active" : "revoked");
+      const response = await checkTermsStatus();
+      setStatus(response.accepted ? "active" : "revoked");
     } catch (error) {
       const serviceError = normalizeServiceError(error);
       setErrorMessage(serviceError.message);
@@ -94,7 +94,7 @@ const BiometricConsentCard = () => {
               className={`inline-flex items-center gap-2 rounded-full px-3 py-1 text-xs font-semibold ${
                 isActive
                   ? "bg-emerald-500/10 text-emerald-700"
-                  : "bg-slate-500/10 text-slate-700"
+                  : "bg-amber-500/10 text-amber-700"
               }`}
             >
               {isActive ? (
@@ -102,15 +102,14 @@ const BiometricConsentCard = () => {
               ) : (
                 <ShieldOff className="h-4 w-4" aria-hidden="true" />
               )}
-              {isActive ? "Consentimento ativo" : "Consentimento revogado ou pendente"}
+              {isActive ? "✓ Consentimento Ativo" : "⚠ Consentimento Pendente"}
             </div>
           </div>
         </CardHeader>
 
         <CardContent className="space-y-4 pt-6">
           <p className="text-sm leading-6 text-muted-foreground">
-            O consentimento biometrico controla o uso da sua imagem facial e dos templates de
-            reconhecimento vinculados aos fluxos autorizados da plataforma.
+            O consentimento biométrico autoriza o uso de sua imagem facial para fins de autenticação e validação de identidade na plataforma. Este consentimento é separado e independente de outros dados pessoais que você tenha compartilhado.
           </p>
 
           {isLoading ? (
@@ -133,42 +132,74 @@ const BiometricConsentCard = () => {
           ) : null}
 
           {!isLoading && !isError ? (
-            <div className="rounded-lg border bg-muted/30 p-4 text-sm text-foreground">
-              {isActive ? (
-                <p>
-                  Sua conta possui um consentimento biometrico ativo. Ao revogar, os artefatos de
-                  biometria serao removidos e sua sessao sera atualizada com um novo cookie.
-                </p>
-              ) : (
-                <p>
-                  Nao ha consentimento biometrico ativo para esta conta. O login facial e validacoes
-                  biometricas permanecem desabilitados ate um novo aceite.
-                </p>
+            <div className="space-y-4">
+              <div className="rounded-lg border bg-muted/30 p-4 text-sm text-foreground">
+                {isActive ? (
+                  <div className="space-y-2">
+                    <p className="font-medium text-emerald-700">✓ Seu consentimento está ativo</p>
+                    <p>
+                      Você autorizou o uso de sua biometria facial. Pode realizar login facial e validações biométricas na plataforma.
+                    </p>
+                  </div>
+                ) : (
+                  <div className="space-y-2">
+                    <p className="font-medium text-amber-700">⚠ Seu consentimento está pendente</p>
+                    <p>
+                      Você ainda não autorizou o uso de sua biometria. O cadastro e login facial estão desabilitados. Para usar esses recursos, você deve aceitar o termo de consentimento biométrico.
+                    </p>
+                  </div>
+                )}
+              </div>
+
+              {isActive && (
+                <div className="rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">
+                  <p className="font-medium">O que acontece ao revogar seu consentimento?</p>
+                  <ul className="mt-2 list-inside list-disc space-y-1 text-amber-800">
+                    <li>Seu arquivo biométrico será removido de nossos sistemas</li>
+                    <li>Você não poderá mais usar login facial</li>
+                    <li>Sua sessão será atualizada imediatamente</li>
+                    <li>Para usar biometria novamente, será necessário aceitar o consentimento novamente</li>
+                  </ul>
+                </div>
               )}
             </div>
           ) : null}
 
           <div className="flex flex-wrap gap-3">
-            <Button
-              type="button"
-              onClick={() => setEnrollmentModalOpen(true)}
-              disabled={!isActive || isLoading}
-              className="gap-2"
-            >
-              <Camera className="h-4 w-4" aria-hidden="true" />
-              Cadastrar Minha Biometria
-            </Button>
-            <Button
-              type="button"
-              variant="destructive"
-              onClick={() => setDialogOpen(true)}
-              disabled={!isActive || isRevoking || isLoading}
-            >
-              {isRevoking ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" /> : null}
-              Revogar biometria
-            </Button>
+            {isActive ? (
+              <>
+                <Button
+                  type="button"
+                  onClick={() => setEnrollmentModalOpen(true)}
+                  disabled={isLoading}
+                  className="gap-2"
+                >
+                  <Camera className="h-4 w-4" aria-hidden="true" />
+                  Cadastrar Minha Biometria
+                </Button>
+                <Button
+                  type="button"
+                  variant="destructive"
+                  onClick={() => setDialogOpen(true)}
+                  disabled={isRevoking || isLoading}
+                >
+                  {isRevoking ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" /> : null}
+                  Revogar Consentimento
+                </Button>
+              </>
+            ) : (
+              <Button
+                type="button"
+                onClick={() => setEnrollmentModalOpen(true)}
+                disabled={isLoading}
+                className="gap-2"
+              >
+                <Camera className="h-4 w-4" aria-hidden="true" />
+                Aceitar e Cadastrar Biometria
+              </Button>
+            )}
             <Button type="button" variant="outline" onClick={() => void loadConsentStatus()} disabled={isLoading}>
-              Atualizar status
+              Atualizar Status
             </Button>
           </div>
         </CardContent>
