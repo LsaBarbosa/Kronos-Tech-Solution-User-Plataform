@@ -1,13 +1,14 @@
 import { HttpResponse, http } from "msw";
-import { describe, expect, it, beforeEach } from "vitest";
+import { describe, expect, it, beforeEach, vi } from "vitest";
 import { server } from "@/test/mocks/server";
 import {
   createLgpdRequest,
   listLgpdRequests,
   exportEmployeeData,
+  getDataProcessingCatalog,
   type LgpdRequestResponse,
 } from "./lgpd.service";
-import { LgpdEmployeeExportResponse } from "@/types/legal";
+import { LgpdEmployeeExportResponse, DataProcessingPurpose } from "@/types/legal";
 
 describe("lgpd.service", () => {
   beforeEach(() => {
@@ -157,5 +158,145 @@ describe("lgpd.service", () => {
     );
 
     await expect(listLgpdRequests()).rejects.toThrow();
+  });
+
+  it("retorna catálogo de processamento de dados válido", async () => {
+    const mockCatalog: DataProcessingPurpose[] = [
+      {
+        code: "BIOMETRIC_AUTHENTICATION",
+        dataCategory: "BIOMETRIC",
+        legalBasis: "CONSENT",
+        purpose: "Autenticação biométrica",
+        retentionPolicyCode: "RETENTION_BIOMETRIC_ACTIVE_CONSENT",
+        sensitive: true,
+        active: true,
+      },
+      {
+        code: "TIME_RECORD_GEOLOCATION",
+        dataCategory: "GEOLOCATION",
+        legalBasis: "LEGAL_OBLIGATION",
+        purpose: "Comprovação de marcação de ponto",
+        retentionPolicyCode: "RETENTION_TIME_RECORD",
+        sensitive: false,
+        active: true,
+      },
+    ];
+
+    server.use(
+      http.get("*/lgpd/processing-catalog", () =>
+        HttpResponse.json(mockCatalog, { status: 200 })
+      )
+    );
+
+    const result = await getDataProcessingCatalog();
+    expect(result).toEqual(mockCatalog);
+    expect(result).toHaveLength(2);
+    expect(result[0].code).toBe("BIOMETRIC_AUTHENTICATION");
+    expect(result[1].sensitive).toBe(false);
+  });
+
+  it("retorna array vazio quando catálogo de processamento é vazio", async () => {
+    server.use(
+      http.get("*/lgpd/processing-catalog", () => HttpResponse.json([], { status: 200 }))
+    );
+
+    const result = await getDataProcessingCatalog();
+    expect(result).toEqual([]);
+    expect(result).toHaveLength(0);
+  });
+
+  it("retorna array vazio quando resposta é null", async () => {
+    server.use(
+      http.get("*/lgpd/processing-catalog", () => HttpResponse.json(null, { status: 200 }))
+    );
+
+    const result = await getDataProcessingCatalog();
+    expect(result).toEqual([]);
+  });
+
+  it("retorna array vazio quando resposta é undefined", async () => {
+    server.use(
+      http.get("*/lgpd/processing-catalog", () =>
+        HttpResponse.json(undefined, { status: 200 })
+      )
+    );
+
+    const result = await getDataProcessingCatalog();
+    expect(result).toEqual([]);
+  });
+
+  it("retorna array vazio quando resposta não é array", async () => {
+    server.use(
+      http.get("*/lgpd/processing-catalog", () =>
+        HttpResponse.json({ items: [] }, { status: 200 })
+      )
+    );
+
+    const result = await getDataProcessingCatalog();
+    expect(result).toEqual([]);
+  });
+
+  it("filtra itens inválidos do catálogo de processamento", async () => {
+    const invalidCatalog = [
+      {
+        code: "VALID_CODE",
+        dataCategory: "IDENTIFICATION",
+        legalBasis: "CONTRACT",
+        purpose: "Valid purpose",
+        retentionPolicyCode: "RETENTION_VALID",
+        sensitive: false,
+        active: true,
+      },
+      {
+        code: "", // Código vazio - inválido
+        dataCategory: "BIOMETRIC",
+        legalBasis: "CONSENT",
+        purpose: "Invalid due to empty code",
+        retentionPolicyCode: "RETENTION_BIOMETRIC",
+        sensitive: true,
+        active: true,
+      },
+      {
+        code: "MISSING_FIELDS",
+        dataCategory: "IDENTIFICATION",
+        // missing legalBasis - inválido
+        purpose: "Invalid due to missing field",
+        retentionPolicyCode: "RETENTION",
+        sensitive: false,
+        active: true,
+      },
+    ];
+
+    server.use(
+      http.get("*/lgpd/processing-catalog", () =>
+        HttpResponse.json(invalidCatalog, { status: 200 })
+      )
+    );
+
+    const result = await getDataProcessingCatalog();
+    expect(result).toHaveLength(1);
+    expect(result[0].code).toBe("VALID_CODE");
+  });
+
+  it("retorna array vazio quando erro ocorre na requisição", async () => {
+    server.use(
+      http.get("*/lgpd/processing-catalog", () =>
+        HttpResponse.json({ detail: "Erro ao buscar catálogo" }, { status: 500 })
+      )
+    );
+
+    const result = await getDataProcessingCatalog();
+    expect(result).toEqual([]);
+  });
+
+  it("retorna array vazio quando requisição falha com exceção de rede", async () => {
+    server.use(
+      http.get("*/lgpd/processing-catalog", () => {
+        throw new Error("Network error");
+      })
+    );
+
+    const result = await getDataProcessingCatalog();
+    expect(result).toEqual([]);
   });
 });

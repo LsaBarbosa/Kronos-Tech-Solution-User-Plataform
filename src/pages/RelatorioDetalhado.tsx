@@ -36,7 +36,6 @@ import { RelatorioFiltros } from "./RelatorioFiltros";
 import { Info, BarChart3, Loader2, CalendarDays } from "lucide-react";
 import { Link } from "react-router-dom";
 import { useAuth } from "@/context/AuthContext";
-import { downloadCsvFile, loadPdfLibraries } from "@/utils/report-export";
 import { usuarioPageColors } from "@/utils/usuario-colors";
 
 type AutoTableCell =
@@ -258,6 +257,7 @@ const RelatorioDetalhado = () => {
             return;
         }
 
+        const { loadPdfLibraries } = await import("@/utils/report-export");
         const { jsPDF, autoTable } = await loadPdfLibraries();
         const doc = new jsPDF();
         
@@ -482,24 +482,25 @@ const RelatorioDetalhado = () => {
     };
 
     // === CSV DETALHADO ===
-    const handleDownloadCSVDetailed = () => {
+    const handleDownloadCSVDetailed = async () => {
         if (reportData.length === 0) {
             toast({ title: "Erro", description: "Não há dados para gerar o CSV.", variant: "destructive" });
             return;
         }
 
+        const { downloadCsvFile } = await import("@/utils/report-export");
         const headers = ["Data Início", "Hora Início", "Data Fim", "Hora Fim", "Duração", "Saldo", "Status", "Funcionário", "Empresa"];
 
         const csvDataRows = reportData.map(item => {
             const isPending = item.statusRecord === 'PENDING';
             return [
-                item.startWork, 
+                item.startWork,
                 item.startHour,
-                isPending ? '' : item.endWork, 
-                isPending ? '' : item.endHour, 
+                isPending ? '' : item.endWork,
+                isPending ? '' : item.endHour,
                 isPending ? '' : item.hoursWork,
                 (item.statusRecord === 'IMPLICIT_BREAK' || isPending) ? '00:00' : item.balance,
-                getTranslatedStatus(item.statusRecord), 
+                getTranslatedStatus(item.statusRecord),
                 item.employeeData.employeeName,
                 item.employeeData.companyName,
             ];

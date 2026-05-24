@@ -106,6 +106,7 @@ export const LGPD_PATHS = {
   REQUEST_COMPLEMENT: (requestId: string) => `api/lgpd/admin/requests/${requestId}/request-complement`,
   CANCEL_REQUEST: (requestId: string) => `api/lgpd/admin/requests/${requestId}/cancel`,
   ANONYMIZATION_RESULT: (requestId: string) => `api/lgpd/admin/requests/${requestId}/anonymization-result`,
+  PROCESSING_CATALOG: "api/lgpd/processing-catalog",
   INVENTORY: "api/lgpd/inventory",
   INVENTORY_ACTIVE: "api/lgpd/inventory/active",
   INVENTORY_BY_CODE: (processCode: string) => `api/lgpd/inventory/${processCode}`,

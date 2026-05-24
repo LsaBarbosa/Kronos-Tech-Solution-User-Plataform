@@ -13,6 +13,7 @@ import ConsentHistoryCard from "@/components/privacy/ConsentHistoryCard";
 import RevocationInfoCard from "@/components/privacy/RevocationInfoCard";
 import DPOContactCard from "@/components/privacy/DPOContactCard";
 import PrivacyPolicyCard from "@/components/privacy/PrivacyPolicyCard";
+import DataProcessingCatalogCard from "@/components/privacy/DataProcessingCatalogCard";
 import ExportConfirmationModal from "@/components/privacy/ExportConfirmationModal";
 import ExportManifestDisplay, { ExportManifest } from "@/components/privacy/ExportManifestDisplay";
 import { exportEmployeeData } from "@/service/lgpd.service";
@@ -198,6 +199,19 @@ const PrivacyCenter = () => {
                 </p>
               </div>
               <RevocationInfoCard />
+            </section>
+
+            <Separator />
+
+            {/* Data Processing Catalog Section */}
+            <section>
+              <div className="mb-4">
+                <h2 className="text-xl font-semibold mb-1">Como Usamos Seus Dados</h2>
+                <p className="text-sm text-muted-foreground">
+                  Saiba quais dados coletamos, para que servem e quanto tempo os mantemos
+                </p>
+              </div>
+              <DataProcessingCatalogCard />
             </section>
 
             <Separator />

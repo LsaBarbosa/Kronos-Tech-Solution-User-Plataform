@@ -1,6 +1,6 @@
 import { api } from "@/config/api";
 import { API_ROUTES, LGPD_PATHS, buildRoute } from "@/config/api-routes";
-import { LgpdEmployeeExportResponse } from "@/types/legal";
+import { LgpdEmployeeExportResponse, DataProcessingPurpose } from "@/types/legal";
 
 export type LgpdRequestType =
   | "CONFIRM_PROCESSING"
@@ -306,4 +306,54 @@ export const getAvailableTransitions = (currentStatus: LgpdRequestStatus): LgpdR
     CANCELLED: [],
   };
   return transitions[currentStatus] || [];
+};
+
+const isValidDataProcessingPurpose = (item: unknown): item is DataProcessingPurpose => {
+  if (!item || typeof item !== 'object') return false;
+  const obj = item as Record<string, unknown>;
+  return (
+    typeof obj.code === 'string' &&
+    obj.code.length > 0 &&
+    typeof obj.dataCategory === 'string' &&
+    obj.dataCategory.length > 0 &&
+    typeof obj.legalBasis === 'string' &&
+    obj.legalBasis.length > 0 &&
+    typeof obj.purpose === 'string' &&
+    obj.purpose.length > 0 &&
+    typeof obj.retentionPolicyCode === 'string' &&
+    obj.retentionPolicyCode.length > 0 &&
+    typeof obj.sensitive === 'boolean' &&
+    typeof obj.active === 'boolean'
+  );
+};
+
+export const getDataProcessingCatalog = async (): Promise<DataProcessingPurpose[]> => {
+  try {
+    const response = await api.get<unknown>(
+      buildRoute(API_ROUTES.LGPD, LGPD_PATHS.PROCESSING_CATALOG)
+    );
+
+    if (!response.data) {
+      console.warn('Data processing catalog response is empty or null');
+      return [];
+    }
+
+    if (!Array.isArray(response.data)) {
+      console.warn('Data processing catalog response is not an array', response.data);
+      return [];
+    }
+
+    const validItems = response.data.filter((item): item is DataProcessingPurpose => {
+      const isValid = isValidDataProcessingPurpose(item);
+      if (!isValid) {
+        console.warn('Invalid data processing purpose item filtered out:', item);
+      }
+      return isValid;
+    });
+
+    return validItems;
+  } catch (error) {
+    console.error('Error fetching data processing catalog:', error);
+    return [];
+  }
 };
