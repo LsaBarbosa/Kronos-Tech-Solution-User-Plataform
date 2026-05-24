@@ -278,25 +278,43 @@ describe("lgpd.service", () => {
     expect(result[0].code).toBe("VALID_CODE");
   });
 
-  it("retorna array vazio quando erro ocorre na requisição", async () => {
+  it("lança erro quando servidor retorna 500", async () => {
     server.use(
       http.get("*/lgpd/processing-catalog", () =>
         HttpResponse.json({ detail: "Erro ao buscar catálogo" }, { status: 500 })
       )
     );
 
-    const result = await getDataProcessingCatalog();
-    expect(result).toEqual([]);
+    await expect(getDataProcessingCatalog()).rejects.toThrow();
   });
 
-  it("retorna array vazio quando requisição falha com exceção de rede", async () => {
+  it("lança erro quando requisição retorna 401 (Unauthorized)", async () => {
+    server.use(
+      http.get("*/lgpd/processing-catalog", () =>
+        HttpResponse.json({ detail: "Não autenticado" }, { status: 401 })
+      )
+    );
+
+    await expect(getDataProcessingCatalog()).rejects.toThrow();
+  });
+
+  it("lança erro quando requisição retorna 403 (Forbidden)", async () => {
+    server.use(
+      http.get("*/lgpd/processing-catalog", () =>
+        HttpResponse.json({ detail: "Sem permissão" }, { status: 403 })
+      )
+    );
+
+    await expect(getDataProcessingCatalog()).rejects.toThrow();
+  });
+
+  it("lança erro quando requisição falha com exceção inesperada", async () => {
     server.use(
       http.get("*/lgpd/processing-catalog", () => {
-        throw new Error("Network error");
+        throw new Error("Erro inesperado do servidor");
       })
     );
 
-    const result = await getDataProcessingCatalog();
-    expect(result).toEqual([]);
+    await expect(getDataProcessingCatalog()).rejects.toThrow();
   });
 });

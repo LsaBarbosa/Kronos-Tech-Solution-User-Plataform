@@ -1,6 +1,7 @@
 import { api } from "@/config/api";
 import { API_ROUTES, LGPD_PATHS, buildRoute } from "@/config/api-routes";
 import { LgpdEmployeeExportResponse, DataProcessingPurpose } from "@/types/legal";
+import { normalizeServiceError } from "@/service/helpers/service-error.helper";
 
 export type LgpdRequestType =
   | "CONFIRM_PROCESSING"
@@ -334,26 +335,35 @@ export const getDataProcessingCatalog = async (): Promise<DataProcessingPurpose[
     );
 
     if (!response.data) {
-      console.warn('Data processing catalog response is empty or null');
+      console.debug('Data processing catalog response is empty');
       return [];
     }
 
     if (!Array.isArray(response.data)) {
-      console.warn('Data processing catalog response is not an array', response.data);
+      console.warn('Data processing catalog response is not an array');
       return [];
     }
 
     const validItems = response.data.filter((item): item is DataProcessingPurpose => {
       const isValid = isValidDataProcessingPurpose(item);
       if (!isValid) {
-        console.warn('Invalid data processing purpose item filtered out:', item);
+        console.debug('Invalid data processing purpose item filtered out');
       }
       return isValid;
     });
 
     return validItems;
   } catch (error) {
-    console.error('Error fetching data processing catalog:', error);
-    return [];
+    // Normalize the error and differentiate between transient and application errors
+    const serviceError = normalizeServiceError(error);
+
+    // Return empty array only for transient network errors
+    if (serviceError.kind === 'network') {
+      console.debug('Network error fetching data processing catalog');
+      return [];
+    }
+
+    // Throw HTTP/application errors (401, 403, 500, etc.) so components can handle them properly
+    throw serviceError;
   }
 };

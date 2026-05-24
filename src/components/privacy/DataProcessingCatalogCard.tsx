@@ -6,17 +6,19 @@ import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { getDataProcessingCatalog } from "@/service/lgpd.service";
 import { DataProcessingPurpose } from "@/types/legal";
-import { getServiceErrorMessage } from "@/service/helpers/service-error.helper";
+import { getServiceErrorMessage, ServiceError } from "@/service/helpers/service-error.helper";
 
 const DataProcessingCatalogCard = () => {
   const [catalog, setCatalog] = useState<DataProcessingPurpose[]>([]);
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const [errorKind, setErrorKind] = useState<string | null>(null);
 
   const loadCatalog = async () => {
     try {
       setIsLoading(true);
       setError(null);
+      setErrorKind(null);
       const data = await getDataProcessingCatalog();
       setCatalog(Array.isArray(data) ? data : []);
     } catch (err) {
@@ -26,6 +28,20 @@ const DataProcessingCatalogCard = () => {
       );
       setError(errorMessage);
       setCatalog([]);
+
+      // Capture error kind for UI differentiation
+      if (err instanceof ServiceError) {
+        // Differentiate between 401 (auth error) and 403 (permission denied)
+        if (err.status === 401) {
+          setErrorKind("auth");
+        } else if (err.status === 403) {
+          setErrorKind("forbidden");
+        } else {
+          setErrorKind(err.kind);
+        }
+      } else {
+        setErrorKind("unknown");
+      }
     } finally {
       setIsLoading(false);
     }
@@ -57,15 +73,30 @@ const DataProcessingCatalogCard = () => {
   }
 
   if (error) {
+    let title = "Não foi possível carregar o catálogo";
+    let description = error;
+
+    // Customize message based on error kind
+    if (errorKind === "auth") {
+      title = "Sessão expirada";
+      description = "Por favor, faça login novamente para visualizar o catálogo de processamento de dados.";
+    } else if (errorKind === "notFound") {
+      title = "Catálogo não encontrado";
+      description = "O catálogo de processamento de dados não está disponível no momento.";
+    } else if (errorKind === "http") {
+      title = "Erro ao carregar catálogo";
+      description = "Ocorreu um erro temporário. Tente novamente em alguns instantes.";
+    }
+
     return (
       <Alert variant="destructive">
         <AlertCircle className="h-4 w-4" />
         <div className="flex-1">
           <AlertDescription className="font-medium">
-            Não foi possível carregar o catálogo
+            {title}
           </AlertDescription>
           <AlertDescription className="text-sm mt-1 text-destructive/90">
-            {error}
+            {description}
           </AlertDescription>
         </div>
         <Button
