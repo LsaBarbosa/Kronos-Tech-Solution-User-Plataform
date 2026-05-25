@@ -2,6 +2,7 @@ import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import BiometricConsentCard from "./BiometricConsentCard";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
 const authMocks = vi.hoisted(() => ({
   checkSession: vi.fn(),
@@ -27,6 +28,20 @@ vi.mock("@/hooks/use-toast", () => ({
   toast: vi.fn(),
 }));
 
+const renderWithProviders = (component: React.ReactElement) => {
+  const queryClientForTest = new QueryClient({
+    defaultOptions: {
+      queries: { retry: false },
+      mutations: { retry: false },
+    },
+  });
+  return render(
+    <QueryClientProvider client={queryClientForTest}>
+      {component}
+    </QueryClientProvider>
+  );
+};
+
 describe("BiometricConsentCard", () => {
   beforeEach(() => {
     authMocks.checkSession.mockReset();
@@ -39,29 +54,29 @@ describe("BiometricConsentCard", () => {
   it("exibe consentimento ativo quando accepted=true", async () => {
     termsMocks.checkTermsStatus.mockResolvedValue({ accepted: true });
 
-    render(<BiometricConsentCard />);
+    renderWithProviders(<BiometricConsentCard />);
 
-    expect(await screen.findByText("Consentimento ativo")).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /Revogar biometria/i })).not.toBeDisabled();
+    expect(await screen.findByText(/Consentimento Ativo/)).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: /Revogar Consentimento/i })).not.toBeDisabled();
   });
 
   it("exibe consentimento revogado quando accepted=false", async () => {
     termsMocks.checkTermsStatus.mockResolvedValue({ accepted: false });
 
-    render(<BiometricConsentCard />);
+    renderWithProviders(<BiometricConsentCard />);
 
-    expect(await screen.findByText("Consentimento revogado ou pendente")).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: /Revogar biometria/i })).toBeDisabled();
+    expect(await screen.findByText(/consentimento está pendente/)).toBeInTheDocument();
+    expect(screen.queryByRole("button", { name: /Revogar Consentimento/i })).not.toBeInTheDocument();
   });
 
   it("exibe consentimento ativo e permite abrir o dialogo de revogacao", async () => {
     termsMocks.checkTermsStatus.mockResolvedValue({ accepted: true });
 
-    render(<BiometricConsentCard />);
+    renderWithProviders(<BiometricConsentCard />);
 
-    expect(await screen.findByText("Consentimento ativo")).toBeInTheDocument();
+    expect(await screen.findByText(/Consentimento Ativo/)).toBeInTheDocument();
 
-    await userEvent.click(screen.getByRole("button", { name: /Revogar biometria/i }));
+    await userEvent.click(screen.getByRole("button", { name: /Revogar Consentimento/i }));
 
     expect(
       screen.getByRole("heading", { name: /Revogar consentimento biometrico/i })
@@ -71,10 +86,10 @@ describe("BiometricConsentCard", () => {
   it("revoga a biometria e atualiza a sessao apos confirmar", async () => {
     termsMocks.checkTermsStatus.mockResolvedValue({ accepted: true });
 
-    render(<BiometricConsentCard />);
+    renderWithProviders(<BiometricConsentCard />);
 
-    await screen.findByText("Consentimento ativo");
-    await userEvent.click(screen.getByRole("button", { name: /Revogar biometria/i }));
+    await screen.findByText(/Consentimento Ativo/);
+    await userEvent.click(screen.getByRole("button", { name: /Revogar Consentimento/i }));
     await userEvent.click(screen.getByRole("button", { name: /Confirmar revogacao/i }));
 
     await waitFor(() => {
@@ -86,10 +101,10 @@ describe("BiometricConsentCard", () => {
   it("permite cancelar a revogacao", async () => {
     termsMocks.checkTermsStatus.mockResolvedValue({ accepted: true });
 
-    render(<BiometricConsentCard />);
+    renderWithProviders(<BiometricConsentCard />);
 
-    await screen.findByText("Consentimento ativo");
-    await userEvent.click(screen.getByRole("button", { name: /Revogar biometria/i }));
+    await screen.findByText(/Consentimento Ativo/);
+    await userEvent.click(screen.getByRole("button", { name: /Revogar Consentimento/i }));
     await userEvent.click(screen.getByRole("button", { name: /Cancelar/i }));
 
     await waitFor(() => {
@@ -105,12 +120,12 @@ describe("BiometricConsentCard", () => {
       .mockRejectedValueOnce(new Error("Falha ao consultar status"))
       .mockResolvedValueOnce({ accepted: false });
 
-    render(<BiometricConsentCard />);
+    renderWithProviders(<BiometricConsentCard />);
 
     expect(await screen.findByRole("alert")).toHaveTextContent("Falha ao consultar status");
 
     await userEvent.click(screen.getByRole("button", { name: /Tentar novamente/i }));
 
-    expect(await screen.findByText("Consentimento revogado ou pendente")).toBeInTheDocument();
+    expect(await screen.findByText(/consentimento está pendente/)).toBeInTheDocument();
   });
 });

@@ -33,7 +33,7 @@ describe('ExportManifestDisplay', () => {
       />
     );
 
-    expect(screen.getByText(/Data\/Hora da Exportação/)).toBeInTheDocument();
+    expect(screen.getByText(/Data e Hora/)).toBeInTheDocument();
   });
 
   it('should display geolocation status when not included', () => {
@@ -46,8 +46,7 @@ describe('ExportManifestDisplay', () => {
       />
     );
 
-    expect(screen.getByText(/Geolocalização Precisa/)).toBeInTheDocument();
-    expect(screen.getByText(/Não incluída/)).toBeInTheDocument();
+    expect(screen.queryByText(/Geolocalização Precisa/)).not.toBeInTheDocument();
   });
 
   it('should display geolocation status when included', () => {
@@ -60,7 +59,7 @@ describe('ExportManifestDisplay', () => {
       />
     );
 
-    expect(screen.getByText(/Incluída/)).toBeInTheDocument();
+    expect(screen.getByText(/Geolocalização Precisa Incluída/)).toBeInTheDocument();
   });
 
   it('should display all exported sections', () => {
@@ -73,7 +72,7 @@ describe('ExportManifestDisplay', () => {
       />
     );
 
-    expect(screen.getByText(/Seções Exportadas/)).toBeInTheDocument();
+    expect(screen.getByText(/Seções Incluídas/)).toBeInTheDocument();
     expect(screen.getByText(/CPF e documentos/)).toBeInTheDocument();
     expect(screen.getByText(/Contato e endereço/)).toBeInTheDocument();
     expect(screen.getByText(/Informações salariais/)).toBeInTheDocument();
@@ -90,8 +89,8 @@ describe('ExportManifestDisplay', () => {
       />
     );
 
-    expect(screen.getByText(/Guarde este arquivo em local seguro/)).toBeInTheDocument();
-    expect(screen.getByText(/Ele contém informações pessoais/)).toBeInTheDocument();
+    expect(screen.getByText(/Armazene em local seguro/)).toBeInTheDocument();
+    expect(screen.getByText(/Não compartilhe o arquivo/)).toBeInTheDocument();
   });
 
   it('should call onDismiss when close button (X) is clicked', () => {
@@ -140,7 +139,7 @@ describe('ExportManifestDisplay', () => {
     );
 
     // Should display the date (format depends on locale)
-    expect(screen.getByText(/Data\/Hora da Exportação/)).toBeInTheDocument();
+    expect(screen.getByText(/Data e Hora/)).toBeInTheDocument();
   });
 
   it('should not display personal data in manifest', () => {
@@ -169,7 +168,7 @@ describe('ExportManifestDisplay', () => {
       />
     );
 
-    expect(screen.getByText(/Seções Exportadas/)).toBeInTheDocument();
+    expect(screen.getByText(/Seções Incluídas/)).toBeInTheDocument();
   });
 
   it('should handle all section types', () => {

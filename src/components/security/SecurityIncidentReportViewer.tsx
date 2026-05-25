@@ -1,5 +1,5 @@
 import React, { useState } from 'react'
-import { SecurityIncidentReportResponse } from '@/service/security.service'
+import type { SecurityIncidentReportResponse } from '@/service/security.service'
 
 interface SecurityIncidentReportViewerProps {
   report: SecurityIncidentReportResponse
@@ -89,11 +89,11 @@ export const SecurityIncidentReportViewer: React.FC<SecurityIncidentReportViewer
       <div className="grid grid-cols-2 gap-4">
         <div>
           <strong>Data Detectada:</strong>
-          <p>{formatDate(report.detectedAt as any)}</p>
+          <p>{formatDate(report.detectedAt)}</p>
         </div>
         <div>
           <strong>Data Confirmada:</strong>
-          <p>{formatDate(report.confirmedAt as any)}</p>
+          <p>{formatDate(report.confirmedAt)}</p>
         </div>
       </div>
 
@@ -115,19 +115,19 @@ export const SecurityIncidentReportViewer: React.FC<SecurityIncidentReportViewer
           <div>
             <strong>Impacto Confidencialidade:</strong>
             <p className="text-red-600 font-semibold">
-              {formatImpact(report.confidentialityImpact as any)}
+              {formatImpact(report.confidentialityImpact)}
             </p>
           </div>
           <div>
             <strong>Impacto Integridade:</strong>
             <p className="text-orange-600 font-semibold">
-              {formatImpact(report.integrityImpact as any)}
+              {formatImpact(report.integrityImpact)}
             </p>
           </div>
           <div>
             <strong>Impacto Disponibilidade:</strong>
             <p className="text-yellow-600 font-semibold">
-              {formatImpact(report.availabilityImpact as any)}
+              {formatImpact(report.availabilityImpact)}
             </p>
           </div>
         </div>
@@ -190,18 +190,18 @@ export const SecurityIncidentReportViewer: React.FC<SecurityIncidentReportViewer
         <div className="grid grid-cols-2 gap-4">
           <div>
             <strong>ANPD Notificada em:</strong>
-            <p>{formatDate(report.notifiedAnpdAt as any)}</p>
+            <p>{formatDate(report.notifiedAnpdAt)}</p>
           </div>
           <div>
             <strong>Titulares Notificados em:</strong>
-            <p>{formatDate(report.notifiedSubjectsAt as any)}</p>
+            <p>{formatDate(report.notifiedSubjectsAt)}</p>
           </div>
         </div>
       </div>
 
       <div className="border-t pt-4 text-xs text-gray-600">
         <p>
-          <strong>Gerado em:</strong> {formatDate(report.generatedAt as any)}
+          <strong>Gerado em:</strong> {formatDate(report.generatedAt)}
         </p>
         <p>
           <strong>Gerado por:</strong> {report.generatedByUserId}

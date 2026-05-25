@@ -1,6 +1,6 @@
 import React, { useState } from 'react'
-import { SecurityIncidentRiskAssessmentRequest } from '@/service/security.service'
-import { SecurityImpactLevel } from '@/types/security.types'
+import type { SecurityIncidentRiskAssessmentRequest } from '@/service/security.service'
+import type { SecurityImpactLevel } from '@/types/security.types'
 
 interface SecurityIncidentRiskAssessmentProps {
   incidentId: string

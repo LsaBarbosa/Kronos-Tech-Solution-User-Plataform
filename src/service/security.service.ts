@@ -1,5 +1,5 @@
 import api from '@/config/api'
-import { SecurityIncidentRiskAssessmentRequest, SecurityIncidentCorrectionPlanRequest, SecurityIncidentReportResponse, SecurityIncidentResponse } from '@/types/security.types'
+import type { SecurityIncidentRiskAssessmentRequest, SecurityIncidentCorrectionPlanRequest, SecurityIncidentReportResponse, SecurityIncidentResponse } from '@/types/security.types'
 
 const API_BASE = '/security-incidents'
 

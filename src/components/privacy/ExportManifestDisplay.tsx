@@ -1,7 +1,7 @@
 import { X, CheckCircle2, AlertCircle } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { LgpdExportManifest } from "@/types/legal";
+import type { LgpdExportManifest } from "@/types/legal";
 
 export type ExportManifest = LgpdExportManifest;
 

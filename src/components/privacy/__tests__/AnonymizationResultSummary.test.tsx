@@ -39,7 +39,7 @@ describe('AnonymizationResultSummary', () => {
 
     expect(screen.getByText('Resultado da Anonimização')).toBeInTheDocument();
     expect(screen.getByText('Sucesso Completo')).toBeInTheDocument();
-    expect(screen.getByText('100')).toBeInTheDocument(); // totalScanned
+    expect(screen.getByText('Escaneados')).toBeInTheDocument();
   });
 
   it('should render PARTIAL_SUCCESS status', () => {
@@ -69,7 +69,7 @@ describe('AnonymizationResultSummary', () => {
     render(<AnonymizationResultSummary result={partialResult} />);
 
     expect(screen.getByText('Sucesso Parcial')).toBeInTheDocument();
-    expect(screen.getByText('DOCUMENT')).toBeInTheDocument();
+    expect(screen.getAllByText('DOCUMENT')).toHaveLength(2);
   });
 
   it('should render FAILED status', () => {
@@ -112,7 +112,7 @@ describe('AnonymizationResultSummary', () => {
   });
 
   it('should call onClose when close button is clicked', () => {
-    const onCloseMock = jest.fn();
+    const onCloseMock = vi.fn();
     render(<AnonymizationResultSummary result={baseResult} onClose={onCloseMock} />);
 
     const closeButton = screen.getByLabelText('Fechar');

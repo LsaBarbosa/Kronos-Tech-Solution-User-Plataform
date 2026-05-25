@@ -3,6 +3,7 @@ import userEvent from "@testing-library/user-event";
 import { MemoryRouter, Route, Routes } from "react-router-dom";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import TermsAcceptanceGate from "./TermsAcceptanceGate";
+import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
 
 const authMocks = vi.hoisted(() => ({
   checkSession: vi.fn(),
@@ -28,16 +29,32 @@ vi.mock("@/service/terms.service", () => ({
   getCurrentBiometricTerm: termsMocks.getCurrentBiometricTerm,
 }));
 
-const renderGate = () =>
-  render(
-    <MemoryRouter initialEntries={["/"]}>
-      <Routes>
-        <Route element={<TermsAcceptanceGate />}>
-          <Route path="/" element={<div>Conteudo protegido</div>} />
-        </Route>
-      </Routes>
-    </MemoryRouter>
+const queryClient = new QueryClient({
+  defaultOptions: {
+    queries: { retry: false },
+    mutations: { retry: false },
+  },
+});
+
+const renderGate = () => {
+  const queryClientForTest = new QueryClient({
+    defaultOptions: {
+      queries: { retry: false },
+      mutations: { retry: false },
+    },
+  });
+  return render(
+    <QueryClientProvider client={queryClientForTest}>
+      <MemoryRouter initialEntries={["/"]}>
+        <Routes>
+          <Route element={<TermsAcceptanceGate />}>
+            <Route path="/" element={<div>Conteudo protegido</div>} />
+          </Route>
+        </Routes>
+      </MemoryRouter>
+    </QueryClientProvider>
   );
+};
 
 const markTermsAsScrolledToEnd = () => {
   const viewport = document.querySelector("[data-radix-scroll-area-viewport]");
@@ -79,7 +96,7 @@ describe("TermsAcceptanceGate", () => {
   });
 
   it("renderiza o conteudo protegido quando o termo ja foi aceito", async () => {
-    termsMocks.checkTermsStatus.mockResolvedValue(true);
+    termsMocks.checkTermsStatus.mockResolvedValue({ accepted: true });
 
     renderGate();
 
@@ -88,7 +105,7 @@ describe("TermsAcceptanceGate", () => {
   });
 
   it("bloqueia o conteudo ate rolar, marcar o aceite e confirmar", async () => {
-    termsMocks.checkTermsStatus.mockResolvedValue(false);
+    termsMocks.checkTermsStatus.mockResolvedValue({ accepted: false });
 
     renderGate();
 
@@ -124,7 +141,7 @@ describe("TermsAcceptanceGate", () => {
   });
 
   it("permite sair sem aceitar o termo", async () => {
-    termsMocks.checkTermsStatus.mockResolvedValue(false);
+    termsMocks.checkTermsStatus.mockResolvedValue({ accepted: false });
 
     renderGate();
 
@@ -138,7 +155,7 @@ describe("TermsAcceptanceGate", () => {
   it("exibe erro de verificacao e permite tentar novamente", async () => {
     termsMocks.checkTermsStatus
       .mockRejectedValueOnce(new Error("Falha ao consultar termo"))
-      .mockResolvedValueOnce(true);
+      .mockResolvedValueOnce({ accepted: true });
 
     renderGate();
 
@@ -150,7 +167,7 @@ describe("TermsAcceptanceGate", () => {
   });
 
   it("renderiza o termo retornado pelo backend quando o aceite está pendente", async () => {
-    termsMocks.checkTermsStatus.mockResolvedValue(false);
+    termsMocks.checkTermsStatus.mockResolvedValue({ accepted: false });
     termsMocks.getCurrentBiometricTerm.mockResolvedValue({
       type: "BIOMETRIC_CONSENT_TERM",
       version: "2026.05.21",

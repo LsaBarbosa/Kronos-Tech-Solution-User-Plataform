@@ -1,5 +1,5 @@
 import { api } from '@/config/api'
-import { ConsentHistoryResponse, CurrentLegalTextResponse } from '@/types/legal'
+import type { ConsentHistoryResponse, CurrentLegalTextResponse } from '@/types/legal'
 
 const TERMS_BASE = 'terms'
 
@@ -32,9 +32,15 @@ export const acceptBiometricTerms = async (payload: {
   version: string
   contentHashSha256: string
 }): Promise<void> => {
-  await api.post(`${TERMS_BASE}/accept-biometric`, payload)
+  const response = await api.post(`${TERMS_BASE}/accept-biometric`, payload)
+  if (response.status !== 204) {
+    throw new Error('Falha ao registrar o aceite do termo.')
+  }
 }
 
 export const revokeBiometricTerms = async (): Promise<void> => {
-  await api.delete(`${TERMS_BASE}/revoke-biometric`)
+  const response = await api.delete(`${TERMS_BASE}/revoke-biometric`)
+  if (response.status !== 204) {
+    throw new Error('Falha ao revogar o consentimento biométrico.')
+  }
 }

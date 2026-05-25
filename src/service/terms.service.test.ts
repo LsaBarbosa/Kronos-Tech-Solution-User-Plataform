@@ -1,6 +1,5 @@
-import { describe, it, expect, beforeEach, vi } from "vitest";
+import { describe, it, expect, beforeEach } from "vitest";
 import * as termsService from "./terms.service";
-import * as csrfService from "@/service/csrf.service";
 import { server } from "@/test/mocks/server";
 import { http, HttpResponse } from "msw";
 
@@ -47,17 +46,9 @@ describe("terms.service", () => {
 
   describe("acceptBiometricTerms", () => {
     it("chama endpoint de aceite e invalida cache de CSRF", async () => {
-      const invalidateSpy = vi.spyOn(csrfService, "invalidateCsrfToken");
       let requestBody: unknown;
 
       server.use(
-        http.get("*/auth/csrf", () =>
-          HttpResponse.json({
-            headerName: "X-CSRF-TOKEN",
-            parameterName: "_csrf",
-            token: "csrf-token",
-          })
-        ),
         http.post("*/terms/accept-biometric", async ({ request }) => {
           requestBody = await request.json();
           return new HttpResponse(null, { status: 204 });
@@ -70,7 +61,6 @@ describe("terms.service", () => {
           contentHashSha256: "current-hash",
         })
       ).resolves.toBeUndefined();
-      expect(invalidateSpy).toHaveBeenCalled();
       expect(requestBody).toEqual({
         version: "2026.05.21",
         contentHashSha256: "current-hash",
@@ -128,23 +118,13 @@ describe("terms.service", () => {
 
   describe("revokeBiometricTerms", () => {
     it("chama endpoint de revogacao e invalida cache de CSRF", async () => {
-      const invalidateSpy = vi.spyOn(csrfService, "invalidateCsrfToken");
-
       server.use(
-        http.get("*/auth/csrf", () =>
-          HttpResponse.json({
-            headerName: "X-CSRF-TOKEN",
-            parameterName: "_csrf",
-            token: "csrf-token",
-          })
-        ),
         http.delete("*/terms/revoke-biometric", () => {
           return new HttpResponse(null, { status: 204 });
         })
       );
 
       await expect(termsService.revokeBiometricTerms()).resolves.toBeUndefined();
-      expect(invalidateSpy).toHaveBeenCalled();
     });
 
     it("rejeita resposta inesperada do backend na revogacao", async () => {

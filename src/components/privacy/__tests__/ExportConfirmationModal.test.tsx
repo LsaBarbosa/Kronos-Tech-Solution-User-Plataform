@@ -16,7 +16,7 @@ describe('ExportConfirmationModal', () => {
     );
 
     expect(screen.getByText('Confirmar Exportação de Dados')).toBeInTheDocument();
-    expect(screen.getByText(/O arquivo pode conter informações sensíveis/)).toBeInTheDocument();
+    expect(screen.getByText(/Este arquivo pode conter informações sensíveis/)).toBeInTheDocument();
   });
 
   it('should display warning about sensitive data', () => {
@@ -31,10 +31,10 @@ describe('ExportConfirmationModal', () => {
       />
     );
 
-    expect(screen.getByText(/CPF, PIS, RG/)).toBeInTheDocument();
-    expect(screen.getByText(/Endereço residencial completo/)).toBeInTheDocument();
-    expect(screen.getByText(/Histórico completo de ponto/)).toBeInTheDocument();
-    expect(screen.getByText(/Geolocalização com coordenadas precisas/)).toBeInTheDocument();
+    expect(screen.getByText(/Informações pessoais/)).toBeInTheDocument();
+    expect(screen.getByText(/Dados de contrato e folha de pagamento/)).toBeInTheDocument();
+    expect(screen.getByText(/Registro de ponto e geolocalização/)).toBeInTheDocument();
+    expect(screen.getByText(/Documentos e anexos/)).toBeInTheDocument();
   });
 
   it('should display security notice', () => {
@@ -49,7 +49,7 @@ describe('ExportConfirmationModal', () => {
       />
     );
 
-    expect(screen.getByText(/Guarde este arquivo em local seguro/)).toBeInTheDocument();
+    expect(screen.getByText(/Salve em local seguro/)).toBeInTheDocument();
   });
 
   it('should close modal when Cancel button is clicked', () => {

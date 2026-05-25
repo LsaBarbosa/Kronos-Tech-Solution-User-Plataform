@@ -1,6 +1,6 @@
 import { api } from "@/config/api";
 import { API_ROUTES, LGPD_PATHS, buildRoute } from "@/config/api-routes";
-import { LgpdEmployeeExportResponse, DataProcessingPurpose } from "@/types/legal";
+import type { LgpdEmployeeExportResponse, DataProcessingPurpose } from "@/types/legal";
 import { normalizeServiceError } from "@/service/helpers/service-error.helper";
 
 export type LgpdRequestType =

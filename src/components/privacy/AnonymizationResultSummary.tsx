@@ -1,5 +1,5 @@
 import React from 'react';
-import { AnonymizationConsolidatedResultResponse, AnonymizationDomainResultResponse } from '../../service/lgpd.service';
+import type { AnonymizationConsolidatedResultResponse, AnonymizationDomainResultResponse } from '../../service/lgpd.service';
 
 interface AnonymizationResultSummaryProps {
   result: AnonymizationConsolidatedResultResponse;

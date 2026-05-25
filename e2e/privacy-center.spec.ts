@@ -1,4 +1,4 @@
-import { expect, test } from "@playwright/test";
+import { expect, test, type Page, type Route } from "@playwright/test";
 
 // Mock data fixtures
 const mockTermsStatus = {
@@ -110,9 +110,9 @@ const mockProcessingCatalog = [
 /**
  * Setup function to mock all required LGPD APIs
  */
-async function setupApiMocks(page: any) {
+async function setupApiMocks(page: Page) {
   // Mock CSRF endpoint
-  await page.route("**/api/auth/csrf", (route: any) => {
+  await page.route("**/api/auth/csrf", (route: Route) => {
     route.respond({
       status: 200,
       contentType: "application/json",
@@ -124,7 +124,7 @@ async function setupApiMocks(page: any) {
   });
 
   // Mock terms endpoints
-  await page.route("**/api/terms/status", (route: any) => {
+  await page.route("**/api/terms/status", (route: Route) => {
     route.respond({
       status: 200,
       contentType: "application/json",
@@ -132,7 +132,7 @@ async function setupApiMocks(page: any) {
     });
   });
 
-  await page.route("**/api/terms/biometric/current", (route: any) => {
+  await page.route("**/api/terms/biometric/current", (route: Route) => {
     route.respond({
       status: 200,
       contentType: "application/json",
@@ -140,7 +140,7 @@ async function setupApiMocks(page: any) {
     });
   });
 
-  await page.route("**/api/terms/consents/history", (route: any) => {
+  await page.route("**/api/terms/consents/history", (route: Route) => {
     route.respond({
       status: 200,
       contentType: "application/json",
@@ -149,7 +149,7 @@ async function setupApiMocks(page: any) {
   });
 
   // Mock LGPD endpoints
-  await page.route("**/api/lgpd/requests", (route: any) => {
+  await page.route("**/api/lgpd/requests", (route: Route) => {
     if (route.request().method() === "GET") {
       route.respond({
         status: 200,
@@ -165,7 +165,7 @@ async function setupApiMocks(page: any) {
     }
   });
 
-  await page.route(/api\/lgpd\/employees\/.+\/export/, (route: any) => {
+  await page.route(/api\/lgpd\/employees\/.+\/export/, (route: Route) => {
     route.respond({
       status: 200,
       contentType: "application/json",
@@ -173,7 +173,7 @@ async function setupApiMocks(page: any) {
     });
   });
 
-  await page.route("**/api/lgpd/processing-catalog", (route: any) => {
+  await page.route("**/api/lgpd/processing-catalog", (route: Route) => {
     route.respond({
       status: 200,
       contentType: "application/json",
@@ -182,7 +182,7 @@ async function setupApiMocks(page: any) {
   });
 
   // Catch-all for any other API calls (prevent real backend calls)
-  await page.route("**/api/**", (route: any) => {
+  await page.route("**/api/**", (route: Route) => {
     const url = route.request().url();
     console.warn(`Unhandled API call: ${url}`);
     route.respond({
@@ -268,7 +268,7 @@ test.describe("Privacy Center - LGPD E2E Tests with Mocked APIs", () => {
     await setupApiMocks(emptyPage);
 
     // Override with empty catalog
-    await emptyPage.route("**/api/lgpd/processing-catalog", (route: any) => {
+    await emptyPage.route("**/api/lgpd/processing-catalog", (route: Route) => {
       route.respond({
         status: 200,
         contentType: "application/json",
@@ -292,7 +292,7 @@ test.describe("Privacy Center - API Error Handling Tests", () => {
     await setupApiMocks(page);
 
     // Override catalog with error
-    await page.route("**/api/lgpd/processing-catalog", (route: any) => {
+    await page.route("**/api/lgpd/processing-catalog", (route: Route) => {
       route.respond({
         status: 500,
         contentType: "application/json",
@@ -318,7 +318,7 @@ test.describe("Privacy Center - API Error Handling Tests", () => {
     await setupApiMocks(page);
 
     // Override LGPD requests with 401
-    await page.route("**/api/lgpd/requests", (route: any) => {
+    await page.route("**/api/lgpd/requests", (route: Route) => {
       route.respond({
         status: 401,
         contentType: "application/json",
@@ -344,7 +344,7 @@ test.describe("Privacy Center - API Error Handling Tests", () => {
     await setupApiMocks(page);
 
     // Make one endpoint hang (simulating timeout)
-    await page.route("**/api/lgpd/processing-catalog", (route: any) => {
+    await page.route("**/api/lgpd/processing-catalog", (route: Route) => {
       // Don't respond, let it hang
       setTimeout(() => {
         route.abort("timedout");

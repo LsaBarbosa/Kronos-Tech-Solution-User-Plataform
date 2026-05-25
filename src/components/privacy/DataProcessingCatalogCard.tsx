@@ -5,7 +5,7 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { getDataProcessingCatalog } from "@/service/lgpd.service";
-import { DataProcessingPurpose } from "@/types/legal";
+import type { DataProcessingPurpose } from "@/types/legal";
 import { getServiceErrorMessage, ServiceError } from "@/service/helpers/service-error.helper";
 
 const DataProcessingCatalogCard = () => {
