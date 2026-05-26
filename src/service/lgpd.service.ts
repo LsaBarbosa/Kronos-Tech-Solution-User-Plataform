@@ -161,10 +161,20 @@ export const listLgpdRequests = async (): Promise<LgpdRequestResponse[]> => {
 };
 
 export const exportEmployeeData = async (
-  employeeId: string
+  employeeId: string,
+  exportReason?: string,
+  includePreciseGeolocation = false
 ): Promise<LgpdEmployeeExportResponse> => {
+  const normalizedExportReason = exportReason?.trim();
+
   const response = await api.get<LgpdEmployeeExportResponse>(
-    buildRoute(API_ROUTES.LGPD, LGPD_PATHS.EMPLOYEE_EXPORT(employeeId))
+    buildRoute(API_ROUTES.LGPD, LGPD_PATHS.EMPLOYEE_EXPORT(employeeId)),
+    {
+      params: {
+        exportReason: normalizedExportReason || undefined,
+        includePreciseGeolocation,
+      },
+    }
   );
   return response.data;
 };

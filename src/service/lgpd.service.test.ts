@@ -87,6 +87,134 @@ describe("lgpd.service", () => {
     expect(result).toEqual([]);
   });
 
+  it("exporta dados do colaborador sem exportReason (exportação própria)", async () => {
+    const mockExportResponse: LgpdEmployeeExportResponse = {
+      manifest: {
+        exportId: "export-123",
+        exportedAt: "2026-05-23T10:00:00Z",
+        requestedByUserId: "user-001",
+        targetEmployeeId: "emp-001",
+        includePreciseGeolocation: false,
+        sections: ["employee", "documents", "timeRecords"],
+        warnings: ["Este arquivo contém dados pessoais"],
+      },
+    };
+
+    server.use(
+      http.get("*/lgpd/employees/emp-001/export", ({ request }) => {
+        const url = new URL(request.url);
+        expect(url.searchParams.has("exportReason")).toBe(false);
+        expect(url.searchParams.get("includePreciseGeolocation")).toBe("false");
+        return HttpResponse.json(mockExportResponse, { status: 200 });
+      })
+    );
+
+    const result = await exportEmployeeData("emp-001");
+    expect(result.manifest.exportId).toBe("export-123");
+  });
+
+  it("exporta dados com exportReason (exportação administrativa)", async () => {
+    const mockExportResponse: LgpdEmployeeExportResponse = {
+      manifest: {
+        exportId: "export-123",
+        exportedAt: "2026-05-23T10:00:00Z",
+        requestedByUserId: "user-001",
+        targetEmployeeId: "emp-001",
+        includePreciseGeolocation: false,
+        sections: ["employee", "documents", "timeRecords"],
+        warnings: ["Este arquivo contém dados pessoais"],
+      },
+    };
+
+    server.use(
+      http.get("*/lgpd/employees/emp-001/export", ({ request }) => {
+        const url = new URL(request.url);
+        expect(url.searchParams.get("exportReason")).toBe("Auditoria interna");
+        expect(url.searchParams.get("includePreciseGeolocation")).toBe("false");
+        return HttpResponse.json(mockExportResponse, { status: 200 });
+      })
+    );
+
+    const result = await exportEmployeeData("emp-001", "Auditoria interna");
+    expect(result.manifest.exportId).toBe("export-123");
+  });
+
+  it("exporta dados com geolocalização precisa", async () => {
+    const mockExportResponse: LgpdEmployeeExportResponse = {
+      manifest: {
+        exportId: "export-123",
+        exportedAt: "2026-05-23T10:00:00Z",
+        requestedByUserId: "user-001",
+        targetEmployeeId: "emp-001",
+        includePreciseGeolocation: true,
+        sections: ["employee", "documents", "timeRecords"],
+        warnings: ["Este arquivo contém dados pessoais e geolocalização precisa"],
+      },
+    };
+
+    server.use(
+      http.get("*/lgpd/employees/emp-001/export", ({ request }) => {
+        const url = new URL(request.url);
+        expect(url.searchParams.get("exportReason")).toBe("Solicitação formal do titular");
+        expect(url.searchParams.get("includePreciseGeolocation")).toBe("true");
+        return HttpResponse.json(mockExportResponse, { status: 200 });
+      })
+    );
+
+    const result = await exportEmployeeData("emp-001", "Solicitação formal do titular", true);
+    expect(result.manifest.includePreciseGeolocation).toBe(true);
+  });
+
+  it("normaliza exportReason com trim()", async () => {
+    const mockExportResponse: LgpdEmployeeExportResponse = {
+      manifest: {
+        exportId: "export-123",
+        exportedAt: "2026-05-23T10:00:00Z",
+        requestedByUserId: "user-001",
+        targetEmployeeId: "emp-001",
+        includePreciseGeolocation: false,
+        sections: ["employee", "documents"],
+        warnings: [],
+      },
+    };
+
+    server.use(
+      http.get("*/lgpd/employees/emp-001/export", ({ request }) => {
+        const url = new URL(request.url);
+        expect(url.searchParams.get("exportReason")).toBe("Auditoria LGPD");
+        return HttpResponse.json(mockExportResponse, { status: 200 });
+      })
+    );
+
+    const result = await exportEmployeeData("emp-001", "   Auditoria LGPD   ");
+    expect(result.manifest.exportId).toBe("export-123");
+  });
+
+  it("não envia exportReason vazio", async () => {
+    const mockExportResponse: LgpdEmployeeExportResponse = {
+      manifest: {
+        exportId: "export-123",
+        exportedAt: "2026-05-23T10:00:00Z",
+        requestedByUserId: "user-001",
+        targetEmployeeId: "emp-001",
+        includePreciseGeolocation: false,
+        sections: ["employee", "documents"],
+        warnings: [],
+      },
+    };
+
+    server.use(
+      http.get("*/lgpd/employees/emp-001/export", ({ request }) => {
+        const url = new URL(request.url);
+        expect(url.searchParams.has("exportReason")).toBe(false);
+        return HttpResponse.json(mockExportResponse, { status: 200 });
+      })
+    );
+
+    const result = await exportEmployeeData("emp-001", "   ");
+    expect(result.manifest.exportId).toBe("export-123");
+  });
+
   it("exporta dados do colaborador com manifesto real do back-end", async () => {
     const mockExportResponse: LgpdEmployeeExportResponse = {
       manifest: {
