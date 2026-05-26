@@ -19,6 +19,7 @@ export type LgpdRequestStatus =
   | "IN_ANALYSIS"
   | "WAITING_CONTROLLER"
   | "WAITING_LEGAL_REVIEW"
+  | "APPROVED_FOR_EXPORT"
   | "WAITING_DATA_SUBJECT"
   | "COMPLETED"
   | "REJECTED"
@@ -168,6 +169,31 @@ export const exportEmployeeData = async (
   return response.data;
 };
 
+export const exportMyData = async (): Promise<LgpdEmployeeExportResponse> => {
+  const response = await api.get<LgpdEmployeeExportResponse>(
+    buildRoute(API_ROUTES.LGPD, LGPD_PATHS.MY_EXPORT)
+  );
+  return response.data;
+};
+
+export interface ExportApprovedRequestPayload {
+  includePreciseGeolocation: boolean;
+  legalBasis: string;
+  operationalReason: string;
+  reviewerNotes: string;
+}
+
+export const exportApprovedLgpdRequestData = async (
+  requestId: string,
+  payload: ExportApprovedRequestPayload
+): Promise<LgpdEmployeeExportResponse> => {
+  const response = await api.post<LgpdEmployeeExportResponse>(
+    buildRoute(API_ROUTES.LGPD, LGPD_PATHS.ADMIN_REQUEST_EXPORT(requestId)),
+    payload
+  );
+  return response.data;
+};
+
 export const listAdminRequests = async (
   page: number = 0,
   size: number = 10,
@@ -297,7 +323,8 @@ export const getAvailableTransitions = (currentStatus: LgpdRequestStatus): LgpdR
     OPEN: ["IN_ANALYSIS", "REJECTED", "CANCELLED"],
     IN_ANALYSIS: ["WAITING_CONTROLLER", "REJECTED", "CANCELLED"],
     WAITING_CONTROLLER: ["WAITING_LEGAL_REVIEW", "REJECTED", "CANCELLED"],
-    WAITING_LEGAL_REVIEW: ["WAITING_DATA_SUBJECT", "COMPLETED", "PARTIALLY_COMPLETED", "REJECTED", "CANCELLED"],
+    WAITING_LEGAL_REVIEW: ["APPROVED_FOR_EXPORT", "WAITING_DATA_SUBJECT", "COMPLETED", "PARTIALLY_COMPLETED", "REJECTED", "CANCELLED"],
+    APPROVED_FOR_EXPORT: ["COMPLETED", "PARTIALLY_COMPLETED", "REJECTED", "CANCELLED"],
     WAITING_DATA_SUBJECT: ["IN_ANALYSIS", "COMPLETED", "PARTIALLY_COMPLETED", "REJECTED", "CANCELLED"],
     COMPLETED: [],
     REJECTED: [],

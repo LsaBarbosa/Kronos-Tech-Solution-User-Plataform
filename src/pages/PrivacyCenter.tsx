@@ -17,7 +17,7 @@ import DataProcessingCatalogCard from "@/components/privacy/DataProcessingCatalo
 import ExportConfirmationModal from "@/components/privacy/ExportConfirmationModal";
 import type { ExportManifest } from "@/components/privacy/ExportManifestDisplay";
 import ExportManifestDisplay from "@/components/privacy/ExportManifestDisplay";
-import { exportEmployeeData } from "@/service/lgpd.service";
+import { exportMyData } from "@/service/lgpd.service";
 import { getServiceErrorMessage } from "@/service/helpers/service-error.helper";
 import { useAuth } from "@/context/AuthContext";
 import { LgpdEmployeeExportResponse } from "@/types/legal";
@@ -33,15 +33,10 @@ const PrivacyCenter = () => {
   const handleToggleSidebar = useCallback(() => setSidebarOpen((prev) => !prev), []);
 
   const handleExportDataConfirmed = async () => {
-    if (!user?.profile?.employeeId) {
-      toast.error("ID do colaborador não disponível.");
-      return;
-    }
-
     setIsExporting(true);
 
     try {
-      const exportResponse = await exportEmployeeData(user.profile.employeeId);
+      const exportResponse = await exportMyData();
 
       // Generate download file from the actual backend response
       const json = JSON.stringify(exportResponse, null, 2);

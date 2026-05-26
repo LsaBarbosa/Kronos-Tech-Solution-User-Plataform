@@ -1,9 +1,10 @@
 import { useEffect, useState } from "react";
 import { useParams, useNavigate } from "react-router-dom";
-import { AlertCircle, ArrowLeft, Loader2, Clock, User, Building2, CheckCircle, XCircle, MessageSquare } from "lucide-react";
+import { AlertCircle, ArrowLeft, Loader2, Clock, User, Building2, CheckCircle, XCircle, MessageSquare, Download } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { APP_PATHS } from "@/config/app-routes";
+import { toast } from "@/hooks/use-toast";
 import {
   getAdminRequestDetails,
   completeRequest,
@@ -13,6 +14,7 @@ import {
   requestComplementFromDataSubject,
   cancelLgpdRequest,
   getAvailableTransitions,
+  exportApprovedLgpdRequestData,
   type LgpdRequestDetailsResponse,
   type LgpdRequestStatus,
   type LgpdRequestTransitionPayload,
@@ -49,6 +51,12 @@ export const AdminLgpdRequestDetails = () => {
   const [showComplementDialog, setShowComplementDialog] = useState(false);
   const [cancelReason, setCancelReason] = useState("");
   const [showCancelDialog, setShowCancelDialog] = useState(false);
+  const [showExportModal, setShowExportModal] = useState(false);
+  const [isExporting, setIsExporting] = useState(false);
+  const [exportLegalBasis, setExportLegalBasis] = useState("");
+  const [exportOperationalReason, setExportOperationalReason] = useState("");
+  const [exportReviewerNotes, setExportReviewerNotes] = useState("");
+  const [exportIncludePreciseGeolocation, setExportIncludePreciseGeolocation] = useState(false);
 
   useEffect(() => {
     const fetchDetails = async () => {
@@ -101,6 +109,7 @@ export const AdminLgpdRequestDetails = () => {
       IN_ANALYSIS: "bg-yellow-100 text-yellow-800",
       WAITING_CONTROLLER: "bg-orange-100 text-orange-800",
       WAITING_LEGAL_REVIEW: "bg-purple-100 text-purple-800",
+      APPROVED_FOR_EXPORT: "bg-green-100 text-green-800",
       WAITING_DATA_SUBJECT: "bg-indigo-100 text-indigo-800",
       COMPLETED: "bg-green-100 text-green-800",
       REJECTED: "bg-red-100 text-red-800",
@@ -116,6 +125,7 @@ export const AdminLgpdRequestDetails = () => {
       IN_ANALYSIS: "Em Análise",
       WAITING_CONTROLLER: "Aguardando Controlador",
       WAITING_LEGAL_REVIEW: "Aguardando Revisão Legal",
+      APPROVED_FOR_EXPORT: "Aprovado para Exportação",
       WAITING_DATA_SUBJECT: "Aguardando Sujeito de Dados",
       COMPLETED: "Concluído",
       REJECTED: "Rejeitado",
@@ -259,6 +269,73 @@ export const AdminLgpdRequestDetails = () => {
     }
   };
 
+  const handleExportRequest = async () => {
+    if (!requestId) {
+      toast.error("ID da solicitação não disponível");
+      return;
+    }
+
+    if (!exportLegalBasis.trim()) {
+      toast.error("Fundamento legal é obrigatório");
+      return;
+    }
+
+    if (!exportOperationalReason.trim()) {
+      toast.error("Motivo operacional é obrigatório");
+      return;
+    }
+
+    if (!exportReviewerNotes.trim()) {
+      toast.error("Notas do revisor são obrigatórias");
+      return;
+    }
+
+    setIsExporting(true);
+
+    try {
+      const exportResponse = await exportApprovedLgpdRequestData(requestId, {
+        includePreciseGeolocation: exportIncludePreciseGeolocation,
+        legalBasis: exportLegalBasis.trim(),
+        operationalReason: exportOperationalReason.trim(),
+        reviewerNotes: exportReviewerNotes.trim(),
+      });
+
+      const json = JSON.stringify(exportResponse, null, 2);
+      const blob = new Blob([json], { type: "application/json" });
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement("a");
+      link.href = url;
+      link.download = `dados-solicitacao-${requestId}-${new Date().getTime()}.json`;
+      document.body.appendChild(link);
+      link.click();
+      document.body.removeChild(link);
+      URL.revokeObjectURL(url);
+
+      toast.success("Dados exportados com sucesso!");
+      setShowExportModal(false);
+      setExportLegalBasis("");
+      setExportOperationalReason("");
+      setExportReviewerNotes("");
+      setExportIncludePreciseGeolocation(false);
+
+      if (requestId) {
+        const updated = await getAdminRequestDetails(requestId);
+        setRequest(updated);
+      }
+    } catch (err) {
+      toast.error(
+        "Erro ao exportar dados: " +
+          (err instanceof Error ? err.message : "Erro desconhecido")
+      );
+    } finally {
+      setIsExporting(false);
+    }
+  };
+
+  const isExportableType = (type: string) => {
+    return ["ACCESS", "PORTABILITY", "SHARING_INFORMATION", "CONFIRM_PROCESSING"].includes(type);
+  };
+
   return (
     <div className="p-6 space-y-6">
       {/* Header */}
@@ -322,6 +399,21 @@ export const AdminLgpdRequestDetails = () => {
                   <p className="text-sm text-foreground bg-gray-50 p-3 rounded border">
                     {request.request.resolutionNotes}
                   </p>
+                </div>
+              )}
+
+              {request.request.status === "APPROVED_FOR_EXPORT" &&
+                isExportableType(request.request.requestType) && (
+                <div className="pt-4 border-t">
+                  <Button
+                    onClick={() => setShowExportModal(true)}
+                    disabled={isExporting}
+                    className="gap-2"
+                    size="sm"
+                  >
+                    <Download className="h-4 w-4" />
+                    Exportar Dados Revisados
+                  </Button>
                 </div>
               )}
 
@@ -663,6 +755,102 @@ export const AdminLgpdRequestDetails = () => {
           )}
         </div>
       </div>
+
+      {/* Export Modal */}
+      {showExportModal && (
+        <div className="fixed inset-0 bg-black bg-opacity-50 flex items-center justify-center z-50 p-4">
+          <Card className="w-full max-w-md">
+            <CardHeader>
+              <CardTitle>Exportar Dados da Solicitação</CardTitle>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <p className="text-sm text-muted-foreground">
+                Preencha os campos obrigatórios para realizar a exportação dos dados.
+              </p>
+
+              <div>
+                <label className="text-sm font-medium text-foreground mb-2 block">
+                  Fundamento Legal *
+                </label>
+                <input
+                  type="text"
+                  value={exportLegalBasis}
+                  onChange={(e) => setExportLegalBasis(e.target.value)}
+                  placeholder="Ex: Art. 7, II, LGPD"
+                  className="w-full px-3 py-2 text-sm border rounded bg-white text-foreground placeholder-muted-foreground"
+                  disabled={isExporting}
+                />
+              </div>
+
+              <div>
+                <label className="text-sm font-medium text-foreground mb-2 block">
+                  Motivo Operacional *
+                </label>
+                <textarea
+                  value={exportOperationalReason}
+                  onChange={(e) => setExportOperationalReason(e.target.value)}
+                  placeholder="Descreva o motivo da exportação"
+                  className="w-full px-3 py-2 text-sm border rounded bg-white text-foreground placeholder-muted-foreground"
+                  rows={3}
+                  disabled={isExporting}
+                />
+              </div>
+
+              <div>
+                <label className="text-sm font-medium text-foreground mb-2 block">
+                  Notas do Revisor *
+                </label>
+                <textarea
+                  value={exportReviewerNotes}
+                  onChange={(e) => setExportReviewerNotes(e.target.value)}
+                  placeholder="Justificativa de revisão e aprovação"
+                  className="w-full px-3 py-2 text-sm border rounded bg-white text-foreground placeholder-muted-foreground"
+                  rows={3}
+                  disabled={isExporting}
+                />
+              </div>
+
+              <div className="flex items-center gap-2">
+                <input
+                  type="checkbox"
+                  id="preciseLoc"
+                  checked={exportIncludePreciseGeolocation}
+                  onChange={(e) => setExportIncludePreciseGeolocation(e.target.checked)}
+                  disabled={isExporting}
+                  className="rounded"
+                />
+                <label htmlFor="preciseLoc" className="text-sm text-muted-foreground cursor-pointer">
+                  Incluir geolocalização precisa
+                </label>
+              </div>
+
+              <div className="flex gap-2 pt-4">
+                <Button
+                  onClick={() => {
+                    setShowExportModal(false);
+                    setExportLegalBasis("");
+                    setExportOperationalReason("");
+                    setExportReviewerNotes("");
+                    setExportIncludePreciseGeolocation(false);
+                  }}
+                  variant="outline"
+                  disabled={isExporting}
+                  className="flex-1"
+                >
+                  Cancelar
+                </Button>
+                <Button
+                  onClick={handleExportRequest}
+                  disabled={isExporting}
+                  className="flex-1"
+                >
+                  {isExporting ? "Exportando..." : "Exportar Dados"}
+                </Button>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
     </div>
   );
 };

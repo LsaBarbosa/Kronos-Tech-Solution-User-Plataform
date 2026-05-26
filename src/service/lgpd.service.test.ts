@@ -5,6 +5,8 @@ import {
   createLgpdRequest,
   listLgpdRequests,
   exportEmployeeData,
+  exportMyData,
+  exportApprovedLgpdRequestData,
   getDataProcessingCatalog,
   type LgpdRequestResponse,
 } from "./lgpd.service";
@@ -316,5 +318,98 @@ describe("lgpd.service", () => {
     );
 
     await expect(getDataProcessingCatalog()).rejects.toThrow();
+  });
+
+  it("exporta dados próprios do usuário via /lgpd/me/export", async () => {
+    const mockExportResponse: LgpdEmployeeExportResponse = {
+      manifest: {
+        exportId: "export-own-123",
+        exportedAt: "2026-05-23T10:00:00Z",
+        requestedByUserId: "user-001",
+        targetEmployeeId: "emp-001",
+        includePreciseGeolocation: false,
+        sections: ["employee", "documents"],
+        warnings: ["Dados minimizados"],
+      },
+      employee: {
+        employeeId: "emp-001",
+        fullName: "João Silva",
+        jobPosition: "Desenvolvedor",
+        email: "joao@company.com",
+      },
+    };
+
+    server.use(
+      http.get("*/lgpd/me/export", () =>
+        HttpResponse.json(mockExportResponse, { status: 200 })
+      )
+    );
+
+    const result = await exportMyData();
+    expect(result.manifest.exportId).toBe("export-own-123");
+    expect(result.manifest.includePreciseGeolocation).toBe(false);
+  });
+
+  it("exporta dados aprovados para request APPROVED_FOR_EXPORT", async () => {
+    const mockExportResponse: LgpdEmployeeExportResponse = {
+      manifest: {
+        exportId: "export-admin-123",
+        exportedAt: "2026-05-23T10:00:00Z",
+        requestedByUserId: "user-admin",
+        targetEmployeeId: "emp-001",
+        includePreciseGeolocation: false,
+        sections: ["employee", "documents", "timeRecords"],
+        warnings: [],
+      },
+      employee: {
+        employeeId: "emp-001",
+        fullName: "Maria Santos",
+        jobPosition: "Gerente",
+        email: "maria@company.com",
+      },
+    };
+
+    const requestId = "req-approved-001";
+    const payload = {
+      includePreciseGeolocation: false,
+      legalBasis: "Art. 7, II, LGPD",
+      operationalReason: "Auditoria de conformidade",
+      reviewerNotes: "Revisado e aprovado pelo jurídico",
+    };
+
+    server.use(
+      http.post(`*/lgpd/admin/requests/${requestId}/export`, async ({ request }) => {
+        const body = await request.json();
+        expect(body).toEqual(payload);
+        return HttpResponse.json(mockExportResponse, { status: 200 });
+      })
+    );
+
+    const result = await exportApprovedLgpdRequestData(requestId, payload);
+    expect(result.manifest.exportId).toBe("export-admin-123");
+    expect(result.manifest.requestedByUserId).toBe("user-admin");
+  });
+
+  it("não envia employeeId ao chamar exportMyData", async () => {
+    const mockExportResponse: LgpdEmployeeExportResponse = {
+      manifest: {
+        exportId: "export-123",
+        exportedAt: "2026-05-23T10:00:00Z",
+        includePreciseGeolocation: false,
+        sections: [],
+      },
+    };
+
+    let requestUrl = "";
+    server.use(
+      http.get("*/lgpd/me/export", ({ request }) => {
+        requestUrl = request.url;
+        return HttpResponse.json(mockExportResponse, { status: 200 });
+      })
+    );
+
+    await exportMyData();
+    expect(requestUrl).toContain("/lgpd/me/export");
+    expect(requestUrl).not.toContain("employeeId");
   });
 });

@@ -92,7 +92,9 @@ export const MESSAGE_PATHS = {
 
 export const LGPD_PATHS = {
   REQUESTS: "requests",
+  MY_EXPORT: "me/export",
   EMPLOYEE_EXPORT: (employeeId: string) => `employees/${employeeId}/export`,
+  ADMIN_REQUEST_EXPORT: (requestId: string) => `admin/requests/${requestId}/export`,
   EMPLOYEE_ANONYMIZE: (employeeId: string) => `employees/${employeeId}/anonymize`,
   ADMIN_REQUESTS: "admin/requests",
   ADMIN_REQUEST_DETAILS: (requestId: string) => `admin/requests/${requestId}`,
