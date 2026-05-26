@@ -287,9 +287,7 @@ export const getAnonymizationResult = async (
       buildRoute(API_ROUTES.LGPD, LGPD_PATHS.ANONYMIZATION_RESULT(requestId))
     );
     return response.data || null;
-  } catch (error) {
-    // If endpoint returns 204 or not found, return null
-    console.debug("Anonymization result not available:", error);
+  } catch {
     return null;
   }
 };
@@ -335,7 +333,6 @@ export const getDataProcessingCatalog = async (): Promise<DataProcessingPurpose[
     );
 
     if (!response.data) {
-      console.debug('Data processing catalog response is empty');
       return [];
     }
 
@@ -345,11 +342,7 @@ export const getDataProcessingCatalog = async (): Promise<DataProcessingPurpose[
     }
 
     const validItems = response.data.filter((item): item is DataProcessingPurpose => {
-      const isValid = isValidDataProcessingPurpose(item);
-      if (!isValid) {
-        console.debug('Invalid data processing purpose item filtered out');
-      }
-      return isValid;
+      return isValidDataProcessingPurpose(item);
     });
 
     return validItems;
@@ -359,7 +352,6 @@ export const getDataProcessingCatalog = async (): Promise<DataProcessingPurpose[
 
     // Return empty array only for transient network errors
     if (serviceError.kind === 'network') {
-      console.debug('Network error fetching data processing catalog');
       return [];
     }
 

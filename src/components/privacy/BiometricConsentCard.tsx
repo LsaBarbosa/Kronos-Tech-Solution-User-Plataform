@@ -152,14 +152,22 @@ const BiometricConsentCard = () => {
               </div>
 
               {isActive && (
-                <div className="rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900">
-                  <p className="font-medium">O que acontece ao revogar seu consentimento?</p>
-                  <ul className="mt-2 list-inside list-disc space-y-1 text-amber-800">
-                    <li>Seu arquivo biométrico será removido de nossos sistemas</li>
-                    <li>Você não poderá mais usar login facial</li>
-                    <li>Sua sessão será atualizada imediatamente</li>
-                    <li>Para usar biometria novamente, será necessário aceitar o consentimento novamente</li>
-                  </ul>
+                <div className="rounded-lg border border-amber-200 bg-amber-50 p-4 text-sm text-amber-900 space-y-3">
+                  <div>
+                    <p className="font-medium">O que acontece ao revogar seu consentimento?</p>
+                    <ul className="mt-2 list-inside list-disc space-y-1 text-amber-800">
+                      <li>Seu arquivo biométrico será removido de nossos sistemas operacionais</li>
+                      <li>Você não poderá mais usar login facial</li>
+                      <li>Sua sessão será atualizada imediatamente</li>
+                      <li>Para usar biometria novamente, será necessário aceitar o consentimento novamente</li>
+                    </ul>
+                  </div>
+                  <div className="border-t border-amber-200 pt-3">
+                    <p className="text-xs font-medium text-amber-700">Observação sobre registros legais:</p>
+                    <p className="text-xs text-amber-700 mt-1">
+                      A evidência de seu consentimento pode ser preservada para fins de conformidade jurídica e validação de direitos, conforme necessário.
+                    </p>
+                  </div>
                 </div>
               )}
             </div>

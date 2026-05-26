@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { AlertCircle, ChevronRight, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -72,7 +72,7 @@ export const AdminLgpdRequests = () => {
     "CANCELLED",
   ];
 
-  const fetchRequests = async () => {
+  const fetchRequests = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
@@ -90,11 +90,11 @@ export const AdminLgpdRequests = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [currentPage, pageSize, filters]);
 
   useEffect(() => {
     fetchRequests();
-  }, [currentPage, filters]);
+  }, [fetchRequests]);
 
   const handleFilterChange = (key: keyof FilterState, value: string | undefined) => {
     setFilters((prev) => ({ ...prev, [key]: value || undefined }));

@@ -41,15 +41,15 @@ const RevokeBiometricConsentDialog = ({
       <div className="space-y-3 text-sm text-muted-foreground">
         <div className="rounded-md border border-destructive/20 bg-destructive/5 p-3 text-foreground">
           Ao confirmar, sua imagem facial e os templates biometricos usados para reconhecimento
-          serao removidos dos provedores configurados.
+          serao removidos dos nossos sistemas operacionais.
         </div>
         <div className="flex items-start gap-2 rounded-md border bg-muted/40 p-3">
           <AlertTriangle className="mt-0.5 h-4 w-4 text-amber-600" aria-hidden="true" />
           <div className="space-y-1">
             <p>O login facial e validacoes biometricas deixarao de funcionar.</p>
             <p>
-              Seu historico de aceite podera ser preservado como evidencia legal conforme politica
-              de retencao.
+              O registro de seu consentimento pode ser preservado para fins de conformidade juridica
+              e validacao de direitos, conforme permitido por lei.
             </p>
           </div>
         </div>

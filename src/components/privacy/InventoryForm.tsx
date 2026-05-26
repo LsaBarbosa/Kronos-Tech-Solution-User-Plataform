@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useNavigate, useParams } from "react-router-dom";
 import { AlertCircle, ArrowLeft, Loader2, Save } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -37,13 +37,7 @@ export const InventoryForm = () => {
     active: true,
   });
 
-  useEffect(() => {
-    if (processCode) {
-      loadInventory();
-    }
-  }, [processCode]);
-
-  const loadInventory = async () => {
+  const loadInventory = useCallback(async () => {
     try {
       if (!processCode) return;
       setLoading(true);
@@ -71,7 +65,13 @@ export const InventoryForm = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [processCode]);
+
+  useEffect(() => {
+    if (processCode) {
+      loadInventory();
+    }
+  }, [processCode, loadInventory]);
 
   const handleChange = (field: keyof CreateInventoryPayload, value: string | boolean) => {
     setFormData((prev) => ({

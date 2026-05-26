@@ -1,4 +1,4 @@
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { AlertCircle, ChevronRight, Loader2, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
@@ -33,7 +33,7 @@ export const AdminInventory = () => {
   const [totalPages, setTotalPages] = useState(0);
   const [searchTerm, setSearchTerm] = useState("");
 
-  const fetchInventories = async () => {
+  const fetchInventories = useCallback(async () => {
     try {
       setLoading(true);
       setError(null);
@@ -45,11 +45,11 @@ export const AdminInventory = () => {
     } finally {
       setLoading(false);
     }
-  };
+  }, [currentPage, pageSize]);
 
   useEffect(() => {
     fetchInventories();
-  }, [currentPage]);
+  }, [fetchInventories]);
 
   const filteredInventories = inventories.filter(
     (inv) =>

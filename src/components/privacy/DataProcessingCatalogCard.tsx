@@ -296,6 +296,18 @@ const DataProcessingCatalogCard = () => {
         })}
       </div>
 
+      {/* Evidential Data Note */}
+      <Alert variant="default" className="border-blue-200 bg-blue-50 dark:border-blue-800 dark:bg-blue-950">
+        <AlertCircle className="h-4 w-4 text-blue-600 dark:text-blue-400" />
+        <AlertDescription className="text-blue-900 dark:text-blue-100">
+          <p className="font-medium mb-1">Sobre registros de consentimento:</p>
+          <p className="text-sm">
+            Os registros dos seus consentimentos podem ser preservados para fins de conformidade jurídica e validação de direitos.
+            Isso ocorre mesmo quando você revoga um consentimento, conforme permitido por lei.
+          </p>
+        </AlertDescription>
+      </Alert>
+
       {/* Footer Note */}
       <Alert>
         <AlertCircle className="h-4 w-4" />
