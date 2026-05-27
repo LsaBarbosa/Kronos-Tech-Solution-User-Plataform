@@ -178,4 +178,63 @@ describe("api", () => {
     });
     expect(expiredCallback).toHaveBeenCalledWith("expired");
   });
+
+  it("shouldCallSessionExpiredHandlerWithBiometricConsentRevokedWhen401HasRevocationHeader", async () => {
+    const expiredCallback = vi.fn();
+    registerSessionExpiredHandler(expiredCallback);
+
+    server.use(
+      http.get("http://localhost:3000/protected", () =>
+        new HttpResponse(null, {
+          status: 401,
+          headers: {
+            "x-session-revoked-reason": "BIOMETRIC_CONSENT_REVOKED",
+          },
+        })
+      )
+    );
+
+    await expect(api.get("http://localhost:3000/protected")).rejects.toMatchObject({
+      kind: "auth",
+      status: 401,
+    });
+    expect(expiredCallback).toHaveBeenCalledWith("biometric_consent_revoked");
+  });
+
+  it("shouldCallSessionExpiredHandlerWithRevokedWhen401HasSessionRevokedCode", async () => {
+    const expiredCallback = vi.fn();
+    registerSessionExpiredHandler(expiredCallback);
+
+    server.use(
+      http.get("http://localhost:3000/protected", () =>
+        HttpResponse.json(
+          { code: "SESSION_REVOKED" },
+          { status: 401 }
+        )
+      )
+    );
+
+    await expect(api.get("http://localhost:3000/protected")).rejects.toMatchObject({
+      kind: "auth",
+      status: 401,
+    });
+    expect(expiredCallback).toHaveBeenCalledWith("revoked");
+  });
+
+  it("shouldCallSessionExpiredHandlerWithExpiredWhen401HasNoRevocationSignal", async () => {
+    const expiredCallback = vi.fn();
+    registerSessionExpiredHandler(expiredCallback);
+
+    server.use(
+      http.get("http://localhost:3000/protected", () =>
+        HttpResponse.json({}, { status: 401 })
+      )
+    );
+
+    await expect(api.get("http://localhost:3000/protected")).rejects.toMatchObject({
+      kind: "auth",
+      status: 401,
+    });
+    expect(expiredCallback).toHaveBeenCalledWith("expired");
+  });
 });

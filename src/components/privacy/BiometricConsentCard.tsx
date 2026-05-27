@@ -50,20 +50,39 @@ const BiometricConsentCard = () => {
       setStatus("revoked");
       setDialogOpen(false);
       toast({
-        title: "Consentimento revogado",
-        description: "A biometria foi removida e a sessao sera atualizada.",
+        title: "Consentimento biométrico revogado",
+        description: "Por segurança, sua sessão foi encerrada. Faça login novamente.",
+        variant: "default",
       });
       setIsRevoking(false);
-      await checkSession();
+      // Trigger session invalidation by calling the handler
+      // The backend already cleared the auth cookie, so the next request will fail with 401
+      // which will trigger the session expired handler
+      setTimeout(() => {
+        window.location.href = "/login";
+      }, 1500);
     } catch (error) {
       const serviceError = normalizeServiceError(error);
-      setErrorMessage(serviceError.message);
-      toast({
-        title: "Erro ao revogar biometria",
-        description: serviceError.message,
-        variant: "destructive",
-      });
-      setIsRevoking(false);
+      if (serviceError.status === 401) {
+        // Session was already invalidated by the server
+        toast({
+          title: "Consentimento biométrico revogado",
+          description: "Por segurança, sua sessão foi encerrada. Faça login novamente.",
+          variant: "default",
+        });
+        setIsRevoking(false);
+        setTimeout(() => {
+          window.location.href = "/login";
+        }, 1500);
+      } else {
+        setErrorMessage(serviceError.message);
+        toast({
+          title: "Erro ao revogar biometria",
+          description: serviceError.message,
+          variant: "destructive",
+        });
+        setIsRevoking(false);
+      }
     }
   };
 

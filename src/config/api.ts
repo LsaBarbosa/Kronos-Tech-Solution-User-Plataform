@@ -147,7 +147,7 @@ const ensureCorrelationIdHeader = (headers: unknown) => {
   typedHeaders["X-Correlation-Id"] = correlationId;
 };
 
-type SessionExpiredCallback = (reason: "expired" | "revoked") => void;
+type SessionExpiredCallback = (reason: "expired" | "revoked" | "biometric_consent_revoked") => void;
 let onSessionExpiredCallback: SessionExpiredCallback | null = null;
 
 export const registerSessionExpiredHandler = (cb: SessionExpiredCallback) => {
@@ -287,7 +287,24 @@ api.interceptors.response.use(
 
       if (status === 401) {
         if (!isPublicAuthRequest(originalRequest?.url)) {
-          onSessionExpiredCallback?.("expired");
+          const headers = error.response?.headers || {};
+          const revokedHeader = headers["x-session-revoked"];
+          const revokedReason = headers["x-session-revoked-reason"];
+          const errorCode = getErrorCode(data);
+
+          if (
+            revokedHeader === "true" ||
+            errorCode === "SESSION_REVOKED" ||
+            revokedReason === "BIOMETRIC_CONSENT_REVOKED"
+          ) {
+            onSessionExpiredCallback?.(
+              revokedReason === "BIOMETRIC_CONSENT_REVOKED"
+                ? "biometric_consent_revoked"
+                : "revoked"
+            );
+          } else {
+            onSessionExpiredCallback?.("expired");
+          }
         }
         return rejectApiError(error);
       }
