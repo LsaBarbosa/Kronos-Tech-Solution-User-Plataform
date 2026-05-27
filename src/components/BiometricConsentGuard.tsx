@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { FileText, Loader2, Lock, Shield, X } from "lucide-react";
+import { useNavigate } from "react-router-dom";
+import { FileText, Loader2, Lock, Shield, X, ExternalLink } from "lucide-react";
 import {
   AlertDialog,
   AlertDialogContent,
@@ -19,6 +20,7 @@ import {
   getCurrentBiometricTerm,
   type CurrentBiometricTermResponse,
 } from "@/service/terms.service";
+import { APP_PATHS } from "@/config/app-routes";
 
 interface BiometricConsentGuardProps {
   children: JSX.Element;
@@ -33,6 +35,7 @@ export const BiometricConsentGuard: React.FC<BiometricConsentGuardProps> = ({
   children,
   onCancel,
 }) => {
+  const navigate = useNavigate();
   const [status, setStatus] = useState<GuardStatus>("checking");
   const [hasScrolledToEnd, setHasScrolledToEnd] = useState(false);
   const [hasConfirmed, setHasConfirmed] = useState(false);
@@ -227,16 +230,30 @@ export const BiometricConsentGuard: React.FC<BiometricConsentGuardProps> = ({
               </div>
             </ScrollArea>
 
-            <label className="flex items-start gap-3 rounded-md border p-3 text-sm">
-              <Checkbox
-                checked={hasConfirmed}
-                onCheckedChange={(checked) => setHasConfirmed(checked === true)}
-                aria-label="Confirmo que li e aceito o termo de consentimento biométrico"
-              />
-              <span>
-                Confirmo que li integralmente e aceito o Termo de Consentimento Biométrico.
-              </span>
-            </label>
+            <div className="space-y-3">
+              <div className="text-xs text-muted-foreground border-l-2 border-primary/30 pl-3">
+                <p className="mb-2">Para mais informações, consulte:</p>
+                <button
+                  type="button"
+                  onClick={() => navigate(APP_PATHS.privacyBiometricTerm)}
+                  className="inline-flex items-center gap-1 text-primary hover:text-primary/80 transition-colors"
+                >
+                  <span>Termo de Biometria Facial completo</span>
+                  <ExternalLink className="h-3 w-3" aria-hidden="true" />
+                </button>
+              </div>
+
+              <label className="flex items-start gap-3 rounded-md border p-3 text-sm">
+                <Checkbox
+                  checked={hasConfirmed}
+                  onCheckedChange={(checked) => setHasConfirmed(checked === true)}
+                  aria-label="Confirmo que li e aceito o termo de consentimento biométrico"
+                />
+                <span>
+                  Confirmo que li integralmente e aceito o Termo de Consentimento Biométrico.
+                </span>
+              </label>
+            </div>
 
             {errorMessage ? (
               <div role="alert" className="text-sm text-destructive">

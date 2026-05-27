@@ -64,6 +64,9 @@ const InventoryForm = lazy(() =>
     default: module.InventoryForm,
   }))
 );
+const PrivacyProcessingCatalog = lazy(() => import("./pages/PrivacyProcessingCatalog"));
+const PrivacyPolicy = lazy(() => import("./pages/PrivacyPolicy"));
+const PrivacyBiometricTerm = lazy(() => import("./pages/PrivacyBiometricTerm"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
 const PageFallback = () => (
@@ -102,6 +105,9 @@ const App = () => (
                   <Route path={APP_PATHS.login} element={<Login />} />
                   <Route path={APP_PATHS.senhaPrimeiroAcesso} element={<EsqueciSenha />} />
                   <Route path={APP_PATHS.resetarSenha} element={<ResetPassword />} />
+                  <Route path={APP_PATHS.privacyProcessingCatalog} element={<PrivacyProcessingCatalog />} />
+                  <Route path={APP_PATHS.privacyPolicy} element={<PrivacyPolicy />} />
+                  <Route path={APP_PATHS.privacyBiometricTerm} element={<PrivacyBiometricTerm />} />
 
                   <Route element={<ProtectedRoute />}>
                     <Route path={APP_PATHS.dashboard} element={<Dashboard />} />

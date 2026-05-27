@@ -59,6 +59,9 @@ export const APP_PATHS = {
   aprovacoesAbono: "/aprovacoes-abono",
   meusDocumentos: "/meus-documentos",
   privacidade: "/privacidade",
+  privacyProcessingCatalog: "/privacy/processing-catalog",
+  privacyPolicy: "/privacy/policy",
+  privacyBiometricTerm: "/privacy/biometric-term",
   lgpdAdminRequests: "/lgpd/admin/requests",
   lgpdAdminRequestDetails: "/lgpd/admin/requests/:requestId",
   lgpdAdminInventory: "/lgpd/admin/inventory",
@@ -252,6 +255,18 @@ export const APP_ROUTE_META = {
       { label: "Inventário de Tratamento", path: APP_PATHS.lgpdAdminInventory },
       { label: "Editar Processo", path: APP_PATHS.lgpdAdminInventoryEdit },
     ],
+  }),
+  privacyProcessingCatalog: defineRoute(APP_PATHS.privacyProcessingCatalog, "Catálogo de Tratamento de Dados", {
+    showInMenu: false,
+    breadcrumbs: [{ label: "Catálogo de Tratamento de Dados", path: APP_PATHS.privacyProcessingCatalog }],
+  }),
+  privacyPolicy: defineRoute(APP_PATHS.privacyPolicy, "Política de Privacidade", {
+    showInMenu: false,
+    breadcrumbs: [{ label: "Política de Privacidade", path: APP_PATHS.privacyPolicy }],
+  }),
+  privacyBiometricTerm: defineRoute(APP_PATHS.privacyBiometricTerm, "Termo de Biometria Facial", {
+    showInMenu: false,
+    breadcrumbs: [{ label: "Termo de Biometria Facial", path: APP_PATHS.privacyBiometricTerm }],
   }),
 } as const;
 

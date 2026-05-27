@@ -11,6 +11,7 @@ import { useNavigate, useLocation } from "react-router-dom";
 import { loginWithPassword } from "@/service/auth.service";
 import { useAuth } from "@/context/AuthContext";
 import { getServiceErrorMessage } from "@/service/helpers/service-error.helper";
+import { APP_PATHS } from "@/config/app-routes";
 
 const LoginForm = () => {
   const [username, setUsername] = useState("");
@@ -147,12 +148,40 @@ const LoginForm = () => {
           </form>
            <div className="text-center">
             <Button
-              variant="link" // Usa o estilo de link, mas com a semântica de botão
-              onClick={() => navigate("/senha-primeiro-acesso")} // Chama a nova rota
+              variant="link"
+              onClick={() => navigate("/senha-primeiro-acesso")}
               className="text-sm text-gray-text hover:text-primary transition-smooth"
             >
               Primeiro acesso/ Recuperar senha
             </Button>
+          </div>
+          <div className="border-t pt-4">
+            <p className="text-xs text-muted-foreground text-center mb-3">
+              Informações de Privacidade e Dados
+            </p>
+            <div className="space-y-2">
+              <Button
+                variant="link"
+                onClick={() => navigate(APP_PATHS.privacyPolicy)}
+                className="block w-full text-xs text-primary hover:text-primary/80 transition-smooth"
+              >
+                Política de Privacidade
+              </Button>
+              <Button
+                variant="link"
+                onClick={() => navigate(APP_PATHS.privacyProcessingCatalog)}
+                className="block w-full text-xs text-primary hover:text-primary/80 transition-smooth"
+              >
+                Catálogo de Tratamento de Dados
+              </Button>
+              <Button
+                variant="link"
+                onClick={() => navigate(APP_PATHS.privacyBiometricTerm)}
+                className="block w-full text-xs text-primary hover:text-primary/80 transition-smooth"
+              >
+                Termo de Biometria Facial
+              </Button>
+            </div>
           </div>
         </CardContent>
       </Card>
