@@ -1,11 +1,7 @@
 import { api } from '@/config/api'
-import type { ConsentHistoryResponse, CurrentLegalTextResponse } from '@/types/legal'
+import type { BiometricConsentStatus, ConsentHistoryResponse, CurrentLegalTextResponse } from '@/types/legal'
 
 const TERMS_BASE = 'terms'
-
-export interface TermsStatusResponse {
-  accepted: boolean;
-}
 
 export const getConsentHistory = async (): Promise<ConsentHistoryResponse[]> => {
   const response = await api.get<ConsentHistoryResponse[]>(
@@ -21,8 +17,8 @@ export const getCurrentBiometricTerm = async (): Promise<CurrentLegalTextRespons
   return response.data
 }
 
-export const checkTermsStatus = async (): Promise<TermsStatusResponse> => {
-  const response = await api.get<TermsStatusResponse>(
+export const checkTermsStatus = async (): Promise<BiometricConsentStatus> => {
+  const response = await api.get<BiometricConsentStatus>(
     `${TERMS_BASE}/status`
   )
   return response.data
@@ -31,16 +27,18 @@ export const checkTermsStatus = async (): Promise<TermsStatusResponse> => {
 export const acceptBiometricTerms = async (payload: {
   version: string
   contentHashSha256: string
-}): Promise<void> => {
-  const response = await api.post(`${TERMS_BASE}/accept-biometric`, payload)
-  if (response.status !== 204) {
+}): Promise<BiometricConsentStatus> => {
+  const response = await api.post<BiometricConsentStatus>(`${TERMS_BASE}/accept-biometric`, payload)
+  if (response.status !== 200) {
     throw new Error('Falha ao registrar o aceite do termo.')
   }
+  return response.data
 }
 
-export const revokeBiometricTerms = async (): Promise<void> => {
-  const response = await api.delete(`${TERMS_BASE}/revoke-biometric`)
-  if (response.status !== 204) {
+export const revokeBiometricTerms = async (): Promise<BiometricConsentStatus> => {
+  const response = await api.delete<BiometricConsentStatus>(`${TERMS_BASE}/revoke-biometric`)
+  if (response.status !== 200) {
     throw new Error('Falha ao revogar o consentimento biométrico.')
   }
+  return response.data
 }

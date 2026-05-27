@@ -45,7 +45,7 @@ const BiometricFeatureGate = () => {
 
     try {
       const response = await checkTermsStatus();
-      if (response.accepted) {
+      if (!response.requiresNewAcceptance) {
         setStatus("accepted");
         return;
       }

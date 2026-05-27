@@ -2,6 +2,15 @@ export type ConsentType = 'BIOMETRIC_AUTHENTICATION' | 'SERVICE_TERMS' | 'PRIVAC
 
 export type LegalBasis = 'CONSENT' | 'LEGAL_OBLIGATION' | 'LEGITIMATE_INTEREST' | 'CONTRACT' | 'VITAL_INTERESTS' | 'PUBLIC_TASK' | 'LEGITIMATE_INTERESTS'
 
+export interface BiometricConsentStatus {
+  biometricConsentAccepted: boolean
+  acceptedVersion: string | null
+  acceptedHash: string | null
+  currentVersion: string
+  currentHash: string
+  requiresNewAcceptance: boolean
+}
+
 export type DataCategory = 'IDENTIFICATION' | 'CONTACT' | 'EMPLOYMENT' | 'PAYROLL' | 'WORK_SCHEDULE' | 'TIME_RECORD' | 'GEOLOCATION' | 'BIOMETRIC' | 'DOCUMENT' | 'MESSAGE' | 'SECURITY_LOG' | 'LEGAL_CONSENT' | 'LGPD_REQUEST' | 'COMPANY' | 'USER_ACCOUNT'
 
 export interface DataProcessingPurpose {

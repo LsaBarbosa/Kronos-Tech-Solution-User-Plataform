@@ -12,6 +12,8 @@ import { api, registerSessionExpiredHandler, apiUrl } from "@/config/api";
 import { invalidateCsrfToken } from "@/service/csrf.service";
 import { normalizeServiceError } from "@/service/helpers/service-error.helper";
 import { loadSessionProfile } from "@/service/session-profile.service";
+import { checkTermsStatus } from "@/service/terms.service";
+import type { BiometricConsentStatus } from "@/types/legal";
 import type { UserAccountData, UserData } from "@/types/user";
 
 export type AuthStatus = "checking" | "authenticated" | "unauthenticated";
@@ -20,6 +22,7 @@ interface AuthUser {
   account: UserAccountData;
   profile: UserData | null;
   role: string;
+  biometricConsent?: BiometricConsentStatus;
 }
 
 interface AuthContextValue {
@@ -27,9 +30,11 @@ interface AuthContextValue {
   user: AuthUser | null;
   role: string;
   isAuthenticated: boolean;
+  biometricConsent: BiometricConsentStatus | null;
   checkSession: () => Promise<void>;
   login: () => Promise<void>;
   logout: () => Promise<void>;
+  refreshBiometricConsent: () => Promise<void>;
 }
 
 const AuthContext = createContext<AuthContextValue | undefined>(undefined);
@@ -38,9 +43,11 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
   const navigate = useNavigate();
   const [status, setStatus] = useState<AuthStatus>("checking");
   const [user, setUser] = useState<AuthUser | null>(null);
+  const [biometricConsent, setBiometricConsent] = useState<BiometricConsentStatus | null>(null);
 
   const clearSession = useCallback(() => {
     setUser(null);
+    setBiometricConsent(null);
     setStatus("unauthenticated");
   }, []);
 
@@ -48,6 +55,18 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
     clearSession();
     navigate("/login", { state: { reason: "session_expired" }, replace: true });
   }, [clearSession, navigate]);
+
+  const refreshBiometricConsent = useCallback(async () => {
+    try {
+      const consentStatus = await checkTermsStatus();
+      setBiometricConsent(consentStatus);
+      if (user) {
+        setUser({ ...user, biometricConsent: consentStatus });
+      }
+    } catch (error) {
+      console.error("Failed to refresh biometric consent status:", error);
+    }
+  }, [user]);
 
   const checkSession = useCallback(async () => {
     setStatus("checking");
@@ -61,12 +80,25 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         role: sessionProfile.role,
       });
       setStatus("authenticated");
+
+      try {
+        const consentStatus = await checkTermsStatus();
+        setBiometricConsent(consentStatus);
+      } catch (error) {
+        console.error("Failed to load biometric consent status:", error);
+      }
     } catch (error) {
       const serviceError = normalizeServiceError(error);
 
       if (serviceError.kind === "terms") {
         setUser(null);
         setStatus("authenticated");
+        try {
+          const consentStatus = await checkTermsStatus();
+          setBiometricConsent(consentStatus);
+        } catch (error) {
+          console.error("Failed to load biometric consent status:", error);
+        }
         return;
       }
 
@@ -109,11 +141,13 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       user,
       role: user?.role ?? "",
       isAuthenticated: status === "authenticated",
+      biometricConsent,
       checkSession,
       login,
       logout,
+      refreshBiometricConsent,
     }),
-    [status, user, checkSession, login, logout]
+    [status, user, biometricConsent, checkSession, login, logout, refreshBiometricConsent]
   );
 
   return <AuthContext.Provider value={value}>{children}</AuthContext.Provider>;

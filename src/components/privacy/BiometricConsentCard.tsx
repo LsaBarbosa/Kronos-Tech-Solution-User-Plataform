@@ -25,7 +25,7 @@ const BiometricConsentCard = () => {
 
     try {
       const response = await checkTermsStatus();
-      setStatus(response.accepted ? "active" : "revoked");
+      setStatus(!response.requiresNewAcceptance ? "active" : "revoked");
     } catch (error) {
       const serviceError = normalizeServiceError(error);
       setErrorMessage(serviceError.message);
