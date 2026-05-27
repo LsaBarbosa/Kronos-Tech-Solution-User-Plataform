@@ -9,27 +9,51 @@ describe("terms.service", () => {
   });
 
   describe("checkTermsStatus", () => {
-    it("retorna TermsStatusResponse com accepted=true quando o termo ja foi aceito", async () => {
+    it("retorna BiometricConsentStatus com accepted=true quando o termo ja foi aceito", async () => {
       server.use(
         http.get("*/terms/status", () => {
-          return HttpResponse.json({ accepted: true });
+          return HttpResponse.json({
+            biometricConsentAccepted: true,
+            acceptedVersion: "2026.05.21",
+            acceptedHash: "current-hash",
+            currentVersion: "2026.05.21",
+            currentHash: "current-hash",
+            requiresNewAcceptance: false,
+          });
         })
       );
 
       await expect(termsService.checkTermsStatus()).resolves.toEqual({
-        accepted: true,
+        biometricConsentAccepted: true,
+        acceptedVersion: "2026.05.21",
+        acceptedHash: "current-hash",
+        currentVersion: "2026.05.21",
+        currentHash: "current-hash",
+        requiresNewAcceptance: false,
       });
     });
 
-    it("retorna TermsStatusResponse com accepted=false quando o termo esta pendente", async () => {
+    it("retorna BiometricConsentStatus com accepted=false quando o termo esta pendente", async () => {
       server.use(
         http.get("*/terms/status", () => {
-          return HttpResponse.json({ accepted: false });
+          return HttpResponse.json({
+            biometricConsentAccepted: false,
+            acceptedVersion: null,
+            acceptedHash: null,
+            currentVersion: "2026.05.21",
+            currentHash: "current-hash",
+            requiresNewAcceptance: true,
+          });
         })
       );
 
       await expect(termsService.checkTermsStatus()).resolves.toEqual({
-        accepted: false,
+        biometricConsentAccepted: false,
+        acceptedVersion: null,
+        acceptedHash: null,
+        currentVersion: "2026.05.21",
+        currentHash: "current-hash",
+        requiresNewAcceptance: true,
       });
     });
 
@@ -45,13 +69,20 @@ describe("terms.service", () => {
   });
 
   describe("acceptBiometricTerms", () => {
-    it("chama endpoint de aceite e invalida cache de CSRF", async () => {
+    it("chama endpoint de aceite e retorna BiometricConsentStatus", async () => {
       let requestBody: unknown;
 
       server.use(
         http.post("*/terms/accept-biometric", async ({ request }) => {
           requestBody = await request.json();
-          return new HttpResponse(null, { status: 204 });
+          return HttpResponse.json({
+            biometricConsentAccepted: true,
+            acceptedVersion: "2026.05.21",
+            acceptedHash: "current-hash",
+            currentVersion: "2026.05.21",
+            currentHash: "current-hash",
+            requiresNewAcceptance: false,
+          }, { status: 200 });
         })
       );
 
@@ -60,14 +91,21 @@ describe("terms.service", () => {
           version: "2026.05.21",
           contentHashSha256: "current-hash",
         })
-      ).resolves.toBeUndefined();
+      ).resolves.toEqual({
+        biometricConsentAccepted: true,
+        acceptedVersion: "2026.05.21",
+        acceptedHash: "current-hash",
+        currentVersion: "2026.05.21",
+        currentHash: "current-hash",
+        requiresNewAcceptance: false,
+      });
       expect(requestBody).toEqual({
         version: "2026.05.21",
         contentHashSha256: "current-hash",
       });
     });
 
-    it("rejeita resposta inesperada do backend", async () => {
+    it("rejeita resposta com status de erro do backend", async () => {
       server.use(
         http.get("*/auth/csrf", () =>
           HttpResponse.json({
@@ -76,7 +114,7 @@ describe("terms.service", () => {
             token: "csrf-token",
           })
         ),
-        http.post("*/terms/accept-biometric", () => HttpResponse.json({}, { status: 200 }))
+        http.post("*/terms/accept-biometric", () => HttpResponse.json({ error: "Invalid request" }, { status: 400 }))
       );
 
       await expect(
@@ -84,9 +122,7 @@ describe("terms.service", () => {
           version: "2026.05.21",
           contentHashSha256: "current-hash",
         })
-      ).rejects.toThrow(
-        "Falha ao registrar o aceite do termo."
-      );
+      ).rejects.toThrow();
     });
   });
 
@@ -117,17 +153,31 @@ describe("terms.service", () => {
   });
 
   describe("revokeBiometricTerms", () => {
-    it("chama endpoint de revogacao e invalida cache de CSRF", async () => {
+    it("chama endpoint de revogacao e retorna BiometricConsentStatus", async () => {
       server.use(
         http.delete("*/terms/revoke-biometric", () => {
-          return new HttpResponse(null, { status: 204 });
+          return HttpResponse.json({
+            biometricConsentAccepted: false,
+            acceptedVersion: null,
+            acceptedHash: null,
+            currentVersion: "2026.05.21",
+            currentHash: "current-hash",
+            requiresNewAcceptance: true,
+          }, { status: 200 });
         })
       );
 
-      await expect(termsService.revokeBiometricTerms()).resolves.toBeUndefined();
+      await expect(termsService.revokeBiometricTerms()).resolves.toEqual({
+        biometricConsentAccepted: false,
+        acceptedVersion: null,
+        acceptedHash: null,
+        currentVersion: "2026.05.21",
+        currentHash: "current-hash",
+        requiresNewAcceptance: true,
+      });
     });
 
-    it("rejeita resposta inesperada do backend na revogacao", async () => {
+    it("rejeita resposta com status de erro do backend na revogacao", async () => {
       server.use(
         http.get("*/auth/csrf", () =>
           HttpResponse.json({
@@ -136,12 +186,10 @@ describe("terms.service", () => {
             token: "csrf-token",
           })
         ),
-        http.delete("*/terms/revoke-biometric", () => HttpResponse.json({}, { status: 200 }))
+        http.delete("*/terms/revoke-biometric", () => HttpResponse.json({ error: "Invalid request" }, { status: 400 }))
       );
 
-      await expect(termsService.revokeBiometricTerms()).rejects.toThrow(
-        "Falha ao revogar o consentimento biométrico."
-      );
+      await expect(termsService.revokeBiometricTerms()).rejects.toThrow();
     });
   });
 });

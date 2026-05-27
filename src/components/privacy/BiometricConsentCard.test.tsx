@@ -57,7 +57,14 @@ describe("BiometricConsentCard", () => {
   });
 
   it("exibe consentimento ativo quando accepted=true", async () => {
-    termsMocks.checkTermsStatus.mockResolvedValue({ accepted: true });
+    termsMocks.checkTermsStatus.mockResolvedValue({
+      biometricConsentAccepted: true,
+      acceptedVersion: "v2026-05-01",
+      acceptedHash: "abc123...",
+      currentVersion: "v2026-05-01",
+      currentHash: "abc123...",
+      requiresNewAcceptance: false,
+    });
 
     renderWithProviders(<BiometricConsentCard />);
 
@@ -66,7 +73,14 @@ describe("BiometricConsentCard", () => {
   });
 
   it("exibe consentimento revogado quando accepted=false", async () => {
-    termsMocks.checkTermsStatus.mockResolvedValue({ accepted: false });
+    termsMocks.checkTermsStatus.mockResolvedValue({
+      biometricConsentAccepted: false,
+      acceptedVersion: null,
+      acceptedHash: null,
+      currentVersion: "v2026-05-01",
+      currentHash: "abc123...",
+      requiresNewAcceptance: true,
+    });
 
     renderWithProviders(<BiometricConsentCard />);
 
@@ -75,7 +89,14 @@ describe("BiometricConsentCard", () => {
   });
 
   it("exibe consentimento ativo e permite abrir o dialogo de revogacao", async () => {
-    termsMocks.checkTermsStatus.mockResolvedValue({ accepted: true });
+    termsMocks.checkTermsStatus.mockResolvedValue({
+      biometricConsentAccepted: true,
+      acceptedVersion: "v2026-05-01",
+      acceptedHash: "abc123...",
+      currentVersion: "v2026-05-01",
+      currentHash: "abc123...",
+      requiresNewAcceptance: false,
+    });
 
     renderWithProviders(<BiometricConsentCard />);
 
@@ -88,8 +109,23 @@ describe("BiometricConsentCard", () => {
     ).toBeInTheDocument();
   });
 
-  it("revoga a biometria e atualiza a sessao apos confirmar", async () => {
-    termsMocks.checkTermsStatus.mockResolvedValue({ accepted: true });
+  it("revoga a biometria e mostra mensagem de sucesso", async () => {
+    termsMocks.checkTermsStatus.mockResolvedValue({
+      biometricConsentAccepted: true,
+      acceptedVersion: "v2026-05-01",
+      acceptedHash: "abc123...",
+      currentVersion: "v2026-05-01",
+      currentHash: "abc123...",
+      requiresNewAcceptance: false,
+    });
+    termsMocks.revokeBiometricTerms.mockResolvedValue({
+      biometricConsentAccepted: false,
+      acceptedVersion: null,
+      acceptedHash: null,
+      currentVersion: "v2026-05-01",
+      currentHash: "abc123...",
+      requiresNewAcceptance: true,
+    });
 
     renderWithProviders(<BiometricConsentCard />);
 
@@ -99,7 +135,12 @@ describe("BiometricConsentCard", () => {
 
     await waitFor(() => {
       expect(termsMocks.revokeBiometricTerms).toHaveBeenCalledTimes(1);
-      expect(authMocks.checkSession).toHaveBeenCalledTimes(1);
+      expect(toastMocks.toast).toHaveBeenCalledWith(
+        expect.objectContaining({
+          title: "Consentimento biométrico revogado",
+          description: "Por segurança, sua sessão foi encerrada. Faça login novamente.",
+        })
+      );
     });
   });
 
@@ -123,7 +164,14 @@ describe("BiometricConsentCard", () => {
   it("mostra erro e permite recarregar o status", async () => {
     termsMocks.checkTermsStatus
       .mockRejectedValueOnce(new Error("Falha ao consultar status"))
-      .mockResolvedValueOnce({ accepted: false });
+      .mockResolvedValueOnce({
+        biometricConsentAccepted: false,
+        acceptedVersion: null,
+        acceptedHash: null,
+        currentVersion: "v2026-05-01",
+        currentHash: "abc123...",
+        requiresNewAcceptance: true,
+      });
 
     renderWithProviders(<BiometricConsentCard />);
 

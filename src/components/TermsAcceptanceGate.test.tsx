@@ -96,7 +96,14 @@ describe("TermsAcceptanceGate", () => {
   });
 
   it("renderiza o conteudo protegido quando o termo ja foi aceito", async () => {
-    termsMocks.checkTermsStatus.mockResolvedValue({ accepted: true });
+    termsMocks.checkTermsStatus.mockResolvedValue({
+      biometricConsentAccepted: true,
+      acceptedVersion: "2026.05.21",
+      acceptedHash: "current-hash",
+      currentVersion: "2026.05.21",
+      currentHash: "current-hash",
+      requiresNewAcceptance: false,
+    });
 
     renderGate();
 
@@ -105,7 +112,14 @@ describe("TermsAcceptanceGate", () => {
   });
 
   it("bloqueia o conteudo ate rolar, marcar o aceite e confirmar", async () => {
-    termsMocks.checkTermsStatus.mockResolvedValue({ accepted: false });
+    termsMocks.checkTermsStatus.mockResolvedValue({
+      biometricConsentAccepted: false,
+      acceptedVersion: null,
+      acceptedHash: null,
+      currentVersion: "2026.05.21",
+      currentHash: "current-hash",
+      requiresNewAcceptance: true,
+    });
 
     renderGate();
 
@@ -141,7 +155,14 @@ describe("TermsAcceptanceGate", () => {
   });
 
   it("permite sair sem aceitar o termo", async () => {
-    termsMocks.checkTermsStatus.mockResolvedValue({ accepted: false });
+    termsMocks.checkTermsStatus.mockResolvedValue({
+      biometricConsentAccepted: false,
+      acceptedVersion: null,
+      acceptedHash: null,
+      currentVersion: "2026.05.21",
+      currentHash: "current-hash",
+      requiresNewAcceptance: true,
+    });
 
     renderGate();
 
@@ -155,7 +176,14 @@ describe("TermsAcceptanceGate", () => {
   it("exibe erro de verificacao e permite tentar novamente", async () => {
     termsMocks.checkTermsStatus
       .mockRejectedValueOnce(new Error("Falha ao consultar termo"))
-      .mockResolvedValueOnce({ accepted: true });
+      .mockResolvedValueOnce({
+        biometricConsentAccepted: true,
+        acceptedVersion: "2026.05.21",
+        acceptedHash: "current-hash",
+        currentVersion: "2026.05.21",
+        currentHash: "current-hash",
+        requiresNewAcceptance: false,
+      });
 
     renderGate();
 
@@ -167,7 +195,14 @@ describe("TermsAcceptanceGate", () => {
   });
 
   it("renderiza o termo retornado pelo backend quando o aceite está pendente", async () => {
-    termsMocks.checkTermsStatus.mockResolvedValue({ accepted: false });
+    termsMocks.checkTermsStatus.mockResolvedValue({
+      biometricConsentAccepted: false,
+      acceptedVersion: null,
+      acceptedHash: null,
+      currentVersion: "2026.05.21",
+      currentHash: "current-hash",
+      requiresNewAcceptance: true,
+    });
     termsMocks.getCurrentBiometricTerm.mockResolvedValue({
       type: "BIOMETRIC_CONSENT_TERM",
       version: "2026.05.21",
