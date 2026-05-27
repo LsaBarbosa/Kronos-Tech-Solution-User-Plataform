@@ -396,3 +396,48 @@ export const getDataProcessingCatalog = async (): Promise<DataProcessingPurpose[
     throw serviceError;
   }
 };
+
+export const dryRunAnonymizationForRequest = async (
+  requestId: string
+): Promise<AnonymizationDryRunWithTokenResponse> => {
+  const response = await api.post<AnonymizationDryRunWithTokenResponse>(
+    buildRoute(API_ROUTES.LGPD, LGPD_PATHS.DRY_RUN_ANONYMIZATION(requestId)),
+    {}
+  );
+  return response.data;
+};
+
+export const applyAnonymizationForRequest = async (
+  requestId: string,
+  payload: {
+    justification: string;
+    confirmed: boolean;
+    dryRunToken: string;
+  }
+): Promise<AnonymizationConsolidatedResultResponse> => {
+  const response = await api.post<AnonymizationConsolidatedResultResponse>(
+    buildRoute(API_ROUTES.LGPD, LGPD_PATHS.APPLY_ANONYMIZATION(requestId)),
+    payload
+  );
+  return response.data;
+};
+
+export interface AnonymizationDryRunWithTokenResponse {
+  dryRunToken: string;
+  tokenExpiresAtSeconds: number;
+  summary: {
+    totalScanned: number;
+    totalAffected: number;
+    totalSkipped: number;
+    totalErrors: number;
+  };
+  domains: Array<{
+    resourceType: string;
+    scanned: number;
+    affected: number;
+    skipped: number;
+    action: string;
+    warning: string;
+  }>;
+  warnings: string[];
+}

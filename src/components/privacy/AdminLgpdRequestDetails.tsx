@@ -15,10 +15,13 @@ import {
   cancelLgpdRequest,
   getAvailableTransitions,
   exportApprovedLgpdRequestData,
+  getAnonymizationResult,
   type LgpdRequestDetailsResponse,
   type LgpdRequestStatus,
   type LgpdRequestTransitionPayload,
+  type AnonymizationConsolidatedResultResponse,
 } from "@/service/lgpd.service";
+import { AdminAnonymizationWorkflow } from "@/components/privacy/AdminAnonymizationWorkflow";
 const formatDate = (dateString: string | Date): string => {
   try {
     const date = dateString instanceof Date ? dateString : new Date(dateString);
@@ -57,6 +60,7 @@ export const AdminLgpdRequestDetails = () => {
   const [exportOperationalReason, setExportOperationalReason] = useState("");
   const [exportReviewerNotes, setExportReviewerNotes] = useState("");
   const [exportIncludePreciseGeolocation, setExportIncludePreciseGeolocation] = useState(false);
+  const [anonymizationResult, setAnonymizationResult] = useState<AnonymizationConsolidatedResultResponse | null>(null);
 
   useEffect(() => {
     const fetchDetails = async () => {
@@ -70,6 +74,16 @@ export const AdminLgpdRequestDetails = () => {
         setError(null);
         const data = await getAdminRequestDetails(requestId);
         setRequest(data);
+
+        // Load anonymization result if available
+        const anonResult = await getAnonymizationResult(requestId);
+        if (anonResult) {
+          setAnonymizationResult({
+            ...anonResult,
+            startedAt: new Date(anonResult.startedAt),
+            finishedAt: new Date(anonResult.finishedAt),
+          });
+        }
       } catch (err) {
         setError(err instanceof Error ? err.message : "Erro ao carregar detalhes");
       } finally {
@@ -414,6 +428,22 @@ export const AdminLgpdRequestDetails = () => {
                     <Download className="h-4 w-4" />
                     Exportar Dados Revisados
                   </Button>
+                </div>
+              )}
+
+              {/* Anonymization Workflow for ANONYMIZATION/DELETION requests */}
+              {["ANONYMIZATION", "DELETION"].includes(request.request.type) && (
+                <div className="pt-4 border-t">
+                  <AdminAnonymizationWorkflow
+                    requestId={requestId || ""}
+                    requestType={request.request.type}
+                    requestStatus={request.request.status}
+                    employeeFullName={request.employee.fullName}
+                    onAnonymizationComplete={(result) => {
+                      setAnonymizationResult(result);
+                      toast.success("Anonimização concluída com sucesso!");
+                    }}
+                  />
                 </div>
               )}
 
