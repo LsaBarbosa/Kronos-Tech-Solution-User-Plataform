@@ -8,6 +8,7 @@ import {
   updateUser,
 } from "@/service/collaborator-management.service";
 import { listUsers } from "@/service/user.service";
+import { getEmployee } from "@/service/employee.service";
 import type { EmployeeData } from "@/types/employee";
 import type { UserSearchListItem } from "@/types/user";
 
@@ -240,34 +241,46 @@ export const useCollaboratorList = () => {
     });
   }, []);
 
-  const handleEditColaborador = useCallback((colaborador: CombinedColaborator) => {
-    setEditingId(colaborador.employeeId);
-    setEditedData({
-      fullName: colaborador.fullName,
-      maskedCpf: colaborador.maskedCpf,
-      pis: colaborador.pis,
-      jobPosition: colaborador.jobPosition,
-      email: colaborador.email,
-      salary: colaborador.salary,
-      phone: colaborador.phone,
-      postalCode: colaborador.address.postalCode,
-      number: colaborador.address.number,
-      username: colaborador.username,
-      role: colaborador.role,
-      enabled: colaborador.active,
-      homeOffice: colaborador.homeOffice,
-      workStartTime: colaborador.workStartTime,
-      workEndTime: colaborador.workEndTime,
-      breakStartTime: colaborador.breakStartTime,
-      breakEndTime: colaborador.breakEndTime,
-      scheduleType: colaborador.scheduleType,
-      scaleStartDate: colaborador.scaleStartDate,
-      preferredDayOff: colaborador.preferredDayOff,
-      weekendOffIndex: colaborador.weekendOffIndex,
-      fixedWorkDays: colaborador.fixedWorkDays || [],
-    });
-    setFaceImageFile(null);
-  }, []);
+  const handleEditColaborador = useCallback(async (colaborador: CombinedColaborator) => {
+    try {
+      // Fetch full employee details from backend for editing
+      const detailedEmployee = await getEmployee(colaborador.employeeId);
+
+      setEditingId(colaborador.employeeId);
+      setEditedData({
+        fullName: detailedEmployee.fullName,
+        maskedCpf: detailedEmployee.maskedCpf,
+        pis: detailedEmployee.pis || "",
+        jobPosition: detailedEmployee.jobPosition,
+        email: detailedEmployee.email,
+        salary: detailedEmployee.salary,
+        phone: detailedEmployee.phone,
+        postalCode: detailedEmployee.address?.postalCode || "",
+        number: detailedEmployee.address?.number || "",
+        username: colaborador.username,
+        role: colaborador.role,
+        enabled: colaborador.active,
+        homeOffice: detailedEmployee.homeOffice,
+        workStartTime: detailedEmployee.workStartTime,
+        workEndTime: detailedEmployee.workEndTime,
+        breakStartTime: detailedEmployee.breakStartTime,
+        breakEndTime: detailedEmployee.breakEndTime,
+        scheduleType: detailedEmployee.scheduleType,
+        scaleStartDate: detailedEmployee.scaleStartDate,
+        preferredDayOff: detailedEmployee.preferredDayOff,
+        weekendOffIndex: detailedEmployee.weekendOffIndex,
+        fixedWorkDays: detailedEmployee.fixedWorkDays || [],
+      });
+      setFaceImageFile(null);
+    } catch (error) {
+      console.error("Erro ao buscar dados detalhados do colaborador:", error);
+      toast({
+        title: "Erro",
+        description: "Não foi possível carregar os dados detalhados do colaborador.",
+        variant: "destructive",
+      });
+    }
+  }, [toast]);
 
   const handleEditedDataChange = useCallback((field: string, value: EditableFieldValue) => {
     setEditedData((prev) => {
