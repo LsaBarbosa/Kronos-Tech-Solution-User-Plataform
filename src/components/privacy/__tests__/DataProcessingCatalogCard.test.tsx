@@ -396,4 +396,241 @@ describe("DataProcessingCatalogCard", () => {
       expect(sensitiveLabels.length).toBeGreaterThanOrEqual(1);
     });
   });
+
+  describe("SPEC-007: All legal basis values rendering", () => {
+    it("exibe CONTRACT_EXECUTION com label correto", async () => {
+      const catalogWithAllBases: DataProcessingPurpose[] = [
+        {
+          code: "CONTRACT_TEST",
+          dataCategory: "IDENTIFICATION",
+          legalBasis: "CONTRACT_EXECUTION",
+          purpose: "Teste de base legal",
+          retentionPolicyCode: "RETENTION_TEST",
+          sensitive: false,
+          active: true,
+        },
+      ];
+
+      server.use(
+        http.get("*/lgpd/processing-catalog", () =>
+          HttpResponse.json(catalogWithAllBases)
+        )
+      );
+
+      render(<DataProcessingCatalogCard />);
+
+      await waitFor(() => {
+        expect(
+          screen.getByText("Execução de contrato")
+        ).toBeInTheDocument();
+      });
+    });
+
+    it("exibe REGULAR_EXERCISE_OF_RIGHTS com label correto", async () => {
+      const catalogWithAllBases: DataProcessingPurpose[] = [
+        {
+          code: "RIGHTS_TEST",
+          dataCategory: "IDENTIFICATION",
+          legalBasis: "REGULAR_EXERCISE_OF_RIGHTS",
+          purpose: "Teste de base legal",
+          retentionPolicyCode: "RETENTION_TEST",
+          sensitive: false,
+          active: true,
+        },
+      ];
+
+      server.use(
+        http.get("*/lgpd/processing-catalog", () =>
+          HttpResponse.json(catalogWithAllBases)
+        )
+      );
+
+      render(<DataProcessingCatalogCard />);
+
+      await waitFor(() => {
+        expect(
+          screen.getByText("Exercício regular de direitos")
+        ).toBeInTheDocument();
+      });
+    });
+
+    it("exibe FRAUD_PREVENTION com label correto", async () => {
+      const catalogWithAllBases: DataProcessingPurpose[] = [
+        {
+          code: "FRAUD_TEST",
+          dataCategory: "IDENTIFICATION",
+          legalBasis: "FRAUD_PREVENTION",
+          purpose: "Teste de base legal",
+          retentionPolicyCode: "RETENTION_TEST",
+          sensitive: false,
+          active: true,
+        },
+      ];
+
+      server.use(
+        http.get("*/lgpd/processing-catalog", () =>
+          HttpResponse.json(catalogWithAllBases)
+        )
+      );
+
+      render(<DataProcessingCatalogCard />);
+
+      await waitFor(() => {
+        expect(
+          screen.getByText("Prevenção à fraude e segurança do titular")
+        ).toBeInTheDocument();
+      });
+    });
+
+    it("exibe LEGITIMATE_INTEREST com label correto (sem 'S' extra)", async () => {
+      const catalogWithAllBases: DataProcessingPurpose[] = [
+        {
+          code: "INTEREST_TEST",
+          dataCategory: "IDENTIFICATION",
+          legalBasis: "LEGITIMATE_INTEREST",
+          purpose: "Teste de base legal",
+          retentionPolicyCode: "RETENTION_TEST",
+          sensitive: false,
+          active: true,
+        },
+      ];
+
+      server.use(
+        http.get("*/lgpd/processing-catalog", () =>
+          HttpResponse.json(catalogWithAllBases)
+        )
+      );
+
+      render(<DataProcessingCatalogCard />);
+
+      await waitFor(() => {
+        expect(
+          screen.getByText("Legítimo interesse")
+        ).toBeInTheDocument();
+      });
+
+      // Verify old plural version doesn't appear
+      expect(screen.queryByText("Legítimos interesses")).not.toBeInTheDocument();
+    });
+
+    it("exibe LEGAL_OBLIGATION com label correto", async () => {
+      const catalogWithAllBases: DataProcessingPurpose[] = [
+        {
+          code: "OBLIGATION_TEST",
+          dataCategory: "IDENTIFICATION",
+          legalBasis: "LEGAL_OBLIGATION",
+          purpose: "Teste de base legal",
+          retentionPolicyCode: "RETENTION_TEST",
+          sensitive: false,
+          active: true,
+        },
+      ];
+
+      server.use(
+        http.get("*/lgpd/processing-catalog", () =>
+          HttpResponse.json(catalogWithAllBases)
+        )
+      );
+
+      render(<DataProcessingCatalogCard />);
+
+      await waitFor(() => {
+        expect(
+          screen.getByText("Obrigação legal ou regulatória")
+        ).toBeInTheDocument();
+      });
+    });
+
+    it("renderiza todas as 6 bases legais do back-end corretamente", async () => {
+      const allBases: DataProcessingPurpose[] = [
+        {
+          code: "CONSENT_TEST",
+          dataCategory: "IDENTIFICATION",
+          legalBasis: "CONSENT",
+          purpose: "Teste",
+          retentionPolicyCode: "RETENTION_TEST",
+          sensitive: false,
+          active: true,
+        },
+        {
+          code: "LEGAL_OBLIGATION_TEST",
+          dataCategory: "IDENTIFICATION",
+          legalBasis: "LEGAL_OBLIGATION",
+          purpose: "Teste",
+          retentionPolicyCode: "RETENTION_TEST",
+          sensitive: false,
+          active: true,
+        },
+        {
+          code: "CONTRACT_EXECUTION_TEST",
+          dataCategory: "IDENTIFICATION",
+          legalBasis: "CONTRACT_EXECUTION",
+          purpose: "Teste",
+          retentionPolicyCode: "RETENTION_TEST",
+          sensitive: false,
+          active: true,
+        },
+        {
+          code: "REGULAR_EXERCISE_TEST",
+          dataCategory: "IDENTIFICATION",
+          legalBasis: "REGULAR_EXERCISE_OF_RIGHTS",
+          purpose: "Teste",
+          retentionPolicyCode: "RETENTION_TEST",
+          sensitive: false,
+          active: true,
+        },
+        {
+          code: "FRAUD_PREVENTION_TEST",
+          dataCategory: "IDENTIFICATION",
+          legalBasis: "FRAUD_PREVENTION",
+          purpose: "Teste",
+          retentionPolicyCode: "RETENTION_TEST",
+          sensitive: false,
+          active: true,
+        },
+        {
+          code: "LEGITIMATE_INTEREST_TEST",
+          dataCategory: "IDENTIFICATION",
+          legalBasis: "LEGITIMATE_INTEREST",
+          purpose: "Teste",
+          retentionPolicyCode: "RETENTION_TEST",
+          sensitive: false,
+          active: true,
+        },
+      ];
+
+      server.use(
+        http.get("*/lgpd/processing-catalog", () =>
+          HttpResponse.json(allBases)
+        )
+      );
+
+      render(<DataProcessingCatalogCard />);
+
+      await waitFor(() => {
+        expect(screen.getByText("Como Usamos Seus Dados")).toBeInTheDocument();
+      });
+
+      // Verify all legal bases appear with correct labels
+      expect(screen.getByText("Consentimento")).toBeInTheDocument();
+      expect(
+        screen.getByText("Obrigação legal ou regulatória")
+      ).toBeInTheDocument();
+      expect(screen.getByText("Execução de contrato")).toBeInTheDocument();
+      expect(
+        screen.getByText("Exercício regular de direitos")
+      ).toBeInTheDocument();
+      expect(
+        screen.getByText("Prevenção à fraude e segurança do titular")
+      ).toBeInTheDocument();
+      expect(screen.getByText("Legítimo interesse")).toBeInTheDocument();
+
+      // Verify no fallback to raw enum values
+      expect(screen.queryByText("CONTRACT_EXECUTION")).not.toBeInTheDocument();
+      expect(screen.queryByText("FRAUD_PREVENTION")).not.toBeInTheDocument();
+      expect(
+        screen.queryByText("REGULAR_EXERCISE_OF_RIGHTS")
+      ).not.toBeInTheDocument();
+    });
+  });
 });

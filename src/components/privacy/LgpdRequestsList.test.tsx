@@ -46,6 +46,48 @@ describe("LgpdRequestsList", () => {
         resolvedAt: "2026-05-21T15:00:00Z",
         resolvedByUserId: "user-002",
       },
+      {
+        requestId: "req-003",
+        employeeId: "emp-001",
+        requestedByUserId: "user-001",
+        companyId: "company-001",
+        requestType: "CONSENT_INFORMATION",
+        status: "OPEN",
+        description: "Solicitação de informações sobre consentimento",
+        resolutionNotes: null,
+        createdAt: "2026-05-21T10:00:00Z",
+        updatedAt: "2026-05-21T10:00:00Z",
+        resolvedAt: null,
+        resolvedByUserId: null,
+      },
+      {
+        requestId: "req-004",
+        employeeId: "emp-001",
+        requestedByUserId: "user-001",
+        companyId: "company-001",
+        requestType: "OPPOSITION",
+        status: "OPEN",
+        description: "Solicitação de oposição",
+        resolutionNotes: null,
+        createdAt: "2026-05-21T10:00:00Z",
+        updatedAt: "2026-05-21T10:00:00Z",
+        resolvedAt: null,
+        resolvedByUserId: null,
+      },
+      {
+        requestId: "req-005",
+        employeeId: "emp-001",
+        requestedByUserId: "user-001",
+        companyId: "company-001",
+        requestType: "AUTOMATED_DECISION_REVIEW",
+        status: "OPEN",
+        description: "Solicitação de revisão automatizada",
+        resolutionNotes: null,
+        createdAt: "2026-05-21T10:00:00Z",
+        updatedAt: "2026-05-21T10:00:00Z",
+        resolvedAt: null,
+        resolvedByUserId: null,
+      },
     ];
 
     lgpdMocks.listLgpdRequests.mockResolvedValue(mockRequests);
@@ -57,7 +99,10 @@ describe("LgpdRequestsList", () => {
     });
 
     expect(screen.getByText("Exclusão de dados")).toBeInTheDocument();
-    expect(screen.getByText("Aberto")).toBeInTheDocument();
+    expect(screen.getByText("Informações sobre consentimento")).toBeInTheDocument();
+    expect(screen.getByText("Oposição ao tratamento")).toBeInTheDocument();
+    expect(screen.getByText("Revisão de decisão automatizada")).toBeInTheDocument();
+    expect(screen.getAllByText("Aberto")).toHaveLength(4);
     expect(screen.getByText("Concluído")).toBeInTheDocument();
   });
 

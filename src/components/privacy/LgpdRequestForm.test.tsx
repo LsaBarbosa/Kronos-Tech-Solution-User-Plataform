@@ -74,6 +74,22 @@ describe("LgpdRequestForm", () => {
     expect(screen.getByText("0/1000 caracteres")).toBeInTheDocument();
   });
 
+  it("exibe os novos direitos do titular LGPD no seletor", () => {
+    const { container } = render(<LgpdRequestForm onSuccess={mockOnSuccess} />);
+
+    const requestTypeSelect = container.querySelector("select");
+    if (!requestTypeSelect) {
+      throw new Error("Hidden select not found");
+    }
+
+    const optionLabels = Array.from(requestTypeSelect.options).map(
+      (option) => option.textContent
+    );
+    expect(optionLabels).toContain("Informações sobre consentimento");
+    expect(optionLabels).toContain("Oposição ao tratamento");
+    expect(optionLabels).toContain("Revisão de decisão automatizada");
+  });
+
   it("envia payload com type e descrição sem espaços extras", async () => {
     const { container } = render(<LgpdRequestForm onSuccess={mockOnSuccess} />);
 

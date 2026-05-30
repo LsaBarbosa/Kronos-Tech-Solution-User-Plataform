@@ -10,6 +10,8 @@ vi.mock("@/hooks/use-toast", () => ({
 }));
 
 vi.mock("@/service/collaborator-management.service", () => ({
+  checkCpfAvailability: vi.fn(),
+  createCollaborator: vi.fn(),
   fetchEmployeeList: vi.fn(),
   toggleUserStatus: vi.fn(),
   updateCollaborator: vi.fn(),

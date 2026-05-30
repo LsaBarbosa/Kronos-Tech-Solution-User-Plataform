@@ -12,7 +12,10 @@ export type LgpdRequestType =
   | "DELETION"
   | "PORTABILITY"
   | "CONSENT_REVOCATION"
-  | "SHARING_INFORMATION";
+  | "SHARING_INFORMATION"
+  | "CONSENT_INFORMATION"
+  | "OPPOSITION"
+  | "AUTOMATED_DECISION_REVIEW";
 
 export type LgpdRequestStatus =
   | "OPEN"

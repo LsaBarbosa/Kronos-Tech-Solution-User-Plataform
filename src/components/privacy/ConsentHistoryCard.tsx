@@ -3,6 +3,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/com
 import { Badge } from '@/components/ui/badge'
 import { History, AlertCircle } from 'lucide-react'
 import type { ConsentHistoryResponse } from '@/types/legal'
+import { consentTypeLabels } from '@/types/legal'
 import { getConsentHistory } from '@/service/terms.service'
 import { toast } from '@/hooks/use-toast'
 import { getServiceErrorMessage } from '@/service/helpers/service-error.helper'
@@ -38,12 +39,7 @@ const ConsentHistoryCard: React.FC = () => {
   }
 
   const getConsentTypeLabel = (type: string) => {
-    const labels: Record<string, string> = {
-      BIOMETRIC_AUTHENTICATION: 'Autenticação Biométrica',
-      SERVICE_TERMS: 'Termos de Serviço',
-      PRIVACY_POLICY: 'Política de Privacidade',
-    }
-    return labels[type] || type
+    return consentTypeLabels[type as keyof typeof consentTypeLabels] || type
   }
 
   return (

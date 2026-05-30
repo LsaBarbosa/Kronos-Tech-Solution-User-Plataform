@@ -11,6 +11,7 @@ import {
   SelectValue,
 } from "@/components/ui/select";
 import { APP_PATHS } from "@/config/app-routes";
+import { LGPD_REQUEST_TYPE_LABELS, LGPD_REQUEST_TYPES } from "@/constants/lgpd.constants";
 import {
   listAdminRequests,
   type LgpdRequestAdminListResponse,
@@ -47,18 +48,6 @@ export const AdminLgpdRequests = () => {
   const [totalPages, setTotalPages] = useState(0);
   const [filters, setFilters] = useState<FilterState>({});
   const [searchTerm, setSearchTerm] = useState("");
-
-  const requestTypes: LgpdRequestType[] = [
-    "CONFIRM_PROCESSING",
-    "ACCESS",
-    "CORRECTION",
-    "ANONYMIZATION",
-    "BLOCKING",
-    "DELETION",
-    "PORTABILITY",
-    "CONSENT_REVOCATION",
-    "SHARING_INFORMATION",
-  ];
 
   const statusOptions: LgpdRequestStatus[] = [
     "OPEN",
@@ -131,21 +120,6 @@ export const AdminLgpdRequests = () => {
     return labels[status] || status;
   };
 
-  const getTypeLabel = (type: LgpdRequestType) => {
-    const labels: Record<LgpdRequestType, string> = {
-      CONFIRM_PROCESSING: "Confirmação de Processamento",
-      ACCESS: "Acesso aos Dados",
-      CORRECTION: "Correção de Dados",
-      ANONYMIZATION: "Anonimização",
-      BLOCKING: "Bloqueio",
-      DELETION: "Exclusão",
-      PORTABILITY: "Portabilidade",
-      CONSENT_REVOCATION: "Revogação de Consentimento",
-      SHARING_INFORMATION: "Compartilhamento de Informação",
-    };
-    return labels[type] || type;
-  };
-
   if (error) {
     return (
       <div className="flex items-center justify-center min-h-screen bg-red-50">
@@ -184,9 +158,9 @@ export const AdminLgpdRequests = () => {
             </SelectTrigger>
             <SelectContent>
               <SelectItem value="">Todas as Solicitações</SelectItem>
-              {requestTypes.map((type) => (
+              {LGPD_REQUEST_TYPES.map((type) => (
                 <SelectItem key={type} value={type}>
-                  {getTypeLabel(type)}
+                  {LGPD_REQUEST_TYPE_LABELS[type]}
                 </SelectItem>
               ))}
             </SelectContent>

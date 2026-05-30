@@ -5,7 +5,8 @@ import { Alert, AlertDescription } from "@/components/ui/alert";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Button } from "@/components/ui/button";
 import { getDataProcessingCatalog } from "@/service/lgpd.service";
-import type { DataProcessingPurpose } from "@/types/legal";
+import type { DataProcessingPurpose, LegalBasis } from "@/types/legal";
+import { legalBasisLabels } from "@/types/legal";
 import { getServiceErrorMessage, ServiceError } from "@/service/helpers/service-error.helper";
 
 const DataProcessingCatalogCard = () => {
@@ -13,6 +14,11 @@ const DataProcessingCatalogCard = () => {
   const [isLoading, setIsLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
   const [errorKind, setErrorKind] = useState<string | null>(null);
+
+  const getLegalBasisLabel = (basis: string | undefined) => {
+    if (!basis) return "Sem base legal";
+    return legalBasisLabels[basis as LegalBasis] || basis;
+  };
 
   const loadCatalog = async () => {
     try {
@@ -276,7 +282,7 @@ const DataProcessingCatalogCard = () => {
                       Base Legal
                     </p>
                     <p className="text-sm font-medium mt-1 text-primary">
-                      {item.legalBasis?.replace(/_/g, " ") || "Sem base"}
+                      {getLegalBasisLabel(item.legalBasis)}
                     </p>
                   </div>
 

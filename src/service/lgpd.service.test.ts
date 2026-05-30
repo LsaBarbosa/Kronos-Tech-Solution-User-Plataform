@@ -37,6 +37,30 @@ describe("lgpd.service", () => {
     ).resolves.toBeUndefined();
   });
 
+  it.each([
+    "CONSENT_INFORMATION",
+    "OPPOSITION",
+    "AUTOMATED_DECISION_REVIEW",
+  ] as const)("cria solicitação LGPD para o direito %s", async (type) => {
+    server.use(
+      http.post("*/lgpd/requests", async ({ request }) => {
+        const body = await request.json();
+        expect(body).toEqual({
+          type,
+          description: "Solicitação de direito do titular",
+        });
+        return new HttpResponse(null, { status: 201 });
+      })
+    );
+
+    await expect(
+      createLgpdRequest({
+        type,
+        description: "Solicitação de direito do titular",
+      })
+    ).resolves.toBeUndefined();
+  });
+
   it("lista solicitações LGPD com sucesso", async () => {
     const mockRequests: LgpdRequestResponse[] = [
       {
@@ -371,7 +395,7 @@ describe("lgpd.service", () => {
       {
         code: "VALID_CODE",
         dataCategory: "IDENTIFICATION",
-        legalBasis: "CONTRACT",
+        legalBasis: "CONTRACT_EXECUTION",
         purpose: "Valid purpose",
         retentionPolicyCode: "RETENTION_VALID",
         sensitive: false,

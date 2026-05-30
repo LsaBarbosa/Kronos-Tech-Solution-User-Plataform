@@ -1,6 +1,32 @@
-export type ConsentType = 'BIOMETRIC_AUTHENTICATION' | 'SERVICE_TERMS' | 'PRIVACY_POLICY'
+export type ConsentType =
+  | 'BIOMETRIC_AUTHENTICATION'
+  | 'BIOMETRIC_TIME_RECORD'
+  | 'PRIVACY_POLICY'
+  | 'TERMS_OF_USE'
 
-export type LegalBasis = 'CONSENT' | 'LEGAL_OBLIGATION' | 'LEGITIMATE_INTEREST' | 'CONTRACT' | 'VITAL_INTERESTS' | 'PUBLIC_TASK' | 'LEGITIMATE_INTERESTS'
+export type LegalBasis =
+  | 'CONSENT'
+  | 'LEGAL_OBLIGATION'
+  | 'CONTRACT_EXECUTION'
+  | 'REGULAR_EXERCISE_OF_RIGHTS'
+  | 'FRAUD_PREVENTION'
+  | 'LEGITIMATE_INTEREST'
+
+export const legalBasisLabels: Record<LegalBasis, string> = {
+  CONSENT: 'Consentimento',
+  LEGAL_OBLIGATION: 'Obrigação legal ou regulatória',
+  CONTRACT_EXECUTION: 'Execução de contrato',
+  REGULAR_EXERCISE_OF_RIGHTS: 'Exercício regular de direitos',
+  FRAUD_PREVENTION: 'Prevenção à fraude e segurança do titular',
+  LEGITIMATE_INTEREST: 'Legítimo interesse',
+}
+
+export const consentTypeLabels: Record<ConsentType, string> = {
+  BIOMETRIC_AUTHENTICATION: 'Autenticação biométrica',
+  BIOMETRIC_TIME_RECORD: 'Registro de ponto biométrico',
+  PRIVACY_POLICY: 'Política de privacidade',
+  TERMS_OF_USE: 'Termos de uso',
+}
 
 export interface BiometricConsentStatus {
   biometricConsentAccepted: boolean

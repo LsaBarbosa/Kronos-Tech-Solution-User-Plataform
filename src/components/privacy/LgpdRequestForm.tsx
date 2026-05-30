@@ -11,7 +11,7 @@ import {
 import { Textarea } from "@/components/ui/textarea";
 import { FieldGroup } from "@/components/ui";
 import { toast } from "@/hooks/use-toast";
-import { createLgpdRequest } from "@/service/lgpd.service";
+import { createLgpdRequest, type LgpdRequestType } from "@/service/lgpd.service";
 import { getServiceErrorMessage } from "@/service/helpers/service-error.helper";
 import { LGPD_REQUEST_TYPE_LABELS, LGPD_REQUEST_TYPES } from "@/constants/lgpd.constants";
 

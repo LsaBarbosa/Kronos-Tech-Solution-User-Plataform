@@ -4,6 +4,7 @@ import { AlertCircle, ArrowLeft, Loader2, Clock, User, Building2, CheckCircle, X
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { APP_PATHS } from "@/config/app-routes";
+import { LGPD_REQUEST_TYPE_LABELS } from "@/constants/lgpd.constants";
 import { toast } from "@/hooks/use-toast";
 import {
   getAdminRequestDetails,
@@ -380,7 +381,9 @@ export const AdminLgpdRequestDetails = () => {
               <div className="grid grid-cols-2 gap-4">
                 <div>
                   <p className="text-sm text-muted-foreground mb-1">Tipo</p>
-                  <p className="text-sm font-medium text-foreground">{request.request.requestType}</p>
+                  <p className="text-sm font-medium text-foreground">
+                    {LGPD_REQUEST_TYPE_LABELS[request.request.requestType]}
+                  </p>
                 </div>
                 <div>
                   <p className="text-sm text-muted-foreground mb-1">Status</p>
@@ -432,11 +435,11 @@ export const AdminLgpdRequestDetails = () => {
               )}
 
               {/* Anonymization Workflow for ANONYMIZATION/DELETION requests */}
-              {["ANONYMIZATION", "DELETION"].includes(request.request.type) && (
+              {["ANONYMIZATION", "DELETION"].includes(request.request.requestType) && (
                 <div className="pt-4 border-t">
                   <AdminAnonymizationWorkflow
                     requestId={requestId || ""}
-                    requestType={request.request.type}
+                    requestType={request.request.requestType}
                     requestStatus={request.request.status}
                     employeeFullName={request.employee.fullName}
                     onAnonymizationComplete={(result) => {
