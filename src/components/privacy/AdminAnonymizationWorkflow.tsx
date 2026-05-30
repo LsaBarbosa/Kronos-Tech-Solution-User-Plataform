@@ -1,5 +1,5 @@
 import { useState } from "react";
-import { AlertCircle, CheckCircle, Loader2 } from "lucide-react";
+import { AlertCircle, CheckCircle, Loader2, Clock, User, FileText, Lock, Building2, MessageSquare, LogOut } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
@@ -7,10 +7,11 @@ import { toast } from "@/hooks/use-toast";
 import {
   dryRunAnonymizationForRequest,
   applyAnonymizationForRequest,
-  AnonymizationDryRunWithTokenResponse,
-  AnonymizationConsolidatedResultResponse,
+  type AnonymizationDryRunWithTokenResponse,
+  type AnonymizationConsolidatedResultResponse,
 } from "@/service/lgpd.service";
 import { getServiceErrorMessage } from "@/service/helpers/service-error.helper";
+import { ANONYMIZATION_RESOURCE_TYPE_LABELS, ANONYMIZATION_ACTION_DESCRIPTIONS } from "@/constants/lgpd.constants";
 
 interface AdminAnonymizationWorkflowProps {
   requestId: string;
@@ -38,6 +39,27 @@ export const AdminAnonymizationWorkflow = ({
   const canExecuteDryRun = ["APPROVED_FOR_EXPORT", "WAITING_LEGAL_REVIEW", "WAITING_CONTROLLER"].includes(
     requestStatus
   );
+
+  const getIconForResourceType = (resourceType: string) => {
+    switch (resourceType) {
+      case "TIME_RECORD":
+        return <Clock className="h-5 w-5 text-blue-600" />;
+      case "USER":
+        return <User className="h-5 w-5 text-purple-600" />;
+      case "DOCUMENT":
+        return <FileText className="h-5 w-5 text-amber-600" />;
+      case "BIOMETRIC_ARTIFACT":
+        return <Lock className="h-5 w-5 text-red-600" />;
+      case "EMPLOYEE":
+        return <Building2 className="h-5 w-5 text-green-600" />;
+      case "MESSAGE":
+        return <MessageSquare className="h-5 w-5 text-cyan-600" />;
+      case "AUDIT_LOG":
+        return <LogOut className="h-5 w-5 text-gray-600" />;
+      default:
+        return <AlertCircle className="h-5 w-5 text-gray-600" />;
+    }
+  };
 
   const handleDryRun = async () => {
     if (!canExecuteDryRun) {
@@ -180,21 +202,38 @@ export const AdminAnonymizationWorkflow = ({
           {dryRunData.domains.length > 0 && (
             <div>
               <h3 className="mb-3 font-semibold text-blue-900">Detalhes por Tipo de Dado</h3>
-              <div className="space-y-2">
+              <div className="space-y-3">
                 {dryRunData.domains.map((domain, idx) => (
-                  <div key={idx} className="rounded-lg bg-white p-3">
-                    <p className="font-medium text-gray-800">{domain.resourceType}</p>
-                    <p className="text-sm text-gray-600">{domain.warning}</p>
-                    <div className="mt-2 grid grid-cols-3 gap-2 text-xs">
-                      <span className="text-gray-600">
-                        Verificados: <strong>{domain.scanned}</strong>
-                      </span>
-                      <span className="text-orange-600">
-                        Afetados: <strong>{domain.affected}</strong>
-                      </span>
-                      <span className="text-gray-600">
-                        Preservados: <strong>{domain.skipped}</strong>
-                      </span>
+                  <div key={idx} className="rounded-lg border border-gray-200 bg-white p-4 hover:shadow-sm transition-shadow">
+                    <div className="flex items-start gap-3">
+                      <div className="flex-shrink-0 pt-1">
+                        {getIconForResourceType(domain.resourceType)}
+                      </div>
+                      <div className="flex-grow min-w-0">
+                        <div className="flex items-baseline gap-2">
+                          <p className="font-medium text-gray-900">
+                            {ANONYMIZATION_RESOURCE_TYPE_LABELS[domain.resourceType] || domain.resourceType}
+                          </p>
+                        </div>
+                        <p className="text-xs text-gray-600 mt-0.5">
+                          <span className="font-medium">Ação:</span> {ANONYMIZATION_ACTION_DESCRIPTIONS[domain.action] || domain.action}
+                        </p>
+                        <p className="text-sm text-gray-700 mt-2">{domain.warning}</p>
+                        <div className="mt-3 grid grid-cols-3 gap-3 text-sm">
+                          <div className="rounded bg-blue-50 p-2 text-center">
+                            <div className="font-bold text-blue-700">{domain.scanned}</div>
+                            <div className="text-xs text-gray-600">Verificados</div>
+                          </div>
+                          <div className="rounded bg-orange-50 p-2 text-center">
+                            <div className="font-bold text-orange-700">{domain.affected}</div>
+                            <div className="text-xs text-gray-600">Serão Afetados</div>
+                          </div>
+                          <div className="rounded bg-green-50 p-2 text-center">
+                            <div className="font-bold text-green-700">{domain.skipped}</div>
+                            <div className="text-xs text-gray-600">Preservados</div>
+                          </div>
+                        </div>
+                      </div>
                     </div>
                   </div>
                 ))}
