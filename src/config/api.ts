@@ -313,3 +313,25 @@ api.interceptors.response.use(
     return rejectApiError(error);
   }
 );
+
+export const publicApi = axios.create({
+  baseURL: API_BASE_URL,
+  withCredentials: false,
+  headers: {
+    "Content-Type": "application/json",
+  },
+});
+
+publicApi.interceptors.request.use(
+  (config) => {
+    config.headers = config.headers ?? {};
+    ensureCorrelationIdHeader(config.headers);
+    return config;
+  },
+  (error) => Promise.reject(normalizeServiceError(error))
+);
+
+publicApi.interceptors.response.use(
+  (response) => response,
+  (error) => rejectApiError(error)
+);

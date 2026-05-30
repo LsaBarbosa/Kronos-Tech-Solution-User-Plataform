@@ -1,4 +1,4 @@
-import { api } from "@/config/api";
+import { publicApi } from "@/config/api";
 
 export interface PublicProcessingActivityResponse {
   code: string;
@@ -42,7 +42,7 @@ export interface PublicBiometricTermResponse {
 }
 
 export const getPublicProcessingCatalog = async (): Promise<PublicProcessingCatalogResponse> => {
-  const response = await api.get<PublicProcessingCatalogResponse>(
+  const response = await publicApi.get<PublicProcessingCatalogResponse>(
     "/public/privacy/processing-catalog"
   );
   return response.data;
