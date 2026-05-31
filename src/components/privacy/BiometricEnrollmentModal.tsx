@@ -7,6 +7,7 @@ import { Label } from "@/components/ui/label";
 import { toast } from "@/hooks/use-toast";
 import { enrollBiometric } from "@/service/employee.service";
 import { useLivenessDetection } from "@/hooks/useLivenessDetection";
+import { isBiometricLivenessRequired } from "@/config/biometric";
 
 interface BiometricEnrollmentModalProps {
   open: boolean;
@@ -25,6 +26,7 @@ const BiometricEnrollmentModal = ({
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [livenessPassed, setLivenessPassed] = useState(false);
   const { isDetecting, error: livenessError, performLivenessCheck } = useLivenessDetection();
+  const shouldRequireLiveness = isBiometricLivenessRequired();
 
   const fileToBase64 = (file: File): Promise<string> => {
     return new Promise((resolve, reject) => {
@@ -47,6 +49,10 @@ const BiometricEnrollmentModal = ({
       const file = e.target.files[0];
       setFaceImageFile(file);
       setLivenessPassed(false);
+
+      if (!shouldRequireLiveness) {
+        return;
+      }
 
       // Perform liveness detection on the selected image
       try {
@@ -92,7 +98,7 @@ const BiometricEnrollmentModal = ({
       return;
     }
 
-    if (!livenessPassed) {
+    if (shouldRequireLiveness && !livenessPassed) {
       toast({
         title: "Verificação de liveness não passou",
         description: "A verificação de liveness é obrigatória. Tente com outra imagem.",
@@ -108,7 +114,7 @@ const BiometricEnrollmentModal = ({
 
       await enrollBiometric({
         faceImageBase64: base64Image,
-        livenessPassed: true,
+        livenessPassed: shouldRequireLiveness ? livenessPassed : false,
       });
 
       toast({
@@ -168,7 +174,7 @@ const BiometricEnrollmentModal = ({
               disabled={!hasConsent || isSubmitting || isDetecting}
               className="cursor-pointer"
             />
-            {isDetecting && (
+            {shouldRequireLiveness && isDetecting && (
               <div className="flex items-center gap-2 text-sm text-muted-foreground">
                 <Loader2 className="h-4 w-4 animate-spin" />
                 Verificando liveness...
@@ -179,12 +185,12 @@ const BiometricEnrollmentModal = ({
                 <p className="text-xs text-muted-foreground">
                   Arquivo selecionado: {faceImageFile.name}
                 </p>
-                {livenessPassed ? (
+                {shouldRequireLiveness && livenessPassed ? (
                   <div className="flex items-center gap-2 rounded-md bg-emerald-500/10 p-2 text-xs text-emerald-700">
                     <CheckCircle2 className="h-4 w-4" />
                     Verificação de liveness passou ✓
                   </div>
-                ) : livenessError ? (
+                ) : shouldRequireLiveness && livenessError ? (
                   <div className="flex items-center gap-2 rounded-md bg-red-500/10 p-2 text-xs text-red-700">
                     <AlertCircle className="h-4 w-4" />
                     {livenessError}
@@ -209,7 +215,16 @@ const BiometricEnrollmentModal = ({
           <Button variant="outline" onClick={() => onOpenChange(false)} disabled={isSubmitting || isDetecting}>
             Cancelar
           </Button>
-          <Button onClick={handleEnroll} disabled={!hasConsent || !faceImageFile || !livenessPassed || isSubmitting || isDetecting}>
+          <Button
+            onClick={handleEnroll}
+            disabled={
+              !hasConsent ||
+              !faceImageFile ||
+              (shouldRequireLiveness && !livenessPassed) ||
+              isSubmitting ||
+              isDetecting
+            }
+          >
             {isSubmitting ? (
               <>
                 <Loader2 className="h-4 w-4 animate-spin mr-2" />

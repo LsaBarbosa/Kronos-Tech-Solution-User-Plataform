@@ -1,6 +1,6 @@
 import { api } from "@/config/api";
 import { API_ROUTES, LGPD_PATHS, buildRoute } from "@/config/api-routes";
-import type { LgpdEmployeeExportResponse, DataProcessingPurpose } from "@/types/legal";
+import type { LgpdEmployeeExportResponse, DataProcessingPurpose, ConsentType } from "@/types/legal";
 import { normalizeServiceError } from "@/service/helpers/service-error.helper";
 
 export type LgpdRequestType =
@@ -42,6 +42,7 @@ export interface LgpdRequestResponse {
   updatedAt: string;
   resolvedAt: string | null;
   resolvedByUserId: string | null;
+  targetConsentType?: ConsentType | null;
 }
 
 export interface EmployeeSummaryResponse {
@@ -103,6 +104,7 @@ export interface PaginatedResponse<T> {
 export interface CreateLgpdRequestPayload {
   type: LgpdRequestType;
   description: string;
+  targetConsentType?: ConsentType;
 }
 
 export interface LgpdRequestTransitionPayload {

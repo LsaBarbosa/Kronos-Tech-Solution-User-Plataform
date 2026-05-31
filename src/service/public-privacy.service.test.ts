@@ -1,6 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import * as service from "./public-privacy.service";
-import { api } from "@/config/api";
+import { publicApi } from "@/config/api";
 
 vi.mock("@/config/api");
 
@@ -28,11 +28,11 @@ describe("PublicPrivacyService", () => {
         ],
       };
 
-      vi.mocked(api.get).mockResolvedValue({ data: mockData });
+      vi.mocked(publicApi.get).mockResolvedValue({ data: mockData });
 
       const result = await service.getPublicProcessingCatalog();
 
-      expect(api.get).toHaveBeenCalledWith("/public/privacy/processing-catalog");
+      expect(publicApi.get).toHaveBeenCalledWith("/public/privacy/processing-catalog");
       expect(result).toEqual(mockData);
     });
 
@@ -43,7 +43,7 @@ describe("PublicPrivacyService", () => {
         activities: [],
       };
 
-      vi.mocked(api.get).mockResolvedValue({ data: mockData });
+      vi.mocked(publicApi.get).mockResolvedValue({ data: mockData });
 
       const result = await service.getPublicProcessingCatalog();
 
@@ -60,11 +60,11 @@ describe("PublicPrivacyService", () => {
         sections: [],
       };
 
-      vi.mocked(api.get).mockResolvedValue({ data: mockData });
+      vi.mocked(publicApi.get).mockResolvedValue({ data: mockData });
 
       const result = await service.getPublicPrivacyPolicy();
 
-      expect(api.get).toHaveBeenCalledWith("/public/privacy/policy");
+      expect(publicApi.get).toHaveBeenCalledWith("/public/privacy/policy");
       expect(result).toEqual(mockData);
     });
 
@@ -81,7 +81,7 @@ describe("PublicPrivacyService", () => {
         ],
       };
 
-      vi.mocked(api.get).mockResolvedValue({ data: mockData });
+      vi.mocked(publicApi.get).mockResolvedValue({ data: mockData });
 
       const result = await service.getPublicPrivacyPolicy();
 
@@ -98,11 +98,11 @@ describe("PublicPrivacyService", () => {
         sections: [],
       };
 
-      vi.mocked(api.get).mockResolvedValue({ data: mockData });
+      vi.mocked(publicApi.get).mockResolvedValue({ data: mockData });
 
       const result = await service.getPublicBiometricTerm();
 
-      expect(api.get).toHaveBeenCalledWith("/public/privacy/biometric-term");
+      expect(publicApi.get).toHaveBeenCalledWith("/public/privacy/biometric-term");
       expect(result).toEqual(mockData);
     });
 
@@ -119,7 +119,7 @@ describe("PublicPrivacyService", () => {
         ],
       };
 
-      vi.mocked(api.get).mockResolvedValue({ data: mockData });
+      vi.mocked(publicApi.get).mockResolvedValue({ data: mockData });
 
       const result = await service.getPublicBiometricTerm();
 
@@ -135,7 +135,7 @@ describe("PublicPrivacyService", () => {
         activities: [],
       };
 
-      vi.mocked(api.get).mockResolvedValue({ data: mockData });
+      vi.mocked(publicApi.get).mockResolvedValue({ data: mockData });
 
       const result = await service.getPublicProcessingCatalog();
 

@@ -61,6 +61,29 @@ describe("lgpd.service", () => {
     ).resolves.toBeUndefined();
   });
 
+  it("cria solicitação LGPD de revogação biométrica com targetConsentType", async () => {
+    server.use(
+      http.post("*/lgpd/requests", async ({ request }) => {
+        const body = await request.json();
+        expect(body).toEqual({
+          type: "CONSENT_REVOCATION",
+          description: "Revogar consentimento biométrico",
+          targetConsentType: "BIOMETRIC_AUTHENTICATION",
+        });
+        return new HttpResponse(null, { status: 201 });
+      })
+    );
+
+    await expect(
+      createLgpdRequest({
+        type: "CONSENT_REVOCATION",
+        description: "Revogar consentimento biométrico",
+        targetConsentType: "BIOMETRIC_AUTHENTICATION",
+      })
+    ).resolves.toBeUndefined();
+  });
+
+
   it("lista solicitações LGPD com sucesso", async () => {
     const mockRequests: LgpdRequestResponse[] = [
       {

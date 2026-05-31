@@ -8,6 +8,7 @@ import { useNavigate } from "react-router-dom";
 import { loginWithFace } from "@/service/auth.service";
 import { useAuth } from "@/context/AuthContext";
 import { getServiceErrorMessage } from "@/service/helpers/service-error.helper";
+import { isBiometricLivenessRequired } from "@/config/biometric";
 
 interface FaceLoginModalProps {
     isOpen: boolean;
@@ -133,9 +134,10 @@ const FaceLoginModal = ({ isOpen, onOpenChange }: FaceLoginModalProps) => {
 
     const handleLoginAttempt = async () => {
         if (!imageSrc) return;
-        const livenessPassed = validateLiveness();
+        const shouldRequireLiveness = isBiometricLivenessRequired();
+        const livenessPassed = shouldRequireLiveness ? validateLiveness() : false;
 
-        if (!livenessPassed) {
+        if (shouldRequireLiveness && !livenessPassed) {
             toast.error("Validação biométrica incompleta. Capture o rosto novamente.");
             return;
         }

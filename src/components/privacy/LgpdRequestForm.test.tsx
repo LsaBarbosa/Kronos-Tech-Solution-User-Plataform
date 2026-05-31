@@ -113,4 +113,54 @@ describe("LgpdRequestForm", () => {
     });
     expect(mockOnSuccess).toHaveBeenCalledTimes(1);
   });
+
+  it("bloqueia revogação de consentimento sem targetConsentType", async () => {
+    const { container } = render(<LgpdRequestForm onSuccess={mockOnSuccess} />);
+
+    const requestTypeSelect = container.querySelector("select");
+    if (!requestTypeSelect) {
+      throw new Error("Hidden select not found");
+    }
+
+    fireEvent.change(requestTypeSelect, { target: { value: "CONSENT_REVOCATION" } });
+    await userEvent.type(
+      screen.getByPlaceholderText(/Descreva sua solicitação/),
+      "Revogar consentimento biométrico"
+    );
+
+    expect(screen.getByRole("button", { name: /Enviar Solicitação/i })).toBeDisabled();
+    expect(lgpdMocks.createLgpdRequest).not.toHaveBeenCalled();
+  });
+
+  it("envia targetConsentType para revogação biométrica", async () => {
+    const { container } = render(<LgpdRequestForm onSuccess={mockOnSuccess} />);
+
+    const requestTypeSelect = container.querySelector("select");
+    if (!requestTypeSelect) {
+      throw new Error("Hidden select not found");
+    }
+
+    fireEvent.change(requestTypeSelect, { target: { value: "CONSENT_REVOCATION" } });
+
+    const selects = container.querySelectorAll("select");
+    const targetConsentTypeSelect = selects[1];
+    if (!targetConsentTypeSelect) {
+      throw new Error("Target consent type select not found");
+    }
+
+    fireEvent.change(targetConsentTypeSelect, { target: { value: "BIOMETRIC_AUTHENTICATION" } });
+    await userEvent.type(
+      screen.getByPlaceholderText(/Descreva sua solicitação/),
+      " Revogar consentimento biométrico "
+    );
+    await userEvent.click(screen.getByRole("button", { name: /Enviar Solicitação/i }));
+
+    await waitFor(() => {
+      expect(lgpdMocks.createLgpdRequest).toHaveBeenCalledWith({
+        type: "CONSENT_REVOCATION",
+        description: "Revogar consentimento biométrico",
+        targetConsentType: "BIOMETRIC_AUTHENTICATION",
+      });
+    });
+  });
 });

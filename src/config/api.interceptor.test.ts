@@ -121,7 +121,7 @@ describe("API Interceptor - CSRF Injection", () => {
     expect(csrfFetched).toBe(false);
   });
 
-  it("should NOT require CSRF for logout endpoint", async () => {
+  it("should require CSRF for logout endpoint", async () => {
     let csrfFetched = false;
 
     server.use(
@@ -134,8 +134,8 @@ describe("API Interceptor - CSRF Injection", () => {
 
     await api.post("/auth/logout");
 
-    // CSRF should not be fetched for logout
-    expect(csrfFetched).toBe(false);
+    // Logout changes authenticated session state and must carry CSRF protection.
+    expect(csrfFetched).toBe(true);
   });
 
   it("should send withCredentials for authenticated requests", async () => {

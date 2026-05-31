@@ -14,6 +14,7 @@ import { toast } from "@/hooks/use-toast";
 import { createLgpdRequest, type LgpdRequestType } from "@/service/lgpd.service";
 import { getServiceErrorMessage } from "@/service/helpers/service-error.helper";
 import { LGPD_REQUEST_TYPE_LABELS, LGPD_REQUEST_TYPES } from "@/constants/lgpd.constants";
+import { consentTypeLabels, type ConsentType } from "@/types/legal";
 
 interface LgpdRequestFormProps {
   onSuccess: () => void;
@@ -21,10 +22,25 @@ interface LgpdRequestFormProps {
 
 const LgpdRequestForm = ({ onSuccess }: LgpdRequestFormProps) => {
   const [requestType, setRequestType] = useState<LgpdRequestType | "">("");
+  const [targetConsentType, setTargetConsentType] = useState<ConsentType | "">("");
   const [description, setDescription] = useState("");
   const [isSubmitting, setIsSubmitting] = useState(false);
   const descriptionLength = description.length;
   const maxLength = 1000;
+  const isConsentRevocation = requestType === "CONSENT_REVOCATION";
+  const isSubmitDisabled =
+    isSubmitting ||
+    !requestType ||
+    !description.trim() ||
+    (isConsentRevocation && !targetConsentType);
+
+  const handleRequestTypeChange = (value: string) => {
+    const nextType = value as LgpdRequestType;
+    setRequestType(nextType);
+    if (nextType !== "CONSENT_REVOCATION") {
+      setTargetConsentType("");
+    }
+  };
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -34,16 +50,23 @@ const LgpdRequestForm = ({ onSuccess }: LgpdRequestFormProps) => {
       return;
     }
 
+    if (isConsentRevocation && !targetConsentType) {
+      toast.error("Selecione qual consentimento deseja revogar.");
+      return;
+    }
+
     setIsSubmitting(true);
 
     try {
       await createLgpdRequest({
         type: requestType as LgpdRequestType,
         description: description.trim(),
+        ...(isConsentRevocation ? { targetConsentType: targetConsentType as ConsentType } : {}),
       });
 
       toast.success("Solicitação LGPD criada com sucesso!");
       setRequestType("");
+      setTargetConsentType("");
       setDescription("");
       onSuccess();
     } catch (error) {
@@ -72,7 +95,7 @@ const LgpdRequestForm = ({ onSuccess }: LgpdRequestFormProps) => {
             <label className="text-sm font-medium" htmlFor="request-type">
               Tipo de Solicitação <span className="text-red-500">*</span>
             </label>
-            <Select value={requestType} onValueChange={setRequestType}>
+            <Select value={requestType} onValueChange={handleRequestTypeChange}>
               <SelectTrigger id="request-type">
                 <SelectValue placeholder="Selecione o tipo de solicitação" />
               </SelectTrigger>
@@ -85,6 +108,24 @@ const LgpdRequestForm = ({ onSuccess }: LgpdRequestFormProps) => {
               </SelectContent>
             </Select>
           </FieldGroup>
+
+          {isConsentRevocation && (
+            <FieldGroup>
+              <label className="text-sm font-medium" htmlFor="target-consent-type">
+                Consentimento a revogar <span className="text-red-500">*</span>
+              </label>
+              <Select value={targetConsentType} onValueChange={(value) => setTargetConsentType(value as ConsentType)}>
+                <SelectTrigger id="target-consent-type">
+                  <SelectValue placeholder="Selecione o consentimento" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="BIOMETRIC_AUTHENTICATION">
+                    {consentTypeLabels.BIOMETRIC_AUTHENTICATION}
+                  </SelectItem>
+                </SelectContent>
+              </Select>
+            </FieldGroup>
+          )}
 
           <FieldGroup>
             <label className="text-sm font-medium" htmlFor="description">
@@ -107,7 +148,7 @@ const LgpdRequestForm = ({ onSuccess }: LgpdRequestFormProps) => {
           <Button
             type="submit"
             className="w-full"
-            disabled={isSubmitting || !requestType || !description.trim()}
+            disabled={isSubmitDisabled}
           >
             {isSubmitting ? "Enviando..." : "Enviar Solicitação"}
           </Button>

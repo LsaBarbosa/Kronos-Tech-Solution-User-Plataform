@@ -70,6 +70,7 @@ const captureFace = async () => {
 describe("FaceLoginModal", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    vi.unstubAllEnvs();
 
     authLoginMock.mockResolvedValue(undefined);
     mockUseAuth.mockReturnValue({
@@ -117,7 +118,6 @@ describe("FaceLoginModal", () => {
   it("chama o service corretamente com a imagem capturada", async () => {
     mockLoginWithFace.mockResolvedValue(undefined);
     const user = userEvent.setup();
-    const livenessPassed = Boolean("captured-face");
 
     renderFaceLoginModal();
     await captureFace();
@@ -126,7 +126,24 @@ describe("FaceLoginModal", () => {
     await waitFor(() => {
       expect(mockLoginWithFace).toHaveBeenCalledWith({
         faceImageBase64: "a".repeat(120),
-        livenessPassed,
+        livenessPassed: false,
+      });
+    });
+  });
+
+  it("envia livenessPassed=true quando pseudo-liveness estiver habilitado", async () => {
+    vi.stubEnv("VITE_BIOMETRIC_LIVENESS_REQUIRED", "true");
+    mockLoginWithFace.mockResolvedValue(undefined);
+    const user = userEvent.setup();
+
+    renderFaceLoginModal();
+    await captureFace();
+    await user.click(screen.getByRole("button", { name: /confirmar/i }));
+
+    await waitFor(() => {
+      expect(mockLoginWithFace).toHaveBeenCalledWith({
+        faceImageBase64: "a".repeat(120),
+        livenessPassed: true,
       });
     });
   });

@@ -139,7 +139,7 @@ describe("observability-sanitizer", () => {
     });
 
     it("deve limitar profundidade de recursão", () => {
-      let deepObj: any = { level: "0" };
+      const deepObj: any = { level: "0" };
       let current = deepObj;
       for (let i = 0; i < 15; i++) {
         current.nested = { level: String(i + 1) };
