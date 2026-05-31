@@ -49,14 +49,14 @@ export const getPublicProcessingCatalog = async (): Promise<PublicProcessingCata
 };
 
 export const getPublicPrivacyPolicy = async (): Promise<PublicPrivacyPolicyResponse> => {
-  const response = await api.get<PublicPrivacyPolicyResponse>(
+  const response = await publicApi.get<PublicPrivacyPolicyResponse>(
     "/public/privacy/policy"
   );
   return response.data;
 };
 
 export const getPublicBiometricTerm = async (): Promise<PublicBiometricTermResponse> => {
-  const response = await api.get<PublicBiometricTermResponse>(
+  const response = await publicApi.get<PublicBiometricTermResponse>(
     "/public/privacy/biometric-term"
   );
   return response.data;
