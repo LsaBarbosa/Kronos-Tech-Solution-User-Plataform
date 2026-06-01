@@ -1,13 +1,20 @@
 import { useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Loader2, AlertCircle } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { APP_PATHS } from "@/config/app-routes";
+import { useAuth } from "@/context/AuthContext";
+import { Loader2, AlertCircle, ArrowLeft, LayoutDashboard } from "lucide-react";
 import { getPublicPrivacyPolicy, type PublicPrivacyPolicyResponse } from "@/service/public-privacy.service";
 import { getServiceErrorMessage } from "@/service/helpers/service-error.helper";
 
 export default function PrivacyPolicy() {
+  const { status, checkSession } = useAuth();
+  const navigate = useNavigate();
   const [data, setData] = useState<PublicPrivacyPolicyResponse | null>(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState<string | null>(null);
+  const showAuthenticatedActions = status === "authenticated";
 
   useEffect(() => {
     const loadData = async () => {
@@ -26,6 +33,12 @@ export default function PrivacyPolicy() {
 
     loadData();
   }, []);
+
+  useEffect(() => {
+    if (status === "checking") {
+      void checkSession();
+    }
+  }, [checkSession, status]);
 
   if (loading) {
     return (
@@ -64,11 +77,36 @@ export default function PrivacyPolicy() {
   return (
     <div className="min-h-screen bg-background p-4 sm:p-6 lg:p-8">
       <div className="mx-auto max-w-4xl space-y-6">
-        <div className="space-y-2">
-          <h1 className="text-3xl font-bold">{data.title}</h1>
-          <p className="text-muted-foreground">
-            Versão {data.version} • Vigente desde {new Date(data.effectiveDate).toLocaleDateString("pt-BR")}
-          </p>
+        <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+          <div className="space-y-2">
+            <h1 className="text-3xl font-bold">{data.title}</h1>
+            <p className="text-muted-foreground">
+              Versão {data.version} • Vigente desde {new Date(data.effectiveDate).toLocaleDateString("pt-BR")}
+            </p>
+          </div>
+
+          {showAuthenticatedActions && (
+            <div className="flex flex-col gap-2 sm:flex-row sm:justify-end">
+              <Button
+                type="button"
+                variant="outline"
+                className="w-full sm:w-auto"
+                onClick={() => navigate(APP_PATHS.privacidade)}
+              >
+                <ArrowLeft className="h-4 w-4 mr-2" />
+                Voltar para Privacidade e Dados
+              </Button>
+
+              <Button
+                type="button"
+                className="w-full sm:w-auto"
+                onClick={() => navigate(APP_PATHS.dashboard)}
+              >
+                <LayoutDashboard className="h-4 w-4 mr-2" />
+                Ir para o Dashboard
+              </Button>
+            </div>
+          )}
         </div>
 
         <Card className="bg-blue-50 border-blue-200">
