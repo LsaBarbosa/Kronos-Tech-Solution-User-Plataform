@@ -4,6 +4,7 @@ import { server } from "@/test/mocks/server";
 import {
   createLgpdRequest,
   listLgpdRequests,
+  listAdminRequests,
   exportEmployeeData,
   exportMyData,
   exportApprovedLgpdRequestData,
@@ -335,6 +336,94 @@ describe("lgpd.service", () => {
     );
 
     await expect(listLgpdRequests()).rejects.toThrow();
+  });
+
+  it("normaliza página Spring de solicitações administrativas usando number como currentPage", async () => {
+    server.use(
+      http.get("*/lgpd/admin/requests", () =>
+        HttpResponse.json(
+          {
+            content: [
+              {
+                requestId: "req-admin-001",
+                employeeFullName: "Maria Souza",
+                companyName: "Padaria Exemplo LTDA",
+                type: "ACCESS",
+                status: "OPEN",
+                createdAt: "2026-06-01T18:20:35.123Z",
+                assignedToName: null,
+                updatedAt: "2026-06-01T18:20:35.123Z",
+                isOverdue: false,
+              },
+            ],
+            totalElements: 1,
+            totalPages: 3,
+            number: 2,
+            size: 10,
+          },
+          { status: 200 }
+        )
+      )
+    );
+
+    const result = await listAdminRequests(2, 10);
+
+    expect(result.content).toHaveLength(1);
+    expect(result.totalElements).toBe(1);
+    expect(result.totalPages).toBe(3);
+    expect(result.currentPage).toBe(2);
+    expect(result.size).toBe(10);
+  });
+
+  it("retorna content vazio quando a página administrativa não traz content", async () => {
+    server.use(
+      http.get("*/lgpd/admin/requests", () =>
+        HttpResponse.json({ totalElements: 0, totalPages: 0, number: 0, size: 10 }, { status: 200 })
+      )
+    );
+
+    const result = await listAdminRequests();
+
+    expect(result.content).toEqual([]);
+    expect(result.totalElements).toBe(0);
+    expect(result.totalPages).toBe(0);
+    expect(result.currentPage).toBe(0);
+  });
+
+  it("envia parâmetros administrativos quando os filtros são informados", async () => {
+    server.use(
+      http.get("*/lgpd/admin/requests", ({ request }) => {
+        const url = new URL(request.url);
+
+        expect(url.searchParams.get("page")).toBe("3");
+        expect(url.searchParams.get("size")).toBe("25");
+        expect(url.searchParams.get("type")).toBe("ACCESS");
+        expect(url.searchParams.get("status")).toBe("OPEN");
+        expect(url.searchParams.get("companyId")).toBe("company-001");
+
+        return HttpResponse.json({ content: [], totalElements: 0, totalPages: 0, number: 3, size: 25 });
+      })
+    );
+
+    await listAdminRequests(3, 25, "ACCESS", "OPEN", "company-001");
+  });
+
+  it("não envia filtros administrativos opcionais quando estiverem undefined", async () => {
+    server.use(
+      http.get("*/lgpd/admin/requests", ({ request }) => {
+        const url = new URL(request.url);
+
+        expect(url.searchParams.get("page")).toBe("0");
+        expect(url.searchParams.get("size")).toBe("10");
+        expect(url.searchParams.has("type")).toBe(false);
+        expect(url.searchParams.has("status")).toBe(false);
+        expect(url.searchParams.has("companyId")).toBe(false);
+
+        return HttpResponse.json({ content: [], totalElements: 0, totalPages: 0, number: 0, size: 10 });
+      })
+    );
+
+    await listAdminRequests();
   });
 
   it("retorna catálogo de processamento de dados válido", async () => {

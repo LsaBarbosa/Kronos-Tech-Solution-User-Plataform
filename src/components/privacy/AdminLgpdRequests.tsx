@@ -12,30 +12,46 @@ import {
 } from "@/components/ui/select";
 import { APP_PATHS } from "@/config/app-routes";
 import { LGPD_REQUEST_TYPE_LABELS, LGPD_REQUEST_TYPES } from "@/constants/lgpd.constants";
+import { getServiceErrorMessage } from "@/service/helpers/service-error.helper";
 import {
   listAdminRequests,
   type LgpdRequestAdminListResponse,
   type LgpdRequestStatus,
   type LgpdRequestType,
-  type PaginatedResponse,
 } from "@/service/lgpd.service";
+
+const ALL_SELECT_VALUE = "__ALL__";
+
 interface FilterState {
   type?: LgpdRequestType;
   status?: LgpdRequestStatus;
   companyId?: string;
 }
 
-const formatDate = (dateString: string): string => {
-  try {
-    const date = new Date(dateString);
-    return date.toLocaleDateString("pt-BR", {
-      year: "numeric",
-      month: "2-digit",
-      day: "2-digit",
-    });
-  } catch {
-    return dateString;
+const formatDate = (dateString?: string | null): string => {
+  if (!dateString) {
+    return "—";
   }
+
+  const date = new Date(dateString);
+
+  if (Number.isNaN(date.getTime())) {
+    return "—";
+  }
+
+  return date.toLocaleDateString("pt-BR", {
+    year: "numeric",
+    month: "2-digit",
+    day: "2-digit",
+  });
+};
+
+const getTypeLabel = (type?: string | null): string => {
+  if (!type) {
+    return "—";
+  }
+
+  return LGPD_REQUEST_TYPE_LABELS[type as LgpdRequestType] ?? type;
 };
 
 export const AdminLgpdRequests = () => {
@@ -54,6 +70,7 @@ export const AdminLgpdRequests = () => {
     "IN_ANALYSIS",
     "WAITING_CONTROLLER",
     "WAITING_LEGAL_REVIEW",
+    "APPROVED_FOR_EXPORT",
     "WAITING_DATA_SUBJECT",
     "COMPLETED",
     "REJECTED",
@@ -72,10 +89,12 @@ export const AdminLgpdRequests = () => {
         filters.status,
         filters.companyId
       );
-      setRequests(data.content);
-      setTotalPages(data.totalPages);
+      setRequests(Array.isArray(data.content) ? data.content : []);
+      setTotalPages(typeof data.totalPages === "number" ? data.totalPages : 0);
     } catch (err) {
-      setError(err instanceof Error ? err.message : "Erro ao carregar solicitações");
+      setRequests([]);
+      setTotalPages(0);
+      setError(getServiceErrorMessage(err, "Erro ao carregar solicitações LGPD."));
     } finally {
       setLoading(false);
     }
@@ -85,17 +104,33 @@ export const AdminLgpdRequests = () => {
     fetchRequests();
   }, [fetchRequests]);
 
-  const handleFilterChange = (key: keyof FilterState, value: string | undefined) => {
-    setFilters((prev) => ({ ...prev, [key]: value || undefined }));
+  const handleTypeChange = (value: string) => {
+    setFilters((prev) => ({
+      ...prev,
+      type: value === ALL_SELECT_VALUE ? undefined : (value as LgpdRequestType),
+    }));
     setCurrentPage(0);
   };
 
-  const getStatusColor = (status: LgpdRequestStatus) => {
-    const colors: Record<LgpdRequestStatus, string> = {
+  const handleStatusChange = (value: string) => {
+    setFilters((prev) => ({
+      ...prev,
+      status: value === ALL_SELECT_VALUE ? undefined : (value as LgpdRequestStatus),
+    }));
+    setCurrentPage(0);
+  };
+
+  const getStatusColor = (status?: string | null) => {
+    if (!status) {
+      return "bg-gray-100 text-gray-800";
+    }
+
+    const colors: Record<string, string> = {
       OPEN: "bg-blue-100 text-blue-800",
       IN_ANALYSIS: "bg-yellow-100 text-yellow-800",
       WAITING_CONTROLLER: "bg-orange-100 text-orange-800",
       WAITING_LEGAL_REVIEW: "bg-purple-100 text-purple-800",
+      APPROVED_FOR_EXPORT: "bg-emerald-100 text-emerald-800",
       WAITING_DATA_SUBJECT: "bg-indigo-100 text-indigo-800",
       COMPLETED: "bg-green-100 text-green-800",
       REJECTED: "bg-red-100 text-red-800",
@@ -105,12 +140,17 @@ export const AdminLgpdRequests = () => {
     return colors[status] || "bg-gray-100 text-gray-800";
   };
 
-  const getStatusLabel = (status: LgpdRequestStatus) => {
-    const labels: Record<LgpdRequestStatus, string> = {
+  const getStatusLabel = (status?: string | null) => {
+    if (!status) {
+      return "—";
+    }
+
+    const labels: Record<string, string> = {
       OPEN: "Aberto",
       IN_ANALYSIS: "Em Análise",
       WAITING_CONTROLLER: "Aguardando Controlador",
       WAITING_LEGAL_REVIEW: "Aguardando Revisão Legal",
+      APPROVED_FOR_EXPORT: "Aprovado para Exportação",
       WAITING_DATA_SUBJECT: "Aguardando Sujeito de Dados",
       COMPLETED: "Concluído",
       REJECTED: "Rejeitado",
@@ -125,9 +165,9 @@ export const AdminLgpdRequests = () => {
       <div className="flex items-center justify-center min-h-screen bg-red-50">
         <div className="text-center">
           <AlertCircle className="h-12 w-12 text-red-600 mx-auto mb-4" />
-          <h2 className="text-lg font-semibold text-red-800 mb-2">Erro ao Carregar</h2>
+          <h2 className="text-lg font-semibold text-red-800 mb-2">Erro ao carregar solicitações</h2>
           <p className="text-red-700 mb-4">{error}</p>
-          <Button onClick={() => fetchRequests()}>Tentar Novamente</Button>
+          <Button onClick={() => fetchRequests()}>Tentar novamente</Button>
         </div>
       </div>
     );
@@ -150,30 +190,30 @@ export const AdminLgpdRequests = () => {
             className="md:col-span-2"
           />
           <Select
-            value={filters.type || ""}
-            onValueChange={(value) => handleFilterChange("type", value)}
+            value={filters.type ?? ALL_SELECT_VALUE}
+            onValueChange={handleTypeChange}
           >
             <SelectTrigger>
               <SelectValue placeholder="Tipo de Solicitação" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">Todas as Solicitações</SelectItem>
+              <SelectItem value={ALL_SELECT_VALUE}>Todas as Solicitações</SelectItem>
               {LGPD_REQUEST_TYPES.map((type) => (
                 <SelectItem key={type} value={type}>
-                  {LGPD_REQUEST_TYPE_LABELS[type]}
+                  {getTypeLabel(type)}
                 </SelectItem>
               ))}
             </SelectContent>
           </Select>
           <Select
-            value={filters.status || ""}
-            onValueChange={(value) => handleFilterChange("status", value)}
+            value={filters.status ?? ALL_SELECT_VALUE}
+            onValueChange={handleStatusChange}
           >
             <SelectTrigger>
               <SelectValue placeholder="Status" />
             </SelectTrigger>
             <SelectContent>
-              <SelectItem value="">Todos os Status</SelectItem>
+              <SelectItem value={ALL_SELECT_VALUE}>Todos os Status</SelectItem>
               {statusOptions.map((status) => (
                 <SelectItem key={status} value={status}>
                   {getStatusLabel(status)}
@@ -217,22 +257,22 @@ export const AdminLgpdRequests = () => {
                   <th className="px-6 py-3 text-left text-sm font-semibold text-foreground">
                     Atribuído a
                   </th>
-                  <th className="relative px-6 py-3">
-                    <span className="sr-only">Ações</span>
+                  <th className="px-6 py-3 text-right text-sm font-semibold text-foreground">
+                    Ações
                   </th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-gray-200">
-                {requests.map((request) => (
+                {requests.map((request, index) => (
                   <tr
-                    key={request.requestId}
+                    key={request.requestId ?? index}
                     className="hover:bg-gray-50 transition-colors cursor-pointer"
                   >
                     <td className="px-6 py-4 text-sm text-foreground font-medium">
-                      {request.employeeFullName}
+                      {request.employeeFullName || "—"}
                     </td>
                     <td className="px-6 py-4 text-sm text-foreground">
-                      {request.companyName}
+                      {request.companyName || "—"}
                     </td>
                     <td className="px-6 py-4 text-sm text-foreground">
                       {getTypeLabel(request.type)}
@@ -243,7 +283,7 @@ export const AdminLgpdRequests = () => {
                       </span>
                     </td>
                     <td className="px-6 py-4 text-sm text-muted-foreground">
-                      {formatDate(new Date(request.createdAt))}
+                      {formatDate(request.createdAt)}
                     </td>
                     <td className="px-6 py-4 text-sm text-muted-foreground">
                       {request.assignedToName || "—"}
@@ -252,6 +292,7 @@ export const AdminLgpdRequests = () => {
                       <Button
                         variant="ghost"
                         size="sm"
+                        aria-label={`Ver detalhes da solicitação ${request.requestId}`}
                         onClick={() =>
                           navigate(
                             APP_PATHS.lgpdAdminRequestDetails.replace(":requestId", request.requestId)

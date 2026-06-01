@@ -101,6 +101,15 @@ export interface PaginatedResponse<T> {
   size: number;
 }
 
+type SpringPageResponse<T> = {
+  content?: T[];
+  totalElements?: number;
+  totalPages?: number;
+  currentPage?: number;
+  number?: number;
+  size?: number;
+};
+
 export interface CreateLgpdRequestPayload {
   type: LgpdRequestType;
   description: string;
@@ -209,6 +218,22 @@ export const exportApprovedLgpdRequestData = async (
   return response.data;
 };
 
+const normalizePage = <T>(
+  data: SpringPageResponse<T> | null | undefined,
+  defaultSize = 10
+): PaginatedResponse<T> => ({
+  content: Array.isArray(data?.content) ? data.content : [],
+  totalElements: typeof data?.totalElements === "number" ? data.totalElements : 0,
+  totalPages: typeof data?.totalPages === "number" ? data.totalPages : 0,
+  currentPage:
+    typeof data?.currentPage === "number"
+      ? data.currentPage
+      : typeof data?.number === "number"
+        ? data.number
+        : 0,
+  size: typeof data?.size === "number" ? data.size : defaultSize,
+});
+
 export const listAdminRequests = async (
   page: number = 0,
   size: number = 10,
@@ -216,18 +241,29 @@ export const listAdminRequests = async (
   status?: LgpdRequestStatus,
   companyId?: string
 ): Promise<PaginatedResponse<LgpdRequestAdminListResponse>> => {
-  const params = new URLSearchParams();
-  params.append("page", page.toString());
-  params.append("size", size.toString());
-  if (type) params.append("type", type);
-  if (status) params.append("status", status);
-  if (companyId) params.append("companyId", companyId);
+  const params: Record<string, string | number> = {
+    page,
+    size,
+  };
 
-  const response = await api.get<PaginatedResponse<LgpdRequestAdminListResponse>>(
+  if (type) {
+    params.type = type;
+  }
+
+  if (status) {
+    params.status = status;
+  }
+
+  if (companyId) {
+    params.companyId = companyId;
+  }
+
+  const response = await api.get<SpringPageResponse<LgpdRequestAdminListResponse>>(
     buildRoute(API_ROUTES.LGPD, LGPD_PATHS.ADMIN_REQUESTS),
-    { params: Object.fromEntries(params) }
+    { params }
   );
-  return response.data;
+
+  return normalizePage(response.data);
 };
 
 export const getAdminRequestDetails = async (
