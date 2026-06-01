@@ -51,6 +51,18 @@ describe("PrivacyPolicy", () => {
     expect(screen.getByText("Coleta de Dados")).toBeInTheDocument();
   });
 
+  it("should load the policy from the public privacy service", async () => {
+    vi.mocked(privacyService.getPublicPrivacyPolicy).mockResolvedValue(
+      mockPrivacyPolicy
+    );
+
+    render(<PrivacyPolicy />);
+
+    await waitFor(() => {
+      expect(privacyService.getPublicPrivacyPolicy).toHaveBeenCalledTimes(1);
+    });
+  });
+
   it("should display version and effective date", async () => {
     vi.mocked(privacyService.getPublicPrivacyPolicy).mockResolvedValue(
       mockPrivacyPolicy

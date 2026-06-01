@@ -2,10 +2,25 @@ import { render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { MemoryRouter, Route, Routes, useLocation } from "react-router-dom";
 import { beforeEach, describe, expect, it, vi } from "vitest";
+import { APP_PATHS } from "@/config/app-routes";
 import { AuthProvider } from "@/context/AuthContext";
 import { CheckinProvider } from "@/context/CheckinContext";
 import { ThemeProvider } from "@/hooks/useTheme";
 import Dashboard from "./pages/Dashboard";
+
+const mockPrivacyPolicy = vi.hoisted(() => ({
+  version: "2026.05.1",
+  effectiveDate: "2026-05-27",
+  title: "Política de Privacidade",
+  sections: [
+    {
+      title: "Uso de Dados",
+      content: "Tratamento público de dados pessoais.",
+    },
+  ],
+}));
+
+const getPublicPrivacyPolicyMock = vi.hoisted(() => vi.fn());
 
 const setAuthenticatedSession = (role: "PARTNER" | "MANAGER" | "CTO") => {
   localStorage.setItem("token", `${role.toLowerCase()}-token`);
@@ -13,7 +28,12 @@ const setAuthenticatedSession = (role: "PARTNER" | "MANAGER" | "CTO") => {
 
 vi.mock("@/service/session-profile.service", () => ({
   loadSessionProfile: async () => {
-    const token = localStorage.getItem("token") ?? "";
+    const token = localStorage.getItem("token");
+
+    if (!token) {
+      throw new Error("Unauthenticated test session");
+    }
+
     const role = token.includes("manager")
       ? "MANAGER"
       : token.includes("cto")
@@ -49,6 +69,12 @@ vi.mock("@/service/session-profile.service", () => ({
       role,
     };
   },
+}));
+
+vi.mock("@/service/public-privacy.service", () => ({
+  getPublicPrivacyPolicy: getPublicPrivacyPolicyMock,
+  getPublicProcessingCatalog: vi.fn(),
+  getPublicBiometricTerm: vi.fn(),
 }));
 
 vi.mock("@/hooks/useDashboardData", () => ({
@@ -92,7 +118,9 @@ vi.mock("@/hooks/useTimeOffCount", () => ({
 describe("App routes", () => {
   beforeEach(() => {
     vi.resetModules();
+    vi.clearAllMocks();
     localStorage.clear();
+    getPublicPrivacyPolicyMock.mockResolvedValue(mockPrivacyPolicy);
     window.history.pushState({}, "", "/");
   });
 
@@ -155,5 +183,33 @@ describe("App routes", () => {
     await waitFor(() => {
       expect(screen.getByText("Criar Aviso")).toBeInTheDocument();
     });
+  });
+
+  it("renderiza /privacy/policy como política pública sem login", async () => {
+    window.history.pushState({}, "", APP_PATHS.privacyPolicy);
+
+    const { default: App } = await import("./App");
+    render(<App />);
+
+    await screen.findByRole("heading", { name: "Política de Privacidade" });
+
+    expect(window.location.pathname).toBe(APP_PATHS.privacyPolicy);
+    expect(getPublicPrivacyPolicyMock).toHaveBeenCalledTimes(1);
+    expect(screen.queryByText("Carregando sessão...")).not.toBeInTheDocument();
+  });
+
+  it.each([
+    ["/privacy-policy"],
+    ["/politica-de-privacidade"],
+  ])("redireciona %s para a rota oficial da política", async (legacyPath) => {
+    window.history.pushState({}, "", legacyPath);
+
+    const { default: App } = await import("./App");
+    render(<App />);
+
+    await waitFor(() => {
+      expect(window.location.pathname).toBe(APP_PATHS.privacyPolicy);
+    });
+    await screen.findByRole("heading", { name: "Política de Privacidade" });
   });
 });

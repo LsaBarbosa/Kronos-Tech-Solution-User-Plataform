@@ -1,6 +1,6 @@
 import { lazy, Suspense } from "react";
 import { QueryClient, QueryClientProvider } from "@tanstack/react-query";
-import { BrowserRouter, Route, Routes } from "react-router-dom";
+import { BrowserRouter, Navigate, Route, Routes } from "react-router-dom";
 import { Toaster } from "@/components/ui/toaster";
 import { TooltipProvider } from "@/components/ui/tooltip";
 import { ThemeProvider } from "@/hooks/useTheme";
@@ -143,6 +143,8 @@ const App = () => (
                     {renderProtectedRoleRoute({ routeKey: "lgpdAdminInventoryEdit", element: <InventoryForm /> })}
                   </Route>
 
+                  <Route path="/privacy-policy" element={<Navigate to={APP_PATHS.privacyPolicy} replace />} />
+                  <Route path="/politica-de-privacidade" element={<Navigate to={APP_PATHS.privacyPolicy} replace />} />
                   <Route path="*" element={<NotFound />} />
                 </Routes>
               </Suspense>

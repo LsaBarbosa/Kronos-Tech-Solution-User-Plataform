@@ -1,11 +1,12 @@
 import React from 'react'
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
+import { APP_PATHS } from '@/config/app-routes'
 import { FileText, ExternalLink } from 'lucide-react'
 
 const PrivacyPolicyCard: React.FC = () => {
   const handleOpenPolicy = () => {
-    window.open('/privacy-policy', '_blank')
+    window.open(APP_PATHS.privacyPolicy, '_blank', 'noopener,noreferrer')
   }
 
   return (
