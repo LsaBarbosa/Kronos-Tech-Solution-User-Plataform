@@ -30,8 +30,11 @@ interface BiometricEnrollmentRequest {
   livenessPassed?: boolean;
 }
 
-export const enrollBiometric = async (request: BiometricEnrollmentRequest): Promise<void> => {
-  await api.post(`${API_ROUTES.EMPLOYEE}/me/biometric-enrollment`, request);
+export const enrollBiometricByManager = async (
+  employeeId: string,
+  request: BiometricEnrollmentRequest
+): Promise<void> => {
+  await api.post(`${API_ROUTES.EMPLOYEE}/manager/${employeeId}/biometric-enrollment`, request);
 };
 
 export type EmployeeCreationPayload = CollaboratorCreationPayload;

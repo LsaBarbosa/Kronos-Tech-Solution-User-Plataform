@@ -5,23 +5,26 @@ import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } f
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 import { toast } from "@/hooks/use-toast";
-import { enrollBiometric } from "@/service/employee.service";
+import { enrollBiometricByManager } from "@/service/employee.service";
 import { useLivenessDetection } from "@/hooks/useLivenessDetection";
 import { isBiometricLivenessRequired } from "@/config/biometric";
+import { normalizeServiceError } from "@/service/helpers/service-error.helper";
 
-interface BiometricEnrollmentModalProps {
+interface ManagerBiometricEnrollmentModalProps {
   open: boolean;
   onOpenChange: (open: boolean) => void;
-  hasConsent: boolean;
-  onEnrollmentSuccess?: () => void;
+  employeeId: string;
+  employeeName: string;
+  onSuccess?: () => void;
 }
 
-const BiometricEnrollmentModal = ({
+const ManagerBiometricEnrollmentModal = ({
   open,
   onOpenChange,
-  hasConsent,
-  onEnrollmentSuccess,
-}: BiometricEnrollmentModalProps) => {
+  employeeId,
+  employeeName,
+  onSuccess,
+}: ManagerBiometricEnrollmentModalProps) => {
   const [faceImageFile, setFaceImageFile] = useState<File | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [livenessPassed, setLivenessPassed] = useState(false);
@@ -80,15 +83,6 @@ const BiometricEnrollmentModal = ({
   };
 
   const handleEnroll = async () => {
-    if (!hasConsent) {
-      toast({
-        title: "Consentimento não ativo",
-        description: "É necessário aceitar o termo de consentimento biométrico primeiro.",
-        variant: "destructive",
-      });
-      return;
-    }
-
     if (!faceImageFile) {
       toast({
         title: "Arquivo não selecionado",
@@ -112,27 +106,42 @@ const BiometricEnrollmentModal = ({
     try {
       const base64Image = await fileToBase64(faceImageFile);
 
-      await enrollBiometric({
+      await enrollBiometricByManager(employeeId, {
         faceImageBase64: base64Image,
         livenessPassed: shouldRequireLiveness ? livenessPassed : false,
       });
 
       toast({
         title: "Sucesso",
-        description: "Biometria registrada com sucesso!",
+        description: `Biometria de ${employeeName} registrada com sucesso!`,
       });
 
       setFaceImageFile(null);
       setLivenessPassed(false);
       onOpenChange(false);
-      onEnrollmentSuccess?.();
+      onSuccess?.();
     } catch (error) {
-      console.error("Erro ao registrar biometria:", error);
-      toast({
-        title: "Erro ao registrar biometria",
-        description: error instanceof Error ? error.message : "Tente novamente.",
-        variant: "destructive",
-      });
+      const serviceError = normalizeServiceError(error);
+
+      if (serviceError.status === 409) {
+        toast({
+          title: "Consentimento não ativo",
+          description: "O colaborador não aceitou o termo biométrico vigente.",
+          variant: "destructive",
+        });
+      } else if (serviceError.status === 429) {
+        toast({
+          title: "Muitas tentativas",
+          description: "Muitas tentativas de cadastro. Tente novamente mais tarde.",
+          variant: "destructive",
+        });
+      } else {
+        toast({
+          title: "Erro ao registrar biometria",
+          description: serviceError.message,
+          variant: "destructive",
+        });
+      }
     } finally {
       setIsSubmitting(false);
     }
@@ -144,22 +153,20 @@ const BiometricEnrollmentModal = ({
         <DialogHeader>
           <DialogTitle className="flex items-center gap-2">
             <Camera className="h-5 w-5 text-primary" />
-            Cadastrar Minha Biometria
+            Cadastrar Biometria de Colaborador
           </DialogTitle>
           <DialogDescription>
-            Registre sua biometria facial para usar os recursos de autenticação facial da plataforma.
+            Registre a biometria facial de {employeeName} para habilitar autenticação biométrica.
           </DialogDescription>
         </DialogHeader>
 
         <div className="space-y-4 py-4">
-          {!hasConsent && (
-            <div className="rounded-lg border border-destructive/20 bg-destructive/5 p-3 flex gap-2">
-              <AlertCircle className="h-5 w-5 text-destructive flex-shrink-0 mt-0.5" />
-              <p className="text-sm text-destructive">
-                É necessário aceitar o termo de consentimento biométrico no Centro de Privacidade antes de registrar sua biometria.
-              </p>
-            </div>
-          )}
+          <div className="rounded-lg border border-blue-200 bg-blue-50 p-3 flex gap-2">
+            <AlertCircle className="h-5 w-5 text-blue-600 flex-shrink-0 mt-0.5" />
+            <p className="text-sm text-blue-800">
+              Certifique-se de que o colaborador aceitou o termo de consentimento biométrico antes de realizar o cadastro.
+            </p>
+          </div>
 
           <div className="space-y-2">
             <Label htmlFor="face-upload" className="flex items-center gap-2">
@@ -171,7 +178,7 @@ const BiometricEnrollmentModal = ({
               type="file"
               accept="image/*"
               onChange={handleFileChange}
-              disabled={!hasConsent || isSubmitting || isDetecting}
+              disabled={isSubmitting || isDetecting}
               className="cursor-pointer"
             />
             {shouldRequireLiveness && isDetecting && (
@@ -218,7 +225,6 @@ const BiometricEnrollmentModal = ({
           <Button
             onClick={handleEnroll}
             disabled={
-              !hasConsent ||
               !faceImageFile ||
               (shouldRequireLiveness && !livenessPassed) ||
               isSubmitting ||
@@ -240,4 +246,4 @@ const BiometricEnrollmentModal = ({
   );
 };
 
-export default BiometricEnrollmentModal;
+export default ManagerBiometricEnrollmentModal;

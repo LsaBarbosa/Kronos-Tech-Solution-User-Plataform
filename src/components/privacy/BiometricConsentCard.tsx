@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from "react";
-import { Fingerprint, Loader2, RefreshCcw, ShieldCheck, ShieldOff, Camera } from "lucide-react";
+import { Fingerprint, Loader2, RefreshCcw, ShieldCheck, ShieldOff } from "lucide-react";
 import { useAuth } from "@/context/AuthContext";
 import { toast } from "@/hooks/use-toast";
 import { Button } from "@/components/ui/button";
@@ -7,7 +7,6 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { normalizeServiceError } from "@/service/helpers/service-error.helper";
 import { checkTermsStatus, revokeBiometricTerms } from "@/service/terms.service";
 import RevokeBiometricConsentDialog from "./RevokeBiometricConsentDialog";
-import BiometricEnrollmentModal from "./BiometricEnrollmentModal";
 
 type ConsentStatus = "loading" | "active" | "revoked" | "error";
 
@@ -16,7 +15,6 @@ const BiometricConsentCard = () => {
   const [status, setStatus] = useState<ConsentStatus>("loading");
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [dialogOpen, setDialogOpen] = useState(false);
-  const [enrollmentModalOpen, setEnrollmentModalOpen] = useState(false);
   const [isRevoking, setIsRevoking] = useState(false);
 
   const loadConsentStatus = useCallback(async () => {
@@ -192,18 +190,18 @@ const BiometricConsentCard = () => {
             </div>
           ) : null}
 
-          <div className="flex flex-wrap gap-3">
-            {isActive ? (
-              <>
-                <Button
-                  type="button"
-                  onClick={() => setEnrollmentModalOpen(true)}
-                  disabled={isLoading}
-                  className="gap-2"
-                >
-                  <Camera className="h-4 w-4" aria-hidden="true" />
-                  Cadastrar Minha Biometria
-                </Button>
+          <div className="space-y-4">
+            {!isLoading && !isError ? (
+              <div className="rounded-lg border border-blue-200 bg-blue-50 p-4 text-sm text-blue-900">
+                <p className="font-medium">Cadastro de Biometria</p>
+                <p className="mt-2 text-blue-800">
+                  O cadastro de sua biometria é realizado pelo seu gestor. Entre em contato com ele para solicitar o cadastro de sua imagem facial.
+                </p>
+              </div>
+            ) : null}
+
+            <div className="flex flex-wrap gap-3">
+              {isActive && (
                 <Button
                   type="button"
                   variant="destructive"
@@ -213,21 +211,11 @@ const BiometricConsentCard = () => {
                   {isRevoking ? <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" /> : null}
                   Revogar Consentimento
                 </Button>
-              </>
-            ) : (
-              <Button
-                type="button"
-                onClick={() => setEnrollmentModalOpen(true)}
-                disabled={isLoading}
-                className="gap-2"
-              >
-                <Camera className="h-4 w-4" aria-hidden="true" />
-                Aceitar e Cadastrar Biometria
+              )}
+              <Button type="button" variant="outline" onClick={() => void loadConsentStatus()} disabled={isLoading}>
+                Atualizar Status
               </Button>
-            )}
-            <Button type="button" variant="outline" onClick={() => void loadConsentStatus()} disabled={isLoading}>
-              Atualizar Status
-            </Button>
+            </div>
           </div>
         </CardContent>
       </Card>
@@ -237,13 +225,6 @@ const BiometricConsentCard = () => {
         isSubmitting={isRevoking}
         onConfirm={handleConfirmRevocation}
         onOpenChange={setDialogOpen}
-      />
-
-      <BiometricEnrollmentModal
-        open={enrollmentModalOpen}
-        onOpenChange={setEnrollmentModalOpen}
-        hasConsent={isActive}
-        onEnrollmentSuccess={() => void loadConsentStatus()}
       />
     </>
   );

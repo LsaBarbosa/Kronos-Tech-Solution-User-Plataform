@@ -1,3 +1,4 @@
+import { useState } from "react";
 import PageShell from "@/components/PageShell";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
@@ -21,6 +22,7 @@ import {
   UserCircle,
   Sparkles,
   Camera,
+  Fingerprint,
   Clock,
   FileText,
   ArrowRight,
@@ -42,6 +44,8 @@ import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@
 import { Checkbox } from "@/components/ui/checkbox";
 import { Switch } from "@/components/ui/switch";
 import { useCollaboratorList } from "@/hooks/useCollaboratorList";
+import ManagerBiometricEnrollmentModal from "@/components/ManagerBiometricEnrollmentModal";
+import type { EmployeeData } from "@/types/employee";
 
 const SCHEDULE_TYPES = [
   { value: "TRADITIONAL_5X2", label: "Tradicional 5x2 (Seg-Sex)" },
@@ -88,6 +92,8 @@ const ListaColaboradores = () => {
     formatAddress,
     formatPhone,
   } = useCollaboratorList();
+
+  const [enrollmentTarget, setEnrollmentTarget] = useState<EmployeeData | null>(null);
 
   return (
     <PageShell
@@ -436,15 +442,21 @@ const ListaColaboradores = () => {
                           </div>
                         </div>
 
-                          {/* LGPD-S01-01: Biometric enrollment by data subject only */}
-                        <div className="space-y-2 pt-4 border-t border-dashed bg-blue-50 dark:bg-blue-950 rounded-md p-3">
+                          {/* Fluxo gerencial de biometria */}
+                        <div className="space-y-2 pt-4 border-t border-dashed rounded-md p-3">
                           <Label className="text-muted-foreground flex items-center gap-2">
-                             <Sparkles className="w-4 h-4 text-blue-600" />
-                             Cadastro de Biometria:
+                            <Fingerprint className="w-4 h-4 text-blue-600" />
+                            Biometria Facial:
                           </Label>
-                          <p className="text-xs text-muted-foreground">
-                            A biometria facial é um dado sensível e deve ser cadastrada pelo próprio colaborador após aceitar o termo de consentimento no Centro de Privacidade.
-                          </p>
+                          <Button
+                            size="sm"
+                            variant="outline"
+                            onClick={() => setEnrollmentTarget(colaborador)}
+                            className="gap-2"
+                          >
+                            <Camera className="w-4 h-4" />
+                            Cadastrar / Atualizar Biometria
+                          </Button>
                         </div>
                           {/* CPF, Email, Phone, Salary, Address Inputs... (Mantidos) */}
                           <div className="flex items-center gap-3 text-sm">
@@ -743,6 +755,14 @@ const ListaColaboradores = () => {
             </div>
           )}
       </div>
+
+      <ManagerBiometricEnrollmentModal
+        open={!!enrollmentTarget}
+        onOpenChange={(open) => !open && setEnrollmentTarget(null)}
+        employeeId={enrollmentTarget?.employeeId ?? ""}
+        employeeName={enrollmentTarget?.fullName ?? ""}
+        onSuccess={() => setEnrollmentTarget(null)}
+      />
     </PageShell>
   );
 };

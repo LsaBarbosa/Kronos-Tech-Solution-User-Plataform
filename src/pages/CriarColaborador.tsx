@@ -26,14 +26,11 @@ const CriarColaborador = () => {
         isCheckingCPF,
         usernameAvailability,
         isCheckingUsername,
-        faceImageBase64,
-        fileName,
         selectedScheduleType,
         maskCPF,
         maskPhone,
         maskCEP,
         maskCurrency,
-        handleImageUpload,
         handleCheckCPF,
         handleCheckUsername,
         onSubmit,
@@ -339,28 +336,7 @@ const CriarColaborador = () => {
                                     )}/>
                                 </div>
 
-                                    <div className="space-y-2">
-                                        <Label htmlFor="faceImage">Imagem Facial (Opcional)</Label>
-                                        <div className="flex items-center space-x-2">
-                                            <Input 
-                                                id="faceImage"
-                                                type="file" 
-                                                accept="image/jpeg, image/png"
-                                                onChange={handleImageUpload} 
-                                                className="flex-1 hidden" // Esconde o input file padrão
-                                            />
-                                            <label htmlFor="faceImage" className="cursor-pointer flex-1 flex items-center justify-between p-2 h-10 border border-input rounded-md bg-background hover:border-primary/40 hover:bg-primary/10 dark:hover:bg-primary/20 hover:text-primary">
-                                                <span className="truncate text-sm text-gray-500">
-                                                    {fileName || "Clique para selecionar a imagem (.jpg, .png)"}
-                                                </span>
-                                                <span className="text-gray-400">📁</span>
-                                            </label>
-                                            {faceImageBase64 && <CheckCircle className="h-5 w-5 text-green-500" />}
-                                        </div>
-                                        <p className="text-xs text-muted-foreground">Recomendado para uso do ponto facial.</p>
-                                    </div>
 
-                                    
                                     {/* Botão de Submissão do Passo 1 */}
                                     {!stepCompleted && (
                                         <Button
