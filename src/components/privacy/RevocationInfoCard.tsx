@@ -52,9 +52,9 @@ const RevocationInfoCard: React.FC = () => {
             </ul>
           </div>
 
-          <Alert className="bg-blue-50 border-blue-200">
-            <Info className="h-4 w-4 text-blue-600" />
-            <AlertDescription className="text-blue-800">
+          <Alert className="bg-blue-50 border-primary/20">
+            <Info className="h-4 w-4 text-primary" />
+            <AlertDescription className="text-foreground">
               A revogação não afeta consentimentos que foram baseados em fundamentos legais
               diferentes (como obrigação legal ou interesse legítimo).
             </AlertDescription>

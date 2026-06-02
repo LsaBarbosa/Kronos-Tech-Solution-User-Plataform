@@ -335,7 +335,7 @@ export const RelatorioFiltros: React.FC<RelatorioFiltrosProps> = ({
                                 value={referenceTime || "08:00"}
                                 onChange={(e) => setReferenceTime(e.target.value)}
                                 placeholder="08:00"
-                                className="focus:border-primary focus:ring-2 focus:ring-primary/40 border-primary/30 bg-background dark:bg-slate-700/50 dark:border-[#5B47A8] hover:border-primary/50 dark:hover:border-[#8B5CF6] transition-all duration-200 shadow-sm"
+                                className="focus:border-primary focus:ring-2 focus:ring-primary/40 border-primary/30 bg-background hover:border-primary/50 transition-all duration-200 shadow-sm"
                             />
                         </div>
                         <p className="text-xs text-muted-foreground">Informe a jornada diária usada para cálculo do saldo. Formato: HH:mm (ex: 08:00)</p>

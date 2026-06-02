@@ -119,16 +119,16 @@ const getWarningPriorityMeta = (priority?: string) => {
 };
 
 const DashboardSkeletonCard = ({ className }: { className?: string }) => {
-  const skeletonPurple = dashboardToneColors.purple.skeleton!;
+  const skeletonBrand = dashboardToneColors.brand.skeleton!;
   return (
     <Card className={cn(dashboardCardClassName, "overflow-hidden", className)} aria-label="Carregando bloco da dashboard">
       <CardContent className="p-5">
         <div className="animate-pulse space-y-5">
           <div className="flex items-center gap-3">
-            <div className={`h-11 w-11 rounded-xl ${skeletonPurple.background}`} />
+            <div className={`h-11 w-11 rounded-xl ${skeletonBrand.background}`} />
             <div className="flex-1 space-y-2">
               <div className={`h-3 w-24 rounded-full ${skeletonColors.base}`} />
-              <div className={`h-5 w-32 rounded-full ${skeletonPurple.line}`} />
+              <div className={`h-5 w-32 rounded-full ${skeletonBrand.line}`} />
             </div>
           </div>
           <div className={`h-16 rounded-xl ${skeletonColors.light}`} />
@@ -147,8 +147,8 @@ const DashboardEmptyState = ({
   title: string;
   description: string;
 }) => (
-  <div className={`rounded-lg border border-dashed ${dashboardToneColors.purple.emptyState?.border} ${dashboardToneColors.purple.emptyState?.background} p-5 text-center`}>
-    <div className={`mx-auto mb-3 flex h-11 w-11 items-center justify-center rounded-full ${dashboardToneColors.purple.emptyState?.icon}`}>
+  <div className={`rounded-lg border border-dashed ${dashboardToneColors.brand.emptyState?.border} ${dashboardToneColors.brand.emptyState?.background} p-5 text-center`}>
+    <div className={`mx-auto mb-3 flex h-11 w-11 items-center justify-center rounded-full ${dashboardToneColors.brand.emptyState?.icon}`}>
       <Icon className="h-5 w-5" aria-hidden="true" />
     </div>
     <p className={`text-sm font-semibold ${sectionTextColors.title}`}>{title}</p>
@@ -208,9 +208,9 @@ const DashboardCustomCard = ({
         <div className={cn("absolute inset-x-0 top-0 h-1 bg-gradient-to-r", toneClass.accent)} />
         <div className="flex items-start justify-between gap-4">
           <div className="min-w-0">
-            <p className="text-sm font-medium text-[#6B7280] dark:text-[#CBD5E1]">{card.title}</p>
-            <p className={cn("mt-2 text-3xl font-bold text-[#111827] dark:text-[#F8FAFC]", toneClass.text)}>{card.value}</p>
-            <p className="mt-2 text-sm text-[#6B7280] dark:text-[#CBD5E1]">{card.description}</p>
+            <p className="text-sm font-medium text-muted-foreground">{card.title}</p>
+            <p className={cn("mt-2 text-3xl font-bold text-foreground", toneClass.text)}>{card.value}</p>
+            <p className="mt-2 text-sm text-muted-foreground">{card.description}</p>
           </div>
           <div className={cn("flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-xl", toneClass.icon)}>
             <card.icon className="h-6 w-6" aria-hidden="true" />
@@ -247,13 +247,13 @@ const DashboardMetricCard = ({
         <div className={cn("absolute inset-x-0 top-0 h-1 bg-gradient-to-r", toneClass.accent)} />
         <div className="flex items-start justify-between gap-4">
           <div className="min-w-0">
-            <p className="text-sm font-medium text-[#6B7280] dark:text-[#CBD5E1]">{title}</p>
+            <p className="text-sm font-medium text-muted-foreground">{title}</p>
             {isLoading ? (
-              <div className="mt-3 h-9 w-20 animate-pulse rounded-full bg-[#EDE9FE] dark:bg-[#3F3F46]" />
+              <div className="mt-3 h-9 w-20 animate-pulse rounded-full bg-primary/10" />
             ) : (
-              <p className={cn("mt-2 text-3xl font-bold text-[#111827] dark:text-[#F8FAFC]", toneClass.text)}>{value}</p>
+              <p className={cn("mt-2 text-3xl font-bold text-foreground", toneClass.text)}>{value}</p>
             )}
-            <p className="mt-2 text-sm text-[#6B7280] dark:text-[#CBD5E1]">{description}</p>
+            <p className="mt-2 text-sm text-muted-foreground">{description}</p>
           </div>
           <div className={cn("flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-xl", toneClass.icon)}>
             <Icon className="h-6 w-6" aria-hidden="true" />
@@ -269,7 +269,7 @@ const DashboardActionButton = ({
   label,
   description,
   onClick,
-  tone = "purple",
+  tone = "brand",
 }: {
   icon: ComponentType<DashboardIconProps>;
   label: string;
@@ -280,16 +280,16 @@ const DashboardActionButton = ({
   <button
     type="button"
     onClick={onClick}
-    className="group flex w-full items-center gap-3 rounded-lg border border-[#E5E7EB] dark:border-[#404854] bg-white dark:bg-slate-700 p-3 text-left transition-all duration-200 hover:border-[#C4B5FD] dark:hover:border-[#5B47A8] hover:bg-[#F8FAFC] dark:hover:bg-[#404854] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#7C3AED]/30 dark:focus-visible:ring-[#A78BFA]/30"
+    className="group flex w-full items-center gap-3 rounded-lg border border-border bg-card p-3 text-left transition-all duration-200 hover:border-primary/40 hover:bg-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
   >
     <span className={cn("flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-lg", toneClasses[tone].icon)}>
       <Icon className="h-5 w-5" aria-hidden="true" />
     </span>
     <span className="min-w-0 flex-1">
-      <span className="block text-sm font-semibold text-[#111827] dark:text-[#F8FAFC]">{label}</span>
-      <span className="mt-0.5 block text-xs text-[#6B7280] dark:text-[#CBD5E1]">{description}</span>
+      <span className="block text-sm font-semibold text-foreground">{label}</span>
+      <span className="mt-0.5 block text-xs text-muted-foreground">{description}</span>
     </span>
-    <ArrowRight className="h-4 w-4 flex-shrink-0 text-[#A78BFA] dark:text-[#8B5CF6] transition-transform group-hover:translate-x-0.5" aria-hidden="true" />
+    <ArrowRight className="h-4 w-4 flex-shrink-0 text-primary transition-transform group-hover:translate-x-0.5" aria-hidden="true" />
   </button>
 );
 
@@ -384,7 +384,7 @@ const Dashboard = () => {
   const countsAreLoading = Boolean(isLoadingVacationCount || isLoadingTimeOffCount);
   const profileUnavailable = !isLoading && !userData;
   const pendingTone: DashboardTone = !hasApprovalPermission
-    ? "purple"
+    ? "brand"
     : totalPendingCount > 0
       ? "danger"
       : "success";
@@ -412,12 +412,12 @@ const Dashboard = () => {
               key={warning.messageId}
               type="button"
               onClick={() => void handleWarningClick()}
-              className="w-full rounded-lg border border-[#E5E7EB] dark:border-[#404854] bg-white dark:bg-slate-700 p-3 text-left transition-all duration-200 hover:border-[#C4B5FD] dark:hover:border-[#5B47A8] hover:bg-[#F8FAFC] dark:hover:bg-[#404854] focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#7C3AED]/30 dark:focus-visible:ring-[#A78BFA]/30"
+              className="w-full rounded-lg border border-border bg-card p-3 text-left transition-all duration-200 hover:border-primary/40 hover:bg-background focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
             >
               <div className="flex flex-col gap-2 sm:flex-row sm:items-start sm:justify-between">
                 <div className="min-w-0">
-                  <p className="line-clamp-1 text-sm font-semibold text-[#111827] dark:text-[#F8FAFC]">{warning.title || "Aviso"}</p>
-                  <p className="mt-1 text-xs text-[#6B7280] dark:text-[#CBD5E1]">{formatWarningDate(warning.createdAt)}</p>
+                  <p className="line-clamp-1 text-sm font-semibold text-foreground">{warning.title || "Aviso"}</p>
+                  <p className="mt-1 text-xs text-muted-foreground">{formatWarningDate(warning.createdAt)}</p>
                 </div>
                 <span className={cn("inline-flex w-fit items-center rounded-full border px-2 py-0.5 text-xs font-semibold", priorityMeta.className)}>
                   {priorityMeta.label}
@@ -435,10 +435,10 @@ const Dashboard = () => {
       sidebarOpen={sidebarOpen}
       toggleSidebar={handleToggleSidebar}
       withBackground={false}
-      mainClassName="pt-16 px-4 py-5 sm:px-6 sm:py-8 lg:px-8 relative z-10 bg-[#F8FAFC] dark:bg-[#0F172A]"
+      mainClassName="pt-16 px-4 py-5 sm:px-6 sm:py-8 lg:px-8 relative z-10 bg-background"
     >
       <div className="mx-auto w-full max-w-7xl space-y-6 pb-10">
-        <section className="overflow-hidden rounded-2xl border border-[#C4B5FD]/60 bg-[linear-gradient(135deg,#7C3AED_0%,#3B82F6_58%,#67E8F9_100%)] p-5 text-white shadow-[0_24px_70px_-34px_rgba(59,130,246,0.65)] sm:p-7">
+        <section className="overflow-hidden rounded-2xl border border-primary/20 bg-gradient-to-br from-primary via-blue-600 to-secondary p-5 text-primary-foreground shadow-lg sm:p-7">
           <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
             <div className="max-w-3xl">
               <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-white/25 bg-white/15 px-3 py-1 text-sm font-medium text-white shadow-sm backdrop-blur">
@@ -470,7 +470,7 @@ const Dashboard = () => {
             <div className="flex flex-col gap-3 sm:flex-row lg:flex-col xl:flex-row">
               <Button
                 type="button"
-                className="min-h-11 bg-white text-[#6D28D9] shadow-sm hover:bg-[#EDE9FE]"
+                className="min-h-11 bg-white text-primary shadow-sm hover:bg-blue-50"
                 onClick={handleClockCardClick}
               >
                 Abrir relatório
@@ -572,7 +572,7 @@ const Dashboard = () => {
                       title="Perfil"
                       value={roleLabel}
                       description={userData?.companyName || "Empresa não informada"}
-                      tone="purple"
+                      tone="brand"
                       onClick={handleDetailsCardClick}
                       onKeyDown={getCardKeyDownHandler(handleDetailsCardClick)}
                       ariaLabel="Abrir detalhes do colaborador"
@@ -623,7 +623,7 @@ const Dashboard = () => {
                     title="Perfil"
                     value={roleLabel}
                     description={userData?.companyName || "Empresa não informada"}
-                    tone="purple"
+                    tone="brand"
                     onClick={handleDetailsCardClick}
                     onKeyDown={getCardKeyDownHandler(handleDetailsCardClick)}
                     ariaLabel="Abrir detalhes do colaborador"
@@ -644,24 +644,24 @@ const Dashboard = () => {
             tabIndex={0}
           >
             <CardContent className="p-0">
-              <div className="border-b border-[#E5E7EB] bg-[linear-gradient(135deg,#EFF6FF_0%,#F5F3FF_100%)] p-5 sm:p-6">
+              <div className="border-b border-border bg-gradient-to-r from-blue-50 to-background p-5 sm:p-6">
                 <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
                   <div className="flex items-center gap-3">
-                    <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-[#DBEAFE] text-[#3B82F6]">
+                    <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10 text-primary">
                       <ClockIcon className="h-6 w-6" aria-hidden="true" />
                     </div>
                     <div>
-                      <h2 className="text-xl font-semibold text-[#111827]">Controle de Ponto Online</h2>
-                      <p className="mt-1 text-sm text-[#6B7280]">Acompanhe horário atual e acesse o relatório completo.</p>
+                      <h2 className="text-xl font-semibold text-foreground">Controle de Ponto Online</h2>
+                      <p className="mt-1 text-sm text-muted-foreground">Acompanhe horário atual e acesse o relatório completo.</p>
                     </div>
                   </div>
-                  <ArrowRight className="hidden h-5 w-5 text-[#7C3AED] sm:block" aria-hidden="true" />
+                  <ArrowRight className="hidden h-5 w-5 text-primary sm:block" aria-hidden="true" />
                 </div>
               </div>
               <div className="flex min-h-[190px] items-center justify-center p-6">
-                <div className="rounded-2xl border border-[#E5E7EB] bg-white px-8 py-7 shadow-[0_18px_48px_-32px_rgba(59,130,246,0.55)]">
+                <div className="rounded-2xl border border-border bg-card px-8 py-7 shadow-sm">
                   <Clock />
-                  <p className="mt-4 text-center text-sm font-medium text-[#6B7280]">Clique para acessar o Relatório Completo</p>
+                  <p className="mt-4 text-center text-sm font-medium text-muted-foreground">Clique para acessar o Relatório Completo</p>
                 </div>
               </div>
             </CardContent>
@@ -676,14 +676,14 @@ const Dashboard = () => {
             tabIndex={0}
           >
             <CardContent className="p-5 sm:p-6">
-              <div className="flex items-start gap-4 border-b border-[#E5E7EB] pb-4">
-                <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-xl bg-[#EDE9FE] text-[#7C3AED]">
+              <div className="flex items-start gap-4 border-b border-border pb-4">
+                <div className="flex h-12 w-12 flex-shrink-0 items-center justify-center rounded-xl bg-primary/10 text-primary">
                   <User2 className="h-6 w-6" aria-hidden="true" />
                 </div>
                 <div className="min-w-0 flex-1">
-                  <h2 className="line-clamp-1 text-xl font-semibold text-[#111827]">{firstName}</h2>
-                  {secondName ? <p className="line-clamp-1 text-xl font-semibold text-[#111827]">{secondName}</p> : null}
-                  <p className="mt-1 text-sm font-medium text-[#6B7280]">
+                  <h2 className="line-clamp-1 text-xl font-semibold text-foreground">{firstName}</h2>
+                  {secondName ? <p className="line-clamp-1 text-xl font-semibold text-foreground">{secondName}</p> : null}
+                  <p className="mt-1 text-sm font-medium text-muted-foreground">
                     {userData?.jobPosition || "N/A"} <span className="font-normal">({roleLabel})</span>
                   </p>
                 </div>
@@ -692,7 +692,7 @@ const Dashboard = () => {
                     type="button"
                     variant="ghost"
                     size="sm"
-                    className="flex-shrink-0 text-[#7C3AED] hover:bg-[#EDE9FE] hover:text-[#6D28D9]"
+                    className="flex-shrink-0 text-primary hover:bg-primary/10 hover:text-primary"
                     onClick={handleCompanyButtonClick}
                     aria-label="Gerenciar Empresa"
                     title="Gerenciar Empresa"
@@ -711,34 +711,34 @@ const Dashboard = () => {
                   />
                 ) : (
                   <>
-                    <p className="flex items-center gap-2 text-sm text-[#6B7280]">
-                      <Building className="h-4 w-4 text-[#7C3AED]" aria-hidden="true" />
+                    <p className="flex items-center gap-2 text-sm text-muted-foreground">
+                      <Building className="h-4 w-4 text-primary" aria-hidden="true" />
                       <span
-                        className={cn("font-medium text-[#111827]", isCto && "cursor-pointer underline decoration-[#C4B5FD] underline-offset-4 hover:text-[#7C3AED]")}
+                        className={cn("font-medium text-foreground", isCto && "cursor-pointer underline decoration-primary/40 underline-offset-4 hover:text-primary")}
                         onClick={handleCompanyLinkClick}
                         title={isCto ? "Clique para ir para a Empresa" : undefined}
                       >
                         {userData?.companyName || "N/A"}
                       </span>
                     </p>
-                    <p className="flex items-center gap-2 text-sm text-[#6B7280]">
-                      <Mail className="h-4 w-4 text-[#7C3AED]" aria-hidden="true" />
-                      <span className="line-clamp-1 text-[#111827]">{userData?.email || "N/A"}</span>
+                    <p className="flex items-center gap-2 text-sm text-muted-foreground">
+                      <Mail className="h-4 w-4 text-primary" aria-hidden="true" />
+                      <span className="line-clamp-1 text-foreground">{userData?.email || "N/A"}</span>
                     </p>
-                    <p className="flex items-center gap-2 text-sm text-[#6B7280]">
-                      <Phone className="h-4 w-4 text-[#7C3AED]" aria-hidden="true" />
-                      <span className="text-[#111827]">{formatPhone(userData?.phone) || "N/A"}</span>
+                    <p className="flex items-center gap-2 text-sm text-muted-foreground">
+                      <Phone className="h-4 w-4 text-primary" aria-hidden="true" />
+                      <span className="text-foreground">{formatPhone(userData?.phone) || "N/A"}</span>
                     </p>
-                    <div className="flex items-center gap-2 rounded-lg bg-[#F5F3FF] p-3 text-sm text-[#6B7280]">
-                      <DollarSign className="h-5 w-5 flex-shrink-0 text-[#7C3AED]" aria-hidden="true" />
-                      <span className="flex-1 text-lg font-bold text-[#7C3AED]">
+                    <div className="flex items-center gap-2 rounded-lg bg-primary/10 p-3 text-sm text-muted-foreground">
+                      <DollarSign className="h-5 w-5 flex-shrink-0 text-primary" aria-hidden="true" />
+                      <span className="flex-1 text-lg font-bold text-primary">
                         {showSalary ? formatSalary(userData?.salary) : "R$ *****,**"}
                       </span>
                       <Button
                         type="button"
                         variant="ghost"
                         size="icon"
-                        className="h-8 w-8 text-[#7C3AED] hover:bg-[#EDE9FE] hover:text-[#6D28D9]"
+                        className="h-8 w-8 text-primary hover:bg-primary/10 hover:text-primary"
                         onClick={(event) => {
                           event.stopPropagation();
                           toggleSalary();
@@ -768,7 +768,7 @@ const Dashboard = () => {
                   <Button
                     type="button"
                     variant="outline"
-                    className="border-[#C4B5FD] text-[#7C3AED] hover:bg-[#EDE9FE] hover:text-[#6D28D9]"
+                    className="border-primary/40 text-primary hover:bg-primary/10 hover:text-primary"
                     onClick={() => navigate(APP_PATHS.criarAviso)}
                   >
                     <PlusCircle className="mr-2 h-4 w-4" aria-hidden="true" />
@@ -776,7 +776,7 @@ const Dashboard = () => {
                   </Button>
                   <Button
                     type="button"
-                    className="bg-[#7C3AED] text-white hover:bg-[#6D28D9]"
+                    className="bg-primary text-primary-foreground hover:bg-secondary"
                     onClick={() => void handleWarningClick()}
                   >
                     Ver Todos Avisos
@@ -785,7 +785,7 @@ const Dashboard = () => {
               ) : newWarnings.length > 0 ? (
                 <Button
                   type="button"
-                  className="bg-[#7C3AED] text-white hover:bg-[#6D28D9]"
+                  className="bg-primary text-primary-foreground hover:bg-secondary"
                   onClick={() => void handleWarningClick()}
                 >
                   Ver Avisos
@@ -815,24 +815,24 @@ const Dashboard = () => {
                 <CardContent className="p-5">
                   <div className="flex items-center justify-between gap-4">
                     <div>
-                      <p className="text-sm font-medium text-[#6B7280]">Total de Pendências</p>
-                      <p className={cn("mt-2 text-4xl font-bold", totalPendingCount > 0 ? "text-[#EF4444]" : "text-[#10B981]")}>
+                      <p className="text-sm font-medium text-muted-foreground">Total de Pendências</p>
+                      <p className={cn("mt-2 text-4xl font-bold", totalPendingCount > 0 ? "text-red-600" : "text-success")}>
                         {countsAreLoading ? "..." : totalPendingCount}
                       </p>
                     </div>
-                    <div className={cn("flex h-12 w-12 items-center justify-center rounded-xl", totalPendingCount > 0 ? "bg-[#FEE2E2] text-[#EF4444]" : "bg-[#D1FAE5] text-[#10B981]")}>
+                    <div className={cn("flex h-12 w-12 items-center justify-center rounded-xl", totalPendingCount > 0 ? "bg-red-50 text-red-600" : "bg-green-50 text-success")}>
                       {totalPendingCount > 0 ? <AlertTriangle className="h-6 w-6" aria-hidden="true" /> : <CheckCircle2 className="h-6 w-6" aria-hidden="true" />}
                     </div>
                   </div>
 
-                  <Separator className="my-4 bg-[#E5E7EB]" />
+                  <Separator className="my-4 bg-border" />
 
                   <div className="space-y-3">
                     <DashboardActionButton
                       icon={ListChecks}
                       label="Solicitação de ajuste no Ponto"
                       description={`${pendingApprovalsCount} pendente(s)`}
-                      tone={pendingApprovalsCount > 0 ? "danger" : "purple"}
+                      tone={pendingApprovalsCount > 0 ? "danger" : "brand"}
                       onClick={(event) => {
                         event.stopPropagation();
                         handleApprovalClick();
@@ -877,12 +877,12 @@ const Dashboard = () => {
               >
                 <CardContent className="p-5">
                   <div className="mb-4 flex items-center gap-3">
-                    <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-[#EDE9FE] text-[#7C3AED]">
+                    <div className="flex h-11 w-11 items-center justify-center rounded-xl bg-primary/10 text-primary">
                       <Zap className="h-5 w-5" aria-hidden="true" />
                     </div>
                     <div>
-                      <p className="text-base font-semibold text-[#111827]">Acesso Rápido</p>
-                      <p className="text-sm text-[#6B7280]">Documentos, férias e abonos.</p>
+                      <p className="text-base font-semibold text-foreground">Acesso Rápido</p>
+                      <p className="text-sm text-muted-foreground">Documentos, férias e abonos.</p>
                     </div>
                   </div>
 
@@ -911,7 +911,7 @@ const Dashboard = () => {
                       icon={TimerReset}
                       label="Solicitar Abono de Horas"
                       description="Registrar pedido de ajuste manual"
-                      tone="purple"
+                      tone="brand"
                       onClick={(event) => {
                         event.stopPropagation();
                         navigate(APP_PATHS.solicitarAbono);

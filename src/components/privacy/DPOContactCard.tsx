@@ -30,7 +30,7 @@ const DPOContactCard: React.FC = () => {
                   <p className="text-sm font-medium">Email</p>
                   <a
                     href="mailto:dpo@kronos-tech.com.br"
-                    className="text-sm text-blue-600 hover:underline"
+                    className="text-sm text-primary hover:underline"
                   >
                     dpo@kronos-tech.com.br
                   </a>
@@ -43,7 +43,7 @@ const DPOContactCard: React.FC = () => {
                   <p className="text-sm font-medium">Telefone</p>
                   <a
                     href="tel:+551133334444"
-                    className="text-sm text-blue-600 hover:underline"
+                    className="text-sm text-primary hover:underline"
                   >
                     +55 (11) 3333-4444
                   </a>
@@ -52,7 +52,7 @@ const DPOContactCard: React.FC = () => {
             </div>
           </div>
 
-          <div className="bg-slate-50 rounded-lg p-4">
+          <div className="bg-muted/60 rounded-lg p-4">
             <h4 className="font-semibold mb-2">O que você pode comunicar?</h4>
             <ul className="text-sm space-y-2 text-muted-foreground">
               <li>✓ Questões sobre privacidade e LGPD</li>
@@ -64,7 +64,7 @@ const DPOContactCard: React.FC = () => {
           </div>
 
           <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-            <p className="text-sm text-blue-800">
+            <p className="text-sm text-blue-900">
               O DPO está disponível para ajudar com qualquer questão relacionada a privacidade
               e proteção de dados. Sua comunicação é confidencial e será tratada com urgência.
             </p>

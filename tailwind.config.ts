@@ -26,9 +26,6 @@ export default {
 				'orange-primary': 'hsl(var(--orange-primary))',
 				'orange-hover': 'hsl(var(--orange-hover))',
 				'orange-light': 'hsl(var(--orange-light))',
-				'purple-primary': 'hsl(var(--purple-primary))',
-				'purple-hover': 'hsl(var(--purple-hover))',
-				'purple-light': 'hsl(var(--purple-light))',
 				'blue-primary': 'hsl(var(--blue-primary))',
 				'blue-hover': 'hsl(var(--blue-hover))',
 				'blue-light': 'hsl(var(--blue-light))',
@@ -51,7 +48,10 @@ export default {
 				'gray-light': 'hsl(var(--gray-light))',
 				'gray-border': 'hsl(var(--gray-border))',
 				'gray-text': 'hsl(var(--gray-text))',
-				'success': 'hsl(var(--success))',
+				success: {
+					DEFAULT: 'hsl(var(--success))',
+					foreground: 'hsl(var(--success-foreground))'
+				},
 				'success-light': 'hsl(var(--success-light))',
 				'destructive-light': 'hsl(var(--destructive-light))',
 				border: 'hsl(var(--border))',

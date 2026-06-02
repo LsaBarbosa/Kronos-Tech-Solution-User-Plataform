@@ -30,7 +30,7 @@ export default function PrivacyBiometricTerm() {
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
       </div>
     );
   }
@@ -71,8 +71,8 @@ export default function PrivacyBiometricTerm() {
           </p>
         </div>
 
-        <Card className="bg-purple-50 border-purple-200">
-          <CardContent className="pt-6 text-sm text-gray-700">
+        <Card className="bg-blue-50 border-blue-200 shadow-sm">
+          <CardContent className="pt-6 text-sm text-foreground">
             Este termo explica como a plataforma Kronos usa biometria facial para autenticação e controle de ponto,
             e os seus direitos sobre esse tratamento de dados sensíveis.
           </CardContent>
@@ -97,15 +97,15 @@ export default function PrivacyBiometricTerm() {
               <CardHeader className="pb-3">
                 <CardTitle className="text-lg">{section.title}</CardTitle>
               </CardHeader>
-              <CardContent className="text-sm text-gray-700 leading-relaxed whitespace-pre-wrap">
+              <CardContent className="text-sm text-foreground leading-relaxed whitespace-pre-wrap">
                 {section.content}
               </CardContent>
             </Card>
           ))}
         </div>
 
-        <Card className="bg-blue-50 border-blue-200">
-          <CardContent className="pt-6 text-sm text-gray-700 space-y-3">
+        <Card className="bg-blue-50 border-blue-200 shadow-sm">
+          <CardContent className="pt-6 text-sm text-foreground space-y-3">
             <p>
               <strong>Perguntas sobre biometria?</strong> Você pode:
             </p>

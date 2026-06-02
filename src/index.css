@@ -4,66 +4,61 @@
 
 /* Definition of the design system. All colors, gradients, fonts, etc should be defined here.
 All colors MUST be HSL.
-Identidade visual: Roxo, Lilás e Azul
+Identidade visual: Azul Royal, Azul Escuro e Verde
 */
 
 @layer base {
   :root {
-    --background: 248 31.1% 98%;
-    --foreground: 24 9.8% 10%;
+    --kronos-brand: 221.2 83.2% 53.3%;
+    --kronos-brand-dark: 224.4 64.3% 32.9%;
+    --kronos-success: 142.1 76.2% 36.3%;
+    --kronos-background: 210 40% 98%;
+    --kronos-foreground: 222.2 47.4% 11.2%;
+    --kronos-muted: 215.4 16.3% 46.9%;
+    --kronos-border: 214.3 31.8% 91.4%;
+
+    --background: var(--kronos-background);
+    --foreground: var(--kronos-foreground);
 
     --card: 0 0% 100%;
-    --card-foreground: 24 9.8% 10%;
+    --card-foreground: var(--kronos-foreground);
 
     --popover: 0 0% 100%;
-    --popover-foreground: 24 9.8% 10%;
+    --popover-foreground: var(--kronos-foreground);
 
-    --primary: 270 100% 47%;
+    --primary: var(--kronos-brand);
     --primary-foreground: 0 0% 100%;
 
-    --secondary: 219 14.3% 95.9%;
-    --secondary-foreground: 24 9.8% 10%;
+    --secondary: var(--kronos-brand-dark);
+    --secondary-foreground: 0 0% 100%;
 
-    --muted: 220 13% 91%;
-    --muted-foreground: 215 16% 41%;
+    --muted: 210 40% 96.1%;
+    --muted-foreground: var(--kronos-muted);
 
-    --accent: 270 100% 47%;
-    --accent-foreground: 0 0% 100%;
+    --accent: 210 40% 96.1%;
+    --accent-foreground: var(--kronos-foreground);
 
     /* Custom design tokens - Theme Colors */
-    --theme-primary: var(--purple-primary);
-    --theme-hover: var(--purple-hover);
-    --theme-light: var(--purple-light);
-    --theme-accent: var(--purple-accent);
-    --theme-glow: var(--purple-glow);
+    --theme-primary: var(--kronos-brand);
+    --theme-hover: var(--kronos-brand-dark);
+    --theme-light: 214.3 100% 96.9%;
+    --theme-accent: var(--kronos-brand);
+    --theme-glow: var(--kronos-brand);
     --black-primary: 0 0% 0%;
-    --gray-light: 248 31.1% 98%;
-    --gray-border: 220 13% 91%;
-    --gray-text: 215 16% 41%;
-    --success: 142 76% 36%;
-    --success-light: 142 76% 50%;
+    --gray-light: var(--kronos-background);
+    --gray-border: var(--kronos-border);
+    --gray-text: var(--kronos-muted);
+    --success: var(--kronos-success);
+    --success-foreground: 0 0% 100%;
+    --success-light: 142.1 76.2% 42%;
     --destructive-light: 0 84% 70%;
 
-    /* Purple Theme Tokens - Primary */
-    --purple-primary: 270 100% 47%;
-    --purple-hover: 270 100% 42%;
-    --purple-light: 270 100% 97%;
-    --purple-accent: 270 100% 55%;
-    --purple-glow: 270 100% 47%;
-
-    /* Blue Theme Tokens - Secondary */
-    --blue-primary: 220 100% 47%;
-    --blue-hover: 220 100% 42%;
-    --blue-light: 220 100% 97%;
-    --blue-accent: 220 100% 55%;
-    --blue-glow: 220 100% 47%;
-
-    /* Lilás/Lilas - Accent */
-    --lilas-primary: 264 97.3% 75%;
-    --lilas-hover: 264 97.3% 70%;
-    --lilas-light: 264 97.3% 98%;
-    --lilas-accent: 264 97.3% 80%;
-    --lilas-glow: 264 97.3% 75%;
+    /* Blue Theme Tokens */
+    --blue-primary: var(--kronos-brand);
+    --blue-hover: var(--kronos-brand-dark);
+    --blue-light: 214.3 100% 96.9%;
+    --blue-accent: var(--kronos-brand);
+    --blue-glow: var(--kronos-brand);
 
     /* Cyan - Light Accent */
     --cyan-primary: 188.5 100% 59.2%;
@@ -80,11 +75,11 @@ Identidade visual: Roxo, Lilás e Azul
     --red-glow: 359 95% 60%;
 
     /* Shadows */
-    --shadow-card: 0 4px 24px -6px hsl(270 100% 47% / 0.08);
-    --shadow-input: 0 2px 8px -2px hsl(270 100% 47% / 0.05);
-    --shadow-button: 0 4px 16px -4px hsl(270 100% 47% / 0.3);
-    --shadow-orange: 0 0 0 1px hsl(var(--purple-primary) / 0.2), 0 0 20px hsl(var(--purple-primary) / 0.1);
-    --shadow-orange-hover: 0 4px 20px -4px hsl(var(--purple-primary) / 0.25);
+    --shadow-card: 0 4px 24px -6px hsl(var(--kronos-brand) / 0.08);
+    --shadow-input: 0 2px 8px -2px hsl(var(--kronos-brand) / 0.05);
+    --shadow-button: 0 4px 16px -4px hsl(var(--kronos-brand) / 0.3);
+    --shadow-orange: 0 0 0 1px hsl(var(--kronos-brand) / 0.2), 0 0 20px hsl(var(--kronos-brand) / 0.1);
+    --shadow-orange-hover: 0 4px 20px -4px hsl(var(--kronos-brand) / 0.25);
 
     /* Animations */
     --transition-smooth: all 0.2s cubic-bezier(0.4, 0, 0.2, 1);
@@ -95,74 +90,60 @@ Identidade visual: Roxo, Lilás e Azul
     --touch-target: 44px; /* iOS recommended minimum */
 
     --destructive: 0 84.2% 60.2%;
-    --destructive-foreground: 210 40% 98%;
+    --destructive-foreground: 0 0% 100%;
 
-    --border: 0 0% 90%;
-    --input: 0 0% 96%;
-    --ring: 25 100% 47%;
+    --border: var(--kronos-border);
+    --input: var(--kronos-border);
+    --ring: var(--kronos-brand);
 
-    --radius: 0.5rem;
+    --radius: 0.75rem;
 
-    --sidebar-background: 0 0% 98%;
-    --sidebar-foreground: 240 5.3% 26.1%;
-    --sidebar-primary: 240 5.9% 10%;
-    --sidebar-primary-foreground: 0 0% 98%;
-    --sidebar-accent: 240 4.8% 95.9%;
-    --sidebar-accent-foreground: 240 5.9% 10%;
-    --sidebar-border: 220 13% 91%;
-    --sidebar-ring: 217.2 91.2% 59.8%;
+    --sidebar-background: 0 0% 100%;
+    --sidebar-foreground: var(--kronos-foreground);
+    --sidebar-primary: var(--kronos-brand);
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 210 40% 96.1%;
+    --sidebar-accent-foreground: var(--kronos-foreground);
+    --sidebar-border: var(--kronos-border);
+    --sidebar-ring: var(--kronos-brand);
   }
 
   .dark {
     /* Base colors for dark theme */
-    --background: 240 22% 5%;
-    --foreground: 248 31.1% 98%;
+    --background: 222.2 47.4% 11.2%;
+    --foreground: 210 40% 98%;
 
-    --card: 240 13% 13%;
-    --card-foreground: 248 31.1% 98%;
+    --card: 222.2 47.4% 13.5%;
+    --card-foreground: 210 40% 98%;
 
-    --popover: 240 13% 13%;
-    --popover-foreground: 248 31.1% 98%;
+    --popover: 222.2 47.4% 13.5%;
+    --popover-foreground: 210 40% 98%;
 
-    --primary: 270 100% 59%;
-    --primary-foreground: 240 22% 5%;
+    --primary: 221.2 83.2% 60%;
+    --primary-foreground: 0 0% 100%;
 
-    --secondary: 240 13% 20%;
-    --secondary-foreground: 248 31.1% 98%;
+    --secondary: 224.4 64.3% 32.9%;
+    --secondary-foreground: 0 0% 100%;
 
-    --muted: 240 13% 20%;
-    --muted-foreground: 215 13% 73%;
+    --muted: 217.2 32.6% 17.5%;
+    --muted-foreground: 215 20.2% 65.1%;
 
-    --accent: 270 100% 59%;
-    --accent-foreground: 240 22% 5%;
+    --accent: 217.2 32.6% 17.5%;
+    --accent-foreground: 210 40% 98%;
 
     --destructive: 0 72% 51%;
-    --destructive-foreground: 240 22% 5%;
+    --destructive-foreground: 0 0% 100%;
 
-    --border: 240 13% 20%;
-    --input: 240 13% 20%;
-    --ring: 270 100% 59%;
-
-    /* Dark theme purple tokens */
-    --purple-primary: 270 100% 59%;
-    --purple-hover: 270 100% 65%;
-    --purple-light: 270 100% 15%;
-    --purple-accent: 270 100% 65%;
-    --purple-glow: 270 100% 59%;
+    --border: 217.2 32.6% 17.5%;
+    --input: 217.2 32.6% 17.5%;
+    --ring: 221.2 83.2% 60%;
 
     /* Dark theme blue tokens */
-    --blue-primary: 220 100% 59%;
-    --blue-hover: 220 100% 65%;
-    --blue-light: 220 100% 15%;
-    --blue-accent: 220 100% 65%;
-    --blue-glow: 220 100% 59%;
-
-    /* Dark theme lilás tokens */
-    --lilas-primary: 264 97.3% 80%;
-    --lilas-hover: 264 97.3% 85%;
-    --lilas-light: 264 97.3% 15%;
-    --lilas-accent: 264 97.3% 85%;
-    --lilas-glow: 264 97.3% 80%;
+    --blue-primary: 221.2 83.2% 60%;
+    --blue-hover: 224.4 64.3% 38%;
+    --blue-light: 217.2 32.6% 17.5%;
+    --blue-accent: 221.2 83.2% 60%;
+    --blue-glow: 221.2 83.2% 60%;
 
     /* Dark theme cyan tokens */
     --cyan-primary: 188.5 100% 65%;
@@ -179,31 +160,32 @@ Identidade visual: Roxo, Lilás e Azul
     --red-glow: 359 95% 65%;
 
     /* Dark theme success tokens */
-    --success: 142 76% 50%;
-    --success-light: 142 76% 60%;
+    --success: 142.1 76.2% 36.3%;
+    --success-foreground: 0 0% 100%;
+    --success-light: 142.1 76.2% 46%;
 
     /* Dark theme destructive light */
     --destructive-light: 0 84% 75%;
 
     /* Dark theme shadow tokens */
-    --shadow-card: 0 4px 24px -6px hsl(270 100% 59% / 0.12);
-    --shadow-input: 0 2px 8px -2px hsl(270 100% 59% / 0.1);
-    --shadow-button: 0 4px 16px -4px hsl(270 100% 59% / 0.4);
-    --shadow-orange-dark: 0 0 0 1px hsl(var(--purple-primary) / 0.3), 0 0 20px hsl(var(--purple-primary) / 0.15);
-    --shadow-orange-hover-dark: 0 4px 20px -4px hsl(var(--purple-primary) / 0.4);
+    --shadow-card: 0 4px 24px -6px hsl(var(--primary) / 0.12);
+    --shadow-input: 0 2px 8px -2px hsl(var(--primary) / 0.1);
+    --shadow-button: 0 4px 16px -4px hsl(var(--primary) / 0.4);
+    --shadow-orange-dark: 0 0 0 1px hsl(var(--primary) / 0.3), 0 0 20px hsl(var(--primary) / 0.15);
+    --shadow-orange-hover-dark: 0 4px 20px -4px hsl(var(--primary) / 0.4);
 
     /* Dark theme sidebar */
-    --sidebar-background: 240 22% 5%;
-    --sidebar-foreground: 248 31.1% 98%;
-    --sidebar-primary: 270 100% 59%;
-    --sidebar-primary-foreground: 240 22% 5%;
-    --sidebar-accent: 240 13% 20%;
-    --sidebar-accent-foreground: 248 31.1% 98%;
-    --sidebar-border: 240 13% 20%;
-    --sidebar-ring: 270 100% 59%;
+    --sidebar-background: 222.2 47.4% 11.2%;
+    --sidebar-foreground: 210 40% 98%;
+    --sidebar-primary: 221.2 83.2% 60%;
+    --sidebar-primary-foreground: 0 0% 100%;
+    --sidebar-accent: 217.2 32.6% 17.5%;
+    --sidebar-accent-foreground: 210 40% 98%;
+    --sidebar-border: 217.2 32.6% 17.5%;
+    --sidebar-ring: 221.2 83.2% 60%;
   }
 
-/* Theme variants - Disabled in favor of global purple/blue/lilas identity */
+/* Theme variants are disabled in favor of the Kronos blue identity. */
 }
 
 @layer base {
@@ -215,7 +197,7 @@ Identidade visual: Roxo, Lilás e Azul
     @apply bg-background text-foreground font-inter;
   }
 
-  /* Purple focus states for form elements */
+  /* Brand focus states for form elements */
   input:focus, select:focus, textarea:focus, button:focus-visible {
     @apply outline-none ring-2 ring-primary/20 border-primary;
   }
@@ -227,11 +209,11 @@ Identidade visual: Roxo, Lilás e Azul
 
   /* Card hover effects */
   .card-hover {
-    @apply transition-all duration-200 hover:shadow-[0_0_0_1px_hsl(var(--purple-primary)/0.2),0_4px_20px_-4px_hsl(var(--purple-primary)/0.25)];
+    @apply transition-all duration-200 hover:shadow-[0_0_0_1px_hsl(var(--kronos-brand)/0.2),0_4px_20px_-4px_hsl(var(--kronos-brand)/0.25)];
   }
 
   .dark .card-hover {
-    @apply hover:shadow-[0_0_0_1px_hsl(var(--purple-primary)/0.3),0_4px_20px_-4px_hsl(var(--purple-primary)/0.4)];
+    @apply hover:shadow-[0_0_0_1px_hsl(var(--primary)/0.3),0_4px_20px_-4px_hsl(var(--primary)/0.4)];
   }
 
   /* Mobile optimizations */
@@ -250,7 +232,7 @@ Identidade visual: Roxo, Lilás e Azul
     h2 { @apply text-xl; }
     h3 { @apply text-lg; }
     
-    /* Purple focus states for mobile */
+    /* Brand focus states for mobile */
     input:focus, select:focus, textarea:focus {
       @apply border-primary ring-2 ring-primary/20;
     }
@@ -294,32 +276,32 @@ Identidade visual: Roxo, Lilás e Azul
     @apply grid grid-cols-1 sm:grid-cols-2 gap-4;
   }
 
-  /* Purple accent utilities */
-  .purple-focus {
+  /* Brand accent utilities */
+  .brand-focus {
     @apply focus:border-primary focus:ring-2 focus:ring-primary/20;
   }
 
-  .purple-hover-card {
-    @apply hover:shadow-[0_0_0_1px_hsl(var(--purple-primary)/0.2),0_0_20px_hsl(var(--purple-primary)/0.1)] transition-shadow duration-200;
+  .brand-hover-card {
+    @apply hover:shadow-[0_0_0_1px_hsl(var(--kronos-brand)/0.2),0_0_20px_hsl(var(--kronos-brand)/0.1)] transition-shadow duration-200;
   }
 
-  .dark .purple-hover-card {
-    @apply hover:shadow-[0_0_0_1px_hsl(var(--purple-primary)/0.3),0_0_20px_hsl(var(--purple-primary)/0.15)];
+  .dark .brand-hover-card {
+    @apply hover:shadow-[0_0_0_1px_hsl(var(--primary)/0.3),0_0_20px_hsl(var(--primary)/0.15)];
   }
 
-  .purple-underline {
+  .brand-underline {
     @apply relative after:absolute after:bottom-0 after:left-0 after:w-12 after:h-0.5 after:bg-primary after:rounded-full;
   }
 
-  .purple-sidebar-active {
+  .brand-sidebar-active {
     @apply bg-primary/10 text-primary border-r-2 border-primary;
   }
 
   /* Backward compatibility aliases */
-  .orange-focus { @apply purple-focus; }
-  .orange-hover-card { @apply purple-hover-card; }
-  .orange-underline { @apply purple-underline; }
-  .orange-sidebar-active { @apply purple-sidebar-active; }
+  .orange-focus { @apply brand-focus; }
+  .orange-hover-card { @apply brand-hover-card; }
+  .orange-underline { @apply brand-underline; }
+  .orange-sidebar-active { @apply brand-sidebar-active; }
 
   /* Mobile table alternative - stack layout */
   .mobile-stack {

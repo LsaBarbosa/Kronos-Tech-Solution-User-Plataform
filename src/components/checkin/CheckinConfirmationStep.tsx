@@ -28,7 +28,7 @@ export const CheckinConfirmationStep = () => {
 
   return (
     <div className="space-y-4">
-      <Card className="border-primary/20 bg-gradient-to-br from-[#F8FAFC] to-white">
+      <Card className="border-primary/20 bg-gradient-to-br from-background to-card">
         <CardHeader>
           <CardTitle className="text-base">Confirmação de Registro</CardTitle>
           <CardDescription>Verifique os dados antes de confirmar</CardDescription>

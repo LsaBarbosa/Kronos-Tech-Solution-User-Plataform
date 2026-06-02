@@ -584,7 +584,7 @@ const RelatorioDetalhado = () => {
             mainClassName={`pt-16 px-4 py-5 sm:px-6 sm:py-8 lg:px-8 relative z-10 ${usuarioPageColors.main.background}`}
         >
                 <div className="mx-auto w-full max-w-7xl space-y-6 pb-10 relative z-10">
-                    <section className={`overflow-hidden rounded-2xl border border-[#C4B5FD]/60 ${usuarioPageColors.header.background} p-5 text-white ${usuarioPageColors.header.shadow} sm:p-7`}>
+                    <section className={`overflow-hidden rounded-2xl border border-primary/20 ${usuarioPageColors.header.background} p-5 text-white ${usuarioPageColors.header.shadow} sm:p-7`}>
                         <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
                             <div className="max-w-3xl">
                                 <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-white/25 bg-white/15 px-3 py-1 text-sm font-medium text-white shadow-sm backdrop-blur">

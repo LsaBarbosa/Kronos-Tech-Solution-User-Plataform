@@ -11,17 +11,18 @@ interface LgpdRequestsListProps {
 
 const getStatusBadgeColor = (status: LgpdRequestStatus) => {
   const statusColors: Record<LgpdRequestStatus, string> = {
-    OPEN: "bg-blue-100 text-blue-800",
-    IN_ANALYSIS: "bg-yellow-100 text-yellow-800",
-    WAITING_CONTROLLER: "bg-yellow-100 text-yellow-800",
-    WAITING_LEGAL_REVIEW: "bg-yellow-100 text-yellow-800",
-    WAITING_DATA_SUBJECT: "bg-indigo-100 text-indigo-800",
-    COMPLETED: "bg-green-100 text-green-800",
-    REJECTED: "bg-red-100 text-red-800",
-    PARTIALLY_COMPLETED: "bg-orange-100 text-orange-800",
-    CANCELLED: "bg-gray-100 text-gray-800",
+    OPEN: "bg-blue-50 text-blue-700 border-blue-200",
+    IN_ANALYSIS: "bg-blue-100 text-blue-800 border-blue-200",
+    WAITING_CONTROLLER: "bg-blue-900/10 text-blue-900 border-blue-200",
+    WAITING_LEGAL_REVIEW: "bg-slate-100 text-slate-700 border-slate-200",
+    WAITING_DATA_SUBJECT: "bg-blue-50 text-blue-700 border-blue-200",
+    APPROVED_FOR_EXPORT: "bg-green-50 text-green-700 border-green-200",
+    COMPLETED: "bg-green-50 text-green-700 border-green-200",
+    REJECTED: "bg-red-50 text-red-700 border-red-200",
+    PARTIALLY_COMPLETED: "bg-amber-50 text-amber-700 border-amber-200",
+    CANCELLED: "bg-slate-100 text-slate-600 border-slate-200",
   };
-  return statusColors[status] || "bg-gray-100 text-gray-800";
+  return statusColors[status] || "bg-slate-100 text-slate-600 border-slate-200";
 };
 
 const getStatusLabel = (status: LgpdRequestStatus): string => {
@@ -31,6 +32,7 @@ const getStatusLabel = (status: LgpdRequestStatus): string => {
     WAITING_CONTROLLER: "Aguardando controlador",
     WAITING_LEGAL_REVIEW: "Aguardando revisão legal",
     WAITING_DATA_SUBJECT: "Aguardando sujeito de dados",
+    APPROVED_FOR_EXPORT: "Aprovado para exportação",
     COMPLETED: "Concluído",
     REJECTED: "Rejeitado",
     PARTIALLY_COMPLETED: "Parcialmente concluído",

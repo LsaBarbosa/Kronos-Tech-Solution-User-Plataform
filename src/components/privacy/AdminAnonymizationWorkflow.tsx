@@ -43,9 +43,9 @@ export const AdminAnonymizationWorkflow = ({
   const getIconForResourceType = (resourceType: string) => {
     switch (resourceType) {
       case "TIME_RECORD":
-        return <Clock className="h-5 w-5 text-blue-600" />;
+        return <Clock className="h-5 w-5 text-primary" />;
       case "USER":
-        return <User className="h-5 w-5 text-purple-600" />;
+        return <User className="h-5 w-5 text-primary" />;
       case "DOCUMENT":
         return <FileText className="h-5 w-5 text-amber-600" />;
       case "BIOMETRIC_ARTIFACT":
@@ -55,9 +55,9 @@ export const AdminAnonymizationWorkflow = ({
       case "MESSAGE":
         return <MessageSquare className="h-5 w-5 text-cyan-600" />;
       case "AUDIT_LOG":
-        return <LogOut className="h-5 w-5 text-gray-600" />;
+        return <LogOut className="h-5 w-5 text-muted-foreground" />;
       default:
-        return <AlertCircle className="h-5 w-5 text-gray-600" />;
+        return <AlertCircle className="h-5 w-5 text-muted-foreground" />;
     }
   };
 
@@ -171,28 +171,28 @@ export const AdminAnonymizationWorkflow = ({
 
   if (stage === "dry-run-preview" && dryRunData) {
     return (
-      <Card className="border-blue-200 bg-blue-50">
+      <Card className="border-primary/20 bg-blue-50">
         <CardHeader>
-          <CardTitle className="text-blue-800">Resultado da Análise Prévia</CardTitle>
+          <CardTitle className="text-primary">Resultado da Análise Prévia</CardTitle>
         </CardHeader>
         <CardContent className="space-y-6">
           {/* Summary Stats */}
           <div className="grid grid-cols-4 gap-4">
-            <div className="rounded-lg bg-white p-4 text-center">
-              <div className="text-2xl font-bold text-blue-600">{dryRunData.summary.totalScanned}</div>
-              <div className="text-xs text-gray-600">Registros Verificados</div>
+            <div className="rounded-lg border border-border bg-card p-4 text-center">
+              <div className="text-2xl font-bold text-primary">{dryRunData.summary.totalScanned}</div>
+              <div className="text-xs text-muted-foreground">Registros Verificados</div>
             </div>
-            <div className="rounded-lg bg-white p-4 text-center">
+            <div className="rounded-lg border border-border bg-card p-4 text-center">
               <div className="text-2xl font-bold text-orange-600">{dryRunData.summary.totalAffected}</div>
-              <div className="text-xs text-gray-600">Serão Afetados</div>
+              <div className="text-xs text-muted-foreground">Serão Afetados</div>
             </div>
-            <div className="rounded-lg bg-white p-4 text-center">
-              <div className="text-2xl font-bold text-gray-600">{dryRunData.summary.totalSkipped}</div>
-              <div className="text-xs text-gray-600">Serão Preservados</div>
+            <div className="rounded-lg border border-border bg-card p-4 text-center">
+              <div className="text-2xl font-bold text-muted-foreground">{dryRunData.summary.totalSkipped}</div>
+              <div className="text-xs text-muted-foreground">Serão Preservados</div>
             </div>
-            <div className="rounded-lg bg-white p-4 text-center">
+            <div className="rounded-lg border border-border bg-card p-4 text-center">
               <div className="text-2xl font-bold text-red-600">{dryRunData.summary.totalErrors}</div>
-              <div className="text-xs text-gray-600">Erros Esperados</div>
+              <div className="text-xs text-muted-foreground">Erros Esperados</div>
             </div>
           </div>
 
@@ -201,36 +201,36 @@ export const AdminAnonymizationWorkflow = ({
           {/* Domains */}
           {dryRunData.domains.length > 0 && (
             <div>
-              <h3 className="mb-3 font-semibold text-blue-900">Detalhes por Tipo de Dado</h3>
+              <h3 className="mb-3 font-semibold text-foreground">Detalhes por Tipo de Dado</h3>
               <div className="space-y-3">
                 {dryRunData.domains.map((domain, idx) => (
-                  <div key={idx} className="rounded-lg border border-gray-200 bg-white p-4 hover:shadow-sm transition-shadow">
+                  <div key={idx} className="rounded-lg border border-border bg-card p-4 hover:shadow-sm transition-shadow">
                     <div className="flex items-start gap-3">
                       <div className="flex-shrink-0 pt-1">
                         {getIconForResourceType(domain.resourceType)}
                       </div>
                       <div className="flex-grow min-w-0">
                         <div className="flex items-baseline gap-2">
-                          <p className="font-medium text-gray-900">
+                          <p className="font-medium text-foreground">
                             {ANONYMIZATION_RESOURCE_TYPE_LABELS[domain.resourceType] || domain.resourceType}
                           </p>
                         </div>
-                        <p className="text-xs text-gray-600 mt-0.5">
+                        <p className="text-xs text-muted-foreground mt-0.5">
                           <span className="font-medium">Ação:</span> {ANONYMIZATION_ACTION_DESCRIPTIONS[domain.action] || domain.action}
                         </p>
-                        <p className="text-sm text-gray-700 mt-2">{domain.warning}</p>
+                        <p className="text-sm text-foreground mt-2">{domain.warning}</p>
                         <div className="mt-3 grid grid-cols-3 gap-3 text-sm">
                           <div className="rounded bg-blue-50 p-2 text-center">
                             <div className="font-bold text-blue-700">{domain.scanned}</div>
-                            <div className="text-xs text-gray-600">Verificados</div>
+                            <div className="text-xs text-muted-foreground">Verificados</div>
                           </div>
                           <div className="rounded bg-orange-50 p-2 text-center">
                             <div className="font-bold text-orange-700">{domain.affected}</div>
-                            <div className="text-xs text-gray-600">Serão Afetados</div>
+                            <div className="text-xs text-muted-foreground">Serão Afetados</div>
                           </div>
                           <div className="rounded bg-green-50 p-2 text-center">
                             <div className="font-bold text-green-700">{domain.skipped}</div>
-                            <div className="text-xs text-gray-600">Preservados</div>
+                            <div className="text-xs text-muted-foreground">Preservados</div>
                           </div>
                         </div>
                       </div>
@@ -244,7 +244,7 @@ export const AdminAnonymizationWorkflow = ({
           {/* Warnings */}
           {dryRunData.warnings.length > 0 && (
             <div>
-              <h3 className="mb-2 font-semibold text-blue-900">Avisos</h3>
+              <h3 className="mb-2 font-semibold text-foreground">Avisos</h3>
               <div className="space-y-1">
                 {dryRunData.warnings.map((warning, idx) => (
                   <div key={idx} className="flex gap-2 text-sm text-yellow-700">
@@ -261,7 +261,7 @@ export const AdminAnonymizationWorkflow = ({
           {/* Justification & Confirmation */}
           <div className="space-y-4">
             <div>
-              <label className="mb-2 block text-sm font-medium text-gray-700">
+              <label className="mb-2 block text-sm font-medium text-foreground">
                 Justificativa da Anonimização *
               </label>
               <textarea
@@ -271,10 +271,10 @@ export const AdminAnonymizationWorkflow = ({
                   setError(null);
                 }}
                 placeholder="Descreva o motivo administrativo para executar esta anonimização..."
-                className="w-full rounded-lg border border-gray-300 p-3 text-sm focus:border-blue-500 focus:outline-none"
+                className="w-full rounded-lg border border-border bg-card p-3 text-sm text-foreground focus:border-primary focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2"
                 rows={4}
               />
-              <p className="mt-1 text-xs text-gray-500">Obrigatório para auditoria</p>
+              <p className="mt-1 text-xs text-muted-foreground">Obrigatório para auditoria</p>
             </div>
 
             <div className="flex items-start gap-2">
@@ -288,7 +288,7 @@ export const AdminAnonymizationWorkflow = ({
                 }}
                 className="mt-1"
               />
-              <label htmlFor="confirm-anonymization" className="text-sm text-gray-700">
+              <label htmlFor="confirm-anonymization" className="text-sm text-foreground">
                 Tenho certeza de que desejo <strong>anonimizar permanentemente</strong> os dados deste colaborador.
                 Esta ação <strong>não pode ser desfeita</strong>.
               </label>
@@ -334,7 +334,7 @@ export const AdminAnonymizationWorkflow = ({
             </Button>
           </div>
 
-          <p className="text-xs text-gray-600">
+          <p className="text-xs text-muted-foreground">
             Token válido por: <strong>{dryRunData.tokenExpiresAtSeconds / 60} minutos</strong>
           </p>
         </CardContent>
@@ -352,28 +352,28 @@ export const AdminAnonymizationWorkflow = ({
           </div>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="rounded-lg bg-white p-4">
-            <p className="mb-3 font-semibold text-gray-800">Status da Execução</p>
+          <div className="rounded-lg border border-border bg-card p-4">
+            <p className="mb-3 font-semibold text-foreground">Status da Execução</p>
             <div className="grid grid-cols-2 gap-3">
               <div>
-                <span className="text-xs text-gray-600">Status Consolidado: </span>
+                <span className="text-xs text-muted-foreground">Status Consolidado: </span>
                 <span className={`font-semibold ${applyResult.consolidatedStatus === "SUCCESS" ? "text-green-600" : "text-yellow-600"}`}>
                   {applyResult.consolidatedStatus}
                 </span>
               </div>
               <div>
-                <span className="text-xs text-gray-600">Duração: </span>
-                <span className="font-semibold text-gray-800">
+                <span className="text-xs text-muted-foreground">Duração: </span>
+                <span className="font-semibold text-foreground">
                   {((applyResult.finishedAt.getTime() - applyResult.startedAt.getTime()) / 1000).toFixed(2)}s
                 </span>
               </div>
               <div>
-                <span className="text-xs text-gray-600">Registros Verificados: </span>
-                <span className="font-semibold text-gray-800">{applyResult.summary.totalScanned}</span>
+                <span className="text-xs text-muted-foreground">Registros Verificados: </span>
+                <span className="font-semibold text-foreground">{applyResult.summary.totalScanned}</span>
               </div>
               <div>
-                <span className="text-xs text-gray-600">Registros Afetados: </span>
-                <span className="font-semibold text-gray-800">{applyResult.summary.totalAffected}</span>
+                <span className="text-xs text-muted-foreground">Registros Afetados: </span>
+                <span className="font-semibold text-foreground">{applyResult.summary.totalAffected}</span>
               </div>
             </div>
           </div>
@@ -400,7 +400,7 @@ export const AdminAnonymizationWorkflow = ({
             </div>
           )}
 
-          <p className="text-xs text-gray-600">
+          <p className="text-xs text-muted-foreground">
             A solicitação LGPD pode agora ser concluída com o status apropriado.
           </p>
         </CardContent>

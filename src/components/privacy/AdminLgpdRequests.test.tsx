@@ -13,6 +13,16 @@ vi.mock("@/service/lgpd.service", () => ({
   listAdminRequests: listAdminRequestsMock,
 }));
 
+vi.mock("@/components/layout/AuthenticatedPageLayout", () => ({
+  AuthenticatedPageLayout: ({ children }: { children: ReactNode }) => (
+    <div>
+      <header>Mock Header</header>
+      <aside>Mock Sidebar</aside>
+      {children}
+    </div>
+  ),
+}));
+
 vi.mock("@/components/ui/select", () => {
   const SelectContext = React.createContext<{
     onValueChange?: (value: string) => void;
@@ -112,6 +122,13 @@ describe("AdminLgpdRequests", () => {
     expect(await screen.findByText("Nenhuma solicitação encontrada")).toBeInTheDocument();
   });
 
+  it("renders the authenticated Header and Sidebar", async () => {
+    renderAdminRequests();
+
+    expect(await screen.findByText("Mock Header")).toBeInTheDocument();
+    expect(screen.getByText("Mock Sidebar")).toBeInTheDocument();
+  });
+
   it("renders the requests table with fallback values", async () => {
     listAdminRequestsMock.mockResolvedValue({
       ...emptyPage,
@@ -195,7 +212,7 @@ describe("AdminLgpdRequests", () => {
     });
   });
 
-  it("navigates to the request details page when the action is clicked", async () => {
+  it("navigates to the request details page when the row is clicked", async () => {
     const user = userEvent.setup();
     listAdminRequestsMock.mockResolvedValue({
       ...emptyPage,
@@ -208,9 +225,79 @@ describe("AdminLgpdRequests", () => {
 
     await user.click(
       await screen.findByRole("button", {
-        name: /Ver detalhes da solicitação 2a56db47-3817-44e7-9f92-f25aa8b745fa/i,
+        name: /Abrir detalhes da solicitação de Maria Souza/i,
       })
     );
+
+    expect(screen.getByTestId("location-probe")).toHaveTextContent(
+      "/lgpd/admin/requests/2a56db47-3817-44e7-9f92-f25aa8b745fa"
+    );
+  });
+
+  it("navigates to the request details page when the action is clicked", async () => {
+    const user = userEvent.setup();
+    const stopPropagationSpy = vi.spyOn(Event.prototype, "stopPropagation");
+    listAdminRequestsMock.mockResolvedValue({
+      ...emptyPage,
+      content: [sampleRequest],
+      totalElements: 1,
+      totalPages: 1,
+    });
+
+    renderAdminRequests();
+
+    await user.click(
+      await screen.findByRole("button", {
+        name: /Abrir detalhes da solicitação 2a56db47-3817-44e7-9f92-f25aa8b745fa/i,
+      })
+    );
+
+    expect(screen.getByTestId("location-probe")).toHaveTextContent(
+      "/lgpd/admin/requests/2a56db47-3817-44e7-9f92-f25aa8b745fa"
+    );
+    expect(stopPropagationSpy).toHaveBeenCalled();
+
+    stopPropagationSpy.mockRestore();
+  });
+
+  it("navigates to the request details page when pressing Enter on the row", async () => {
+    const user = userEvent.setup();
+    listAdminRequestsMock.mockResolvedValue({
+      ...emptyPage,
+      content: [sampleRequest],
+      totalElements: 1,
+      totalPages: 1,
+    });
+
+    renderAdminRequests();
+
+    const row = await screen.findByRole("button", {
+      name: /Abrir detalhes da solicitação de Maria Souza/i,
+    });
+    row.focus();
+    await user.keyboard("{Enter}");
+
+    expect(screen.getByTestId("location-probe")).toHaveTextContent(
+      "/lgpd/admin/requests/2a56db47-3817-44e7-9f92-f25aa8b745fa"
+    );
+  });
+
+  it("navigates to the request details page when pressing Space on the row", async () => {
+    const user = userEvent.setup();
+    listAdminRequestsMock.mockResolvedValue({
+      ...emptyPage,
+      content: [sampleRequest],
+      totalElements: 1,
+      totalPages: 1,
+    });
+
+    renderAdminRequests();
+
+    const row = await screen.findByRole("button", {
+      name: /Abrir detalhes da solicitação de Maria Souza/i,
+    });
+    row.focus();
+    await user.keyboard(" ");
 
     expect(screen.getByTestId("location-probe")).toHaveTextContent(
       "/lgpd/admin/requests/2a56db47-3817-44e7-9f92-f25aa8b745fa"

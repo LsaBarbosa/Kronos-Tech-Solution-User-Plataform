@@ -148,10 +148,10 @@ export const ResultadosRelatorioDetalhado: React.FC<ResultadosDetalhadoProps> = 
 
     if (!reportData || reportData.length === 0) {
         return (
-            <Card className="overflow-hidden border border-dashed border-[#D1D5DB] dark:border-[#4B5563] bg-gradient-to-br from-muted/20 to-muted/5 dark:from-slate-800/40 dark:to-slate-800/20">
+            <Card className="overflow-hidden border border-dashed border-border bg-gradient-to-br from-muted/20 to-muted/5">
                 <CardContent className="py-12 px-6 text-center flex flex-col items-center gap-4">
                     <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-primary/10 dark:bg-primary/10">
-                        <FileText className="h-6 w-6 text-primary dark:text-[#A78BFA]" />
+                        <FileText className="h-6 w-6 text-primary" />
                     </div>
                     <div>
                         <p className="text-sm text-muted-foreground">
@@ -168,26 +168,26 @@ export const ResultadosRelatorioDetalhado: React.FC<ResultadosDetalhadoProps> = 
             {/* CARDS DE RESUMO - GRID MODERNO */}
             <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
                 {/* Card: Saldo Total */}
-                <Card className="overflow-hidden border border-[#E5E7EB] dark:border-[#404854] bg-gradient-to-br from-[#F8FAFC] to-white dark:from-slate-800 dark:to-slate-800/80 shadow-sm hover:shadow-md transition-all duration-200">
+                <Card className="overflow-hidden border border-border bg-gradient-to-br from-background to-card shadow-sm hover:shadow-md transition-all duration-200">
                     <CardContent className="p-5">
                         <div className="flex items-start justify-between">
                             <div className="flex-1">
                                 <p className="text-xs font-medium text-muted-foreground uppercase tracking-wide">Saldo do Período</p>
                                 <div className="mt-3">
-                                    <p className={`text-3xl font-bold ${totalPeriodBalance.startsWith('-') ? 'text-destructive' : 'text-[#10B981] dark:text-[#34D399]'}`}>
+                                    <p className={`text-3xl font-bold ${totalPeriodBalance.startsWith('-') ? 'text-destructive' : 'text-success'}`}>
                                         {totalPeriodBalance}
                                     </p>
                                 </div>
                             </div>
-                            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-[#10B981]/10 dark:bg-[#34D399]/10">
-                                <TrendingUp className={`h-5 w-5 ${totalPeriodBalance.startsWith('-') ? 'text-destructive' : 'text-[#10B981] dark:text-[#34D399]'}`} />
+                            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-success/10">
+                                <TrendingUp className={`h-5 w-5 ${totalPeriodBalance.startsWith('-') ? 'text-destructive' : 'text-success'}`} />
                             </div>
                         </div>
                     </CardContent>
                 </Card>
 
                 {/* Card: Horas Trabalhadas */}
-                <Card className="overflow-hidden border border-[#E5E7EB] dark:border-[#404854] bg-gradient-to-br from-[#F8FAFC] to-white dark:from-slate-800 dark:to-slate-800/80 shadow-sm hover:shadow-md transition-all duration-200">
+                <Card className="overflow-hidden border border-border bg-gradient-to-br from-background to-card shadow-sm hover:shadow-md transition-all duration-200">
                     <CardContent className="p-5">
                         <div className="flex items-start justify-between">
                             <div className="flex-1">
@@ -198,15 +198,15 @@ export const ResultadosRelatorioDetalhado: React.FC<ResultadosDetalhadoProps> = 
                                     </p>
                                 </div>
                             </div>
-                            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10 dark:bg-[#A78BFA]/10">
-                                <Clock className="h-5 w-5 text-primary dark:text-[#A78BFA]" />
+                            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
+                                <Clock className="h-5 w-5 text-primary" />
                             </div>
                         </div>
                     </CardContent>
                 </Card>
 
                 {/* Card: Total de Registros */}
-                <Card className="overflow-hidden border border-[#E5E7EB] dark:border-[#404854] bg-gradient-to-br from-[#F8FAFC] to-white dark:from-slate-800 dark:to-slate-800/80 shadow-sm hover:shadow-md transition-all duration-200">
+                <Card className="overflow-hidden border border-border bg-gradient-to-br from-background to-card shadow-sm hover:shadow-md transition-all duration-200">
                     <CardContent className="p-5">
                         <div className="flex items-start justify-between">
                             <div className="flex-1">
@@ -217,15 +217,15 @@ export const ResultadosRelatorioDetalhado: React.FC<ResultadosDetalhadoProps> = 
                                     </p>
                                 </div>
                             </div>
-                            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-blue-500/10 dark:bg-[#67E8F9]/10">
-                                <FileText className="h-5 w-5 text-blue-600 dark:text-[#67E8F9]" />
+                            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10">
+                                <FileText className="h-5 w-5 text-primary" />
                             </div>
                         </div>
                     </CardContent>
                 </Card>
 
                 {/* Card: Carga Horária de Referência */}
-                <Card className="overflow-hidden border border-[#E5E7EB] dark:border-[#404854] bg-gradient-to-br from-[#F8FAFC] to-white dark:from-slate-800 dark:to-slate-800/80 shadow-sm hover:shadow-md transition-all duration-200">
+                <Card className="overflow-hidden border border-border bg-gradient-to-br from-background to-card shadow-sm hover:shadow-md transition-all duration-200">
                     <CardContent className="p-5">
                         <div className="flex items-start justify-between">
                             <div className="flex-1">
@@ -236,8 +236,8 @@ export const ResultadosRelatorioDetalhado: React.FC<ResultadosDetalhadoProps> = 
                                     </p>
                                 </div>
                             </div>
-                            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-cyan-500/10 dark:bg-[#06B6D4]/10">
-                                <Clock className="h-5 w-5 text-cyan-600 dark:text-[#06B6D4]" />
+                            <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-cyan-500/10">
+                                <Clock className="h-5 w-5 text-cyan-600" />
                             </div>
                         </div>
                     </CardContent>
@@ -245,9 +245,9 @@ export const ResultadosRelatorioDetalhado: React.FC<ResultadosDetalhadoProps> = 
             </div>
 
             {/* LISTA PRINCIPAL */}
-            <Card className="overflow-hidden border border-[#E5E7EB] dark:border-[#404854] bg-card dark:bg-slate-800/80 shadow-sm" ref={resultsRef}>
+            <Card className="overflow-hidden border border-border bg-card shadow-sm" ref={resultsRef}>
                 <div className="absolute inset-x-0 top-0 h-1 bg-gradient-to-r from-primary to-blue-500" />
-                <CardHeader className="flex flex-col sm:flex-row justify-between items-start gap-4 border-b border-[#E5E7EB] dark:border-[#404854]" ref={cardHeaderRef}>
+                <CardHeader className="flex flex-col sm:flex-row justify-between items-start gap-4 border-b border-border" ref={cardHeaderRef}>
                     <div>
                         <CardTitle>Resultados do Relatório</CardTitle>
                         <CardDescription>
@@ -261,7 +261,7 @@ export const ResultadosRelatorioDetalhado: React.FC<ResultadosDetalhadoProps> = 
                             variant="outline"
                             size="sm"
                             onClick={onDownloadPDF}
-                            className="gap-2 border border-[#E5E7EB] dark:border-[#404854] text-[#374151] dark:text-[#F8FAFC] bg-white dark:bg-slate-700/50 hover:bg-primary/5 dark:hover:bg-primary/10 hover:border-primary/40 dark:hover:border-primary/40 transition-all justify-start sm:justify-center"
+                            className="gap-2 border border-border text-foreground bg-card hover:bg-primary/5 hover:border-primary/40 transition-all justify-start sm:justify-center"
                         >
                             <Download className="h-4 w-4" />
                             Exportar PDF
@@ -270,7 +270,7 @@ export const ResultadosRelatorioDetalhado: React.FC<ResultadosDetalhadoProps> = 
                             variant="outline"
                             size="sm"
                             onClick={onDownloadCSV}
-                            className="gap-2 border border-[#E5E7EB] dark:border-[#404854] text-[#374151] dark:text-[#F8FAFC] bg-white dark:bg-slate-700/50 hover:bg-primary/5 dark:hover:bg-primary/10 hover:border-primary/40 dark:hover:border-primary/40 transition-all justify-start sm:justify-center"
+                            className="gap-2 border border-border text-foreground bg-card hover:bg-primary/5 hover:border-primary/40 transition-all justify-start sm:justify-center"
                         >
                             <FileText className="h-4 w-4" />
                             Exportar CSV
@@ -295,9 +295,9 @@ export const ResultadosRelatorioDetalhado: React.FC<ResultadosDetalhadoProps> = 
                         const dailyWorkedHours = formatMinutesToTime(dailyWorkedMinutes);
 
                         return (
-                            <Card key={dateKey} className="overflow-hidden border border-[#E5E7EB] dark:border-[#404854] bg-card dark:bg-slate-800/60 shadow-sm">
+                            <Card key={dateKey} className="overflow-hidden border border-border bg-card shadow-sm">
                                 {/* Cabeçalho do Dia */}
-                                <div className="bg-gradient-to-r from-muted/30 to-primary/5 dark:from-slate-800/40 dark:to-primary/10 p-4 border-b border-[#E5E7EB] dark:border-[#404854] flex flex-wrap justify-between items-center gap-3">
+                                <div className="bg-gradient-to-r from-muted/30 to-primary/5 p-4 border-b border-border flex flex-wrap justify-between items-center gap-3">
                                     <div className="flex items-center gap-2">
                                         <CalendarIcon className="h-5 w-5 text-primary" />
                                         <h3 className="font-semibold text-lg capitalize text-foreground">
@@ -307,16 +307,16 @@ export const ResultadosRelatorioDetalhado: React.FC<ResultadosDetalhadoProps> = 
                                     
                                     {/* Infos do Dia: Saldo e Horas Trabalhadas */}
                                     <div className="flex flex-col items-end gap-1 sm:flex-row sm:gap-4 sm:items-center">
-                                        <div className="flex items-center gap-2 bg-background dark:bg-slate-700/50 px-3 py-1 rounded-md shadow-sm border border-[#E5E7EB] dark:border-[#404854]">
+                                        <div className="flex items-center gap-2 bg-background px-3 py-1 rounded-md shadow-sm border border-border">
                                             <span className="text-xs font-medium text-muted-foreground">Horas trabalhadas:</span>
                                             <span className="font-bold text-foreground">
                                                 {dailyWorkedHours}
                                             </span>
                                         </div>
 
-                                        <div className="flex items-center gap-2 bg-background dark:bg-slate-700/50 px-3 py-1 rounded-md shadow-sm border border-[#E5E7EB] dark:border-[#404854]">
+                                        <div className="flex items-center gap-2 bg-background px-3 py-1 rounded-md shadow-sm border border-border">
                                             <span className="text-xs font-medium text-muted-foreground">Saldo do Dia:</span>
-                                            <span className={`font-bold ${isNegativeBalance ? 'text-destructive' : 'text-[#10B981] dark:text-[#34D399]'}`}>
+                                            <span className={`font-bold ${isNegativeBalance ? 'text-destructive' : 'text-success'}`}>
                                                 {dailyBalance}
                                             </span>
                                         </div>
@@ -334,8 +334,8 @@ export const ResultadosRelatorioDetalhado: React.FC<ResultadosDetalhadoProps> = 
                                                 className={`
                                                     overflow-hidden border transition-all duration-200 relative
                                                     ${isBreak
-                                                        ? 'border-[#D1D5DB] dark:border-[#4B5563] bg-[#F3F4F6] dark:bg-slate-700/30 cursor-default'
-                                                        : 'border-[#E5E7EB] dark:border-[#404854] bg-card dark:bg-slate-800/80 hover:shadow-md hover:border-primary/40 dark:hover:border-[#A78BFA]/40 cursor-pointer group'}
+                                                        ? 'border-border bg-muted cursor-default'
+                                                        : 'border-border bg-card hover:shadow-md hover:border-primary/40 cursor-pointer group'}
                                                 `}
                                                 onClick={() => !isBreak && onEditRecord(item)}
                                             >
@@ -365,11 +365,11 @@ export const ResultadosRelatorioDetalhado: React.FC<ResultadosDetalhadoProps> = 
                                                     </div>
 
                                                     {((item.latitude && item.longitude) || (item.endLatitude && item.endLongitude)) && (
-                                                        <div className="flex flex-col pt-3 border-t border-[#E5E7EB] dark:border-[#404854] gap-2.5 mt-3 bg-gradient-to-br from-muted/30 to-muted/10 dark:from-slate-700/20 dark:to-slate-700/10 p-3 rounded-xl text-xs">
+                                                        <div className="flex flex-col pt-3 border-t border-border gap-2.5 mt-3 bg-gradient-to-br from-muted/30 to-muted/10 p-3 rounded-xl text-xs">
                                                             {item.latitude && (
                                                                 <div className="flex items-start gap-2">
-                                                                    <div className="flex h-6 w-6 items-center justify-center rounded-md bg-[#10B981]/10 dark:bg-[#34D399]/10 flex-shrink-0 mt-0.5">
-                                                                        <MapPin className="h-3 w-3 text-[#10B981] dark:text-[#34D399]" />
+                                                                    <div className="flex h-6 w-6 items-center justify-center rounded-md bg-success/10 flex-shrink-0 mt-0.5">
+                                                                        <MapPin className="h-3 w-3 text-success" />
                                                                     </div>
                                                                     <div className="flex-1 min-w-0">
                                                                         <p className="text-muted-foreground font-medium text-[10px] uppercase tracking-wide opacity-70">Entrada</p>
@@ -395,12 +395,12 @@ export const ResultadosRelatorioDetalhado: React.FC<ResultadosDetalhadoProps> = 
                                                         </div>
                                                     )}
 
-                                                    <div className="flex justify-between items-center pt-3 mt-2 border-t border-[#E5E7EB] dark:border-[#404854]">
+                                                    <div className="flex justify-between items-center pt-3 mt-2 border-t border-border">
                                                         {documentId ? (
                                                             <Button
                                                                 variant="ghost"
                                                                 size="sm"
-                                                                className="h-8 px-2 text-xs gap-1.5 text-primary dark:text-[#A78BFA] hover:bg-primary/10 dark:hover:bg-primary/10 transition-all rounded-md"
+                                                                className="h-8 px-2 text-xs gap-1.5 text-primary hover:bg-primary/10 dark:hover:bg-primary/10 transition-all rounded-md"
                                                                 onClick={(e) => {
                                                                     e.stopPropagation();
                                                                     handleDocumentDownload(documentId, item.employeeId, item.employeeData.employeeName);
@@ -412,7 +412,7 @@ export const ResultadosRelatorioDetalhado: React.FC<ResultadosDetalhadoProps> = 
                                                         ) : <div />}
 
                                                         {!isBreak && (
-                                                            <div className="flex items-center gap-1.5 text-primary/40 dark:text-[#A78BFA]/40 group-hover:text-primary dark:group-hover:text-[#A78BFA] transition-colors text-xs font-medium">
+                                                            <div className="flex items-center gap-1.5 text-primary/40 dark:text-primary/40 group-hover:text-primary dark:group-hover:text-primary transition-colors text-xs font-medium">
                                                                 <Edit className="h-3.5 w-3.5" />
                                                                 <span className="hidden sm:inline">Editar</span>
                                                             </div>

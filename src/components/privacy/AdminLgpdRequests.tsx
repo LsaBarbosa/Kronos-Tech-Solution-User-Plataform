@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { AlertCircle, ChevronRight, Loader2 } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { AuthenticatedPageLayout } from "@/components/layout/AuthenticatedPageLayout";
 import {
   Select,
   SelectContent,
@@ -122,22 +123,22 @@ export const AdminLgpdRequests = () => {
 
   const getStatusColor = (status?: string | null) => {
     if (!status) {
-      return "bg-gray-100 text-gray-800";
+      return "bg-slate-100 text-slate-600 border-slate-200";
     }
 
     const colors: Record<string, string> = {
-      OPEN: "bg-blue-100 text-blue-800",
-      IN_ANALYSIS: "bg-yellow-100 text-yellow-800",
-      WAITING_CONTROLLER: "bg-orange-100 text-orange-800",
-      WAITING_LEGAL_REVIEW: "bg-purple-100 text-purple-800",
-      APPROVED_FOR_EXPORT: "bg-emerald-100 text-emerald-800",
-      WAITING_DATA_SUBJECT: "bg-indigo-100 text-indigo-800",
-      COMPLETED: "bg-green-100 text-green-800",
-      REJECTED: "bg-red-100 text-red-800",
-      PARTIALLY_COMPLETED: "bg-amber-100 text-amber-800",
-      CANCELLED: "bg-gray-100 text-gray-800",
+      OPEN: "bg-blue-50 text-blue-700 border-blue-200",
+      IN_ANALYSIS: "bg-blue-100 text-blue-800 border-blue-200",
+      WAITING_CONTROLLER: "bg-blue-900/10 text-blue-900 border-blue-200",
+      WAITING_LEGAL_REVIEW: "bg-slate-100 text-slate-700 border-slate-200",
+      APPROVED_FOR_EXPORT: "bg-green-50 text-green-700 border-green-200",
+      WAITING_DATA_SUBJECT: "bg-blue-50 text-blue-700 border-blue-200",
+      COMPLETED: "bg-green-50 text-green-700 border-green-200",
+      REJECTED: "bg-red-50 text-red-700 border-red-200",
+      PARTIALLY_COMPLETED: "bg-amber-50 text-amber-700 border-amber-200",
+      CANCELLED: "bg-slate-100 text-slate-600 border-slate-200",
     };
-    return colors[status] || "bg-gray-100 text-gray-800";
+    return colors[status] || "bg-slate-100 text-slate-600 border-slate-200";
   };
 
   const getStatusLabel = (status?: string | null) => {
@@ -160,28 +161,35 @@ export const AdminLgpdRequests = () => {
     return labels[status] || status;
   };
 
+  const openDetails = (requestId: string) => {
+    navigate(APP_PATHS.lgpdAdminRequestDetails.replace(":requestId", requestId));
+  };
+
   if (error) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-red-50">
-        <div className="text-center">
-          <AlertCircle className="h-12 w-12 text-red-600 mx-auto mb-4" />
-          <h2 className="text-lg font-semibold text-red-800 mb-2">Erro ao carregar solicitações</h2>
-          <p className="text-red-700 mb-4">{error}</p>
-          <Button onClick={() => fetchRequests()}>Tentar novamente</Button>
+      <AuthenticatedPageLayout>
+        <div className="flex items-center justify-center min-h-[60vh] bg-red-50 rounded-lg">
+          <div className="text-center">
+            <AlertCircle className="h-12 w-12 text-red-600 mx-auto mb-4" />
+            <h2 className="text-lg font-semibold text-red-800 mb-2">Erro ao carregar solicitações</h2>
+            <p className="text-red-700 mb-4">{error}</p>
+            <Button onClick={() => fetchRequests()}>Tentar novamente</Button>
+          </div>
         </div>
-      </div>
+      </AuthenticatedPageLayout>
     );
   }
 
   return (
-    <div className="p-6 space-y-6">
+    <AuthenticatedPageLayout>
+    <div className="space-y-6">
       <div>
         <h1 className="text-3xl font-bold text-foreground mb-2">Solicitações LGPD</h1>
         <p className="text-muted-foreground">Gerencie as solicitações de conformidade LGPD</p>
       </div>
 
       {/* Filters */}
-      <div className="bg-white rounded-lg border border-gray-200 p-4 space-y-4">
+      <div className="bg-card rounded-xl border border-border p-4 shadow-sm space-y-4">
         <div className="grid grid-cols-1 md:grid-cols-4 gap-4">
           <Input
             placeholder="Buscar por nome do funcionário..."
@@ -225,7 +233,7 @@ export const AdminLgpdRequests = () => {
       </div>
 
       {/* Table */}
-      <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
+      <div className="bg-card rounded-xl border border-border shadow-sm overflow-hidden">
         {loading ? (
           <div className="flex items-center justify-center h-64">
             <Loader2 className="h-8 w-8 animate-spin text-primary" />
@@ -237,7 +245,7 @@ export const AdminLgpdRequests = () => {
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full">
-              <thead className="bg-gray-50 border-b border-gray-200">
+              <thead className="bg-muted/60 border-b border-border">
                 <tr>
                   <th className="px-6 py-3 text-left text-sm font-semibold text-foreground">
                     Funcionário
@@ -262,11 +270,21 @@ export const AdminLgpdRequests = () => {
                   </th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-200">
+              <tbody className="divide-y divide-border">
                 {requests.map((request, index) => (
                   <tr
                     key={request.requestId ?? index}
-                    className="hover:bg-gray-50 transition-colors cursor-pointer"
+                    className="hover:bg-blue-50/60 focus:bg-blue-50/60 focus:outline-none focus-visible:ring-2 focus-visible:ring-primary focus-visible:ring-offset-2 transition-colors cursor-pointer"
+                    onClick={() => openDetails(request.requestId)}
+                    tabIndex={0}
+                    role="button"
+                    aria-label={`Abrir detalhes da solicitação de ${request.employeeFullName || "funcionário"}`}
+                    onKeyDown={(event) => {
+                      if (event.key === "Enter" || event.key === " ") {
+                        event.preventDefault();
+                        openDetails(request.requestId);
+                      }
+                    }}
                   >
                     <td className="px-6 py-4 text-sm text-foreground font-medium">
                       {request.employeeFullName || "—"}
@@ -278,7 +296,7 @@ export const AdminLgpdRequests = () => {
                       {getTypeLabel(request.type)}
                     </td>
                     <td className="px-6 py-4">
-                      <span className={`inline-block px-3 py-1 rounded-full text-xs font-medium ${getStatusColor(request.status)}`}>
+                      <span className={`inline-block rounded-full border px-3 py-1 text-xs font-medium ${getStatusColor(request.status)}`}>
                         {getStatusLabel(request.status)}
                       </span>
                     </td>
@@ -292,12 +310,11 @@ export const AdminLgpdRequests = () => {
                       <Button
                         variant="ghost"
                         size="sm"
-                        aria-label={`Ver detalhes da solicitação ${request.requestId}`}
-                        onClick={() =>
-                          navigate(
-                            APP_PATHS.lgpdAdminRequestDetails.replace(":requestId", request.requestId)
-                          )
-                        }
+                        aria-label={`Abrir detalhes da solicitação ${request.requestId}`}
+                        onClick={(event) => {
+                          event.stopPropagation();
+                          openDetails(request.requestId);
+                        }}
                       >
                         <ChevronRight className="h-4 w-4" />
                       </Button>
@@ -335,5 +352,6 @@ export const AdminLgpdRequests = () => {
         </div>
       )}
     </div>
+    </AuthenticatedPageLayout>
   );
 };

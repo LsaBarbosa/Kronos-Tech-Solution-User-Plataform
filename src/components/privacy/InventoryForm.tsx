@@ -3,6 +3,7 @@ import { useNavigate, useParams } from "react-router-dom";
 import { AlertCircle, ArrowLeft, Loader2, Save } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { AuthenticatedPageLayout } from "@/components/layout/AuthenticatedPageLayout";
 import { APP_PATHS } from "@/config/app-routes";
 import {
   createInventory,
@@ -102,16 +103,19 @@ export const InventoryForm = () => {
 
   if (loading) {
     return (
-      <div className="flex items-center justify-center min-h-screen">
-        <Loader2 className="h-8 w-8 animate-spin text-primary" />
-      </div>
+      <AuthenticatedPageLayout>
+        <div className="flex items-center justify-center min-h-[60vh]">
+          <Loader2 className="h-8 w-8 animate-spin text-primary" />
+        </div>
+      </AuthenticatedPageLayout>
     );
   }
 
   const isEditing = !!inventory;
 
   return (
-    <div className="p-6 space-y-6">
+    <AuthenticatedPageLayout>
+    <div className="space-y-6">
       <div className="flex items-center gap-4">
         <Button
           variant="ghost"
@@ -141,7 +145,7 @@ export const InventoryForm = () => {
       )}
 
       <form onSubmit={handleSubmit} className="space-y-6">
-        <div className="bg-white rounded-lg border border-gray-200 p-6 space-y-6">
+        <div className="bg-card rounded-xl border border-border p-6 shadow-sm space-y-6">
           {/* Basic Information */}
           <div>
             <h2 className="text-lg font-semibold text-foreground mb-4">Informações Básicas</h2>
@@ -207,7 +211,7 @@ export const InventoryForm = () => {
                 value={formData.dataFields}
                 onChange={(e) => handleChange("dataFields", e.target.value)}
                 placeholder="ex: email, senha_hash, tentativas_falhas"
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
+                className="w-full px-3 py-2 border border-border rounded-md bg-card text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
                 rows={3}
                 required
               />
@@ -252,7 +256,7 @@ export const InventoryForm = () => {
                   type="checkbox"
                   checked={formData.sensitiveData}
                   onChange={(e) => handleChange("sensitiveData", e.target.checked)}
-                  className="w-4 h-4 rounded border-gray-300"
+                  className="w-4 h-4 rounded border-border text-primary focus:ring-primary"
                 />
                 <span className="text-sm font-medium text-foreground">Contém dados sensíveis (art. 5, II da LGPD)</span>
               </label>
@@ -261,7 +265,7 @@ export const InventoryForm = () => {
                   type="checkbox"
                   checked={formData.internationalTransfer}
                   onChange={(e) => handleChange("internationalTransfer", e.target.checked)}
-                  className="w-4 h-4 rounded border-gray-300"
+                  className="w-4 h-4 rounded border-border text-primary focus:ring-primary"
                 />
                 <span className="text-sm font-medium text-foreground">Realiza transferência internacional de dados</span>
               </label>
@@ -332,7 +336,7 @@ export const InventoryForm = () => {
                 value={formData.securityMeasures}
                 onChange={(e) => handleChange("securityMeasures", e.target.value)}
                 placeholder="ex: Hash Seguro (BCRYPT), Conexão TLS"
-                className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
+                className="w-full px-3 py-2 border border-border rounded-md bg-card text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
                 rows={3}
               />
             </div>
@@ -345,7 +349,7 @@ export const InventoryForm = () => {
                 type="checkbox"
                 checked={formData.active}
                 onChange={(e) => handleChange("active", e.target.checked)}
-                className="w-4 h-4 rounded border-gray-300"
+                className="w-4 h-4 rounded border-border text-primary focus:ring-primary"
               />
               <span className="text-sm font-medium text-foreground">Ativo</span>
             </label>
@@ -381,5 +385,6 @@ export const InventoryForm = () => {
         </div>
       </form>
     </div>
+    </AuthenticatedPageLayout>
   );
 };

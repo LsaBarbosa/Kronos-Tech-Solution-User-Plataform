@@ -133,7 +133,7 @@ const Usuario = () => {
           <div className="max-w-6xl mx-auto w-full space-y-8">
 
             {/* Hero Section */}
-            <section className={`overflow-hidden rounded-2xl border border-[#C4B5FD]/60 ${usuarioPageColors.header.background} p-5 text-white ${usuarioPageColors.header.shadow} sm:p-7`} role="banner">
+            <section className={`overflow-hidden rounded-2xl border border-primary/20 ${usuarioPageColors.header.background} p-5 text-white ${usuarioPageColors.header.shadow} sm:p-7`} role="banner">
               <div className="flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
                 <div>
                   <div className="mb-4 inline-flex items-center gap-2 rounded-full border border-white/25 bg-white/15 px-3 py-1 text-sm font-medium text-white">
@@ -321,7 +321,7 @@ const Usuario = () => {
                               value={newEmail}
                               onChange={handleEmailChange}
                               disabled={!isEditingEmail || isLoading}
-                              className={`pl-10 pr-10 border-[#E5E7EB] dark:border-[#404854] ${isEditingEmail ? "bg-white dark:bg-slate-700/50 border-primary dark:border-primary" : "bg-white/50 dark:bg-slate-700/30 border-[#E5E7EB] dark:border-[#404854]"}`}
+                              className={`pl-10 pr-10 border-border ${isEditingEmail ? "bg-card border-primary" : "bg-card/80 border-border"}`}
                             />
                           </div>
                           {isEditingEmail ? (
@@ -372,7 +372,7 @@ const Usuario = () => {
                               value={formatPhoneDisplay(newPhone)}
                               onChange={handlePhoneChange}
                               disabled={!isEditingPhone || isLoading}
-                              className={`pl-10 pr-10 border-[#E5E7EB] dark:border-[#404854] ${isEditingPhone ? "bg-white dark:bg-slate-700/50 border-primary dark:border-primary" : "bg-white/50 dark:bg-slate-700/30 border-[#E5E7EB] dark:border-[#404854]"}`}
+                              className={`pl-10 pr-10 border-border ${isEditingPhone ? "bg-card border-primary" : "bg-card/80 border-border"}`}
                             />
                           </div>
                           {isEditingPhone ? (
@@ -426,7 +426,7 @@ const Usuario = () => {
                         </div>
 
                         {showPasswordFields && (
-                          <div className="space-y-4 p-4 border border-[#E5E7EB] dark:border-[#404854] rounded-lg bg-white/50 dark:bg-slate-700/20">
+                          <div className="space-y-4 p-4 border border-border rounded-lg bg-card/80">
                             {/* Old Password */}
                             <div className="relative">
                               <Label htmlFor="currentPassword" className="text-xs font-semibold text-muted-foreground uppercase tracking-wide mb-2 block">Senha Atual</Label>
@@ -437,7 +437,7 @@ const Usuario = () => {
                                 onChange={handlePasswordChange}
                                 required
                                 disabled={isSavingPassword}
-                                className="pl-10 border-[#E5E7EB] dark:border-[#404854]"
+                                className="pl-10 border-border"
                               />
                               <Button
                                 type="button"
@@ -461,7 +461,7 @@ const Usuario = () => {
                                 onChange={handlePasswordChange}
                                 required
                                 disabled={isSavingPassword}
-                                className="pl-10 border-[#E5E7EB] dark:border-[#404854]"
+                                className="pl-10 border-border"
                               />
                               <Button
                                 type="button"
@@ -485,7 +485,7 @@ const Usuario = () => {
                                 onChange={handlePasswordChange}
                                 required
                                 disabled={isSavingPassword}
-                                className="pl-10 border-[#E5E7EB] dark:border-[#404854]"
+                                className="pl-10 border-border"
                               />
                               <Button
                                 type="button"

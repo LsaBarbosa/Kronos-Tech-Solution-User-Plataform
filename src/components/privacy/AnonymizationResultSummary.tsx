@@ -10,7 +10,7 @@ const statusColors = {
   SUCCESS: 'bg-green-100 border-green-400 text-green-800',
   PARTIAL_SUCCESS: 'bg-yellow-100 border-yellow-400 text-yellow-800',
   FAILED: 'bg-red-100 border-red-400 text-red-800',
-  BLOCKED: 'bg-gray-100 border-gray-400 text-gray-800',
+  BLOCKED: 'bg-muted border-border text-foreground',
 };
 
 const statusLabels = {
@@ -55,19 +55,19 @@ export const AnonymizationResultSummary: React.FC<AnonymizationResultSummaryProp
       case 'PARTIAL':
         return 'text-yellow-600';
       default:
-        return 'text-gray-600';
+        return 'text-muted-foreground';
     }
   };
 
   return (
-    <div className="bg-white rounded-lg shadow-lg p-6 space-y-6">
+    <div className="bg-card rounded-lg border border-border shadow-sm p-6 space-y-6">
       {/* Header */}
       <div className="flex justify-between items-start">
-        <h2 className="text-xl font-bold text-gray-800">Resultado da Anonimização</h2>
+        <h2 className="text-xl font-bold text-foreground">Resultado da Anonimização</h2>
         {onClose && (
           <button
             onClick={onClose}
-            className="text-gray-400 hover:text-gray-600"
+            className="text-muted-foreground hover:text-foreground"
             aria-label="Fechar"
           >
             ✕
@@ -88,36 +88,36 @@ export const AnonymizationResultSummary: React.FC<AnonymizationResultSummaryProp
       {/* Summary Statistics */}
       <div className="grid grid-cols-4 gap-4">
         <div className="bg-blue-50 rounded-lg p-4">
-          <div className="text-sm text-gray-600">Escaneados</div>
-          <div className="text-2xl font-bold text-blue-600">{result.summary.totalScanned}</div>
+          <div className="text-sm text-muted-foreground">Escaneados</div>
+          <div className="text-2xl font-bold text-primary">{result.summary.totalScanned}</div>
         </div>
         <div className="bg-green-50 rounded-lg p-4">
-          <div className="text-sm text-gray-600">Afetados</div>
+          <div className="text-sm text-muted-foreground">Afetados</div>
           <div className="text-2xl font-bold text-green-600">{result.summary.totalAffected}</div>
         </div>
-        <div className="bg-gray-50 rounded-lg p-4">
-          <div className="text-sm text-gray-600">Preservados</div>
-          <div className="text-2xl font-bold text-gray-600">{result.summary.totalSkipped}</div>
+        <div className="bg-muted rounded-lg p-4">
+          <div className="text-sm text-muted-foreground">Preservados</div>
+          <div className="text-2xl font-bold text-muted-foreground">{result.summary.totalSkipped}</div>
         </div>
         <div className="bg-red-50 rounded-lg p-4">
-          <div className="text-sm text-gray-600">Erros</div>
+          <div className="text-sm text-muted-foreground">Erros</div>
           <div className="text-2xl font-bold text-red-600">{result.summary.totalErrors}</div>
         </div>
       </div>
 
       {/* Execution Details */}
-      <div className="bg-gray-50 rounded-lg p-4 space-y-2">
+      <div className="bg-muted rounded-lg p-4 space-y-2">
         <div className="flex justify-between text-sm">
-          <span className="text-gray-600">Modo de Execução:</span>
-          <span className="font-semibold text-gray-800">{result.executionMode}</span>
+          <span className="text-muted-foreground">Modo de Execução:</span>
+          <span className="font-semibold text-foreground">{result.executionMode}</span>
         </div>
         <div className="flex justify-between text-sm">
-          <span className="text-gray-600">Duração:</span>
-          <span className="font-semibold text-gray-800">{getDurationSeconds()}s</span>
+          <span className="text-muted-foreground">Duração:</span>
+          <span className="font-semibold text-foreground">{getDurationSeconds()}s</span>
         </div>
         <div className="flex justify-between text-sm">
-          <span className="text-gray-600">Iniciado:</span>
-          <span className="font-semibold text-gray-800">
+          <span className="text-muted-foreground">Iniciado:</span>
+          <span className="font-semibold text-foreground">
             {new Date(result.startedAt).toLocaleString('pt-BR')}
           </span>
         </div>
@@ -126,40 +126,40 @@ export const AnonymizationResultSummary: React.FC<AnonymizationResultSummaryProp
       {/* Domain Breakdown */}
       {result.domainResults && result.domainResults.length > 0 && (
         <div className="space-y-3">
-          <h3 className="font-semibold text-gray-800">Detalhes por Domínio</h3>
+          <h3 className="font-semibold text-foreground">Detalhes por Domínio</h3>
           <div className="space-y-2">
             {result.domainResults.map((domain: AnonymizationDomainResultResponse, idx: number) => (
               <div
                 key={idx}
-                className="bg-gray-50 rounded-lg p-4 border border-gray-200"
+                className="bg-muted rounded-lg p-4 border border-border"
               >
                 <div className="flex items-start justify-between mb-2">
                   <div className="flex items-center space-x-2">
                     <span className={`text-lg font-bold ${getDomainStatusColor(domain.status)}`}>
                       {getDomainStatusIcon(domain.status)}
                     </span>
-                    <span className="font-semibold text-gray-800">{domain.resourceType}</span>
+                    <span className="font-semibold text-foreground">{domain.resourceType}</span>
                   </div>
-                  <span className="text-xs px-2 py-1 bg-gray-200 rounded text-gray-700">
+                  <span className="text-xs px-2 py-1 bg-background rounded text-muted-foreground">
                     {domain.status}
                   </span>
                 </div>
                 <div className="grid grid-cols-4 gap-2 text-xs">
                   <div>
-                    <span className="text-gray-600">Escaneados:</span>
-                    <div className="font-semibold text-gray-800">{domain.scanned}</div>
+                    <span className="text-muted-foreground">Escaneados:</span>
+                    <div className="font-semibold text-foreground">{domain.scanned}</div>
                   </div>
                   <div>
-                    <span className="text-gray-600">Afetados:</span>
-                    <div className="font-semibold text-gray-800">{domain.affected}</div>
+                    <span className="text-muted-foreground">Afetados:</span>
+                    <div className="font-semibold text-foreground">{domain.affected}</div>
                   </div>
                   <div>
-                    <span className="text-gray-600">Preservados:</span>
-                    <div className="font-semibold text-gray-800">{domain.skipped}</div>
+                    <span className="text-muted-foreground">Preservados:</span>
+                    <div className="font-semibold text-foreground">{domain.skipped}</div>
                   </div>
                   <div>
-                    <span className="text-gray-600">Erros:</span>
-                    <div className="font-semibold text-gray-800">{domain.errorCount}</div>
+                    <span className="text-muted-foreground">Erros:</span>
+                    <div className="font-semibold text-foreground">{domain.errorCount}</div>
                   </div>
                 </div>
                 {domain.notes && (

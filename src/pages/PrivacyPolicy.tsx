@@ -43,7 +43,7 @@ export default function PrivacyPolicy() {
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center">
-        <Loader2 className="h-8 w-8 animate-spin text-blue-600" />
+        <Loader2 className="h-8 w-8 animate-spin text-primary" />
       </div>
     );
   }
@@ -109,8 +109,8 @@ export default function PrivacyPolicy() {
           )}
         </div>
 
-        <Card className="bg-blue-50 border-blue-200">
-          <CardContent className="pt-6 text-sm text-gray-700">
+        <Card className="bg-blue-50 border-blue-200 shadow-sm">
+          <CardContent className="pt-6 text-sm text-foreground">
             Esta política descreve como o Kronos coleta, utiliza, armazena e protege seus dados pessoais,
             em conformidade com a Lei Geral de Proteção de Dados (LGPD). Leia atentamente.
           </CardContent>
@@ -122,15 +122,15 @@ export default function PrivacyPolicy() {
               <CardHeader className="pb-3">
                 <CardTitle className="text-lg">{section.title}</CardTitle>
               </CardHeader>
-              <CardContent className="text-sm text-gray-700 leading-relaxed whitespace-pre-wrap">
+              <CardContent className="text-sm text-foreground leading-relaxed whitespace-pre-wrap">
                 {section.content}
               </CardContent>
             </Card>
           ))}
         </div>
 
-        <Card className="bg-green-50 border-green-200">
-          <CardContent className="pt-6 text-sm text-gray-700 space-y-3">
+        <Card className="bg-green-50 border-green-200 shadow-sm">
+          <CardContent className="pt-6 text-sm text-foreground space-y-3">
             <p>
               <strong>Seus direitos LGPD:</strong> Você pode acessar, corrigir, deletar, exportar seus dados,
               ou se opor ao tratamento em determinados casos.
@@ -139,7 +139,7 @@ export default function PrivacyPolicy() {
               Para exercer direitos ou fazer solicitações LGPD, use a plataforma ou entre em contato
               pelo encarregado de proteção de dados.
             </p>
-            <p className="text-xs text-gray-600">
+            <p className="text-xs text-muted-foreground">
               Última atualização: {new Date(data.effectiveDate).toLocaleDateString("pt-BR")}
             </p>
           </CardContent>

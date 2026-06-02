@@ -86,7 +86,7 @@ const PrivacyCenter = () => {
         />
       </div>
 
-      <Header isOpen={sidebarOpen} toggleSidebar={handleToggleSidebar} />
+      <Header toggleSidebar={handleToggleSidebar} />
       <Sidebar isOpen={sidebarOpen} toggleSidebar={handleToggleSidebar} />
 
       {/* Export Confirmation Modal */}

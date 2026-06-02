@@ -162,7 +162,7 @@ const DataProcessingCatalogCard = () => {
                   {activeCatalog.length}
                 </p>
               </div>
-              <CheckCircle2 className="h-8 w-8 text-blue-600 dark:text-blue-400 opacity-60" />
+              <CheckCircle2 className="h-8 w-8 text-primary opacity-60" />
             </div>
           </CardContent>
         </Card>
@@ -183,18 +183,18 @@ const DataProcessingCatalogCard = () => {
           </CardContent>
         </Card>
 
-        <Card className="bg-gradient-to-br from-purple-50 to-purple-100 dark:from-purple-950 dark:to-purple-900 border-purple-200 dark:border-purple-800">
+        <Card className="bg-gradient-to-br from-slate-50 to-blue-50 dark:from-slate-900 dark:to-blue-950 border-border">
           <CardContent className="pt-6">
             <div className="flex items-start justify-between">
               <div>
-                <p className="text-sm font-medium text-purple-900 dark:text-purple-100">
+                <p className="text-sm font-medium text-foreground">
                   Total de Itens
                 </p>
-                <p className="text-3xl font-bold text-purple-900 dark:text-purple-100 mt-2">
+                <p className="text-3xl font-bold text-foreground mt-2">
                   {catalog.length}
                 </p>
               </div>
-              <Clock className="h-8 w-8 text-purple-600 dark:text-purple-400 opacity-60" />
+              <Clock className="h-8 w-8 text-primary opacity-60" />
             </div>
           </CardContent>
         </Card>
@@ -237,7 +237,7 @@ const DataProcessingCatalogCard = () => {
                   ? "opacity-60 bg-muted"
                   : item.sensitive
                     ? "border-orange-200 dark:border-orange-800"
-                    : "border-gray-200 dark:border-gray-800"
+                    : "border-border"
               }`}
             >
               <CardContent className="pt-6">
@@ -303,9 +303,9 @@ const DataProcessingCatalogCard = () => {
       </div>
 
       {/* Evidential Data Note */}
-      <Alert variant="default" className="border-blue-200 bg-blue-50 dark:border-blue-800 dark:bg-blue-950">
-        <AlertCircle className="h-4 w-4 text-blue-600 dark:text-blue-400" />
-        <AlertDescription className="text-blue-900 dark:text-blue-100">
+      <Alert variant="default" className="border-primary/20 bg-blue-50 dark:bg-blue-950">
+        <AlertCircle className="h-4 w-4 text-primary" />
+        <AlertDescription className="text-foreground">
           <p className="font-medium mb-1">Sobre registros de consentimento:</p>
           <p className="text-sm">
             Os registros dos seus consentimentos podem ser preservados para fins de conformidade jurídica e validação de direitos.

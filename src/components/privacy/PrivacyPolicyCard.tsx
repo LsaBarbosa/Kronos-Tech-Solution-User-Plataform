@@ -23,7 +23,7 @@ const PrivacyPolicyCard: React.FC = () => {
         </div>
       </CardHeader>
       <CardContent className="space-y-4">
-        <div className="border rounded-lg p-4 bg-slate-50">
+        <div className="border border-border rounded-lg p-4 bg-muted/60">
           <h4 className="font-semibold mb-2">Informações Importantes</h4>
           <ul className="text-sm space-y-2 text-muted-foreground">
             <li>✓ Como coletamos e usamos seus dados</li>
@@ -36,7 +36,7 @@ const PrivacyPolicyCard: React.FC = () => {
         </div>
 
         <div className="bg-blue-50 border border-blue-200 rounded-lg p-4">
-          <p className="text-sm text-blue-800">
+          <p className="text-sm text-blue-900">
             Nossa política de privacidade foi desenvolvida em conformidade com a Lei Geral de
             Proteção de Dados (LGPD) e garante transparência total sobre como seus dados são
             tratados.

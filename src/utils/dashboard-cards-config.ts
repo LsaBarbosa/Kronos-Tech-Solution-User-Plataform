@@ -18,7 +18,7 @@ export interface DashboardCardConfig {
   title: string;
   value: string;
   description: string;
-  tone: "purple" | "blue" | "cyan" | "success" | "warning" | "danger";
+  tone: "brand" | "blue" | "cyan" | "success" | "warning" | "danger";
   route: string;
   ariaLabel: string;
 }
@@ -62,7 +62,7 @@ export const getDashboardCardsLayoutByRole = (role: Role): DashboardCardsLayout 
           title: "Documentos",
           value: "Enviar",
           description: "Envie documentos para colaboradores",
-          tone: "purple",
+          tone: "brand",
           route: APP_PATHS.enviarDocumentoColaborador,
           ariaLabel: "Enviar documentos para colaboradores",
         },
@@ -75,7 +75,7 @@ export const getDashboardCardsLayoutByRole = (role: Role): DashboardCardsLayout 
           title: "Abono",
           value: "Solicitar",
           description: "Solicite abono ou correção de jornada",
-          tone: "purple",
+          tone: "brand",
           route: APP_PATHS.solicitarAbono,
           ariaLabel: "Solicitar abono ou correção de jornada",
         },

@@ -9,16 +9,18 @@ const buttonVariants = cva(
   {
     variants: {
       variant: {
-        default: "bg-primary text-primary-foreground hover:bg-primary/90 [&_svg]:text-inherit",
-        login: "bg-primary text-white hover:bg-primary/90 shadow-button [&_svg]:text-inherit",
+        default: "bg-primary text-primary-foreground hover:bg-secondary [&_svg]:text-inherit",
+        login: "bg-primary text-primary-foreground hover:bg-secondary shadow-button [&_svg]:text-inherit",
         destructive:
           "bg-destructive text-destructive-foreground hover:bg-destructive/90 [&_svg]:text-inherit",
         outline:
-          "border border-border bg-background text-foreground hover:bg-primary/10 hover:text-primary hover:border-primary/40 dark:hover:bg-primary/20 dark:hover:text-primary [&_svg]:text-current",
+          "border border-border bg-card text-foreground hover:bg-background hover:text-primary hover:border-primary/40 dark:bg-background dark:hover:bg-primary/20 dark:hover:text-primary [&_svg]:text-current",
         download:
           "border border-primary/40 bg-primary/5 text-primary hover:bg-primary/10 hover:text-primary hover:border-primary/60 dark:bg-primary/10 dark:hover:bg-primary/20 dark:hover:text-primary transition-colors shadow-sm [&_svg]:text-current",
         secondary:
-          "bg-secondary text-secondary-foreground hover:bg-secondary/80 [&_svg]:text-inherit",
+          "bg-background text-foreground border border-border hover:bg-muted [&_svg]:text-inherit",
+        success:
+          "bg-success text-success-foreground hover:bg-success/90 [&_svg]:text-inherit",
         ghost: "text-foreground hover:bg-primary/10 hover:text-primary dark:hover:bg-primary/20 dark:hover:text-primary [&_svg]:text-current",
         link: "text-primary underline-offset-4 hover:underline [&_svg]:text-inherit",
       },

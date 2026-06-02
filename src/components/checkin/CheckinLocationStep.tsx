@@ -30,7 +30,7 @@ export const CheckinLocationStep = () => {
 
   return (
     <div className="space-y-4">
-      <Card className="border-primary/20 bg-gradient-to-br from-[#F8FAFC] to-white">
+      <Card className="border-primary/20 bg-gradient-to-br from-background to-card">
         <CardContent className="pt-6">
           <div className="flex flex-col items-center text-center space-y-3">
             <MapPin className="w-12 h-12 text-primary" />

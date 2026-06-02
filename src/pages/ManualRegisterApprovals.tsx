@@ -84,9 +84,9 @@ const renderStatusBadge = (status: StatusRecord) => {
         case 'TIME_OFF_REQUEST':
             return <span className={cn(baseClasses, 'bg-amber-100 text-amber-800 border-amber-200 dark:bg-amber-900/50 dark:text-amber-200 dark:border-amber-800')}>{statusMap[status]}</span>;
         
-        // 💡 NOVO CASE: Esquecimento de Ponto (Roxo)
+        // Esquecimento de ponto
         case 'WORK_TIME_REQUEST':
-            return <span className={cn(baseClasses, 'bg-purple-100 text-purple-800 border-purple-200 dark:bg-purple-900/50 dark:text-purple-200 dark:border-purple-800')}>{statusMap[status]}</span>;
+            return <span className={cn(baseClasses, 'bg-blue-100 text-blue-800 border-blue-200 dark:bg-blue-900/50 dark:text-blue-200 dark:border-blue-800')}>{statusMap[status]}</span>;
             
         case 'TIME_OFF':
         case 'UPDATED': // Inclui UPDATED como verde (aprovado)

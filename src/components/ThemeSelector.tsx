@@ -1,47 +1,26 @@
-import { useState, useEffect } from "react";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Palette } from "lucide-react";
-import { applyThemeClass, readStoredValue, writeStoredValue } from "@/lib/browser";
+import { readStoredValue, writeStoredValue } from "@/lib/browser";
 
-type ThemeVariant = 'red' | 'purple' | 'blue' | 'yellow';
+type ThemeVariant = "kronos";
 
 const themes = [
   {
-    name: 'Laranja',
-    value: 'red' as ThemeVariant,
-    colors: { primary: '#f55c5c', secondary: '#000000' }
-  },
-  {
-    name: 'Roxo', 
-    value: 'purple' as ThemeVariant,
-    colors: { primary: '#8b00ea', secondary: '#000000' }
-  },
-  {
-    name: 'Azul',
-    value: 'blue' as ThemeVariant,
-    colors: { primary: '#007dea', secondary: '#000000' }
-  },
-  {
-    name: 'Amarelo',
-    value: 'yellow' as ThemeVariant,
-    colors: { primary: '#eaab00', secondary: '#000000' }
+    name: "Kronos Azul Royal",
+    value: "kronos" as ThemeVariant,
+    colors: ["bg-primary", "bg-secondary"],
   }
 ];
 
 const ThemeSelector = () => {
   const [currentTheme, setCurrentTheme] = useState<ThemeVariant>(() => {
     const savedTheme = readStoredValue("color-theme") as ThemeVariant | null;
-    return savedTheme || 'red';
+    return savedTheme === "kronos" ? savedTheme : "kronos";
   });
 
-  // Aplicar tema salvo quando o componente montar
-  useEffect(() => {
-    applyThemeClass(`theme-${currentTheme}`, ['theme-purple', 'theme-blue', 'theme-yellow', 'theme-red', 'theme-pink', 'theme-green', 'theme-gray']);
-  }, [currentTheme]);
-
   const applyTheme = (theme: ThemeVariant) => {
-    applyThemeClass(`theme-${theme}`, ['theme-purple', 'theme-blue', 'theme-yellow', 'theme-red', 'theme-pink', 'theme-green', 'theme-gray']);
     writeStoredValue("color-theme", theme);
     setCurrentTheme(theme);
   };
@@ -64,14 +43,12 @@ const ThemeSelector = () => {
               className="h-auto p-3 flex flex-col items-center gap-2 transition-all duration-200"
             >
               <div className="flex gap-1">
-                <div 
-                  className="w-4 h-4 rounded-full border border-gray-300"
-                  style={{ backgroundColor: theme.colors.primary }}
-                />
-                <div 
-                  className="w-4 h-4 rounded-full border border-gray-300"
-                  style={{ backgroundColor: theme.colors.secondary }}
-                />
+                {theme.colors.map((colorClass) => (
+                  <div
+                    key={colorClass}
+                    className={`w-4 h-4 rounded-full border border-border ${colorClass}`}
+                  />
+                ))}
               </div>
               <span className="text-xs font-medium text-center leading-tight">
                 {theme.name}

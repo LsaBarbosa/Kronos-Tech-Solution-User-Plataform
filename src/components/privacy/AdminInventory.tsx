@@ -3,6 +3,7 @@ import { useNavigate } from "react-router-dom";
 import { AlertCircle, ChevronRight, Loader2, Plus } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
+import { AuthenticatedPageLayout } from "@/components/layout/AuthenticatedPageLayout";
 import { APP_PATHS } from "@/config/app-routes";
 import {
   listActiveInventories,
@@ -59,19 +60,22 @@ export const AdminInventory = () => {
 
   if (error) {
     return (
-      <div className="flex items-center justify-center min-h-screen bg-red-50">
-        <div className="text-center">
-          <AlertCircle className="h-12 w-12 text-red-600 mx-auto mb-4" />
-          <h2 className="text-lg font-semibold text-red-800 mb-2">Erro ao Carregar</h2>
-          <p className="text-red-700 mb-4">{error}</p>
-          <Button onClick={() => fetchInventories()}>Tentar Novamente</Button>
+      <AuthenticatedPageLayout>
+        <div className="flex items-center justify-center min-h-[60vh] rounded-xl bg-red-50">
+          <div className="text-center">
+            <AlertCircle className="h-12 w-12 text-red-600 mx-auto mb-4" />
+            <h2 className="text-lg font-semibold text-red-800 mb-2">Erro ao Carregar</h2>
+            <p className="text-red-700 mb-4">{error}</p>
+            <Button onClick={() => fetchInventories()}>Tentar Novamente</Button>
+          </div>
         </div>
-      </div>
+      </AuthenticatedPageLayout>
     );
   }
 
   return (
-    <div className="p-6 space-y-6">
+    <AuthenticatedPageLayout>
+    <div className="space-y-6">
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-3xl font-bold text-foreground mb-2">Inventário de Tratamento de Dados</h1>
@@ -87,7 +91,7 @@ export const AdminInventory = () => {
       </div>
 
       {/* Search */}
-      <div className="bg-white rounded-lg border border-gray-200 p-4">
+      <div className="bg-card rounded-xl border border-border p-4 shadow-sm">
         <Input
           placeholder="Buscar por código ou nome do processo..."
           value={searchTerm}
@@ -96,7 +100,7 @@ export const AdminInventory = () => {
       </div>
 
       {/* Table */}
-      <div className="bg-white rounded-lg border border-gray-200 overflow-hidden">
+      <div className="bg-card rounded-xl border border-border shadow-sm overflow-hidden">
         {loading ? (
           <div className="flex items-center justify-center h-64">
             <Loader2 className="h-8 w-8 animate-spin text-primary" />
@@ -108,7 +112,7 @@ export const AdminInventory = () => {
         ) : (
           <div className="overflow-x-auto">
             <table className="w-full">
-              <thead className="bg-gray-50 border-b border-gray-200">
+              <thead className="bg-muted/60 border-b border-border">
                 <tr>
                   <th className="px-6 py-3 text-left text-sm font-semibold text-foreground">
                     Código
@@ -133,11 +137,11 @@ export const AdminInventory = () => {
                   </th>
                 </tr>
               </thead>
-              <tbody className="divide-y divide-gray-200">
+              <tbody className="divide-y divide-border">
                 {filteredInventories.map((inventory) => (
                   <tr
                     key={inventory.inventoryId}
-                    className="hover:bg-gray-50 transition-colors cursor-pointer"
+                    className="hover:bg-blue-50/60 transition-colors cursor-pointer"
                   >
                     <td className="px-6 py-4 text-sm font-mono font-semibold text-foreground">
                       {inventory.processCode}
@@ -152,8 +156,8 @@ export const AdminInventory = () => {
                       <span
                         className={`inline-block px-2 py-1 rounded text-xs font-medium ${
                           inventory.sensitiveData
-                            ? "bg-red-100 text-red-800"
-                            : "bg-green-100 text-green-800"
+                            ? "bg-red-50 text-red-700 border border-red-200"
+                            : "bg-green-50 text-green-700 border border-green-200"
                         }`}
                       >
                         {inventory.sensitiveData ? "Sim" : "Não"}
@@ -163,8 +167,8 @@ export const AdminInventory = () => {
                       <span
                         className={`inline-block px-2 py-1 rounded text-xs font-medium ${
                           inventory.internationalTransfer
-                            ? "bg-orange-100 text-orange-800"
-                            : "bg-blue-100 text-blue-800"
+                            ? "bg-amber-50 text-amber-700 border border-amber-200"
+                            : "bg-blue-50 text-blue-700 border border-blue-200"
                         }`}
                       >
                         {inventory.internationalTransfer ? "Sim" : "Não"}
@@ -219,5 +223,6 @@ export const AdminInventory = () => {
         </div>
       )}
     </div>
+    </AuthenticatedPageLayout>
   );
 };

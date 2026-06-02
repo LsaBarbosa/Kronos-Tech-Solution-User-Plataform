@@ -81,9 +81,9 @@ const LoginForm = () => {
         </div>
       </div>
 
-      <Card className="w-full max-w-md shadow-card border-0 relative z-10">
+      <Card className="w-full max-w-md border border-border bg-card shadow-card relative z-10">
         <CardHeader className="space-y-1 text-center pb-8">
-          <CardTitle className="text-2xl md:text-3xl font-bold bg-gradient-to-r from-foreground to-primary bg-clip-text text-transparent px-2">
+          <CardTitle className="text-2xl md:text-3xl font-bold text-foreground px-2">
             Kronos Plataform
           </CardTitle>
         </CardHeader>
@@ -121,16 +121,16 @@ const LoginForm = () => {
                 <Button
                   type="submit"
                   variant="default" 
-                  className="w-full h-12 font-medium transition-smooth bg-primary hover:bg-primary/90"
+                  className="w-full h-12 font-medium transition-smooth"
                   disabled={isSubmitting}
                 >
                   {isSubmitting ? "Entrando..." : "Entrar"}
                 </Button>
 
                 <div className="relative flex items-center py-2">
-                    <div className="flex-grow border-t border-gray-200"></div>
-                    <span className="flex-shrink-0 mx-4 text-gray-400 text-xs">OU</span>
-                    <div className="flex-grow border-t border-gray-200"></div>
+                    <div className="flex-grow border-t border-border"></div>
+                    <span className="flex-shrink-0 mx-4 text-muted-foreground text-xs">OU</span>
+                    <div className="flex-grow border-t border-border"></div>
                 </div>
 
                 {/* Botão para Login Facial */}
@@ -150,7 +150,7 @@ const LoginForm = () => {
             <Button
               variant="link"
               onClick={() => navigate("/senha-primeiro-acesso")}
-              className="text-sm text-gray-text hover:text-primary transition-smooth"
+              className="text-sm text-muted-foreground hover:text-primary transition-smooth"
             >
               Primeiro acesso/ Recuperar senha
             </Button>
