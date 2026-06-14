@@ -1,43 +1,22 @@
-# Subagent — Legacy Cleaner
+# Subagent — legacy-cleaner
 
-## Responsabilidade
+## Objetivo
 
-Remover o legado visual da tela `/usuario` após a nova implementação estar funcional.
+Remover a implementação visual antiga após a nova tela estar validada.
 
-## O que pode ser removido
+## Ações
 
-- JSX antigo dentro de `src/pages/Usuario.tsx`.
-- Componentes antigos exclusivos da tela `/usuario` sem uso.
-- Utilitários antigos de cores exclusivos da tela, se substituídos.
-- Imports mortos.
-- Estados locais que migraram para hooks.
-- Comentários antigos que não agregam manutenção.
+1. Substituir o corpo legado de `RequestManualRegistration.tsx`.
+2. Remover imports não usados.
+3. Remover componentes auxiliares mortos criados no legado.
+4. Preservar hook/serviços se ainda forem úteis.
+5. Preservar rota e export público.
+6. Rodar busca por:
+   - textos antigos;
+   - comentários obsoletos;
+   - classes não usadas;
+   - componentes duplicados.
 
-## O que não pode ser removido sem validação
+## Saída esperada
 
-- `useUser`, se ainda usado por outra tela.
-- `user.service.ts`, `terms.service.ts`, `lgpd.service.ts`.
-- Tipos compartilhados em `src/types`.
-- Componentes UI compartilhados.
-- `BiometricConsentCard`, se usado em outro fluxo.
-- Rotas globais.
-- Configuração de CSRF/interceptors.
-
-## Processo
-
-1. Rodar busca por imports antes de remover.
-2. Remover somente código sem referência.
-3. Rodar lint.
-4. Rodar build.
-5. Corrigir imports quebrados.
-6. Registrar arquivos removidos.
-
-## Comandos úteis
-
-```bash
-grep -R "BiometricConsentCard" -n src
-grep -R "usuarioPageColors" -n src
-grep -R "useUser" -n src
-npm run lint
-npm run build
-```
+Relatório de limpeza com arquivos removidos, arquivos preservados e justificativa.

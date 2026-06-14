@@ -1,76 +1,39 @@
-# Subagent — QA A11y
+# Subagent — qa-a11y
 
-## Responsabilidade
+## Objetivo
 
-Validar qualidade técnica, acessibilidade, testes e responsividade.
+Validar build, lint, comportamento e acessibilidade.
 
-## Comandos obrigatórios
+## Checklist técnico
 
-No front-end:
+- `npm install` somente se necessário.
+- `npm run lint`
+- `npm run build`
+- testes existentes, se houver.
+- verificar erros TypeScript.
+- verificar imports não usados.
+- verificar regressão de rota.
+- verificar responsividade com largura mobile e desktop.
 
-```bash
-npm install
-npm run lint
-npm run test
-npm run build
-```
+## Checklist funcional
 
-Se `npm run test` não existir ou falhar por ausência de ambiente, registrar evidência e executar no mínimo:
+- Selecionar `TIME_OFF_REQUEST`.
+- Selecionar `FORGOTTEN_REGISTRATION`.
+- Preencher datas e horários válidos.
+- Escolher gestor.
+- Enviar sem anexo.
+- Enviar com anexo permitido.
+- Tentar arquivo inválido.
+- Tentar fim antes do início.
+- Tentar mesmo dia com hora final menor.
+- Tentar enviar duas vezes durante loading.
 
-```bash
-npm run lint
-npm run build
-```
+## Checklist acessibilidade
 
-## Testes recomendados
-
-Criar testes para:
-
-- máscaras de CPF e remuneração;
-- formatação de telefone;
-- mapper de perfil;
-- renderização de desktop;
-- renderização de mobile;
-- edição de e-mail;
-- edição de telefone;
-- bloqueio de senha divergente;
-- ação de exportação LGPD;
-- confirmação de revogação biométrica.
-
-## Acessibilidade
-
-Validar:
-
-- botões com texto ou `aria-label`;
-- inputs com `label`;
-- feedback de erro com `role="alert"` quando aplicável;
-- foco visível;
-- navegação por teclado;
-- alvos mobile com no mínimo 44px;
-- contraste coerente;
-- estados loading compreensíveis.
-
-## Responsividade
-
-Validar manualmente em:
-
-- 390x844;
-- 430x932;
-- 768x1024;
-- 1366x768;
-- 1440x900.
-
-## Saída
-
-Relatório final:
-
-```text
-VALIDAÇÃO
-- lint:
-- test:
-- build:
-- mobile:
-- desktop:
-- acessibilidade:
-- riscos:
-```
+- Labels em todos os campos.
+- Foco visível.
+- `aria-label` em botões de ícone.
+- Mensagens de erro legíveis.
+- Contraste adequado.
+- Navegação por teclado.
+- Alvos mínimos de 44px no mobile.

@@ -1,58 +1,39 @@
-# Subagent — Repo Mapper
+# Subagent — repo-mapper
 
-## Responsabilidade
+## Objetivo
 
-Mapear a estrutura atual dos três repositórios antes da implementação.
+Mapear a implementação atual de `/solicitar-abono` antes de qualquer alteração.
 
-## Tarefas
+## Leituras obrigatórias
 
-1. Confirmar branches:
-   - back-end: `PROD_HOSTINGER_V2`;
-   - front-end: `feature/lgpd-compliance-new-ui`;
-   - documentação: `main`.
+Front-end:
 
-2. No front-end, localizar:
-   - rota `/usuario`;
-   - entrypoint `src/pages/Usuario.tsx`;
-   - hook `useUser`;
-   - services de usuário, termos e LGPD;
-   - tipos de usuário e legal;
-   - componentes de layout;
-   - componentes de UI disponíveis.
+- `src/App.tsx`
+- `src/config/app-routes.ts`
+- `src/pages/RequestManualRegistration.tsx`
+- `src/hooks/useManualRegister.ts`
+- `src/service/records.service.ts`
+- `src/types/vacation.ts`
+- `src/types/document.ts`
+- `src/components/PageShell.tsx`
+- `src/components/Sidebar.tsx`
+- `src/components/Header.tsx`
 
-3. No back-end, localizar:
-   - `ApiPaths.java`;
-   - `EmployeeController`;
-   - `UserController`;
-   - `TermsController`;
-   - `LgpdController`;
-   - DTOs de request/response usados pela tela.
+Documentação:
 
-4. Na documentação, localizar:
-   - fluxo de perfil do usuário;
-   - fluxo de privacidade;
-   - regras de alteração do próprio perfil;
-   - regras de senha;
-   - regras de consentimento biométrico;
-   - regras de LGPD.
+- `kronos-business/04-mapa-modulos-telas.md`
+- `kronos-business/05-entradas-saidas-fluxos.md`
+- `kronos-business/08-rotas-guards-permissoes.md`
 
-## Saída
+## Saída esperada
 
-Gerar no terminal um resumo curto:
+Produzir um mapa com:
 
-```text
-MAPEAMENTO /usuario
-- rota:
-- entrypoint:
-- serviços:
-- endpoints:
-- DTOs:
-- riscos:
-- próximos passos:
-```
-
-## Restrições
-
-- Não editar código.
-- Não criar arquivos.
-- Não apagar legado.
+- rota;
+- componente de página;
+- hook;
+- serviço HTTP;
+- tipos TypeScript;
+- componentes UI disponíveis;
+- pontos de legado visual;
+- riscos de alteração.

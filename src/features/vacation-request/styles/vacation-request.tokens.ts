@@ -1,0 +1,40 @@
+export const vacationRequestTokens = {
+  colors: {
+    night: "#0B1220",
+    midnight: "#101A33",
+    deepBlue: "#1E3A8A",
+    primaryBlue: "#2563EB",
+    techCyan: "#22D3EE",
+    successGreen: "#16A34A",
+    successSoft: "#DCFCE7",
+    attention: "#F59E0B",
+    attentionSoft: "#FEF3C7",
+    danger: "#DC2626",
+    background: "#F8FAFC",
+    backgroundAlt: "#F1F5F9",
+    surface: "#FFFFFF",
+    border: "#E2E8F0",
+    text: "#0F172A",
+    textSecondary: "#64748B",
+    textTertiary: "#94A3B8",
+  },
+  radii: {
+    shell: "32px",
+    card: "28px",
+    panel: "24px",
+    chip: "20px",
+    rail: "24px",
+  },
+  shadows: {
+    shell: "0 28px 80px rgba(11, 18, 32, 0.16)",
+    card: "0 16px 40px rgba(16, 26, 51, 0.10)",
+    raised: "0 20px 45px rgba(37, 99, 235, 0.12)",
+  },
+  gradients: {
+    hero: "linear-gradient(135deg, #0B1220 0%, #101A33 52%, #1E3A8A 100%)",
+    mobileHero: "linear-gradient(135deg, #0B1220 0%, #101A33 58%, #2563EB 100%)",
+    aura: "linear-gradient(135deg, rgba(34, 211, 238, 0.18) 0%, rgba(37, 99, 235, 0.16) 100%)",
+    screen: "linear-gradient(180deg, #F8FAFC 0%, #F1F5F9 100%)",
+  },
+} as const;
+
