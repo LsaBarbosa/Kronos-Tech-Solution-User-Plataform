@@ -1,39 +1,25 @@
-# Subagent — api-contract
+# Subagent — API Contract
 
-## Objetivo
+Proteja contratos HTTP.
 
-Garantir que a refatoração visual não quebre o contrato do back-end.
+## Endpoints
 
-## Verificações
+```text
+GET    /employee?active=
+GET    /employee/{employeeId}
+PATCH  /employee/manager/update-employee/{employeeId}
+POST   /employee/manager/{employeeId}/biometric-enrollment
+GET    /users/search?active=
+PATCH  /users/search/{userId}
+PATCH  /users/toggle-activate/{userId}
+```
 
-1. Confirmar rota de front:
-   - `/solicitar-abono`
-   - `RequestManualRegistration`
+## Saída
 
-2. Confirmar endpoint:
-   - `POST /records/time-off/request`
-
-3. Confirmar formato:
-   - `multipart/form-data`
-   - `request`: Blob JSON `application/json`
-   - `document`: `File` opcional
-
-4. Confirmar DTO:
-   - `startDate`
-   - `endDate`
-   - `startHour`
-   - `endHour`
-   - `managerId`
-   - `type`
-
-5. Confirmar enum:
-   - `TIME_OFF_REQUEST`
-   - `FORGOTTEN_REGISTRATION`
-
-## Proibições
-
-- Não enviar `requestType` diretamente se o back-end espera `type`.
-- Não trocar `document` por outro nome de part.
-- Não remover normalização de data.
-- Não remover validação de horário.
-- Não tornar anexo obrigatório.
+```text
+Endpoint
+Serviço front-end
+Payload
+Resposta
+Risco
+```

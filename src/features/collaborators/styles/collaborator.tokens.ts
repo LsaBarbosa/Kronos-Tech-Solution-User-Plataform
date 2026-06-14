@@ -1,0 +1,40 @@
+export const collaboratorTokens = {
+  colors: {
+    night: "#0B1220",
+    midnight: "#101A33",
+    deepBlue: "#1E3A8A",
+    primary: "#2563EB",
+    cyan: "#22D3EE",
+    success: "#16A34A",
+    successSoft: "#DCFCE7",
+    warning: "#F59E0B",
+    warningSoft: "#FEF3C7",
+    danger: "#DC2626",
+    dangerSoft: "#FEE2E2",
+    purple: "#7C3AED",
+    purpleSoft: "#EDE9FE",
+    bg: "#F8FAFC",
+    bgAlt: "#F1F5F9",
+    surface: "#FFFFFF",
+    border: "#E2E8F0",
+    borderStrong: "#CBD5E1",
+    text: "#0F172A",
+    textMuted: "#64748B",
+    textFaint: "#94A3B8",
+  },
+  gradients: {
+    hero: "linear-gradient(135deg, #0B1220 0%, #101A33 45%, #1E3A8A 100%)",
+    heroAccent: "radial-gradient(circle at top right, rgba(34, 211, 238, 0.28), transparent 40%), radial-gradient(circle at bottom left, rgba(37, 99, 235, 0.18), transparent 42%)",
+    desktopBackground: "linear-gradient(180deg, #F8FAFC 0%, #EEF4FB 100%)",
+  },
+  radius: {
+    xl: "28px",
+    lg: "24px",
+    md: "20px",
+  },
+  shadow: {
+    soft: "0 12px 32px rgba(15, 23, 42, 0.08)",
+    medium: "0 16px 40px rgba(11, 18, 32, 0.12)",
+  },
+} as const;
+

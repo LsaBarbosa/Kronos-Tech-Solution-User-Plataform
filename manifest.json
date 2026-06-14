@@ -1,26 +1,26 @@
 {
-  "package": "kronos_codex_solicitar_abono_ui",
-  "route": "/solicitar-abono",
-  "target_page": "src/pages/RequestManualRegistration.tsx",
-  "backend_branch": "PROD_HOSTINGER_V2",
-  "frontend_branch": "feature/lgpd-compliance-new-ui",
-  "documentation_branch": "main",
-  "created_files": [
-    "README.md",
-    "checklist-validacao-solicitar-abono-ui.md",
-    "codex/agents/kronos-solicitar-abono-ui.agent.md",
-    "codex/rules/kronos-solicitar-abono-ui.rules.md",
-    "codex/skills/kronos-solicitar-abono-ui.skill.md",
-    "codex/subagents/abono-domain.subagent.md",
-    "codex/subagents/api-contract.subagent.md",
-    "codex/subagents/legacy-cleaner.subagent.md",
-    "codex/subagents/qa-a11y.subagent.md",
-    "codex/subagents/repo-mapper.subagent.md",
-    "codex/subagents/ui-architecture.subagent.md",
-    "plano-acao-solicitar-abono-ui.md",
-    "prompt-codex-solicitar-abono-ui.md",
-    "references/kronos_usuario_diretriz_visual__arquivo_recebido.md",
-    "references/mockups/kronos_solicitar_abono_desktop.png",
-    "references/mockups/kronos_solicitar_abono_mobile.png"
+  "package": "kronos_codex_lista_colaboradores_ui",
+  "created_at_utc": "2026-06-14T12:28:25Z",
+  "target": {
+    "route": "/lista-colaboradores",
+    "frontend_repo": "LsaBarbosa/Kronos-Tech-Solution-User-Plataform",
+    "frontend_branch": "feature/lgpd-compliance-new-ui",
+    "backend_repo": "LsaBarbosa/Kronos-Tech-Solutions-KTS",
+    "backend_branch": "PROD_HOSTINGER_V2",
+    "business_repo": "LsaBarbosa/kronos-business",
+    "business_branch": "main",
+    "current_page": "src/pages/ListaColaboradores.tsx"
+  },
+  "references_copied": [
+    "references/docs/kronos_lista_colaboradores_diretriz_visual.md",
+    "references/mockups/kronos_lista_colaboradores_desktop.png",
+    "references/mockups/kronos_lista_colaboradores_mobile.png"
+  ],
+  "references_missing": [],
+  "principles": [
+    "preserve HTTP contracts",
+    "desktop and mobile are distinct experiences",
+    "remove legacy UI after validation",
+    "manager-only people operations screen"
   ]
 }

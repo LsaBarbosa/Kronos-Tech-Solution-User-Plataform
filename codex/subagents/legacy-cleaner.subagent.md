@@ -1,22 +1,19 @@
-# Subagent — legacy-cleaner
+# Subagent — Legacy Cleaner
 
-## Objetivo
+Remova a UI antiga depois que a nova estiver funcional.
 
-Remover a implementação visual antiga após a nova tela estar validada.
+## Remover
 
-## Ações
+- filtros legados;
+- grid/cards antigos;
+- imports mortos;
+- estados mortos;
+- helpers não usados.
 
-1. Substituir o corpo legado de `RequestManualRegistration.tsx`.
-2. Remover imports não usados.
-3. Remover componentes auxiliares mortos criados no legado.
-4. Preservar hook/serviços se ainda forem úteis.
-5. Preservar rota e export público.
-6. Rodar busca por:
-   - textos antigos;
-   - comentários obsoletos;
-   - classes não usadas;
-   - componentes duplicados.
+## Preservar
 
-## Saída esperada
-
-Relatório de limpeza com arquivos removidos, arquivos preservados e justificativa.
+- serviços compartilhados;
+- tipos compartilhados;
+- rota;
+- guards;
+- modal biométrico se usado.

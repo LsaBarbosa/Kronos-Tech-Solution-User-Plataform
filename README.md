@@ -1,66 +1,68 @@
-# Kronos — Pacote Codex CLI — Refatoração `/solicitar-abono`
+# Kronos — Pacote Codex CLI para `/lista-colaboradores`
 
-Este pacote orienta o Codex CLI a refatorar a tela de solicitação de abono/esquecimento de ponto da plataforma Kronos.
+## Objetivo
 
-## Escopo
+Refatorar a rota `/lista-colaboradores` no front-end `Kronos-Tech-Solution-User-Plataform`, branch `feature/lgpd-compliance-new-ui`, substituindo a tela legada por uma **central de pessoas e contas de acesso**.
 
-- Repositório back-end: `Kronos-Tech-Solutions-KTS`
-- Branch back-end: `PROD_HOSTINGER_V2`
-- Repositório front-end: `Kronos-Tech-Solution-User-Plataform`
-- Branch front-end: `feature/lgpd-compliance-new-ui`
-- Repositório de documentação: `kronos-business`
-- Branch documentação: `main`
-- Rota alvo: `/solicitar-abono`
-- Tela atual: `RequestManualRegistration`
-- Objetivo de produto: transformar a tela em um fluxo guiado de justificativa de jornada, com UX distinta para desktop e mobile.
+A nova tela deve ter duas experiências reais:
 
-## Arquivos do pacote
+- **Desktop:** painel gerencial denso, com hero, métricas, filtros, tabela operacional e painel lateral de detalhes.
+- **Mobile:** lista operacional por cards, com busca, chips, menu contextual, bottom sheet e rodapé de ações.
 
-```text
-codex/
-├── skills/
-│   └── kronos-solicitar-abono-ui.skill.md
-├── agents/
-│   └── kronos-solicitar-abono-ui.agent.md
-├── rules/
-│   └── kronos-solicitar-abono-ui.rules.md
-└── subagents/
-    ├── repo-mapper.subagent.md
-    ├── abono-domain.subagent.md
-    ├── ui-architecture.subagent.md
-    ├── api-contract.subagent.md
-    ├── qa-a11y.subagent.md
-    └── legacy-cleaner.subagent.md
+## Repositórios
 
-plano-acao-solicitar-abono-ui.md
-prompt-codex-solicitar-abono-ui.md
-checklist-validacao-solicitar-abono-ui.md
-references/
-└── mockups/
-    ├── kronos_solicitar_abono_desktop.png
-    └── kronos_solicitar_abono_mobile.png
+| Repositório | Branch | Finalidade |
+|---|---|---|
+| `Kronos-Tech-Solution-User-Plataform` | `feature/lgpd-compliance-new-ui` | Implementação React/Vite. |
+| `Kronos-Tech-Solutions-KTS` | `PROD_HOSTINGER_V2` | Contratos HTTP, controllers, permissões e DTOs. |
+| `kronos-business` | `main` | Regras funcionais e documentação norteadora. |
+
+## Como usar no Codex CLI
+
+```bash
+unzip kronos_codex_lista_colaboradores_ui.zip -d ./kronos-codex-work
+cd <repo-front-end>
+codex
 ```
 
-## Observações sobre os anexos recebidos
+Cole no Codex o conteúdo de:
 
-Os mockups disponíveis neste pacote são:
+```text
+kronos-codex-work/kronos_codex_lista_colaboradores_ui/prompt-codex-lista-colaboradores-ui.md
+```
 
-- `references/mockups/kronos_solicitar_abono_desktop.png`
-- `references/mockups/kronos_solicitar_abono_mobile.png`
+## Estrutura
 
-Também foi recebido um arquivo markdown chamado localmente como `kronos_usuario_diretriz_visual.md`. O conteúdo desse markdown descreve a rota `/usuario`, não `/solicitar-abono`. Por isso, ele foi preservado apenas como referência de identidade visual geral da plataforma, mas **não deve substituir uma diretriz específica de abono**.
-
-O Codex deve procurar no workspace por `kronos_solicitar_abono_diretriz_visual.md`. Caso esse arquivo exista, ele deve ter prioridade sobre a referência de `/usuario`.
+```text
+kronos_codex_lista_colaboradores_ui/
+├── README.md
+├── manifest.json
+├── plano-acao-lista-colaboradores-ui.md
+├── prompt-codex-lista-colaboradores-ui.md
+├── checklist-validacao-lista-colaboradores-ui.md
+├── references/
+│   ├── docs/kronos_lista_colaboradores_diretriz_visual.md
+│   └── mockups/
+│       ├── kronos_lista_colaboradores_desktop.png
+│       └── kronos_lista_colaboradores_mobile.png
+└── codex/
+    ├── skills/kronos-lista-colaboradores-ui.skill.md
+    ├── agents/kronos-lista-colaboradores-ui.agent.md
+    ├── rules/kronos-lista-colaboradores-ui.rules.md
+    └── subagents/
+```
 
 ## Resultado esperado
 
-A implementação deve entregar uma tela nova para `/solicitar-abono` com:
+- Rota `/lista-colaboradores` com UI nova.
+- Desktop e mobile com navegação distinta.
+- Contratos HTTP preservados.
+- Ações sensíveis confirmadas.
+- Biometria separada da edição comum.
+- Legado visual removido.
+- `npm run lint` e `npm run build` executados.
 
-- desktop em formato de painel operacional;
-- mobile em formato de fluxo guiado por etapas;
-- reaproveitamento do contrato HTTP existente;
-- preservação dos fluxos de validação;
-- upload de evidência opcional e seguro;
-- seleção explícita entre `TIME_OFF_REQUEST` e `FORGOTTEN_REGISTRATION`;
-- resumo antes do envio;
-- remoção do legado visual após validação.
+## Documentação complementar
+
+- `docs/flag-redis-adherence.md`
+- `docs/api-contract-map.md`
