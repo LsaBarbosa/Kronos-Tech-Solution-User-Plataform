@@ -1,9 +1,11 @@
 import { useState } from "react";
-import { ArrowRight, RefreshCcw, Phone, LockKeyhole } from "lucide-react";
+import { ArrowRight, ChevronLeft, RefreshCcw, Phone, LockKeyhole } from "lucide-react";
+import { useNavigate } from "react-router-dom";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { StatusPill } from "@/components/ui/status-pill";
+import { APP_PATHS } from "@/config/app-routes";
 import type { UsuarioProfileSharedProps, UsuarioMobileSection } from "./user-profile.types";
 import UserIdentityHero from "./UserIdentityHero";
 import ProfessionalIdentityCard from "./ProfessionalIdentityCard";
@@ -27,6 +29,7 @@ const UsuarioMobileView = ({
   onRefreshProfile,
   onRefreshPrivacy,
 }: UsuarioProfileSharedProps) => {
+  const navigate = useNavigate();
   const [section, setSection] = useState<UsuarioMobileSection>("identidade");
   const [contactSheetOpen, setContactSheetOpen] = useState(false);
   const [passwordSheetOpen, setPasswordSheetOpen] = useState(false);
@@ -40,7 +43,8 @@ const UsuarioMobileView = ({
       </div>
 
       <main className="relative mx-auto min-h-screen max-w-3xl space-y-5 px-4 pb-36 pt-4 sm:px-6">
-        <header className="flex items-center justify-between gap-3 rounded-[24px] border border-[#D8E2EC] bg-white/92 px-4 py-3 shadow-[0_12px_30px_rgba(31,78,95,0.08)] backdrop-blur">
+        <header className="flex flex-col gap-3 rounded-[24px] border border-[#D8E2EC] bg-white/92 px-4 py-3 shadow-[0_12px_30px_rgba(31,78,95,0.08)] backdrop-blur">
+          <div className="flex items-start justify-between gap-3">
           <div className="space-y-1">
             <Badge variant="outline" className="border-[#D8E2EC] bg-[#F5F8FB] text-[#1F4E5F]">
               Autoatendimento
@@ -50,7 +54,18 @@ const UsuarioMobileView = ({
           <Button
             type="button"
             variant="outline"
-            className="h-11 border-[#D8E2EC] bg-white text-[#102A43]"
+            className="h-11 shrink-0 border-[#D8E2EC] bg-white text-[#102A43]"
+            onClick={() => navigate(APP_PATHS.dashboard)}
+          >
+            <ChevronLeft className="h-4 w-4" />
+            Início
+          </Button>
+          </div>
+
+          <Button
+            type="button"
+            variant="outline"
+            className="h-11 w-full border-[#D8E2EC] bg-white text-[#102A43]"
             onClick={() => void onRefreshProfile()}
           >
             <RefreshCcw className="h-4 w-4" />

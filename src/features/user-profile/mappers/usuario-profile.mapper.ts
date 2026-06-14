@@ -35,7 +35,6 @@ export interface UsuarioIdentitySummary {
   roleLabel: string;
   jobPosition: string;
   companyName: string;
-  employeeId: string;
   userId: string;
   maskedCpf: string;
   salaryLabel: string;
@@ -217,7 +216,6 @@ export const mapUsuarioProfileViewModel = (
         roleLabel: getRoleLabel(sessionProfile.role),
         jobPosition: profileData.jobPosition ?? "Nao informado",
         companyName: profileData.companyName ?? "Nao informado",
-        employeeId: profileData.employeeId,
         userId: accountData.userId,
         maskedCpf: formatMaskedCpf(profileData.maskedCpf),
         salaryLabel: formatProtectedSalary(profileData.salary),

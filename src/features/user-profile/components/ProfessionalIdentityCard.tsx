@@ -128,14 +128,10 @@ const ProfessionalIdentityCard = ({
           <Field icon={<Clock3 className="h-4 w-4" />} label="Última atividade" value={identity.lastSeenMessageLabel} />
         </div>
 
-        <div className="grid gap-3 sm:grid-cols-3">
+        <div className="grid gap-3 sm:grid-cols-2">
           <div className="rounded-2xl border border-[#D8E2EC] bg-[#F5F8FB] p-4">
             <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[#627D98]">Usuário</p>
             <p className="mt-2 text-sm font-medium text-[#102A43]">{identity.username}</p>
-          </div>
-          <div className="rounded-2xl border border-[#D8E2EC] bg-[#F5F8FB] p-4">
-            <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[#627D98]">Matrícula</p>
-            <p className="mt-2 text-sm font-medium text-[#102A43]">{identity.employeeId}</p>
           </div>
           <div className="rounded-2xl border border-[#D8E2EC] bg-[#F5F8FB] p-4">
             <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[#627D98]">Localização</p>

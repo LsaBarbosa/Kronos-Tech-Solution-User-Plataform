@@ -1,7 +1,9 @@
 import { useState } from "react";
+import { useNavigate } from "react-router-dom";
 import {
   ArrowUpRight,
   BadgeCheck,
+  ChevronLeft,
   IdCard,
   LockKeyhole,
   Phone,
@@ -13,6 +15,7 @@ import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { StatusPill } from "@/components/ui/status-pill";
+import { APP_PATHS } from "@/config/app-routes";
 import type { UsuarioProfileSharedProps } from "./user-profile.types";
 import UserIdentityHero from "./UserIdentityHero";
 import ProfessionalIdentityCard from "./ProfessionalIdentityCard";
@@ -149,6 +152,7 @@ const UsuarioDesktopView = ({
   onRefreshProfile,
   onRefreshPrivacy,
 }: UsuarioProfileSharedProps) => {
+  const navigate = useNavigate();
   const [revokeDialogOpen, setRevokeDialogOpen] = useState(false);
 
   return (
@@ -179,6 +183,15 @@ const UsuarioDesktopView = ({
             </div>
 
             <div className="flex flex-wrap gap-3">
+              <Button
+                type="button"
+                variant="outline"
+                className="h-11 border-[#D8E2EC] bg-white text-[#102A43]"
+                onClick={() => navigate(APP_PATHS.dashboard)}
+              >
+                <ChevronLeft className="h-4 w-4" />
+                Voltar ao início
+              </Button>
               <Button
                 type="button"
                 variant="outline"

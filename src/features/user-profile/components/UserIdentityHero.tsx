@@ -132,7 +132,6 @@ const UserIdentityHero = ({
           <div className="grid gap-3 sm:grid-cols-2 lg:grid-cols-3">
             <HeroMetric label="Cargo" value={identity.jobPosition} />
             <HeroMetric label="Empresa" value={identity.companyName} />
-            <HeroMetric label="Matrícula" value={identity.employeeId} />
             <HeroMetric label="CPF" value={identity.maskedCpf} />
             <HeroMetric label="Remuneração" value={identity.salaryLabel} />
             <HeroMetric label="Última atividade" value={identity.lastSeenMessageLabel} />
