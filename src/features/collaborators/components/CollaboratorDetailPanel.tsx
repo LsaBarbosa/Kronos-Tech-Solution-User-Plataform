@@ -25,9 +25,9 @@ type CollaboratorDetailPanelProps = {
 };
 
 const LabelValue = ({ label, value }: { label: string; value: ReactNode }) => (
-  <div className="rounded-[18px] border border-[#E2E8F0] bg-[#F8FAFC] px-4 py-3">
+  <div className="min-w-0 rounded-[18px] border border-[#E2E8F0] bg-[#F8FAFC] px-4 py-3">
     <div className="text-xs uppercase tracking-[0.16em] text-[#64748B]">{label}</div>
-    <div className="mt-1 text-sm font-medium text-[#0F172A]">{value}</div>
+    <div className="mt-1 break-words text-sm font-medium leading-5 text-[#0F172A]">{value}</div>
   </div>
 );
 
@@ -80,14 +80,14 @@ export const CollaboratorDetailPanel = ({
   }
 
   return (
-    <Card className={cn(compact ? "" : "sticky top-6", "overflow-hidden rounded-[28px] border border-[#CBD5E1] bg-white shadow-[0_18px_40px_rgba(15,23,42,0.08)]")}>
+      <Card className={cn(compact ? "" : "sticky top-6", "w-full min-w-0 overflow-hidden rounded-[28px] border border-[#CBD5E1] bg-white shadow-[0_18px_40px_rgba(15,23,42,0.08)]")}>
       <div
-        className="px-6 py-6 text-white"
+        className="px-5 py-5 text-white"
         style={{ background: collaboratorTokens.gradients.hero }}
       >
-        <div className="flex items-start gap-4">
-          <Avatar className="h-14 w-14 border border-white/20 bg-white/10">
-            <AvatarFallback className="bg-white/10 text-lg font-semibold text-white">
+        <div className="flex min-w-0 items-start gap-4">
+          <Avatar className="h-12 w-12 border border-white/20 bg-white/10">
+            <AvatarFallback className="bg-white/10 text-base font-semibold text-white">
               {record.initials}
             </AvatarFallback>
           </Avatar>
@@ -106,22 +106,22 @@ export const CollaboratorDetailPanel = ({
               </Badge>
             </div>
 
-            <h2 className="mt-3 text-2xl font-semibold leading-tight">{record.fullName}</h2>
-            <p className="text-sm text-white/80">{record.jobPosition}</p>
-            <p className="mt-2 text-sm text-white/70">{record.detailSummary}</p>
+            <h2 className="mt-3 break-words text-xl font-semibold leading-tight">{record.fullName}</h2>
+            <p className="break-words text-sm text-white/80">{record.jobPosition}</p>
+            <p className="mt-2 break-words text-sm text-white/70">{record.detailSummary}</p>
           </div>
         </div>
       </div>
 
-      <CardContent className="space-y-5 p-6">
-        <div className="grid gap-3 sm:grid-cols-2">
+      <CardContent className="space-y-4 p-5">
+        <div className="grid min-w-0 gap-3 sm:grid-cols-2">
           <LabelValue label="Conta" value={record.hasAccount ? record.username : "Conta sem usuário"} />
           <LabelValue label="Local" value={record.companyName || "Empresa não informada"} />
           <LabelValue label="Jornada" value={record.scheduleLabel} />
           <LabelValue label="Biometria" value={record.biometricLabel} />
         </div>
 
-        <div className="grid gap-3 sm:grid-cols-2">
+        <div className="grid min-w-0 gap-3 sm:grid-cols-2">
           <LabelValue label="CPF" value={record.maskedCpf} />
           <LabelValue label="PIS" value={record.pis || "—"} />
           <LabelValue label="Salário" value={formatCurrency(record.salary)} />
@@ -135,7 +135,7 @@ export const CollaboratorDetailPanel = ({
             <BriefcaseBusiness className="h-4 w-4" />
             Jornada e escala
           </div>
-          <div className="grid gap-3 sm:grid-cols-2">
+          <div className="grid min-w-0 gap-3 sm:grid-cols-2">
             <LabelValue label="Entrada" value={record.workStartTime ?? "—"} />
             <LabelValue label="Saída" value={record.workEndTime ?? "—"} />
             <LabelValue label="Intervalo" value={`${record.breakStartTime ?? "—"} até ${record.breakEndTime ?? "—"}`} />
@@ -151,7 +151,7 @@ export const CollaboratorDetailPanel = ({
           <p className="text-sm text-[#64748B]">
             Edição de dados, troca de status e biometria precisam manter rastreabilidade e confirmação.
           </p>
-          <div className="mt-4 grid gap-3 sm:grid-cols-3">
+          <div className="mt-4 grid gap-3 xl:grid-cols-1 2xl:grid-cols-3">
             <Button type="button" onClick={onStartEditing} className="h-11 rounded-full bg-[#2563EB] hover:bg-[#1E3A8A]">
               <User className="mr-2 h-4 w-4" />
               Editar cadastro
@@ -175,7 +175,7 @@ export const CollaboratorDetailPanel = ({
           </div>
         </div>
 
-        <div className="grid gap-3 sm:grid-cols-2">
+        <div className="grid min-w-0 gap-3 sm:grid-cols-2">
           <LabelValue label="Usuário" value={record.hasAccount ? record.username : "Conta sem usuário"} />
           <LabelValue label="Perfil" value={record.roleLabel} />
         </div>

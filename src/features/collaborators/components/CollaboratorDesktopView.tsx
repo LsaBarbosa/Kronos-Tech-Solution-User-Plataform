@@ -20,8 +20,8 @@ type CollaboratorDesktopViewProps = {
 };
 
 const LoadingState = ({ onCreateCollaborator, onRefresh }: { onCreateCollaborator: () => void; onRefresh: () => void }) => (
-  <div className="grid gap-6 xl:grid-cols-[minmax(0,1.5fr)_420px]">
-    <div className="space-y-6">
+  <div className="grid gap-6 xl:grid-cols-[minmax(0,1.45fr)_minmax(0,380px)]">
+    <div className="min-w-0 space-y-6">
       <Card className="rounded-[28px] border border-[#E2E8F0] bg-white shadow-[0_12px_30px_rgba(15,23,42,0.06)]">
         <CardContent className="space-y-4 p-6">
           <Skeleton className="h-6 w-40" />
@@ -41,7 +41,7 @@ const LoadingState = ({ onCreateCollaborator, onRefresh }: { onCreateCollaborato
         </CardContent>
       </Card>
     </div>
-    <Card className="rounded-[28px] border border-[#E2E8F0] bg-white shadow-[0_12px_30px_rgba(15,23,42,0.06)]">
+    <Card className="min-w-0 rounded-[28px] border border-[#E2E8F0] bg-white shadow-[0_12px_30px_rgba(15,23,42,0.06)]">
       <CardContent className="flex min-h-[520px] items-center justify-center p-6">
         <div className="space-y-3 text-center">
           <RefreshCw className="mx-auto h-10 w-10 animate-spin text-[#2563EB]" />
@@ -147,9 +147,9 @@ export const CollaboratorDesktopView = ({
     <PageShell
       sidebarOpen={sidebarOpen}
       toggleSidebar={handleToggleSidebar}
-      mainClassName="relative z-10 px-4 pb-10 pt-24 lg:px-6"
+      mainClassName="relative z-10 overflow-x-hidden px-4 pb-10 pt-24 lg:px-6"
     >
-      <div className="mx-auto flex max-w-[1600px] flex-col gap-6">
+      <div className="mx-auto flex min-w-0 max-w-[1600px] flex-col gap-6">
         <Breadcrumb>
           <BreadcrumbList>
             <BreadcrumbItem>
@@ -197,8 +197,8 @@ export const CollaboratorDesktopView = ({
             onCreateCollaborator={onCreateCollaborator}
           />
         ) : (
-          <div className="grid gap-6 xl:grid-cols-[minmax(0,1.55fr)_420px]">
-            <div className="space-y-6">
+          <div className="grid min-w-0 gap-6 xl:grid-cols-[minmax(0,1.45fr)_minmax(0,380px)]">
+            <div className="min-w-0 space-y-6">
               <CollaboratorFiltersBar
                 variant="desktop"
                 filters={filters}
@@ -219,6 +219,7 @@ export const CollaboratorDesktopView = ({
               />
             </div>
 
+            <div className="min-w-0">
             <CollaboratorDetailPanel
               record={selectedCollaborator}
               isEditing={editingCollaboratorId === selectedCollaborator?.employeeId}
@@ -245,6 +246,7 @@ export const CollaboratorDesktopView = ({
                 }
               }}
             />
+            </div>
           </div>
         )}
       </div>

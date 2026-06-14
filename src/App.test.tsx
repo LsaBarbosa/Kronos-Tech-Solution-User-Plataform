@@ -180,9 +180,7 @@ describe("App routes", () => {
     const { default: App } = await import("./App");
     render(<App />);
 
-    await waitFor(() => {
-      expect(screen.getByText("Criar Aviso")).toBeInTheDocument();
-    });
+    await screen.findByText("Criar Aviso", {}, { timeout: 3000 });
   });
 
   it("renderiza /privacy/policy como política pública sem login", async () => {

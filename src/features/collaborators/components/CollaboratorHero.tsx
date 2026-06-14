@@ -35,12 +35,12 @@ const MetricCard = ({
   }[tone];
 
   return (
-    <div className={cn("rounded-[22px] border px-4 py-3 shadow-[0_12px_24px_rgba(0,0,0,0.08)]", toneClass)}>
+    <div className={cn("rounded-[20px] border px-3 py-3 shadow-[0_12px_24px_rgba(0,0,0,0.08)]", toneClass)}>
       <div className="flex items-start gap-3">
         <div className="mt-0.5">{icon}</div>
         <div className="min-w-0">
-          <div className="text-2xl font-semibold leading-none">{value}</div>
-          <div className="mt-1 text-xs uppercase tracking-[0.18em] text-white/75">{label}</div>
+          <div className="text-xl font-semibold leading-none xl:text-2xl">{value}</div>
+          <div className="mt-1 text-[10px] uppercase tracking-[0.16em] text-white/75 xl:text-xs xl:tracking-[0.18em]">{label}</div>
         </div>
       </div>
     </div>
@@ -140,8 +140,8 @@ export const CollaboratorHero = ({
         className="pointer-events-none absolute inset-0 opacity-90"
         style={{ background: collaboratorTokens.gradients.heroAccent }}
       />
-      <div className="relative z-10 flex flex-col gap-6 xl:flex-row xl:items-end xl:justify-between">
-        <div className="max-w-3xl space-y-4">
+      <div className="relative z-10 flex flex-col gap-6 xl:grid xl:grid-cols-[minmax(0,1fr)_minmax(0,460px)] xl:items-end">
+        <div className="min-w-0 max-w-3xl space-y-4">
           <div className="flex flex-wrap items-center gap-3">
             <Badge className="border-white/20 bg-white/10 text-white hover:bg-white/10">Central de pessoas</Badge>
             {hasActiveFilters && (
@@ -178,17 +178,17 @@ export const CollaboratorHero = ({
           </div>
         </div>
 
-        <div className="grid gap-3 sm:grid-cols-2 xl:w-[530px] xl:grid-cols-3">
+        <div className="min-w-0 grid gap-3 sm:grid-cols-2 xl:grid-cols-2 2xl:grid-cols-3">
           <MetricCard icon={<Users className="h-4 w-4 text-cyan-200" />} label="Ativos" value={summary.active} tone="primary" />
           <MetricCard icon={<UserX className="h-4 w-4 text-rose-200" />} label="Inativos" value={summary.inactive} tone="danger" />
           <MetricCard icon={<UserCheck className="h-4 w-4 text-emerald-200" />} label="Gestores" value={summary.managers} tone="success" />
           <MetricCard icon={<BriefcaseBusiness className="h-4 w-4 text-indigo-200" />} label="Home office" value={summary.homeOffice} tone="neutral" />
-          <div className="rounded-[22px] border border-white/20 bg-white/10 px-4 py-3 sm:col-span-2 xl:col-span-1">
+          <div className="rounded-[20px] border border-white/20 bg-white/10 px-3 py-3 sm:col-span-2 xl:col-span-1">
             <div className="flex items-start gap-3">
               <Fingerprint className="mt-1 h-4 w-4 text-cyan-200" />
               <div>
-                <div className="text-2xl font-semibold leading-none">{summary.biometricPending}</div>
-                <div className="mt-1 text-xs uppercase tracking-[0.18em] text-white/75">Biometria pendente</div>
+                <div className="text-xl font-semibold leading-none xl:text-2xl">{summary.biometricPending}</div>
+                <div className="mt-1 text-[10px] uppercase tracking-[0.16em] text-white/75 xl:text-xs xl:tracking-[0.18em]">Biometria pendente</div>
               </div>
             </div>
           </div>
