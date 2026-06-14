@@ -30,7 +30,7 @@ export interface VacationManagerDisplay {
 }
 
 export const mapManagerOptionToDisplay = (manager: ManagerOption): VacationManagerDisplay => {
-  const displayName = titleCase(manager.username);
+  const displayName = manager.fullName?.trim() || titleCase(manager.username);
 
   return {
     userId: manager.userId,
@@ -43,4 +43,3 @@ export const mapManagerOptionToDisplay = (manager: ManagerOption): VacationManag
 
 export const mapManagerOptionsToDisplay = (managers: ManagerOption[]): VacationManagerDisplay[] =>
   managers.map(mapManagerOptionToDisplay);
-

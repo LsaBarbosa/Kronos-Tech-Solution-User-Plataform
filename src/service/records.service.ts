@@ -1,5 +1,6 @@
 import { api } from "@/config/api";
 import { API_ROUTES, buildRoute } from "@/config/api-routes";
+import { getEmployee } from "@/service/employee.service";
 import { extractArray, extractObject } from "@/service/helpers/response-normalizer.helper";
 import { PAGINATION_DEFAULTS } from "@/constants/pagination";
 import type { DetailedReportItem, Employee } from "@/utils/report-utils";
@@ -251,12 +252,32 @@ export const fetchManagerOptions = async (): Promise<ManagerOption[]> => {
     params: { active: true, size: 999 },
   });
 
-  return extractArray<UserSearchListItem>(response.data, ["users"])
-    .filter((user) => user.role === "MANAGER")
-    .map((user): ManagerOption => ({
-      userId: user.userId,
-      username: user.username,
-    }));
+  const managerUsers = extractArray<UserSearchListItem>(response.data, ["users"]).filter(
+    (user) => user.role === "MANAGER"
+  );
+
+  return Promise.all(
+    managerUsers.map(async (manager): Promise<ManagerOption> => {
+      const baseManager: ManagerOption = {
+        userId: manager.userId,
+        username: manager.username,
+      };
+
+      if (!manager.employeeId) {
+        return baseManager;
+      }
+
+      try {
+        const employee = await getEmployee(manager.employeeId);
+        return {
+          ...baseManager,
+          fullName: employee.fullName,
+        };
+      } catch {
+        return baseManager;
+      }
+    })
+  );
 };
 
 export const fetchPendingVacationCount = async (): Promise<number> => {

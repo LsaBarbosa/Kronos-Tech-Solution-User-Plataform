@@ -174,8 +174,8 @@ const RelatorioDetalhado = () => {
     const fetchManagers = useCallback(async () => {
         try {
             const filteredManagers: Manager[] = (await fetchManagerOptions()).map((manager) => ({
-                id: manager.userId,
-                name: manager.username,
+              id: manager.userId,
+              name: manager.fullName ?? manager.username,
             }));
             setManagers(filteredManagers);
         } catch (error: unknown) {

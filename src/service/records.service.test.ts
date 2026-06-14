@@ -217,6 +217,37 @@ describe("records.service", () => {
     ]);
   });
 
+  it("enriquece o nome completo do gestor quando o employeeId está disponível", async () => {
+    server.use(
+      http.get("*/users/search", () =>
+        HttpResponse.json({
+          users: [
+            {
+              userId: "manager-1",
+              employeeId: "emp-1",
+              username: "gestor",
+              role: "MANAGER",
+            },
+          ],
+        })
+      ),
+      http.get("*/employee/emp-1", () =>
+        HttpResponse.json({
+          employeeId: "emp-1",
+          fullName: "Maria Silva",
+        })
+      )
+    );
+
+    await expect(fetchManagerOptions()).resolves.toEqual([
+      {
+        userId: "manager-1",
+        username: "gestor",
+        fullName: "Maria Silva",
+      },
+    ]);
+  });
+
   it("conta pendencias de ferias usando totalElements da pagina", async () => {
     server.use(
       http.get("*/records/vacation-request", ({ request }) => {

@@ -21,6 +21,7 @@ export interface VacationRequestPayload {
 export interface ManagerOption {
   userId: string;
   username: string;
+  fullName?: string;
 }
 
 export interface ManualTimeOffRequestPayload {

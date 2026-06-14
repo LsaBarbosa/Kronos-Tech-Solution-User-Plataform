@@ -17,6 +17,7 @@ import TimeOffEvidenceUploader from "./TimeOffEvidenceUploader";
 import TimeOffApprovalSummary from "./TimeOffApprovalSummary";
 import TimeOffOperationalChecklist from "./TimeOffOperationalChecklist";
 import { formatTimeOffTypeLabel } from "../utils/timeOffFormatting";
+import { mapManagerOptionToDisplay } from "../mappers/time-off-request.mapper";
 
 interface TimeOffDesktopExperienceProps {
   viewModel: TimeOffRequestViewModel;
@@ -57,7 +58,7 @@ const TimeOffDesktopExperience = ({ viewModel }: TimeOffDesktopExperienceProps) 
     },
     {
       label: "Destino",
-      value: viewModel.selectedManager?.username ? viewModel.selectedManager.username : "Gestor responsável",
+      value: viewModel.selectedManager ? mapManagerOptionToDisplay(viewModel.selectedManager).displayName : "Gestor responsável",
       helper: "Manager responsável pela aprovação.",
     },
     {

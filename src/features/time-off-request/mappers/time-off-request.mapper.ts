@@ -31,7 +31,7 @@ export interface TimeOffManagerDisplay {
 }
 
 export const mapManagerOptionToDisplay = (manager: ManagerOption): TimeOffManagerDisplay => {
-  const displayName = titleCase(manager.username);
+  const displayName = manager.fullName?.trim() || titleCase(manager.username);
 
   return {
     userId: manager.userId,
