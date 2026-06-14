@@ -148,29 +148,40 @@ export const CollaboratorDetailPanel = ({
             <ShieldCheck className="h-4 w-4" />
             Ações sensíveis
           </div>
-          <p className="text-sm text-[#64748B]">
+          <p className="break-words text-sm text-[#64748B]">
             Edição de dados, troca de status e biometria precisam manter rastreabilidade e confirmação.
           </p>
-          <div className="mt-4 grid gap-3 xl:grid-cols-1 2xl:grid-cols-3">
-            <Button type="button" onClick={onStartEditing} className="h-11 rounded-full bg-[#2563EB] hover:bg-[#1E3A8A]">
+          <div className="mt-4 grid gap-3">
+            <Button
+              type="button"
+              onClick={onStartEditing}
+              className="h-auto min-h-11 w-full justify-start rounded-full bg-[#2563EB] px-4 py-3 text-left leading-5 hover:bg-[#1E3A8A]"
+            >
               <User className="mr-2 h-4 w-4" />
-              Editar cadastro
+              <span className="min-w-0 whitespace-normal break-words">Editar cadastro</span>
             </Button>
             <Button
               type="button"
               variant="outline"
               onClick={onRequestToggle}
               className={cn(
-                "h-11 rounded-full border-[#CBD5E1]",
+                "h-auto min-h-11 w-full justify-start rounded-full border-[#CBD5E1] px-4 py-3 text-left leading-5",
                 record.active ? "text-[#DC2626]" : "text-[#16A34A]"
               )}
             >
               <Power className="mr-2 h-4 w-4" />
-              {record.active ? "Desativar acesso" : "Reativar acesso"}
+              <span className="min-w-0 whitespace-normal break-words">
+                {record.active ? "Desativar acesso" : "Reativar acesso"}
+              </span>
             </Button>
-            <Button type="button" variant="outline" onClick={onOpenBiometric} className="h-11 rounded-full border-[#CBD5E1] text-[#1E3A8A]">
+            <Button
+              type="button"
+              variant="outline"
+              onClick={onOpenBiometric}
+              className="h-auto min-h-11 w-full justify-start rounded-full border-[#CBD5E1] px-4 py-3 text-left leading-5 text-[#1E3A8A]"
+            >
               <Fingerprint className="mr-2 h-4 w-4" />
-              Biometria
+              <span className="min-w-0 whitespace-normal break-words">Biometria</span>
             </Button>
           </div>
         </div>

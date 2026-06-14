@@ -83,7 +83,7 @@ export const CollaboratorHero = ({
                 className="h-10 rounded-full border-white/20 bg-white/8 px-4 text-white hover:bg-white/15 hover:text-white"
               >
                 <Home className="mr-2 h-4 w-4" />
-                Início
+                Dashboard
               </Button>
             )}
             <Button
@@ -159,6 +159,17 @@ export const CollaboratorHero = ({
             </p>
           </div>
           <div className="flex flex-wrap items-center gap-3">
+            {onGoHome && (
+              <Button
+                type="button"
+                variant="outline"
+                onClick={onGoHome}
+                className="h-11 rounded-full border-white/20 bg-white/8 px-5 text-white hover:bg-white/14 hover:text-white"
+              >
+                <Home className="mr-2 h-4 w-4" />
+                Dashboard
+              </Button>
+            )}
             <Button
               type="button"
               onClick={onCreateCollaborator}

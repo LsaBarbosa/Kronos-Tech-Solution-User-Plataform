@@ -106,7 +106,9 @@ export const CollaboratorTable = ({
                       <div className="break-words text-sm font-medium leading-5 text-[#0F172A]">
                         {record.scheduleLabel}
                       </div>
-                      <div className="truncate text-xs text-[#64748B]">{record.companyName}</div>
+                      <div className="truncate text-xs text-[#64748B]">
+                        {record.companyName ?? "Empresa não informada"}
+                      </div>
                     </div>
                   </TableCell>
 

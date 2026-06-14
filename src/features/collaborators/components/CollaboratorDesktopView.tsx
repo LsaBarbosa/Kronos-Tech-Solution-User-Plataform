@@ -17,6 +17,7 @@ import type { useCollaboratorsCommandCenter } from "../hooks/useCollaboratorsCom
 type CollaboratorDesktopViewProps = {
   viewModel: ReturnType<typeof useCollaboratorsCommandCenter>;
   onCreateCollaborator: () => void;
+  onGoHome: () => void;
 };
 
 const LoadingState = ({ onCreateCollaborator, onRefresh }: { onCreateCollaborator: () => void; onRefresh: () => void }) => (
@@ -105,6 +106,7 @@ const ErrorState = ({ onRefresh }: { onRefresh: () => void }) => (
 export const CollaboratorDesktopView = ({
   viewModel,
   onCreateCollaborator,
+  onGoHome,
 }: CollaboratorDesktopViewProps) => {
   const {
     sidebarOpen,
@@ -176,6 +178,7 @@ export const CollaboratorDesktopView = ({
           hasActiveFilters={hasActiveFilters}
           onCreateCollaborator={onCreateCollaborator}
           onClearFilters={clearFilters}
+          onGoHome={onGoHome}
         />
 
         {isLoading && records.length === 0 ? (

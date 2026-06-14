@@ -226,6 +226,20 @@ const CreateCollaboratorDesktop = ({ vm }: CreateCollaboratorDesktopProps) => {
             </Breadcrumb>
 
             <div className="flex items-center gap-3">
+              <Button
+                asChild
+                variant="outline"
+                className="h-11 rounded-2xl border-slate-200 bg-white px-4 text-sm font-semibold text-slate-700 hover:bg-slate-50"
+              >
+                <Link to={APP_PATHS.dashboard}>Dashboard</Link>
+              </Button>
+              <Button
+                asChild
+                variant="outline"
+                className="h-11 rounded-2xl border-slate-200 bg-white px-4 text-sm font-semibold text-slate-700 hover:bg-slate-50"
+              >
+                <Link to={APP_PATHS.listaColaboradores}>Lista</Link>
+              </Button>
               <Badge variant="outline" className="rounded-full border-blue-200 bg-blue-50 px-4 py-1.5 text-[12px] font-semibold text-blue-700">
                 Onboarding cadastral
               </Badge>

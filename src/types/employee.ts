@@ -35,6 +35,7 @@ export interface EmployeeData {
         neighborhood?: string;
     };
     companyId: string;
+    companyName?: string;
     role?: 'PARTNER' | 'MANAGER' | 'ADMIN' | 'CTO';
     active: boolean;
     homeOffice: boolean; 

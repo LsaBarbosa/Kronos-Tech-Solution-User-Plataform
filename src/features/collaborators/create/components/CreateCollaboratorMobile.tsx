@@ -1,7 +1,9 @@
 import { useMemo, type ReactNode } from "react";
 import { ShieldCheck, Sparkles, BadgeCheck, CheckCircle2 } from "lucide-react";
+import { Link } from "react-router-dom";
 
 import { useAuth } from "@/context/AuthContext";
+import { APP_PATHS } from "@/config/app-routes";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -165,6 +167,27 @@ const CreateCollaboratorMobile = ({
           <div className="mt-6">
             <h1 className="text-3xl font-semibold tracking-tight text-white">Novo cadastro</h1>
             <p className="mt-1 text-sm text-white/78">Dados, escala e acesso.</p>
+          </div>
+
+          <div className="mt-5 grid grid-cols-2 gap-2">
+            <Button
+              asChild
+              variant="outline"
+              className="h-11 rounded-2xl border-white/20 bg-white/10 px-3 text-sm font-semibold text-white hover:bg-white/15 hover:text-white"
+            >
+              <Link to={APP_PATHS.dashboard}>
+                <span>Dashboard</span>
+              </Link>
+            </Button>
+            <Button
+              asChild
+              variant="outline"
+              className="h-11 rounded-2xl border-white/20 bg-white/10 px-3 text-sm font-semibold text-white hover:bg-white/15 hover:text-white"
+            >
+              <Link to={APP_PATHS.listaColaboradores}>
+                <span>Lista</span>
+              </Link>
+            </Button>
           </div>
         </div>
       </header>

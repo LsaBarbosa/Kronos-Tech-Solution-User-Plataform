@@ -14,7 +14,11 @@ export const CollaboratorCommandCenter = () => {
   const goToDashboard = () => navigate(APP_PATHS.dashboard);
 
   return isDesktop ? (
-    <CollaboratorDesktopView viewModel={viewModel} onCreateCollaborator={goToCreateCollaborator} />
+    <CollaboratorDesktopView
+      viewModel={viewModel}
+      onCreateCollaborator={goToCreateCollaborator}
+      onGoHome={goToDashboard}
+    />
   ) : (
     <CollaboratorMobileView
       viewModel={viewModel}
@@ -25,4 +29,3 @@ export const CollaboratorCommandCenter = () => {
 };
 
 export default CollaboratorCommandCenter;
-
