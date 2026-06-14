@@ -54,7 +54,7 @@ const MobileStepHeader = ({
     disabled={locked}
     onClick={onClick}
     className={cn(
-      "flex min-h-[76px] w-full items-center gap-3 rounded-[26px] border px-4 py-3 text-left transition-all",
+      "flex min-h-[76px] w-full items-start gap-3 rounded-[26px] border px-4 py-3 text-left transition-all",
       active
         ? "border-blue-300 bg-blue-50 text-slate-900 shadow-sm"
         : "border-slate-200 bg-white text-slate-500",
@@ -63,15 +63,15 @@ const MobileStepHeader = ({
   >
     <div
       className={cn(
-        "flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-sm font-semibold",
+        "mt-0.5 flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-sm font-semibold",
         active ? "bg-blue-600 text-white" : "bg-slate-100 text-slate-500"
       )}
     >
       {step}
     </div>
-    <div className="min-w-0">
-      <div className="text-sm font-semibold">Etapa {step}</div>
-      <div className="text-xs text-slate-500">{active ? "Em edição" : locked ? "Bloqueada" : "Toque para abrir"}</div>
+    <div className="min-w-0 flex-1">
+      <div className="text-sm font-semibold leading-5">Etapa {step}</div>
+      <div className="text-xs leading-4 text-slate-500">{active ? "Em edição" : locked ? "Bloqueada" : "Toque para abrir"}</div>
     </div>
   </button>
 );
@@ -86,8 +86,8 @@ const MobileCollapsedSummary = ({
   badge?: ReactNode;
 }) => (
   <div className="space-y-2">
-    <div className="text-lg font-semibold text-slate-900">{title}</div>
-    <div className="text-sm leading-5 text-slate-500">{subtitle}</div>
+    <div className="break-words text-lg font-semibold text-slate-900">{title}</div>
+    <div className="break-words text-sm leading-5 text-slate-500">{subtitle}</div>
     {badge ? <div className="pt-2">{badge}</div> : null}
   </div>
 );
@@ -169,9 +169,9 @@ const CreateCollaboratorMobile = ({
         </div>
       </header>
 
-      <main className="space-y-4 px-4 pb-28 pt-4 sm:px-6">
+      <main className="space-y-4 px-4 pb-[calc(env(safe-area-inset-bottom)+6.5rem)] pt-4 sm:px-6">
         <section className="rounded-[26px] border border-slate-200 bg-white p-3 shadow-sm">
-          <div className="grid grid-cols-3 gap-2">
+          <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
             {COLLABORATOR_MOBILE_STEPS.map((step, index) => {
               const locked = (vm.stepCompleted && index < 2) || (index === 2 && !vm.savedEmployeeId);
 
@@ -188,7 +188,12 @@ const CreateCollaboratorMobile = ({
           </div>
         </section>
 
-        <Card className={cn("rounded-[28px] border-slate-200 shadow-[0_24px_60px_-48px_rgba(15,23,42,0.55)]", activeStep === 0 ? "bg-white" : "bg-white/92")}>
+        <Card
+          className={cn(
+            "overflow-hidden rounded-[28px] border bg-white shadow-[0_24px_60px_-48px_rgba(15,23,42,0.55)]",
+            activeStep === 0 ? "border-blue-200 ring-1 ring-blue-100" : "border-slate-200"
+          )}
+        >
           <CardHeader className="gap-2 px-5 py-5">
             <div className="flex items-start justify-between gap-4">
               <div>
@@ -221,11 +226,11 @@ const CreateCollaboratorMobile = ({
                   render={({ field }) => (
                     <FormItem>
                       <FormLabel>CPF</FormLabel>
-                      <div className="flex gap-2">
+                      <div className="flex flex-col gap-2 sm:flex-row">
                         <FormControl>
                           <Input
                             placeholder="000.000.000-00"
-                            className="h-12 rounded-xl"
+                            className="h-12 min-w-0 rounded-xl"
                             maxLength={14}
                             {...field}
                             onChange={(event) => field.onChange(handleCpfMask(event.target.value))}
@@ -235,7 +240,7 @@ const CreateCollaboratorMobile = ({
                           type="button"
                           onClick={vm.handleCheckCPF}
                           disabled={vm.isCheckingCPF || field.value.replace(/\D/g, "").length < 11}
-                          className="h-12 rounded-xl px-4"
+                          className="h-12 w-full rounded-xl px-4 sm:w-auto"
                         >
                           {vm.isCheckingCPF ? "Verificando" : "Validar"}
                         </Button>
@@ -274,7 +279,7 @@ const CreateCollaboratorMobile = ({
                   )}
                 />
 
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                   <FormField
                     control={vm.form.control}
                     name="telefone"
@@ -284,7 +289,7 @@ const CreateCollaboratorMobile = ({
                         <FormControl>
                           <Input
                             placeholder="(00) 00000-0000"
-                            className="h-12 rounded-xl"
+                            className="h-12 min-w-0 rounded-xl"
                             maxLength={15}
                             {...field}
                             onChange={(event) => field.onChange(handlePhoneMask(event.target.value))}
@@ -304,7 +309,7 @@ const CreateCollaboratorMobile = ({
                         <FormControl>
                           <Input
                             placeholder="R$ 0,00"
-                            className="h-12 rounded-xl"
+                            className="h-12 min-w-0 rounded-xl"
                             {...field}
                             onChange={(event) => field.onChange(handleCurrencyMask(event.target.value))}
                           />
@@ -315,7 +320,7 @@ const CreateCollaboratorMobile = ({
                   />
                 </div>
 
-                <div className="grid grid-cols-2 gap-3 rounded-[24px] border border-slate-200 bg-slate-50/80 p-3">
+                <div className="grid grid-cols-1 gap-3 rounded-[24px] border border-slate-200 bg-slate-50 p-3 sm:grid-cols-2">
                   <FormField
                     control={vm.form.control}
                     name="cep"
@@ -325,7 +330,7 @@ const CreateCollaboratorMobile = ({
                         <FormControl>
                           <Input
                             placeholder="00000-000"
-                            className="h-12 rounded-xl bg-white"
+                            className="h-12 min-w-0 rounded-xl bg-white"
                             maxLength={9}
                             {...field}
                             onChange={(event) => field.onChange(handleCepMask(event.target.value))}
@@ -343,7 +348,7 @@ const CreateCollaboratorMobile = ({
                       <FormItem>
                         <FormLabel>Número</FormLabel>
                         <FormControl>
-                          <Input placeholder="151" className="h-12 rounded-xl bg-white" {...field} />
+                          <Input placeholder="151" className="h-12 min-w-0 rounded-xl bg-white" {...field} />
                         </FormControl>
                         <FormMessage />
                       </FormItem>
@@ -358,7 +363,7 @@ const CreateCollaboratorMobile = ({
                     const homeOffice = getHomeOfficeLabel(field.value);
 
                     return (
-                      <FormItem className="rounded-[24px] border border-slate-200 bg-slate-50/80 p-4">
+                      <FormItem className="rounded-[24px] border border-slate-200 bg-slate-50 p-4">
                         <div className="flex items-center justify-between gap-3">
                           <div>
                             <FormLabel>Home office</FormLabel>
@@ -408,7 +413,12 @@ const CreateCollaboratorMobile = ({
           </CardContent>
         </Card>
 
-        <Card className={cn("rounded-[28px] border-slate-200 shadow-[0_24px_60px_-48px_rgba(15,23,42,0.55)]", activeStep === 1 ? "bg-white" : "bg-white/92")}>
+        <Card
+          className={cn(
+            "overflow-hidden rounded-[28px] border bg-white shadow-[0_24px_60px_-48px_rgba(15,23,42,0.55)]",
+            activeStep === 1 ? "border-blue-200 ring-1 ring-blue-100" : "border-slate-200"
+          )}
+        >
           <CardHeader className="gap-2 px-5 py-5">
             <div className="flex items-start justify-between gap-4">
               <div>
@@ -534,7 +544,7 @@ const CreateCollaboratorMobile = ({
                     control={vm.form.control}
                     name="fixedWorkDays"
                     render={({ field }) => (
-                      <FormItem className="rounded-[24px] border border-slate-200 bg-slate-50/80 p-4">
+                      <FormItem className="rounded-[24px] border border-slate-200 bg-slate-50 p-4">
                         <FormLabel>Dias de trabalho</FormLabel>
                         <div className="mt-3 flex flex-wrap gap-2">
                           {COLLABORATOR_DAY_OPTIONS.map((day) => {
@@ -568,7 +578,7 @@ const CreateCollaboratorMobile = ({
                   />
                 )}
 
-                <div className="grid grid-cols-2 gap-3">
+                <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
                   <FormField
                     control={vm.form.control}
                     name="workStartTime"
@@ -626,7 +636,7 @@ const CreateCollaboratorMobile = ({
                   />
                 </div>
 
-                <div className="rounded-[24px] border border-slate-200 bg-slate-50/80 p-4">
+                <div className="rounded-[24px] border border-slate-200 bg-slate-50 p-4">
                   <div className="flex items-center justify-between gap-3">
                     <div>
                       <div className="text-sm font-semibold text-slate-900">Resumo da jornada</div>
@@ -664,7 +674,12 @@ const CreateCollaboratorMobile = ({
           </CardContent>
         </Card>
 
-        <Card className={cn("rounded-[28px] border-slate-200 shadow-[0_24px_60px_-48px_rgba(15,23,42,0.55)]", activeStep === 2 ? "bg-white" : "bg-white/92")}>
+        <Card
+          className={cn(
+            "overflow-hidden rounded-[28px] border bg-white shadow-[0_24px_60px_-48px_rgba(15,23,42,0.55)]",
+            activeStep === 2 ? "border-blue-200 ring-1 ring-blue-100" : "border-slate-200"
+          )}
+        >
           <CardHeader className="gap-2 px-5 py-5">
             <div className="flex items-start justify-between gap-4">
               <div>
@@ -687,7 +702,7 @@ const CreateCollaboratorMobile = ({
           <CardContent className="space-y-4 px-5 pb-5">
             {activeStep === 2 ? (
               <div className="space-y-4">
-                <div className={cn("rounded-[24px] border px-4 py-4", vm.stepCompleted ? "border-emerald-200 bg-emerald-50/70" : "border-amber-200 bg-amber-50/70")}>
+                  <div className={cn("rounded-[24px] border px-4 py-4", vm.stepCompleted ? "border-emerald-200 bg-emerald-50" : "border-amber-200 bg-amber-50")}>
                   <div className="flex items-start gap-3">
                     {vm.stepCompleted ? (
                       <CheckCircle2 className="mt-0.5 h-5 w-5 text-emerald-600" />
@@ -716,11 +731,11 @@ const CreateCollaboratorMobile = ({
                         <FormLabel>Username</FormLabel>
                         <StatusBadge label={usernameBadge.label} tone={usernameBadge.tone} description={usernameBadge.description} />
                       </div>
-                      <div className="flex gap-2">
+                      <div className="flex flex-col gap-2 sm:flex-row">
                         <FormControl>
                           <Input
                             placeholder="mariana.costa"
-                            className="h-12 rounded-xl"
+                            className="h-12 min-w-0 rounded-xl"
                             disabled={!vm.stepCompleted}
                             {...field}
                           />
@@ -729,7 +744,7 @@ const CreateCollaboratorMobile = ({
                           type="button"
                           onClick={vm.handleCheckUsername}
                           disabled={vm.isCheckingUsername || !vm.stepCompleted || field.value.length < 4}
-                          className="h-12 rounded-xl px-4"
+                          className="h-12 w-full rounded-xl px-4 sm:w-auto"
                         >
                           {vm.isCheckingUsername ? "Validando" : "Validar"}
                         </Button>
@@ -767,7 +782,7 @@ const CreateCollaboratorMobile = ({
                   )}
                 />
 
-                <div className="rounded-[24px] border border-violet-200 bg-violet-50/60 p-4">
+                <div className="rounded-[24px] border border-violet-200 bg-violet-50 p-4">
                   <div className="flex items-center gap-2 text-sm font-semibold text-violet-700">
                     <ShieldCheck className="h-4 w-4" />
                     Regra de fluxo
@@ -801,16 +816,16 @@ const CreateCollaboratorMobile = ({
       </main>
 
       <div className="fixed inset-x-0 bottom-0 z-40 border-t border-slate-200 bg-white/95 px-4 pb-[calc(env(safe-area-inset-bottom)+1rem)] pt-3 backdrop-blur-xl sm:px-6">
-        <div className="mx-auto flex max-w-[640px] items-center justify-between gap-4">
+        <div className="mx-auto flex max-w-[640px] flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
           <div className="min-w-0">
-            <div className="text-sm font-semibold text-slate-900">{actionLabel}</div>
-            <div className="truncate text-xs text-slate-500">{actionDescription}</div>
+            <div className="break-words text-sm font-semibold text-slate-900">{actionLabel}</div>
+            <div className="break-words text-xs leading-4 text-slate-500">{actionDescription}</div>
           </div>
           <Button
             type="button"
             onClick={() => void onPrimaryAction()}
             disabled={vm.isSubmitting || (activeStep === 1 && (vm.cpfAvailability !== "available" || vm.stepCompleted)) || (activeStep === 2 && (!vm.stepCompleted || vm.usernameAvailability !== "available"))}
-            className="h-12 rounded-2xl px-5"
+            className="h-12 w-full rounded-2xl px-5 sm:w-auto"
           >
             {vm.isSubmitting ? "Aguarde..." : actionLabel}
           </Button>
