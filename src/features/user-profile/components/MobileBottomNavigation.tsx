@@ -51,7 +51,7 @@ const MobileBottomNavigation = ({ value, onChange }: MobileBottomNavigationProps
                 "flex min-h-14 flex-col items-center justify-center gap-1 rounded-2xl border px-2 text-[11px] font-semibold transition-colors",
                 active
                   ? "border-[#1F4E5F] bg-[#1F4E5F] text-white"
-                  : "border-[#D8E2EC] bg-[#F5F8FB] text-[#627D98]"
+                  : "border-[#D8E2EC] bg-[#D9E2EB] text-[#627D98]"
               )}
             >
               {item.icon}

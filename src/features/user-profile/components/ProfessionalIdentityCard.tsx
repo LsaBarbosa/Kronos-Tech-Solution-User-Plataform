@@ -33,7 +33,7 @@ const Field = ({
 }) => (
   <div className="rounded-2xl border border-[#D8E2EC] bg-white px-4 py-3 shadow-sm">
     <div className="flex items-start gap-3">
-      <div className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-2xl bg-[#F5F8FB] text-[#1F4E5F]">
+      <div className="mt-0.5 flex h-9 w-9 shrink-0 items-center justify-center rounded-2xl bg-[#D9E2EB] text-[#1F4E5F]">
         {icon}
       </div>
       <div className="min-w-0">
@@ -104,15 +104,15 @@ const ProfessionalIdentityCard = ({
           </StatusPill>
         </div>
         <div className="flex flex-wrap gap-2">
-          <Badge variant="outline" className="border-[#D8E2EC] bg-[#F5F8FB] text-[#102A43]">
+          <Badge variant="outline" className="border-[#D8E2EC] bg-[#D9E2EB] text-[#102A43]">
             <UserRound className="mr-1 h-3.5 w-3.5" />
             {identity.roleLabel}
           </Badge>
-          <Badge variant="outline" className="border-[#D8E2EC] bg-[#F5F8FB] text-[#102A43]">
+          <Badge variant="outline" className="border-[#D8E2EC] bg-[#D9E2EB] text-[#102A43]">
             <Briefcase className="mr-1 h-3.5 w-3.5" />
             {identity.jobPosition}
           </Badge>
-          <Badge variant="outline" className="border-[#D8E2EC] bg-[#F5F8FB] text-[#102A43]">
+          <Badge variant="outline" className="border-[#D8E2EC] bg-[#D9E2EB] text-[#102A43]">
             <Building2 className="mr-1 h-3.5 w-3.5" />
             {identity.companyName}
           </Badge>
@@ -129,11 +129,11 @@ const ProfessionalIdentityCard = ({
         </div>
 
         <div className="grid gap-3 sm:grid-cols-2">
-          <div className="rounded-2xl border border-[#D8E2EC] bg-[#F5F8FB] p-4">
+          <div className="rounded-2xl border border-[#D8E2EC] bg-[#D9E2EB] p-4">
             <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[#627D98]">Usuário</p>
             <p className="mt-2 text-sm font-medium text-[#102A43]">{identity.username}</p>
           </div>
-          <div className="rounded-2xl border border-[#D8E2EC] bg-[#F5F8FB] p-4">
+          <div className="rounded-2xl border border-[#D8E2EC] bg-[#D9E2EB] p-4">
             <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[#627D98]">Localização</p>
             <p className="mt-2 text-sm font-medium text-[#102A43]">{identity.postalCode}</p>
           </div>
@@ -142,15 +142,15 @@ const ProfessionalIdentityCard = ({
         <div className="rounded-2xl border border-[#D8E2EC] bg-white p-4">
           <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#627D98]">Status protegido</p>
           <div className="mt-3 flex flex-wrap gap-2">
-            <Badge variant="outline" className="border-[#D8E2EC] bg-[#F5F8FB] text-[#102A43]">
+            <Badge variant="outline" className="border-[#D8E2EC] bg-[#D9E2EB] text-[#102A43]">
               <BadgeCheck className="mr-1 h-3.5 w-3.5" />
               Empresa não editável
             </Badge>
-            <Badge variant="outline" className="border-[#D8E2EC] bg-[#F5F8FB] text-[#102A43]">
+            <Badge variant="outline" className="border-[#D8E2EC] bg-[#D9E2EB] text-[#102A43]">
               <BadgeCheck className="mr-1 h-3.5 w-3.5" />
               Salário protegido
             </Badge>
-            <Badge variant="outline" className="border-[#D8E2EC] bg-[#F5F8FB] text-[#102A43]">
+            <Badge variant="outline" className="border-[#D8E2EC] bg-[#D9E2EB] text-[#102A43]">
               <BadgeCheck className="mr-1 h-3.5 w-3.5" />
               Papel não editável
             </Badge>

@@ -50,7 +50,7 @@ const SecurityPasswordCard = ({
               Troque sua senha com segurança. A sessão será encerrada após a confirmação.
             </CardDescription>
           </div>
-          <div className="inline-flex items-center gap-2 rounded-full border border-[#D8E2EC] bg-[#F5F8FB] px-3 py-1 text-xs font-semibold text-[#1F4E5F]">
+          <div className="inline-flex items-center gap-2 rounded-full border border-[#D8E2EC] bg-[#D9E2EB] px-3 py-1 text-xs font-semibold text-[#1F4E5F]">
             <ShieldCheck className="h-3.5 w-3.5" />
             Proteção ativa
           </div>
@@ -121,7 +121,7 @@ const SecurityPasswordCard = ({
               </div>
             </div>
 
-            <div className="rounded-2xl border border-[#D8E2EC] bg-[#F5F8FB] p-4 text-sm text-[#627D98]">
+            <div className="rounded-2xl border border-[#D8E2EC] bg-[#D9E2EB] p-4 text-sm text-[#627D98]">
               <div className="flex items-start gap-2">
                 <LockKeyhole className="mt-0.5 h-4 w-4 text-[#1F4E5F]" aria-hidden="true" />
                 <div className="space-y-1">

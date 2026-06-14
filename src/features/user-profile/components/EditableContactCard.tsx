@@ -57,7 +57,7 @@ const EditableContactCard = ({ contact, isSaving, error, onSave }: EditableConta
               Atualize somente seu e-mail e telefone. A edição é limitada ao próprio perfil.
             </CardDescription>
           </div>
-          <div className="inline-flex items-center gap-2 rounded-full border border-[#D8E2EC] bg-[#F5F8FB] px-3 py-1 text-xs font-semibold text-[#1F4E5F]">
+          <div className="inline-flex items-center gap-2 rounded-full border border-[#D8E2EC] bg-[#D9E2EB] px-3 py-1 text-xs font-semibold text-[#1F4E5F]">
             <ShieldCheck className="h-3.5 w-3.5" />
             Edição própria
           </div>
@@ -71,7 +71,7 @@ const EditableContactCard = ({ contact, isSaving, error, onSave }: EditableConta
           </div>
         ) : (
           <>
-            <div className="rounded-2xl border border-[#D8E2EC] bg-[#F5F8FB] p-4 text-sm text-[#627D98]">
+            <div className="rounded-2xl border border-[#D8E2EC] bg-[#D9E2EB] p-4 text-sm text-[#627D98]">
               <p className="font-medium text-[#102A43]">Resumo atual</p>
               <div className="mt-3 grid gap-2 sm:grid-cols-2">
                 <div className="rounded-2xl border border-white bg-white p-3">

@@ -73,14 +73,14 @@ const MobileEditContactSheet = ({
                 Ajuste somente e-mail e telefone do seu próprio perfil.
               </DrawerDescription>
             </div>
-            <Badge variant="outline" className="border-[#D8E2EC] bg-[#F5F8FB] text-[#1F4E5F]">
+            <Badge variant="outline" className="border-[#D8E2EC] bg-[#D9E2EB] text-[#1F4E5F]">
               Próprio perfil
             </Badge>
           </div>
         </DrawerHeader>
 
         <div className="space-y-4 px-5 pb-4">
-          <div className="rounded-2xl border border-[#D8E2EC] bg-[#F5F8FB] p-4 text-sm text-[#627D98]">
+          <div className="rounded-2xl border border-[#D8E2EC] bg-[#D9E2EB] p-4 text-sm text-[#627D98]">
             O salvamento usa o contrato oficial de atualização do colaborador próprio.
           </div>
 
@@ -122,7 +122,7 @@ const MobileEditContactSheet = ({
           </div>
         </div>
 
-        <DrawerFooter className="border-t border-[#D8E2EC] bg-[#F5F8FB] px-5 pb-[max(1rem,env(safe-area-inset-bottom))] pt-4">
+        <DrawerFooter className="border-t border-[#D8E2EC] bg-[#D9E2EB] px-5 pb-[max(1rem,env(safe-area-inset-bottom))] pt-4">
           <Button
             type="button"
             className="h-11 w-full bg-[#1F4E5F] text-white hover:bg-[#102A43]"

@@ -80,7 +80,7 @@ const DesktopSummarySidebar = ({ profile }: Pick<UsuarioProfileSharedProps, "pro
         </div>
 
         {identity ? (
-          <div className="space-y-3 rounded-[22px] border border-[#D8E2EC] bg-[#F5F8FB] p-4">
+          <div className="space-y-3 rounded-[22px] border border-[#D8E2EC] bg-[#D9E2EB] p-4">
             <div className="flex items-center gap-2 text-[#1F4E5F]">
               <BadgeCheck className="h-4 w-4" />
               <p className="text-sm font-semibold">Resumo protegido</p>
@@ -105,7 +105,7 @@ const DesktopSummarySidebar = ({ profile }: Pick<UsuarioProfileSharedProps, "pro
                   key={item.id}
                   type="button"
                   variant="ghost"
-                  className="h-auto w-full justify-start rounded-[18px] border border-[#D8E2EC] bg-white px-4 py-3 text-left hover:bg-[#F5F8FB] hover:text-[#102A43]"
+                  className="h-auto w-full justify-start rounded-[18px] border border-[#D8E2EC] bg-white px-4 py-3 text-left hover:bg-[#D9E2EB] hover:text-[#102A43]"
                   onClick={() => scrollToSection(item.id)}
                 >
                   <Icon className="h-4 w-4 text-[#1F4E5F]" />
@@ -156,7 +156,7 @@ const UsuarioDesktopView = ({
   const [revokeDialogOpen, setRevokeDialogOpen] = useState(false);
 
   return (
-    <div className="relative min-h-screen overflow-hidden bg-[#F5F8FB] text-[#102A43]">
+    <div className="relative min-h-screen overflow-hidden bg-[#D9E2EB] text-[#102A43]">
       <div className="absolute inset-0">
         <div className="absolute -left-20 top-[-6rem] h-72 w-72 rounded-full bg-[#22B8CF]/10 blur-3xl" />
         <div className="absolute right-[-5rem] top-32 h-80 w-80 rounded-full bg-[#635BFF]/10 blur-3xl" />
@@ -171,7 +171,7 @@ const UsuarioDesktopView = ({
         <main className="min-w-0 flex-1 space-y-6">
           <header className="flex flex-wrap items-end justify-between gap-4 rounded-[28px] border border-[#D8E2EC] bg-white/90 p-5 shadow-[0_12px_30px_rgba(31,78,95,0.08)] backdrop-blur">
             <div className="space-y-2">
-              <Badge variant="outline" className="border-[#D8E2EC] bg-[#F5F8FB] text-[#1F4E5F]">
+              <Badge variant="outline" className="border-[#D8E2EC] bg-[#D9E2EB] text-[#1F4E5F]">
                 Central pessoal
               </Badge>
               <div className="space-y-1">
@@ -277,19 +277,19 @@ const UsuarioDesktopView = ({
                     A remuneração aparece protegida por padrão, o CPF fica mascarado e a biometria facial nunca é exposta.
                   </p>
                   <div className="grid gap-3">
-                    <div className="rounded-2xl border border-[#D8E2EC] bg-[#F5F8FB] p-4">
+                    <div className="rounded-2xl border border-[#D8E2EC] bg-[#D9E2EB] p-4">
                       <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[#627D98]">Contato próprio</p>
                       <p className="mt-1 text-sm font-medium text-[#102A43]">
                         Apenas e-mail e telefone podem ser editados por esta tela.
                       </p>
                     </div>
-                    <div className="rounded-2xl border border-[#D8E2EC] bg-[#F5F8FB] p-4">
+                    <div className="rounded-2xl border border-[#D8E2EC] bg-[#D9E2EB] p-4">
                       <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[#627D98]">Sessão</p>
                       <p className="mt-1 text-sm font-medium text-[#102A43]">
                         Troca de senha e revogação biométrica encerram a sessão em segurança.
                       </p>
                     </div>
-                    <div className="rounded-2xl border border-[#D8E2EC] bg-[#F5F8FB] p-4">
+                    <div className="rounded-2xl border border-[#D8E2EC] bg-[#D9E2EB] p-4">
                       <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[#627D98]">LGPD</p>
                       <p className="mt-1 text-sm font-medium text-[#102A43]">
                         Exportação própria e histórico de consentimentos permanecem visíveis em painel dedicado.

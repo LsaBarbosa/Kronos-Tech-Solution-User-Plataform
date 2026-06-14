@@ -4,7 +4,7 @@ export const usuarioProfileTokens = {
     petrolBlue: "#1F4E5F",
     techCyan: "#22B8CF",
     trustTeal: "#1C8C7C",
-    lightBackground: "#F5F8FB",
+    lightBackground: "#D9E2EB",
     surface: "#FFFFFF",
     coldBorder: "#D8E2EC",
     secondaryText: "#627D98",
@@ -24,7 +24,7 @@ export const usuarioProfileTokens = {
   },
   gradients: {
     hero: "linear-gradient(135deg, #102A43 0%, #1F4E5F 52%, #1C8C7C 100%)",
-    veil: "linear-gradient(180deg, rgba(245, 248, 251, 0.72) 0%, rgba(245, 248, 251, 0.96) 100%)",
+    veil: "linear-gradient(180deg, rgba(217, 226, 235, 0.72) 0%, rgba(217, 226, 235, 0.96) 100%)",
     accent: "linear-gradient(135deg, rgba(34, 184, 207, 0.18) 0%, rgba(28, 140, 124, 0.16) 100%)",
   },
 } as const;
@@ -40,4 +40,3 @@ export const usuarioProfileToneClasses: Record<UsuarioProfileTone, string> = {
   info: "bg-[#635BFF]/10 text-[#635BFF] border-[#635BFF]/20",
   error: "bg-red-50 text-red-800 border-red-200",
 };
-

@@ -28,7 +28,7 @@ const LgpdExportAction = ({
               Baixe um arquivo com seus dados pessoais. O JSON completo não é exibido na tela principal.
             </CardDescription>
           </div>
-          <Badge variant="outline" className="border-[#D8E2EC] bg-[#F5F8FB] text-[#635BFF]">
+          <Badge variant="outline" className="border-[#D8E2EC] bg-[#D9E2EB] text-[#635BFF]">
             <ShieldCheck className="mr-1 h-3.5 w-3.5" />
             Rastreabilidade
           </Badge>
@@ -60,7 +60,7 @@ const LgpdExportAction = ({
         </div>
 
         {lastExportManifest ? (
-          <div className="rounded-2xl border border-[#D8E2EC] bg-[#F5F8FB] p-4">
+          <div className="rounded-2xl border border-[#D8E2EC] bg-[#D9E2EB] p-4">
             <div className="flex flex-wrap items-start justify-between gap-3">
               <div className="space-y-1">
                 <p className="text-sm font-semibold text-[#102A43]">Última exportação concluída</p>
@@ -106,7 +106,7 @@ const LgpdExportAction = ({
             ) : null}
           </div>
         ) : (
-          <div className="rounded-2xl border border-[#D8E2EC] bg-[#F5F8FB] p-4 text-sm text-[#627D98]">
+          <div className="rounded-2xl border border-[#D8E2EC] bg-[#D9E2EB] p-4 text-sm text-[#627D98]">
             Nenhuma exportação foi realizada nesta sessão.
           </div>
         )}

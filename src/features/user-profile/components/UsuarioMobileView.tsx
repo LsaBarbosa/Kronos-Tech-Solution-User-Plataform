@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import { ArrowRight, ChevronLeft, RefreshCcw, Phone, LockKeyhole } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 import { Badge } from "@/components/ui/badge";
@@ -34,9 +34,34 @@ const UsuarioMobileView = ({
   const [contactSheetOpen, setContactSheetOpen] = useState(false);
   const [passwordSheetOpen, setPasswordSheetOpen] = useState(false);
   const [revokeDialogOpen, setRevokeDialogOpen] = useState(false);
+  const identitySectionRef = useRef<HTMLElement | null>(null);
+  const contactSectionRef = useRef<HTMLElement | null>(null);
+  const passwordSectionRef = useRef<HTMLElement | null>(null);
+  const lgpdSectionRef = useRef<HTMLElement | null>(null);
+  const didMountRef = useRef(false);
+
+  useEffect(() => {
+    if (!didMountRef.current) {
+      didMountRef.current = true;
+      return;
+    }
+
+    const sectionRefs = {
+      identidade: identitySectionRef,
+      contato: contactSectionRef,
+      senha: passwordSectionRef,
+      lgpd: lgpdSectionRef,
+    } as const;
+
+    sectionRefs[section].current?.scrollIntoView({
+      behavior: "smooth",
+      block: "start",
+      inline: "nearest",
+    });
+  }, [section]);
 
   return (
-    <div className="relative min-h-screen overflow-hidden bg-[#F5F8FB] text-[#102A43]">
+    <div className="relative min-h-screen overflow-hidden bg-[#D9E2EB] text-[#102A43]">
       <div className="absolute inset-0">
         <div className="absolute -left-16 top-0 h-48 w-48 rounded-full bg-[#22B8CF]/10 blur-3xl" />
         <div className="absolute right-[-4rem] top-24 h-56 w-56 rounded-full bg-[#635BFF]/10 blur-3xl" />
@@ -46,7 +71,7 @@ const UsuarioMobileView = ({
         <header className="flex flex-col gap-3 rounded-[24px] border border-[#D8E2EC] bg-white/92 px-4 py-3 shadow-[0_12px_30px_rgba(31,78,95,0.08)] backdrop-blur">
           <div className="flex items-start justify-between gap-3">
           <div className="space-y-1">
-            <Badge variant="outline" className="border-[#D8E2EC] bg-[#F5F8FB] text-[#1F4E5F]">
+            <Badge variant="outline" className="border-[#D8E2EC] bg-[#D9E2EB] text-[#1F4E5F]">
               Autoatendimento
             </Badge>
             <p className="text-sm font-semibold text-[#102A43]">Meu perfil</p>
@@ -89,7 +114,7 @@ const UsuarioMobileView = ({
         <MobileSectionChips value={section} onChange={setSection} />
 
         {section === "identidade" ? (
-          <div className="space-y-4">
+          <section ref={identitySectionRef} id="usuario-identidade" className="space-y-4 scroll-mt-4">
             <ProfessionalIdentityCard
               identity={profile.identity}
               loading={loadingProfile}
@@ -112,13 +137,13 @@ const UsuarioMobileView = ({
                 </div>
 
                 <div className="grid gap-3 sm:grid-cols-2">
-                  <div className="rounded-2xl border border-[#D8E2EC] bg-[#F5F8FB] p-4">
+                  <div className="rounded-2xl border border-[#D8E2EC] bg-[#D9E2EB] p-4">
                     <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[#627D98]">CPF</p>
                     <p className="mt-1 text-sm font-medium text-[#102A43]">
                       {profile.identity?.maskedCpf ?? "Nao informado"}
                     </p>
                   </div>
-                  <div className="rounded-2xl border border-[#D8E2EC] bg-[#F5F8FB] p-4">
+                  <div className="rounded-2xl border border-[#D8E2EC] bg-[#D9E2EB] p-4">
                     <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[#627D98]">Remuneração</p>
                     <p className="mt-1 text-sm font-medium text-[#102A43]">
                       {profile.identity?.salaryLabel ?? "Protegida"}
@@ -127,11 +152,11 @@ const UsuarioMobileView = ({
                 </div>
               </CardContent>
             </Card>
-          </div>
+          </section>
         ) : null}
 
         {section === "contato" ? (
-          <div className="space-y-4">
+          <section ref={contactSectionRef} id="usuario-contato" className="space-y-4 scroll-mt-4">
             <Card className="rounded-[24px] border border-[#D8E2EC] shadow-[0_12px_30px_rgba(31,78,95,0.08)]">
               <CardContent className="space-y-4 p-5">
                 <div className="flex items-start justify-between gap-3">
@@ -141,19 +166,19 @@ const UsuarioMobileView = ({
                       Atualize e-mail e telefone em um fluxo dedicado de bottom sheet.
                     </p>
                   </div>
-                  <Badge variant="outline" className="border-[#D8E2EC] bg-[#F5F8FB] text-[#1F4E5F]">
+                  <Badge variant="outline" className="border-[#D8E2EC] bg-[#D9E2EB] text-[#1F4E5F]">
                     Editável
                   </Badge>
                 </div>
 
                 <div className="grid gap-3">
-                  <div className="rounded-2xl border border-[#D8E2EC] bg-[#F5F8FB] p-4">
+                  <div className="rounded-2xl border border-[#D8E2EC] bg-[#D9E2EB] p-4">
                     <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[#627D98]">E-mail</p>
                     <p className="mt-1 break-words text-sm font-medium text-[#102A43]">
                       {profile.contact?.email || "Nao informado"}
                     </p>
                   </div>
-                  <div className="rounded-2xl border border-[#D8E2EC] bg-[#F5F8FB] p-4">
+                  <div className="rounded-2xl border border-[#D8E2EC] bg-[#D9E2EB] p-4">
                     <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[#627D98]">Telefone</p>
                     <p className="mt-1 text-sm font-medium text-[#102A43]">
                       {profile.contact?.phoneDisplay || profile.contact?.phone || "Nao informado"}
@@ -178,11 +203,11 @@ const UsuarioMobileView = ({
                 ) : null}
               </CardContent>
             </Card>
-          </div>
+          </section>
         ) : null}
 
         {section === "senha" ? (
-          <div className="space-y-4">
+          <section ref={passwordSectionRef} id="usuario-senha" className="space-y-4 scroll-mt-4">
             <Card className="rounded-[24px] border border-[#D8E2EC] shadow-[0_12px_30px_rgba(31,78,95,0.08)]">
               <CardContent className="space-y-4 p-5">
                 <div className="flex items-start justify-between gap-3">
@@ -192,7 +217,7 @@ const UsuarioMobileView = ({
                       A alteração é feita em fluxo próprio e encerra a sessão em segurança.
                     </p>
                   </div>
-                  <Badge variant="outline" className="border-[#D8E2EC] bg-[#F5F8FB] text-[#1F4E5F]">
+                  <Badge variant="outline" className="border-[#D8E2EC] bg-[#D9E2EB] text-[#1F4E5F]">
                     Sessão
                   </Badge>
                 </div>
@@ -224,11 +249,11 @@ const UsuarioMobileView = ({
                 ) : null}
               </CardContent>
             </Card>
-          </div>
+          </section>
         ) : null}
 
         {section === "lgpd" ? (
-          <div className="space-y-4">
+          <section ref={lgpdSectionRef} id="usuario-lgpd" className="space-y-4 scroll-mt-4">
             <PrivacyLgpdPanel
               privacy={profile.privacy}
               loading={loadingPrivacy}
@@ -252,7 +277,7 @@ const UsuarioMobileView = ({
               <RefreshCcw className="h-4 w-4" />
               Atualizar privacidade
             </Button>
-          </div>
+          </section>
         ) : null}
       </main>
 

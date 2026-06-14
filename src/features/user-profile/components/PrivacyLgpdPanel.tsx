@@ -69,7 +69,7 @@ const PrivacyLgpdPanel = ({
               Central de rastreabilidade com consentimentos, termo atual, catálogo de tratamento e exportação própria.
             </CardDescription>
           </div>
-          <Badge variant="outline" className="border-[#D8E2EC] bg-[#F5F8FB] text-[#635BFF]">
+          <Badge variant="outline" className="border-[#D8E2EC] bg-[#D9E2EB] text-[#635BFF]">
             <Layers3 className="mr-1 h-3.5 w-3.5" />
             LGPD
           </Badge>
@@ -84,13 +84,13 @@ const PrivacyLgpdPanel = ({
         </div>
 
         {loading ? (
-          <div className="rounded-2xl border border-[#D8E2EC] bg-[#F5F8FB] p-4 text-sm text-[#627D98]">
+          <div className="rounded-2xl border border-[#D8E2EC] bg-[#D9E2EB] p-4 text-sm text-[#627D98]">
             Carregando dados de privacidade e LGPD...
           </div>
         ) : null}
 
         <div className="grid gap-4 xl:grid-cols-2">
-          <div className="rounded-[22px] border border-[#D8E2EC] bg-[#F5F8FB] p-4">
+          <div className="rounded-[22px] border border-[#D8E2EC] bg-[#D9E2EB] p-4">
             <div className="flex flex-wrap items-start justify-between gap-3">
               <div className="space-y-1">
                 <p className="text-sm font-semibold text-[#102A43]">Biometria e termo atual</p>
@@ -173,7 +173,7 @@ const PrivacyLgpdPanel = ({
                   <SummaryMetric label="Versão" value={privacy.currentTerm.versionLabel} />
                   <SummaryMetric label="Hash resumido" value={privacy.currentTerm.hashSummary} />
                 </div>
-                <div className="mt-4 rounded-2xl border border-[#D8E2EC] bg-[#F5F8FB] p-4 text-sm text-[#627D98]">
+                <div className="mt-4 rounded-2xl border border-[#D8E2EC] bg-[#D9E2EB] p-4 text-sm text-[#627D98]">
                   <p className="font-medium text-[#102A43]">Prévia do conteúdo</p>
                   <p className="mt-2 leading-6">{privacy.currentTerm.contentPreview}</p>
                 </div>
@@ -191,7 +191,7 @@ const PrivacyLgpdPanel = ({
           </div>
 
           <div className="space-y-4">
-            <div className="rounded-[22px] border border-[#D8E2EC] bg-[#F5F8FB] p-4">
+            <div className="rounded-[22px] border border-[#D8E2EC] bg-[#D9E2EB] p-4">
               <div className="flex flex-wrap items-start justify-between gap-3">
                 <div className="space-y-1">
                   <p className="text-sm font-semibold text-[#102A43]">Catálogo de tratamento</p>

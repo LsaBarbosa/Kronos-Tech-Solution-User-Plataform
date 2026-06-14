@@ -32,7 +32,7 @@ const ConsentEvidenceList = ({
                 Evidências resumidas dos consentimentos do seu próprio perfil. Registros completos permanecem protegidos.
               </CardDescription>
             </div>
-            <Badge variant="outline" className="border-[#D8E2EC] bg-[#F5F8FB] text-[#635BFF]">
+            <Badge variant="outline" className="border-[#D8E2EC] bg-[#D9E2EB] text-[#635BFF]">
               <History className="mr-1 h-3.5 w-3.5" />
               Erro
             </Badge>
@@ -78,7 +78,7 @@ const ConsentEvidenceList = ({
               Evidências resumidas dos consentimentos do seu próprio perfil. Registros completos permanecem protegidos.
             </CardDescription>
           </div>
-          <Badge variant="outline" className="border-[#D8E2EC] bg-[#F5F8FB] text-[#635BFF]">
+          <Badge variant="outline" className="border-[#D8E2EC] bg-[#D9E2EB] text-[#635BFF]">
             <History className="mr-1 h-3.5 w-3.5" />
             {items.length} registros
           </Badge>
@@ -95,10 +95,10 @@ const ConsentEvidenceList = ({
         ) : (
           <>
             <div className="flex flex-wrap gap-2">
-              <Badge variant="outline" className="border-[#D8E2EC] bg-[#F5F8FB] text-[#102A43]">
+              <Badge variant="outline" className="border-[#D8E2EC] bg-[#D9E2EB] text-[#102A43]">
                 {evidenceCount} com evidência
               </Badge>
-              <Badge variant="outline" className="border-[#D8E2EC] bg-[#F5F8FB] text-[#102A43]">
+              <Badge variant="outline" className="border-[#D8E2EC] bg-[#D9E2EB] text-[#102A43]">
                 {items.length - evidenceCount} sem documento
               </Badge>
             </div>
@@ -145,11 +145,11 @@ const ConsentEvidenceList = ({
                     </div>
 
                     <div className="mt-3 grid gap-3 sm:grid-cols-2">
-                      <div className="rounded-2xl border border-[#D8E2EC] bg-[#F5F8FB] p-3 text-xs text-[#627D98]">
+                      <div className="rounded-2xl border border-[#D8E2EC] bg-[#D9E2EB] p-3 text-xs text-[#627D98]">
                         <p className="font-semibold uppercase tracking-[0.18em] text-[#627D98]">Aceite a partir de</p>
                         <p className="mt-1 text-sm font-medium text-[#102A43]">{item.acceptedFrom}</p>
                       </div>
-                      <div className="rounded-2xl border border-[#D8E2EC] bg-[#F5F8FB] p-3 text-xs text-[#627D98]">
+                      <div className="rounded-2xl border border-[#D8E2EC] bg-[#D9E2EB] p-3 text-xs text-[#627D98]">
                         <p className="font-semibold uppercase tracking-[0.18em] text-[#627D98]">Revogação a partir de</p>
                         <p className="mt-1 text-sm font-medium text-[#102A43]">{item.revokedFrom}</p>
                       </div>

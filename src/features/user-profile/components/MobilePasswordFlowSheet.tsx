@@ -74,7 +74,7 @@ const MobilePasswordFlowSheet = ({
                 Fluxo dedicado para troca segura. A sessão será encerrada ao confirmar.
               </DrawerDescription>
             </div>
-            <Badge variant="outline" className="border-[#D8E2EC] bg-[#F5F8FB] text-[#1F4E5F]">
+            <Badge variant="outline" className="border-[#D8E2EC] bg-[#D9E2EB] text-[#1F4E5F]">
               Segurança
             </Badge>
           </div>
@@ -93,7 +93,7 @@ const MobilePasswordFlowSheet = ({
 
           {step === 1 ? (
             <div className="space-y-4">
-              <div className="rounded-2xl border border-[#D8E2EC] bg-[#F5F8FB] p-4">
+              <div className="rounded-2xl border border-[#D8E2EC] bg-[#D9E2EB] p-4">
                 <p className="text-sm font-medium text-[#102A43]">Antes de continuar</p>
                 <p className="mt-2 text-sm leading-6 text-[#627D98]">
                   Confirme que deseja iniciar a troca. Em seguida você informará a senha atual, a nova senha e a confirmação.
@@ -149,7 +149,7 @@ const MobilePasswordFlowSheet = ({
                 />
               </div>
 
-              <div className="rounded-2xl border border-[#D8E2EC] bg-[#F5F8FB] p-4 text-sm text-[#627D98]">
+              <div className="rounded-2xl border border-[#D8E2EC] bg-[#D9E2EB] p-4 text-sm text-[#627D98]">
                 <div className="flex items-start gap-2">
                   <LockKeyhole className="mt-0.5 h-4 w-4 text-[#1F4E5F]" aria-hidden="true" />
                   <div className="space-y-1">
@@ -163,7 +163,7 @@ const MobilePasswordFlowSheet = ({
         </div>
 
         {step === 2 ? (
-          <DrawerFooter className="border-t border-[#D8E2EC] bg-[#F5F8FB] px-5 pb-[max(1rem,env(safe-area-inset-bottom))] pt-4">
+          <DrawerFooter className="border-t border-[#D8E2EC] bg-[#D9E2EB] px-5 pb-[max(1rem,env(safe-area-inset-bottom))] pt-4">
             <Button
               type="button"
               className="h-11 w-full bg-[#102A43] text-white hover:bg-[#1F4E5F]"
@@ -175,7 +175,7 @@ const MobilePasswordFlowSheet = ({
             </Button>
           </DrawerFooter>
         ) : (
-          <DrawerFooter className="border-t border-[#D8E2EC] bg-[#F5F8FB] px-5 pb-[max(1rem,env(safe-area-inset-bottom))] pt-4">
+          <DrawerFooter className="border-t border-[#D8E2EC] bg-[#D9E2EB] px-5 pb-[max(1rem,env(safe-area-inset-bottom))] pt-4">
             <Button
               type="button"
               variant="outline"
