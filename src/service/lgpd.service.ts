@@ -415,8 +415,7 @@ export const getDataProcessingCatalog = async (): Promise<DataProcessingPurpose[
     }
 
     if (!Array.isArray(response.data)) {
-      console.warn('Data processing catalog response is not an array');
-      return [];
+      throw new Error("Resposta inválida do catálogo de tratamento.");
     }
 
     const validItems = response.data.filter((item): item is DataProcessingPurpose => {
@@ -425,15 +424,7 @@ export const getDataProcessingCatalog = async (): Promise<DataProcessingPurpose[
 
     return validItems;
   } catch (error) {
-    // Normalize the error and differentiate between transient and application errors
     const serviceError = normalizeServiceError(error);
-
-    // Return empty array only for transient network errors
-    if (serviceError.kind === 'network') {
-      return [];
-    }
-
-    // Throw HTTP/application errors (401, 403, 500, etc.) so components can handle them properly
     throw serviceError;
   }
 };

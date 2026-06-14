@@ -38,14 +38,36 @@ export const fetchUserData = async (): Promise<UserData> => {
  * Atualiza o e-mail do usuário.
  */
 export const updateEmail = async (_employeeId: string, newEmail: string): Promise<void> => {
-  await api.patch(buildRoute(API_ROUTES.EMPLOYEE, "update-own-profile"), { email: newEmail });
+  await updateOwnProfile({ email: newEmail });
 };
 
 /**
  * Atualiza o telefone do usuário.
  */
 export const updatePhone = async (_employeeId: string, newPhone: string): Promise<void> => {
-  await api.patch(buildRoute(API_ROUTES.EMPLOYEE, "update-own-profile"), { phone: cleanNumberString(newPhone) });
+  await updateOwnProfile({ phone: cleanNumberString(newPhone) });
+};
+
+export interface UpdateOwnProfilePayload {
+  email?: string;
+  phone?: string;
+}
+
+/**
+ * Atualiza os dados de contato do proprio colaborador em uma unica chamada.
+ */
+export const updateOwnProfile = async (payload: UpdateOwnProfilePayload): Promise<void> => {
+  const requestBody: UpdateOwnProfilePayload = {};
+
+  if (typeof payload.email === "string") {
+    requestBody.email = payload.email.trim();
+  }
+
+  if (typeof payload.phone === "string") {
+    requestBody.phone = cleanNumberString(payload.phone);
+  }
+
+  await api.patch(buildRoute(API_ROUTES.EMPLOYEE, "update-own-profile"), requestBody);
 };
 
 /**

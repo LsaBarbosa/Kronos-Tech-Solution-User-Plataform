@@ -336,7 +336,7 @@ describe("DataProcessingCatalogCard", () => {
       });
     });
 
-    it("exibe catálogo vazio quando resposta não é um array", async () => {
+    it("exibe erro quando resposta não é um array", async () => {
       server.use(
         http.get("*/lgpd/processing-catalog", () =>
           HttpResponse.json({ items: mockCatalogData })
@@ -346,7 +346,8 @@ describe("DataProcessingCatalogCard", () => {
       render(<DataProcessingCatalogCard />);
 
       await waitFor(() => {
-        expect(screen.getByText("Catálogo vazio")).toBeInTheDocument();
+        expect(screen.getByText("Não foi possível carregar o catálogo")).toBeInTheDocument();
+        expect(screen.getByText("Resposta inválida do catálogo de tratamento.")).toBeInTheDocument();
       });
     });
   });

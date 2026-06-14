@@ -6,6 +6,7 @@ import {
   listUsers,
   updateEmail,
   updatePhone,
+  updateOwnProfile,
 } from "./user.service";
 
 describe("user.service", () => {
@@ -31,6 +32,26 @@ describe("user.service", () => {
     );
 
     await expect(updatePhone("emp-1", "(11) 99999-9999")).resolves.toBeUndefined();
+  });
+
+  it("atualiza contato combinado com email e telefone", async () => {
+    server.use(
+      http.patch("*/employee/update-own-profile", async ({ request }) => {
+        const body = await request.json();
+        expect(body).toEqual({
+          email: "novo@exemplo.com",
+          phone: "11999999999",
+        });
+        return new HttpResponse(null, { status: 204 });
+      })
+    );
+
+    await expect(
+      updateOwnProfile({
+        email: "novo@exemplo.com",
+        phone: "(11) 99999-9999",
+      })
+    ).resolves.toBeUndefined();
   });
 
   it("valida confirmacao de senha antes de enviar", async () => {

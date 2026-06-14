@@ -1,75 +1,46 @@
-# Kronos User Platform
+# Kronos — Pacote Codex para refatoração da rota `/usuario`
 
-Front-end React da plataforma de usuários da Kronos, alinhado ao backend `Kronos-Tech-Solutions-KTS` na branch `flag/redis`.
+## Objetivo
 
-## Stack
+Este pacote orienta o Codex CLI a refatorar a tela `/usuario` do front-end Kronos para uma nova central de identidade, segurança e privacidade do usuário autenticado.
 
-- Vite
-- React 18
-- TypeScript strict
-- TanStack Query
-- Axios
-- Tailwind CSS
-- shadcn/ui
-- Vitest + Testing Library + MSW
-- Playwright para E2E administrativo
+A entrega esperada no repositório `Kronos-Tech-Solution-User-Plataform`, branch `feature/lgpd-compliance-new-ui`, é:
 
-## Requisitos
+- nova experiência desktop;
+- nova experiência mobile;
+- mesma rota `/usuario`;
+- mesmos contratos HTTP existentes;
+- remoção do legado após validação;
+- testes, lint e build executados.
 
-- Node.js 22+
-- npm 10+
+## Repositórios alvo
 
-## Variáveis de Ambiente
-
-Copie `.env.example` para o ambiente local.
-
-| Variável | Obrigatória | Descrição |
+| Repositório | Branch | Uso |
 |---|---|---|
-| `VITE_API_BASE_URL` | Sim | URL base do backend Kronos. O fallback local é `http://localhost:8080`. |
-| `VITE_OBSERVABILITY_ENABLED` | Não | Habilita captura opt-in de erros de runtime/API. |
-| `VITE_OBSERVABILITY_ENDPOINT` | Não | Endpoint para eventos de observabilidade. |
+| `Kronos-Tech-Solutions-KTS` | `PROD_HOSTINGER_V2` | Validar contratos HTTP reais do back-end. |
+| `Kronos-Tech-Solution-User-Plataform` | `feature/lgpd-compliance-new-ui` | Implementar a nova tela. |
+| `kronos-business` | `main` | Usar como documentação norteadora de negócio, regras e fluxos. |
 
-## Comandos
+## Arquivos deste pacote
 
-```bash
-npm install
-npm run dev
-npm run generate:api-types
-npm run lint
-npm run test
-npm run build
-npm run test:e2e
-npm run test:coverage
-npm run analyze
-```
+| Arquivo | Finalidade |
+|---|---|
+| `codex/skills/kronos-usuario-ui.skill.md` | Skill principal para execução da refatoração. |
+| `codex/agents/kronos-usuario-ui.agent.md` | Agente orquestrador da tarefa. |
+| `codex/subagents/*.md` | Subagentes especializados por frente técnica. |
+| `codex/rules/kronos-usuario-ui.rules.md` | Regras obrigatórias de implementação. |
+| `plano-acao-usuario-ui.md` | Plano cronológico com tasks. |
+| `prompt-codex-usuario-ui.md` | Prompt final para colar no Codex CLI. |
+| `checklist-validacao-usuario-ui.md` | Checklist de aceite técnico e visual. |
 
-## Escopo e Arquitetura
+## Como usar
 
-- **Escopo dos repositórios:** [docs/architecture/repository-scope.md](docs/architecture/repository-scope.md) — Define responsabilidades entre User-Plataform e User-Register
-- Mapa de endpoints: [docs/api-contract-map.md](docs/api-contract-map.md)
-- Inventário HTTP: [docs/frontend-http-inventory.md](docs/frontend-http-inventory.md)
-- Aderência ao backend `flag/redis`: [docs/flag-redis-adherence.md](docs/flag-redis-adherence.md)
-- Plano OpenAPI: [docs/openapi-contract-plan.md](docs/openapi-contract-plan.md)
-- Arquitetura: [docs/frontend-architecture.md](docs/frontend-architecture.md)
-- Plano de liveness: [docs/biometric-liveness-plan.md](docs/biometric-liveness-plan.md)
+1. Copie a pasta `codex/` para um local acessível pelo Codex CLI ou mantenha-a como referência.
+2. Abra o arquivo `prompt-codex-usuario-ui.md`.
+3. Ajuste os caminhos locais dos três repositórios, se necessário.
+4. Cole o prompt no Codex CLI.
+5. Execute por fases, validando ao fim de cada bloco.
 
-## Padrões
+## Observação
 
-- Toda chamada HTTP passa por `src/config/api.ts`.
-- Rotas HTTP usam `API_ROUTES` e `buildRoute`.
-- `GET /documents` sempre envia `type`.
-- Geolocalização usa `POST /geolocation/resolve` no backend, sem chave externa no navegador.
-- Relatórios legais tratam `429` e `503` com mensagens específicas.
-- Requisições Axios enviam `X-Correlation-Id`.
-- MSW fica organizado por domínio em `src/test/msw/handlers`.
-
-## Fora de Escopo Neste Front
-
-Os seguintes fluxos pertencem a `Kronos-Tech-Solution-User-Register` (aplicação de registro de ponto):
-
-- ❌ `POST /records/checkin` — Marcação de ponto
-- ❌ Captura facial para batida
-- ❌ Geolocalização para marcação
-- ❌ Fluxo completo de liveness para ponto
-
-Este projeto mantém apenas documentação e contratos de guarda, sem implementação. Para detalhes de escopo, veja [docs/architecture/repository-scope.md](docs/architecture/repository-scope.md).
+Este pacote não implementa o código diretamente. Ele fornece a especificação operacional para que o Codex CLI execute a implementação, revisão e validação.

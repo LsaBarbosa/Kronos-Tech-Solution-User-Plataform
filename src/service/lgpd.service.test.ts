@@ -491,15 +491,14 @@ describe("lgpd.service", () => {
     expect(result).toEqual([]);
   });
 
-  it("retorna array vazio quando resposta não é array", async () => {
+  it("lança erro quando resposta não é array", async () => {
     server.use(
       http.get("*/lgpd/processing-catalog", () =>
         HttpResponse.json({ items: [] }, { status: 200 })
       )
     );
 
-    const result = await getDataProcessingCatalog();
-    expect(result).toEqual([]);
+    await expect(getDataProcessingCatalog()).rejects.toThrow("Resposta inválida do catálogo de tratamento.");
   });
 
   it("filtra itens inválidos do catálogo de processamento", async () => {
