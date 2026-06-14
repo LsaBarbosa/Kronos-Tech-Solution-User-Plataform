@@ -1,15 +1,35 @@
 # Subagent — UI Architecture
 
-Projete e implemente a UI.
+## Objetivo
+
+Projetar e implementar a composição visual desktop/mobile.
 
 ## Desktop
 
-Hero, métricas, filtros, tabela, painel lateral e ações sensíveis.
+Criar uma experiência tipo console:
+
+- `OnboardingHero`;
+- `ProgressMetrics`;
+- `EmployeeProfilePanel`;
+- `ScaleAndJourneySummary`;
+- `AccessLinkPanel`;
+- `ValidationStatus`;
+- `ActionBar`.
 
 ## Mobile
 
-Topo, métricas rápidas, busca, chips, cards, menu contextual, bottom sheet e rodapé de ações.
+Criar uma experiência tipo assistente:
 
-## Regra
+- `MobileHeader`;
+- `MobileStepper`;
+- `MobileStepCard`;
+- `MobileValidationBanner`;
+- `MobileBottomAction`.
 
-Compartilhe dados, filtros e ações. Não compartilhe a mesma marcação como simples redimensionamento.
+## Diretriz
+
+Usar os mockups como referência de hierarquia, não como print pixel-perfect.
+
+## Saída esperada
+
+Estrutura de componentes clara e com classes Tailwind coerentes com a identidade visual.

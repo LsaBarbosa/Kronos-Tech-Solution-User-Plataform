@@ -10,25 +10,17 @@ import {
   createCollaborator,
   createUser,
 } from "@/service/collaborator-management.service";
-
-const SCHEDULE_TYPES = [
-  { value: "TRADITIONAL_5X2", label: "Tradicional 5x2 (Seg-Sex)" },
-  { value: "SIX_BY_ONE_FIXED", label: "6x1 com Folga Fixa" },
-  { value: "ROTATING_12X36", label: "Plantão 12x36" },
-  { value: "ROTATING_24X72", label: "Plantão 24x72" },
-  { value: "SIX_BY_ONE_TWO_WEEKENDS", label: "6x1 + 2 Finais de Semana" },
-  { value: "SIX_BY_ONE_ONE_WEEKEND", label: "6x1 + 1 Final de Semana" }
-];
-
-const DAYS_OF_WEEK = [
-  { value: "MONDAY", label: "Segunda-feira" },
-  { value: "TUESDAY", label: "Terça-feira" },
-  { value: "WEDNESDAY", label: "Quarta-feira" },
-  { value: "THURSDAY", label: "Quinta-feira" },
-  { value: "FRIDAY", label: "Sexta-feira" },
-  { value: "SATURDAY", label: "Sábado" },
-  { value: "SUNDAY", label: "Domingo" }
-];
+import {
+  cepMask,
+  cpfMask,
+  currencyMask,
+  currencyValue,
+  phoneMask,
+} from "@/features/collaborators/create/utils/create-collaborator-formatters";
+import {
+  COLLABORATOR_LONG_DAY_OPTIONS,
+  COLLABORATOR_SCHEDULE_OPTIONS,
+} from "@/features/collaborators/create/constants";
 
 const employeeSchema = z.object({
   nomeCompleto: z.string().min(2, "Nome deve ter pelo menos 2 caracteres"),
@@ -104,36 +96,19 @@ export const useCreateCollaborator = () => {
   const selectedScheduleType = form.watch("scheduleType");
 
   const maskCPF = useCallback((value: string) => {
-    return value
-      .replace(/\D/g, "")
-      .replace(/(\d{3})(\d)/, "$1.$2")
-      .replace(/(\d{3})(\d)/, "$1.$2")
-      .replace(/(\d{3})(\d{1,2})/, "$1-$2")
-      .replace(/(-\d{2})\d+?$/, "$1");
+    return cpfMask(value);
   }, []);
 
   const maskPhone = useCallback((value: string) => {
-    return value
-      .replace(/\D/g, "")
-      .replace(/(\d{2})(\d)/, "($1) $2")
-      .replace(/(\d{4,5})(\d)/, "$1-$2")
-      .replace(/(-\d{4})\d+?$/, "$1");
+    return phoneMask(value);
   }, []);
 
   const maskCEP = useCallback((value: string) => {
-    return value
-      .replace(/\D/g, "")
-      .replace(/(\d{5})(\d)/, "$1-$2")
-      .replace(/(-\d{3})\d+?$/, "$1");
+    return cepMask(value);
   }, []);
 
   const maskCurrency = useCallback((value: string) => {
-    const numericValue = value.replace(/\D/g, "");
-    const formattedValue = (parseFloat(numericValue) / 100).toLocaleString("pt-BR", {
-      style: "currency",
-      currency: "BRL",
-    });
-    return formattedValue;
+    return currencyMask(value);
   }, []);
 
   const handleToggleSidebar = useCallback(() => setSidebarOpen((prev) => !prev), []);
@@ -274,7 +249,7 @@ export const useCreateCollaborator = () => {
         cpf: data.cpf.replace(/\D/g, ""),
         jobPosition: data.cargo,
         email: data.email,
-        salary: parseFloat(data.salario.replace(/[R$\s.]/g, "").replace(",", ".")),
+        salary: currencyValue(data.salario),
         phone: data.telefone.replace(/\D/g, ""),
         homeOffice: data.homeOffice === "true",
         faceImageBase64,
@@ -300,6 +275,7 @@ export const useCreateCollaborator = () => {
         title: "Colaborador criado!",
         description: `O registro de ${data.nomeCompleto} foi salvo. Prossiga para vincular o acesso do usuário.`,
       });
+      return true;
     } catch (error) {
       console.error("Erro no Passo 1 (Colaborador):", error);
       toast({
@@ -307,6 +283,7 @@ export const useCreateCollaborator = () => {
         description: error instanceof Error ? error.message : "Tente novamente mais tarde.",
         variant: "destructive",
       });
+      return false;
     } finally {
       setIsSubmitting(false);
     }
@@ -372,6 +349,7 @@ export const useCreateCollaborator = () => {
       setUsernameAvailability(null);
       setFaceImageBase64(undefined);
       setFileName(undefined);
+      return true;
     } catch (error) {
       console.error("Erro no Passo 2 (Usuário):", error);
       toast({
@@ -379,6 +357,7 @@ export const useCreateCollaborator = () => {
         description: error instanceof Error ? error.message : "Tente novamente mais tarde.",
         variant: "destructive",
       });
+      return false;
     } finally {
       setIsSubmitting(false);
     }
@@ -391,6 +370,26 @@ export const useCreateCollaborator = () => {
       void handleCreateUser(data);
     }
   }, [handleCreateEmployee, handleCreateUser, stepCompleted]);
+
+  const submitEmployee = useCallback(async () => {
+    let success = false;
+
+    await form.handleSubmit(async (data) => {
+      success = (await handleCreateEmployee(data)) ?? false;
+    })();
+
+    return success;
+  }, [form, handleCreateEmployee]);
+
+  const submitUser = useCallback(async () => {
+    let success = false;
+
+    await form.handleSubmit(async (data) => {
+      success = (await handleCreateUser(data)) ?? false;
+    })();
+
+    return success;
+  }, [form, handleCreateUser]);
 
   return {
     form,
@@ -413,8 +412,12 @@ export const useCreateCollaborator = () => {
     handleImageUpload,
     handleCheckCPF,
     handleCheckUsername,
+    submitEmployee,
+    submitUser,
     onSubmit,
-    scheduleTypes: SCHEDULE_TYPES,
-    daysOfWeek: DAYS_OF_WEEK,
+    scheduleTypes: COLLABORATOR_SCHEDULE_OPTIONS,
+    daysOfWeek: COLLABORATOR_LONG_DAY_OPTIONS,
   };
 };
+
+export type UseCreateCollaboratorReturn = ReturnType<typeof useCreateCollaborator>;

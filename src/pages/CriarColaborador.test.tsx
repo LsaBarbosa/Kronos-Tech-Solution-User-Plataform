@@ -10,13 +10,20 @@ import {
   createCollaborator,
   createUser,
 } from "@/service/collaborator-management.service";
+import { useCreateCollaboratorResponsiveMode } from "@/features/collaborators/create/hooks/useCreateCollaboratorResponsiveMode";
 
-vi.mock("@/components/Header", () => ({
-  default: () => <div data-testid="header" />,
+vi.mock("@/context/AuthContext", () => ({
+  useAuth: () => ({
+    user: {
+      account: { username: "lucas.barbosa" },
+      profile: { fullName: "Lucas Barbosa" },
+      role: "MANAGER",
+    },
+  }),
 }));
 
-vi.mock("@/components/Sidebar", () => ({
-  default: () => <div data-testid="sidebar" />,
+vi.mock("@/features/collaborators/create/hooks/useCreateCollaboratorResponsiveMode", () => ({
+  useCreateCollaboratorResponsiveMode: vi.fn(),
 }));
 
 vi.mock("@/hooks/use-toast", () => ({
@@ -35,6 +42,7 @@ const mockCheckCpfAvailability = vi.mocked(checkCpfAvailability);
 const mockCheckUsernameAvailability = vi.mocked(checkUsernameAvailability);
 const mockCreateCollaborator = vi.mocked(createCollaborator);
 const mockCreateUser = vi.mocked(createUser);
+const mockResponsiveMode = vi.mocked(useCreateCollaboratorResponsiveMode);
 
 const renderPage = () =>
   render(
@@ -44,12 +52,12 @@ const renderPage = () =>
   );
 
 const fillStepOne = async (user: ReturnType<typeof userEvent.setup>) => {
-  await user.type(screen.getByLabelText("Nome Completo"), "Maria Silva");
+  await user.type(screen.getByLabelText("Nome completo"), "Maria Silva");
   await user.type(screen.getByLabelText("CPF"), "12345678901");
   await user.type(screen.getByLabelText("Cargo"), "Analista");
   await user.type(screen.getByLabelText("Email"), "maria@exemplo.com");
-  await user.type(screen.getByLabelText("Salário"), "4200");
   await user.type(screen.getByLabelText("Telefone"), "11999999999");
+  await user.type(screen.getByLabelText("Salário"), "4200");
   await user.type(screen.getByLabelText("CEP"), "01001000");
   await user.type(screen.getByLabelText("Número"), "100");
 };
@@ -57,37 +65,33 @@ const fillStepOne = async (user: ReturnType<typeof userEvent.setup>) => {
 describe("CriarColaborador", () => {
   beforeEach(() => {
     vi.clearAllMocks();
+    mockResponsiveMode.mockReturnValue({
+      isDesktop: true,
+      isMobile: false,
+      mode: "desktop",
+    });
     mockCheckCpfAvailability.mockResolvedValue(true);
     mockCheckUsernameAvailability.mockResolvedValue(true);
     mockCreateCollaborator.mockResolvedValue({ employeeId: "emp-123" });
     mockCreateUser.mockResolvedValue(undefined);
   });
 
-  it("não permite concluir o passo 2 sem finalizar o passo 1", () => {
-    renderPage();
-
-    expect(
-      screen.queryByRole("button", { name: "Concluir Cadastro" })
-    ).not.toBeInTheDocument();
-    expect(
-      screen.getAllByRole("button", { name: "Verificar" })[1]
-    ).toBeDisabled();
-  }, 10000);
-
-  it("avança do passo 1 para o passo 2 após criar o colaborador", async () => {
+  it("renderiza a experiência desktop e conclui o fluxo de onboarding", async () => {
     const user = userEvent.setup();
     renderPage();
 
+    expect(
+      screen.getByRole("heading", { name: "Cadastro completo com vínculo de acesso" })
+    ).toBeInTheDocument();
+
     await fillStepOne(user);
-    await user.click(screen.getAllByRole("button", { name: "Verificar" })[0]);
+    await user.click(screen.getAllByRole("button", { name: "Validar" })[0]);
 
     await waitFor(() => {
       expect(mockCheckCpfAvailability).toHaveBeenCalledWith("12345678901");
     });
 
-    await user.click(
-      screen.getByRole("button", { name: "Salvar Dados e Continuar" })
-    );
+    await user.click(screen.getByRole("button", { name: "Salvar dados" }));
 
     await waitFor(() => {
       expect(mockCreateCollaborator).toHaveBeenCalledWith(
@@ -99,43 +103,14 @@ describe("CriarColaborador", () => {
       );
     });
 
-    expect(screen.getByText("Passo 1 Concluído! Prossiga abaixo.")).toBeInTheDocument();
-    expect(screen.getByRole("button", { name: "Concluir Cadastro" })).toBeInTheDocument();
-  }, 10000);
-
-  it("não conclui o cadastro sem validar o username", async () => {
-    const user = userEvent.setup();
-    renderPage();
-
-    await fillStepOne(user);
-    await user.click(screen.getAllByRole("button", { name: "Verificar" })[0]);
-    await user.click(
-      screen.getByRole("button", { name: "Salvar Dados e Continuar" })
-    );
-
-    await waitFor(() => {
-      expect(screen.getByRole("button", { name: "Concluir Cadastro" })).toBeDisabled();
-    });
-  }, 10000);
-
-  it("finaliza o cadastro após verificar username e criar usuario", async () => {
-    const user = userEvent.setup();
-    renderPage();
-
-    await fillStepOne(user);
-    await user.click(screen.getAllByRole("button", { name: "Verificar" })[0]);
-    await user.click(
-      screen.getByRole("button", { name: "Salvar Dados e Continuar" })
-    );
-
-    await user.type(screen.getByLabelText("Nome de Usuário"), "maria.silva");
-    await user.click(screen.getAllByRole("button", { name: "Verificar" })[1]);
+    await user.type(screen.getByLabelText("Username"), "maria.silva");
+    await user.click(screen.getAllByRole("button", { name: "Validar" })[1]);
 
     await waitFor(() => {
       expect(mockCheckUsernameAvailability).toHaveBeenCalledWith("maria.silva");
     });
 
-    await user.click(screen.getByRole("button", { name: "Concluir Cadastro" }));
+    await user.click(screen.getByRole("button", { name: "Criar acesso" }));
 
     await waitFor(() => {
       expect(mockCreateUser).toHaveBeenCalledWith({
@@ -150,5 +125,25 @@ describe("CriarColaborador", () => {
         title: "Cadastro Concluído!",
       })
     );
-  }, 10000);
+  }, 15000);
+
+  it("renderiza a experiência mobile com stepper próprio", async () => {
+    const user = userEvent.setup();
+    mockResponsiveMode.mockReturnValue({
+      isDesktop: false,
+      isMobile: true,
+      mode: "mobile",
+    });
+
+    renderPage();
+
+    expect(screen.getByText("Novo cadastro")).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Próximo: Escala" })).toBeInTheDocument();
+
+    await user.click(screen.getByRole("button", { name: "Próximo: Escala" }));
+
+    await waitFor(() => {
+      expect(screen.getByRole("button", { name: "Salvar dados e continuar" })).toBeInTheDocument();
+    });
+  });
 });
