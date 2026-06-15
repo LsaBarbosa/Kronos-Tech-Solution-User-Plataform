@@ -1,6 +1,8 @@
-import { useState } from "react";
+import { useCallback, useState } from "react";
 
 import { Form } from "@/components/ui/form";
+import Header from "@/components/Header";
+import Sidebar from "@/components/Sidebar";
 import { useCreateCollaborator } from "@/hooks/useCreateCollaborator";
 
 import { useCreateCollaboratorResponsiveMode } from "../hooks/useCreateCollaboratorResponsiveMode";
@@ -11,6 +13,8 @@ const CreateCollaboratorPage = () => {
   const vm = useCreateCollaborator();
   const { isDesktop } = useCreateCollaboratorResponsiveMode();
   const [mobileStep, setMobileStep] = useState(0);
+  const [sidebarOpen, setSidebarOpen] = useState(false);
+  const handleToggleSidebar = useCallback(() => setSidebarOpen((prev) => !prev), []);
 
   const handlePrimaryAction = async () => {
     if (mobileStep === 0) {
@@ -34,16 +38,20 @@ const CreateCollaboratorPage = () => {
 
   return (
     <Form {...vm.form}>
-      {isDesktop ? (
-        <CreateCollaboratorDesktop vm={vm} />
-      ) : (
-        <CreateCollaboratorMobile
-          vm={vm}
-          activeStep={mobileStep}
-          onStepChange={setMobileStep}
-          onPrimaryAction={handlePrimaryAction}
-        />
-      )}
+      <Sidebar isOpen={sidebarOpen} toggleSidebar={handleToggleSidebar} />
+      <Header toggleSidebar={handleToggleSidebar} />
+      <div className="pt-16">
+        {isDesktop ? (
+          <CreateCollaboratorDesktop vm={vm} />
+        ) : (
+          <CreateCollaboratorMobile
+            vm={vm}
+            activeStep={mobileStep}
+            onStepChange={setMobileStep}
+            onPrimaryAction={handlePrimaryAction}
+          />
+        )}
+      </div>
     </Form>
   );
 };

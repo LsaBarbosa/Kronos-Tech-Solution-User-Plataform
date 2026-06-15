@@ -35,6 +35,11 @@ vi.mock("@/service/collaborator-management.service", () => ({
   checkUsernameAvailability: vi.fn(),
   createCollaborator: vi.fn(),
   createUser: vi.fn(),
+  createManager: vi.fn(),
+  fetchEmployeeList: vi.fn().mockResolvedValue([]),
+  updateCollaborator: vi.fn(),
+  updateUser: vi.fn(),
+  toggleUserStatus: vi.fn(),
 }));
 
 const mockToast = vi.mocked(toast);
