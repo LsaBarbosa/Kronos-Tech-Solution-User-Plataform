@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { BarChart3, ChevronRight } from "lucide-react";
+import { ArrowUpRight, BarChart3, ChevronRight, ClipboardEdit } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -76,6 +76,14 @@ export const DetailedReportMobile = ({ viewModel }: DetailedReportMobileProps) =
             </Link>
           </Button>
         </div>
+
+        <Button asChild size="sm" className="mt-4 h-11 w-full gap-1 rounded-2xl bg-white text-[#102A43] hover:bg-white/90">
+          <Link to={APP_PATHS.statusDoRegistro}>
+            <ClipboardEdit className="h-4 w-4" />
+            Status do registro
+            <ArrowUpRight className="ml-auto h-4 w-4" />
+          </Link>
+        </Button>
 
         <div className="mt-4 flex flex-wrap gap-2">
           <Badge className="rounded-full border border-white/20 bg-white/10 px-3 py-1 text-[11px] font-semibold text-white">{roleMeta.label}</Badge>

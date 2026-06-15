@@ -1,6 +1,9 @@
+import { Link } from "react-router-dom";
+import { ArrowUpRight, BarChart3, ClipboardEdit, ShieldCheck, ScrollText } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { ClipboardEdit, ShieldCheck, ScrollText } from "lucide-react";
+import { APP_PATHS } from "@/config/app-routes";
 
 interface StatusRegistroHeroProps {
   variant: "desktop" | "mobile";
@@ -28,6 +31,18 @@ const StatusRegistroHero = ({ variant }: StatusRegistroHeroProps) => {
             </div>
             <Badge className="shrink-0 border-white/15 bg-white/10 text-white">Ponto</Badge>
           </div>
+
+          <Button
+            asChild
+            size="sm"
+            className="mt-4 h-11 w-full gap-1 bg-white text-[#0B1220] hover:bg-white/90"
+          >
+            <Link to={APP_PATHS.relatorioDetalhado}>
+              <BarChart3 className="h-4 w-4" />
+              Relatório detalhado
+              <ArrowUpRight className="ml-auto h-4 w-4" />
+            </Link>
+          </Button>
         </div>
       </Card>
     );
@@ -67,6 +82,20 @@ const StatusRegistroHero = ({ variant }: StatusRegistroHeroProps) => {
                 Auditoria por colaborador
               </Badge>
             </div>
+          </div>
+
+          <div className="flex flex-col items-stretch gap-3 xl:w-[260px]">
+            <Button
+              asChild
+              size="lg"
+              className="h-12 w-full gap-1 bg-white text-[#0B1220] hover:bg-white/90"
+            >
+              <Link to={APP_PATHS.relatorioDetalhado}>
+                <BarChart3 className="h-4 w-4" />
+                Relatório detalhado
+                <ArrowUpRight className="ml-auto h-4 w-4" />
+              </Link>
+            </Button>
           </div>
         </div>
       </div>

@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { BarChart3 } from "lucide-react";
+import { ArrowUpRight, BarChart3, ClipboardEdit } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import type { DetailedReportBuilderViewModel } from "@/hooks/useDetailedReportBuilder";
@@ -81,8 +81,15 @@ export const DetailedReportDesktop = ({ viewModel }: DetailedReportDesktopProps)
             </div>
           </div>
 
-          <div className="flex items-center gap-3">
-            <Button asChild variant="outline" className="h-11 rounded-2xl border-white/20 bg-white/10 px-4 text-white hover:bg-white/15 hover:text-white">
+          <div className="flex flex-col items-stretch gap-3 xl:w-[260px]">
+            <Button asChild className="h-11 w-full gap-1 rounded-2xl bg-white text-[#102A43] hover:bg-white/90">
+              <Link to={APP_PATHS.statusDoRegistro}>
+                <ClipboardEdit className="h-4 w-4" />
+                Status do registro
+                <ArrowUpRight className="ml-auto h-4 w-4" />
+              </Link>
+            </Button>
+            <Button asChild variant="outline" className="h-11 w-full rounded-2xl border-white/20 bg-white/10 px-4 text-white hover:bg-white/15 hover:text-white">
               <Link to={APP_PATHS.dashboard}>
                 Dashboard
               </Link>
