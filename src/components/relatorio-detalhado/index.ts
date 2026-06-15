@@ -1,0 +1,10 @@
+export { DetailedReportDesktop } from "@/components/relatorio-detalhado/DetailedReportDesktop";
+export { DetailedReportMobile } from "@/components/relatorio-detalhado/DetailedReportMobile";
+export { ReportActionFooter } from "@/components/relatorio-detalhado/ReportActionFooter";
+export { ReportDateChips } from "@/components/relatorio-detalhado/ReportDateChips";
+export { ReportEmployeeSelector } from "@/components/relatorio-detalhado/ReportEmployeeSelector";
+export { ReportExpectedSummary } from "@/components/relatorio-detalhado/ReportExpectedSummary";
+export { ReportGovernancePanel } from "@/components/relatorio-detalhado/ReportGovernancePanel";
+export { ReportReferenceStatusCard } from "@/components/relatorio-detalhado/ReportReferenceStatusCard";
+export { ReportResultsSummary } from "@/components/relatorio-detalhado/ReportResultsSummary";
+export { ReportStatusChips } from "@/components/relatorio-detalhado/ReportStatusChips";

@@ -1,0 +1,24 @@
+{
+  "package": "kronos_codex_relatorio_detalhado_ui",
+  "target_route": "/relatorio-detalhado",
+  "target_screen": "Relatório detalhado de ponto",
+  "frontend_repository": "LsaBarbosa/Kronos-Tech-Solution-User-Plataform",
+  "frontend_branch": "feature/lgpd-compliance-new-ui",
+  "backend_repository": "LsaBarbosa/Kronos-Tech-Solutions-KTS",
+  "backend_branch": "PROD_HOSTINGER_V2",
+  "documentation_repository": "LsaBarbosa/kronos-business",
+  "documentation_branch": "main",
+  "visual_directive": "references/docs/kronos_relatorio_detalhado_diretriz_visual.md",
+  "mockups": [
+    "references/mockups/kronos_relatorio_detalhado_desktop.png",
+    "references/mockups/kronos_relatorio_detalhado_mobile.png"
+  ],
+  "generated_for": "Codex CLI",
+  "principles": [
+    "Refatorar UI/UX sem mudar contrato HTTP",
+    "Criar experiência desktop e mobile diferentes",
+    "Preservar regras por ROLE: CTO, MANAGER e PARTNER",
+    "Exportação só fica disponível após resultado",
+    "Remover legado somente após validar que não há uso compartilhado"
+  ]
+}

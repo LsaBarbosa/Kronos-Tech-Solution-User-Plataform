@@ -92,7 +92,7 @@ const renderProtectedRoleRoute = ({
 const App = () => (
   <QueryClientProvider client={queryClient}>
     <ThemeProvider>
-      <BrowserRouter>
+      <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
         <AuthProvider>
           <CheckinProvider>
             <TooltipProvider>

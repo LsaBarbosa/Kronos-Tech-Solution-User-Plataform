@@ -29,9 +29,10 @@ interface ResultadosDetalhadoProps {
     referenceTime: string;
     selectedDates: Date[];
     onEditRecord: (record: DetailedReportItem) => void;
-    // Novas props para receber as funções do pai
     onDownloadPDF: () => void;
     onDownloadCSV: () => void;
+    showExportActions?: boolean;
+    showSummaryCards?: boolean;
 }
 
 export const ResultadosRelatorioDetalhado: React.FC<ResultadosDetalhadoProps> = ({
@@ -40,8 +41,10 @@ export const ResultadosRelatorioDetalhado: React.FC<ResultadosDetalhadoProps> = 
     referenceTime,
     selectedDates,
     onEditRecord,
-    onDownloadPDF, // Recebendo via prop
-    onDownloadCSV  // Recebendo via prop
+    onDownloadPDF,
+    onDownloadCSV,
+    showExportActions = true,
+    showSummaryCards = true,
 }) => {
     const { toast } = useToast();
     void statusFilter;
@@ -165,8 +168,8 @@ export const ResultadosRelatorioDetalhado: React.FC<ResultadosDetalhadoProps> = 
 
     return (
        <div className="space-y-6">
-            {/* CARDS DE RESUMO - GRID MODERNO */}
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-4">
+            {showSummaryCards && (
+              <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
                 {/* Card: Saldo Total */}
                 <Card className="overflow-hidden border border-border bg-gradient-to-br from-background to-card shadow-sm hover:shadow-md transition-all duration-200">
                     <CardContent className="p-5">
@@ -242,7 +245,8 @@ export const ResultadosRelatorioDetalhado: React.FC<ResultadosDetalhadoProps> = 
                         </div>
                     </CardContent>
                 </Card>
-            </div>
+              </div>
+            )}
 
             {/* LISTA PRINCIPAL */}
             <Card className="overflow-hidden border border-border bg-card shadow-sm" ref={resultsRef}>
@@ -255,8 +259,8 @@ export const ResultadosRelatorioDetalhado: React.FC<ResultadosDetalhadoProps> = 
                         </CardDescription> 
                     </div>
                     
-                    {/* BOTÕES DE EXPORTAÇÃO - Modernizados */}
-                    <div className="flex flex-col sm:flex-row gap-2 w-full sm:w-auto">
+                    {showExportActions && (
+                      <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row">
                         <Button
                             variant="outline"
                             size="sm"
@@ -275,7 +279,8 @@ export const ResultadosRelatorioDetalhado: React.FC<ResultadosDetalhadoProps> = 
                             <FileText className="h-4 w-4" />
                             Exportar CSV
                         </Button>
-                    </div>
+                      </div>
+                    )}
                 </CardHeader>
                 
                 <CardContent className="p-4 space-y-6">
