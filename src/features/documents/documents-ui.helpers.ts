@@ -43,7 +43,7 @@ export const getDocumentRoleCopy = (role: DocumentRole): DocumentScopeCopy => {
       };
     case "MANAGER":
       return {
-        badge: "MANAGER",
+        badge: "ADM",
         title: "Gestão documental",
         description:
           "Busque documentos do seu time, acompanhe envios e gerencie pendências com controle de escopo.",
@@ -55,7 +55,7 @@ export const getDocumentRoleCopy = (role: DocumentRole): DocumentScopeCopy => {
       };
     case "PARTNER":
       return {
-        badge: "PARTNER",
+        badge: "Colaborador",
         title: "Acervo próprio",
         description:
           "Acesse os documentos vinculados à sua conta: contracheques, comprovantes e termos legais.",
