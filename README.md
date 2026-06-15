@@ -1,91 +1,65 @@
-# Kronos Codex Package — Aprovação de Férias `/ferias`
+# Kronos — Pacote Codex CLI para auditoria completa do Front-end
 
-Este pacote orienta o **Codex CLI** na refatoração completa da tela `/ferias` no front-end `Kronos-Tech-Solution-User-Plataform`, branch `feature/lgpd-compliance-new-ui`.
+## Objetivo
 
-A tela deve deixar de ser uma listagem simples e passar a funcionar como uma **mesa de aprovação gerencial de férias**.
+Este pacote orienta o Codex CLI a auditar o repositório `Kronos-Tech-Solution-User-Plataform`, branch `feature/lgpd-compliance-new-ui`, usando como referência:
 
-## Escopo
+- back-end `Kronos-Tech-Solutions-KTS`, branch `PROD_HOSTINGER_V2`;
+- documentação `kronos-business`, branch `main`;
+- diretrizes visuais e mockups já anexados ao pacote em `references/visual-guidelines`.
 
-- Repositório front-end: `LsaBarbosa/Kronos-Tech-Solution-User-Plataform`
-- Branch front-end: `feature/lgpd-compliance-new-ui`
-- Repositório back-end: `LsaBarbosa/Kronos-Tech-Solutions-KTS`
-- Branch back-end: `PROD_HOSTINGER_V2`
-- Repositório de documentação: `LsaBarbosa/kronos-business`
-- Branch de documentação: `main`
-- Rota alvo: `/ferias`
-
-## Referências incluídas
+A saída obrigatória da execução é o arquivo:
 
 ```text
-references/
-├── docs/
-│   └── kronos_aprovar_ferias_diretriz_visual.md
-└── mockups/
-    ├── kronos_aprovar_ferias_desktop.png
-    └── kronos_aprovar_ferias_mobile.png
+auditoria-front-end.md
 ```
 
-## Resultado esperado
+Esse arquivo deve ser criado na raiz do repositório front-end auditado.
 
-### Desktop
+## Escopo da auditoria
 
-Experiência de **mesa de aprovação**:
+A auditoria deve cobrir todo o front-end:
 
-- sidebar persistente;
-- header de contexto;
-- hero institucional;
-- métricas superiores;
-- filtros horizontais;
-- inbox/tabela de solicitações;
-- detalhe lateral da solicitação selecionada;
-- ações separadas de aprovar e rejeitar lote;
-- confirmação antes de mutações sensíveis.
+- rotas públicas;
+- rotas autenticadas;
+- rotas com role explícita;
+- componentes globais;
+- hooks;
+- services HTTP;
+- contextos de autenticação, check-in e sessão;
+- LGPD/privacidade;
+- upload/download de documentos;
+- telas mobile e desktop;
+- responsividade real;
+- acessibilidade;
+- segurança do front-end;
+- alinhamento visual com as diretrizes.
 
-### Mobile
+## Regra principal
 
-Experiência de **inbox de decisões**:
+Não corrigir código nesta execução.
 
-- topo compacto;
-- métricas curtas;
-- busca simples;
-- chips de status;
-- cards de solicitação;
-- seleção contextual;
-- painel fixo inferior;
-- botões grandes de aprovar/rejeitar.
+Permitido:
 
-## Arquivos de execução
+- ler arquivos;
+- executar comandos de validação;
+- gerar evidências;
+- criar `auditoria-front-end.md`.
 
-```text
-codex/
-├── skills/
-│   └── kronos-aprovar-ferias-ui.skill.md
-├── agents/
-│   └── kronos-aprovar-ferias-ui.agent.md
-├── rules/
-│   └── kronos-aprovar-ferias-ui.rules.md
-└── subagents/
-    ├── repo-mapper.subagent.md
-    ├── vacation-approval-domain.subagent.md
-    ├── ui-architecture.subagent.md
-    ├── api-contract.subagent.md
-    ├── qa-a11y.subagent.md
-    └── legacy-cleaner.subagent.md
-```
+Não permitido:
+
+- alterar componentes;
+- refatorar telas;
+- remover arquivos;
+- ajustar CSS;
+- mudar rotas;
+- alterar contratos de API;
+- commitar alterações.
 
 ## Ordem recomendada
 
-1. Ler `prompt-codex-aprovar-ferias-ui.md`.
-2. Aplicar `codex/rules/kronos-aprovar-ferias-ui.rules.md`.
-3. Executar o plano em `plano-acao-aprovar-ferias-ui.md`.
-4. Validar com `checklist-validacao-aprovar-ferias-ui.md`.
-
-## Observações críticas
-
-- A rota `/ferias` é gerencial e deve ser usada por `MANAGER`.
-- O fluxo aprova/rejeita **lotes de registros diários** criados pela solicitação de férias.
-- `REQUEST_VACATION` deve ser entendido como status pendente.
-- Aprovação deve converter registros para `VACATION`.
-- Rejeição deve converter registros para `VACATION_REJECTED`.
-- Estados finalizados não devem exibir CTA ativo de aprovação/rejeição.
-- As decisões são sensíveis e precisam de confirmação explícita.
+1. Copiar `codex/skills`, `codex/agents`, `codex/subagents` e `codex/rules` para o workspace usado pelo Codex, se esse for o padrão local.
+2. Abrir o arquivo `prompt-codex-auditoria-front-end.md`.
+3. Colar o prompt no Codex CLI a partir da raiz que contém os três repositórios.
+4. Validar que o Codex produziu `auditoria-front-end.md` na raiz do front-end.
+5. Revisar severidades e evidências por arquivo/linha.
