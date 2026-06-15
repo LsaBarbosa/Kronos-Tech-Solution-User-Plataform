@@ -1,28 +1,21 @@
-# Subagent — API Contract
+# Subagent — api-contract
 
 ## Objetivo
 
-Impedir quebra de contrato HTTP.
+Garantir que os contratos HTTP sejam preservados.
 
-## Contratos
+## Ler
 
 ```text
-GET /legal/technical-certificate
-GET /legal/afd
-GET /legal/aej?startDate=YYYY-MM-DD&endDate=YYYY-MM-DD
+src/service/records.service.ts
+src/main/java/com/kts/kronos/constants/ApiPaths.java
+src/main/java/com/kts/kronos/adapter/in/web/http/TimeRecordController.java
+src/main/java/com/kts/kronos/adapter/in/web/dto/timerecord/UpdateTimeRecordStatusRequest.java
 ```
 
-## Preservar
+## Validar
 
-- `responseType: "blob"`.
-- `Content-Disposition` para nome real do arquivo.
-- fallback local de nome de arquivo.
-- `dateToBackendDatePattern`.
-- tratamento administrativo de erro.
-
-## Proibido
-
-- Enviar mês para AFD se o serviço não aceita.
-- Enviar data para ATESTADO.
-- Trocar GET por POST.
-- Criar payload novo.
+- `fetchDetailedReport` continua usando `POST /records/report`.
+- `updateRecordStatus` continua usando `PUT /records/update/status/{employeeId}/{timeRecordId}`.
+- `toggleRecordActivate` continua usando `PUT /records/toggle-activate/{employeeId}/{timeRecordId}`.
+- Payload de status continua `{ statusRecord }`.

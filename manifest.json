@@ -1,49 +1,34 @@
 {
-  "package": "kronos_codex_auditoria_fiscal_ui",
-  "generated_at": "2026-06-14T13:31:23Z",
-  "objective": "Refatorar a rota /auditoria como Fiscal Compliance Console com experiência desktop e mobile distintas.",
-  "repositories": {
-    "backend": {
-      "name": "LsaBarbosa/Kronos-Tech-Solutions-KTS",
-      "branch": "PROD_HOSTINGER_V2",
-      "relevant_files": [
-        "src/main/java/com/kts/kronos/adapter/in/web/http/LegalController.java",
-        "src/main/java/com/kts/kronos/constants/ApiPaths.java",
-        "src/main/java/com/kts/kronos/application/port/in/usecase/AdfUseCase.java",
-        "src/main/java/com/kts/kronos/application/port/in/usecase/AejUseCase.java",
-        "src/main/java/com/kts/kronos/application/service/TechnicalCertificatePdfService.java"
-      ]
-    },
-    "frontend": {
-      "name": "LsaBarbosa/Kronos-Tech-Solution-User-Plataform",
-      "branch": "feature/lgpd-compliance-new-ui",
-      "relevant_files": [
-        "src/pages/AuditoriaFiscal.tsx",
-        "src/service/fiscal.service.ts",
-        "src/config/api-routes.ts",
-        "src/config/app-routes.ts",
-        "src/App.tsx",
-        "src/context/AuthContext.tsx",
-        "src/components/PageShell.tsx"
-      ]
-    },
-    "business_docs": {
-      "name": "LsaBarbosa/kronos-business",
-      "branch": "main",
-      "local_reference": "references/docs/kronos_auditoria_fiscal_diretriz_visual.md"
-    }
-  },
-  "references": {
-    "visual_guideline": "references/docs/kronos_auditoria_fiscal_diretriz_visual.md",
-    "desktop_mockup": "references/mockups/kronos_auditoria_fiscal_desktop.png",
-    "mobile_mockup": "references/mockups/kronos_auditoria_fiscal_mobile.png"
-  },
-  "route": "/auditoria",
-  "frontend_target": "src/pages/AuditoriaFiscal.tsx",
+  "name": "kronos-codex-status-registro-ui",
+  "version": "1.0.0",
+  "route": "/status-do-registro",
+  "frontend_repository": "LsaBarbosa/Kronos-Tech-Solution-User-Plataform",
+  "frontend_branch": "feature/lgpd-compliance-new-ui",
+  "backend_repository": "LsaBarbosa/Kronos-Tech-Solutions-KTS",
+  "backend_branch": "PROD_HOSTINGER_V2",
+  "documentation_repository": "LsaBarbosa/kronos-business",
+  "documentation_branch": "main",
+  "primary_frontend_target": "src/pages/StatusRegistro.tsx",
+  "visual_direction": "Time Record Status Control",
   "contracts_to_preserve": [
-    "GET /legal/technical-certificate",
-    "GET /legal/afd",
-    "GET /legal/aej?startDate=YYYY-MM-DD&endDate=YYYY-MM-DD"
+    "POST /records/report?employeeId=<uuid opcional>",
+    "PUT /records/update/status/{employeeId}/{timeRecordId}",
+    "PUT /records/toggle-activate/{employeeId}/{timeRecordId}"
   ],
-  "missing_references": []
+  "references": {
+    "directive": "references/docs/kronos_status_registro_diretriz_visual.md",
+    "desktop_mockup": "references/mockups/kronos_status_registro_desktop.png",
+    "mobile_mockup": "references/mockups/kronos_status_registro_mobile.png"
+  },
+  "codex_files": [
+    "codex/skills/kronos-status-registro-ui.skill.md",
+    "codex/agents/kronos-status-registro-ui.agent.md",
+    "codex/rules/kronos-status-registro-ui.rules.md",
+    "codex/subagents/repo-mapper.subagent.md",
+    "codex/subagents/status-domain.subagent.md",
+    "codex/subagents/ui-architecture.subagent.md",
+    "codex/subagents/api-contract.subagent.md",
+    "codex/subagents/qa-a11y.subagent.md",
+    "codex/subagents/legacy-cleaner.subagent.md"
+  ]
 }

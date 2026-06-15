@@ -1,31 +1,22 @@
-# Subagent — Repo Mapper
+# Subagent — repo-mapper
 
 ## Objetivo
 
-Mapear arquivos necessários antes da implementação.
+Mapear onde a rota `/status-do-registro` está definida e quais arquivos são impactados.
 
-## Ler no front-end
+## Ler
 
-- `src/pages/AuditoriaFiscal.tsx`
-- `src/service/fiscal.service.ts`
-- `src/config/api-routes.ts`
-- `src/config/app-routes.ts`
-- `src/App.tsx`
-- `src/context/AuthContext.tsx`
-- `src/components/PageShell.tsx`
+```text
+src/config/app-routes.ts
+src/App.tsx
+src/pages/StatusRegistro.tsx
+src/service/records.service.ts
+```
 
-## Ler no back-end
+## Responder
 
-- `src/main/java/com/kts/kronos/adapter/in/web/http/LegalController.java`
-- `src/main/java/com/kts/kronos/constants/ApiPaths.java`
-
-## Resultado esperado
-
-Entregar ao agente principal:
-
-- rota real;
-- componente real;
-- serviços reais;
-- endpoints reais;
-- papel permitido;
-- arquivos que podem ser alterados com segurança.
+- caminho da rota;
+- componente renderizado;
+- services consumidos;
+- componentes legados usados;
+- riscos de alteração.

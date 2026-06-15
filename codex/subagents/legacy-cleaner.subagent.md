@@ -1,14 +1,20 @@
-# Subagent — Legacy Cleaner
+# Subagent — legacy-cleaner
 
 ## Objetivo
 
-Remover implementação visual antiga após a nova tela funcionar.
+Remover o legado visual após a nova implementação.
 
-## Ações
+## Remover
 
-- Remover card único legado.
-- Remover imports antigos não usados.
-- Remover estados que perderam função.
-- Garantir que só exista uma implementação ativa.
-- Não apagar serviços compartilhados usados por outras telas.
-- Não alterar rotas sem necessidade.
+- Visual baseado em relatório genérico.
+- Modal antigo se substituído pelo painel lateral.
+- Callbacks `onDownloadPDF` e `onDownloadCSV` não implementados.
+- Instruções antigas extensas.
+- Imports não usados.
+- Estados duplicados.
+
+## Validar
+
+- A tela final é uma central de correção auditável.
+- Não há código morto.
+- Não há warnings de lint.

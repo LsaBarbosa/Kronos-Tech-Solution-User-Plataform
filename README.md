@@ -1,68 +1,65 @@
-# Kronos — Pacote Codex para `/auditoria`
+# Kronos Codex Pack — `/status-do-registro`
 
-Este pacote orienta o Codex CLI a refatorar a tela **Auditoria Fiscal** na rota `/auditoria`, transformando a experiência atual em uma **central de arquivos legais e fiscais** para conformidade de jornada.
+Pacote de instruções para o **Codex CLI** implementar a nova UI/UX da tela **Status do Registro** no front-end Kronos.
 
 ## Escopo
 
-- Repositório front-end: `Kronos-Tech-Solution-User-Plataform`
-- Branch front-end: `feature/lgpd-compliance-new-ui`
-- Repositório back-end: `Kronos-Tech-Solutions-KTS`
-- Branch back-end: `PROD_HOSTINGER_V2`
-- Repositório de documentação: `kronos-business`
-- Branch documentação: `main`
-- Rota: `/auditoria`
-- Arquivo principal atual: `src/pages/AuditoriaFiscal.tsx`
+Refatorar a rota:
+
+```text
+/status-do-registro
+```
+
+A tela deve deixar de ser uma composição genérica de relatório + modal e passar a funcionar como uma **central de correção auditável de registros de ponto**.
+
+## Repositórios alvo
+
+```text
+Back-end:
+Kronos-Tech-Solutions-KTS
+branch: PROD_HOSTINGER_V2
+
+Front-end:
+Kronos-Tech-Solution-User-Plataform
+branch: feature/lgpd-compliance-new-ui
+
+Documentação:
+kronos-business
+branch: main
+```
 
 ## Referências incluídas
 
 ```text
-references/
-├── docs/
-│   └── kronos_auditoria_fiscal_diretriz_visual.md
-└── mockups/
-    ├── kronos_auditoria_fiscal_desktop.png
-    └── kronos_auditoria_fiscal_mobile.png
+references/docs/kronos_status_registro_diretriz_visual.md
+references/mockups/kronos_status_registro_desktop.png
+references/mockups/kronos_status_registro_mobile.png
 ```
 
-## Resultado esperado
-
-A tela deve deixar de ser um card único com radio buttons e calendário e passar a funcionar como **Fiscal Compliance Console**:
-
-- Desktop: console fiscal com hero, cards grandes de AEJ/AFD/ATESTADO, mês de referência, painel lateral de conformidade e CTA explícito.
-- Mobile: fluxo guiado com seleção compacta de tipo, referência, prévia e CTA fixo.
-- Contratos HTTP preservados.
-- Legado visual removido após teste.
-- Sem alteração de back-end, salvo se o Codex encontrar divergência real de contrato.
-
-## Contratos que devem ser preservados
+## Entregáveis do pacote
 
 ```text
-GET /legal/technical-certificate
-GET /legal/afd
-GET /legal/aej?startDate=YYYY-MM-DD&endDate=YYYY-MM-DD
+codex/skills/kronos-status-registro-ui.skill.md
+codex/agents/kronos-status-registro-ui.agent.md
+codex/rules/kronos-status-registro-ui.rules.md
+codex/subagents/*.subagent.md
+plano-acao-status-registro-ui.md
+prompt-codex-status-registro-ui.md
+checklist-validacao-status-registro-ui.md
 ```
 
-## Comandos mínimos de validação
+## Contratos que não devem ser alterados
 
-Executar no front-end:
-
-```bash
-npm install
-npm run lint
-npm run build
+```http
+POST /records/report?employeeId=<uuid opcional>
+PUT  /records/update/status/{employeeId}/{timeRecordId}
+PUT  /records/toggle-activate/{employeeId}/{timeRecordId}
 ```
 
-Se existirem testes no workspace:
+## Arquivo principal esperado no front-end
 
-```bash
-npm test
+```text
+src/pages/StatusRegistro.tsx
 ```
 
-## Observações de negócio
-
-- `AEJ` usa período/mês e gera `.p7s`.
-- `AFD` não deve sugerir que mês seja obrigatório.
-- `ATESTADO` é documento estático e não depende de data.
-- A rota é restrita a `MANAGER` e `CTO`.
-- Loading deve bloquear múltiplas solicitações.
-- Erros devem usar linguagem administrativa.
+O Codex deve preservar o funcionamento de busca, seleção, alteração de status e ativação/inativação, mas substituir a experiência visual antiga pela nova arquitetura.

@@ -1,30 +1,24 @@
-# Subagent — UI Architecture
+# Subagent — ui-architecture
 
 ## Objetivo
 
-Desenhar e implementar a arquitetura visual desktop/mobile.
+Definir a arquitetura de componentes para desktop e mobile.
 
 ## Desktop
 
-- Hero institucional.
-- Cards de tipo de arquivo.
-- Mês de referência.
-- Painel de conformidade.
-- CTA contextual.
+- Hero.
+- Painel de filtros.
+- Lista de registros.
+- Painel de decisão.
+- Confirmações.
 
 ## Mobile
 
-- Topo compacto.
-- Etapas guiadas.
-- Prévia.
-- CTA fixo.
-- Sem tabela.
+- Header compacto.
+- Etapas sequenciais.
+- Cards de registros.
+- Bottom bar.
 
-## Componentização sugerida
+## Entrega
 
-- `FiscalTypeCard`
-- `FiscalCompliancePanel`
-- `FiscalMobileFlow`
-- `FiscalReferenceSelector`
-
-Criar componentes apenas se simplificar a manutenção.
+Propor estrutura de componentes e classes Tailwind sem adicionar dependências externas.

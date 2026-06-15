@@ -1,4 +1,4 @@
-# Subagent — QA A11y
+# Subagent — qa-a11y
 
 ## Objetivo
 
@@ -6,13 +6,12 @@ Validar qualidade, acessibilidade e responsividade.
 
 ## Checklist
 
-- `npm run lint`
-- `npm run build`
-- Navegação por teclado.
-- Botões com texto explícito.
-- Loading perceptível.
-- Erros junto ao campo.
-- CTA desabilitado explica motivo.
-- Mobile com alvos de toque mínimos.
-- Contraste adequado.
-- Sem tabela no mobile.
+- Botões têm texto ou `aria-label`.
+- Status tem texto explícito.
+- Confirmação é acessível por teclado.
+- Loading é localizado.
+- Erros aparecem próximos ao contexto.
+- Mobile não usa tabela.
+- Desktop mantém leitura lado a lado.
+- `npm run lint` passa.
+- `npm run build` passa.
