@@ -1,51 +1,32 @@
 {
-  "package": "kronos_codex_aprovacoes_abono_ui",
-  "target_route": "/aprovacoes-abono",
-  "target_screen": "ManualRegisterApprovals",
-  "frontend_repository": {
-    "name": "LsaBarbosa/Kronos-Tech-Solution-User-Plataform",
-    "branch": "feature/lgpd-compliance-new-ui",
-    "primary_files": [
-      "src/App.tsx",
-      "src/config/app-routes.ts",
-      "src/pages/ManualRegisterApprovals.tsx",
-      "src/hooks/useTimeOffApprovals.ts",
-      "src/service/records.service.ts",
-      "src/service/document.service.ts",
-      "src/types/recordApproval.ts",
-      "src/utils/document-resolution.ts",
-      "src/components/Sidebar.tsx",
-      "src/components/Header.tsx",
-      "src/components/ui/*"
-    ]
-  },
-  "backend_repository": {
-    "name": "LsaBarbosa/Kronos-Tech-Solutions-KTS",
-    "branch": "PROD_HOSTINGER_V2",
-    "primary_files": [
-      "src/main/java/com/kts/kronos/constants/ApiPaths.java",
-      "src/main/java/com/kts/kronos/adapter/in/web/http/TimeRecordController.java",
-      "src/main/java/com/kts/kronos/adapter/in/web/dto/timerecord/*",
-      "src/main/java/com/kts/kronos/application/service/TimeRecordService.java"
-    ]
-  },
-  "documentation_repository": {
-    "name": "LsaBarbosa/kronos-business",
-    "branch": "main",
-    "primary_files": [
-      "04-mapa-modulos-telas.md",
-      "references/docs/kronos_aprovacoes_abono_diretriz_visual.md"
-    ]
-  },
+  "project": "Kronos",
+  "route": "/privacidade",
+  "target_page": "src/pages/PrivacyCenter.tsx",
+  "frontend_repository": "LsaBarbosa/Kronos-Tech-Solution-User-Plataform",
+  "frontend_branch": "feature/lgpd-compliance-new-ui",
+  "backend_repository": "LsaBarbosa/Kronos-Tech-Solutions-KTS",
+  "backend_branch": "PROD_HOSTINGER_V2",
+  "documentation_repository": "LsaBarbosa/kronos-business",
+  "documentation_branch": "main",
+  "purpose": "Refatorar a rota /privacidade como centro de direitos do titular LGPD, com experiências distintas para desktop e mobile.",
   "references": {
-    "visual_directive": "references/docs/kronos_aprovacoes_abono_diretriz_visual.md",
-    "desktop_mockup": "references/mockups/kronos_aprovacoes_abono_desktop.png",
-    "mobile_mockup": "references/mockups/kronos_aprovacoes_abono_mobile.png"
+    "visual_guideline": "references/docs/kronos_privacidade_diretriz_visual.md",
+    "desktop_mockup": "references/mockups/kronos_privacidade_desktop.png",
+    "mobile_mockup": "references/mockups/kronos_privacidade_mobile.png"
   },
-  "non_goals": [
-    "Não alterar contratos HTTP do backend.",
-    "Não criar novas regras de negócio fora do escopo da UI.",
-    "Não manter o legado renderizando em paralelo após a implementação final.",
-    "Não transformar mobile em tabela reduzida."
+  "generated_files": [
+    "README.md",
+    "plano-acao-privacidade-ui.md",
+    "prompt-codex-privacidade-ui.md",
+    "checklist-validacao-privacidade-ui.md",
+    "codex/skills/kronos-privacidade-ui.skill.md",
+    "codex/agents/kronos-privacidade-ui.agent.md",
+    "codex/rules/kronos-privacidade-ui.rules.md",
+    "codex/subagents/repo-mapper.subagent.md",
+    "codex/subagents/privacy-domain.subagent.md",
+    "codex/subagents/ui-architecture.subagent.md",
+    "codex/subagents/api-contract.subagent.md",
+    "codex/subagents/qa-a11y.subagent.md",
+    "codex/subagents/legacy-cleaner.subagent.md"
   ]
 }

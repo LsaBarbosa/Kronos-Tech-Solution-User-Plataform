@@ -1,44 +1,70 @@
-import { useState, useCallback } from "react";
-import Header from "@/components/Header";
-import Sidebar from "@/components/Sidebar";
-import { Lock, Download } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Separator } from "@/components/ui/separator";
+import { useCallback, useEffect, useRef, useState } from "react";
+import { useNavigate } from "react-router-dom";
+import PageShell from "@/components/PageShell";
+import { APP_PATHS } from "@/config/app-routes";
 import { toast } from "@/hooks/use-toast";
-import BiometricConsentCard from "@/components/privacy/BiometricConsentCard";
-import LgpdRequestForm from "@/components/privacy/LgpdRequestForm";
-import LgpdRequestsList from "@/components/privacy/LgpdRequestsList";
-import ConsentHistoryCard from "@/components/privacy/ConsentHistoryCard";
-import RevocationInfoCard from "@/components/privacy/RevocationInfoCard";
-import DPOContactCard from "@/components/privacy/DPOContactCard";
-import PrivacyPolicyCard from "@/components/privacy/PrivacyPolicyCard";
-import DataProcessingCatalogCard from "@/components/privacy/DataProcessingCatalogCard";
 import ExportConfirmationModal from "@/components/privacy/ExportConfirmationModal";
-import type { ExportManifest } from "@/components/privacy/ExportManifestDisplay";
-import ExportManifestDisplay from "@/components/privacy/ExportManifestDisplay";
-import { exportMyData } from "@/service/lgpd.service";
+import ExportManifestDisplay, {
+  type ExportManifest,
+} from "@/components/privacy/ExportManifestDisplay";
+import PrivacyDesktop from "@/components/privacy-center/PrivacyDesktop";
+import PrivacyMobile from "@/components/privacy-center/PrivacyMobile";
+import { usePrivacyResponsiveMode } from "@/components/privacy-center/usePrivacyResponsiveMode";
+import { exportMyData, listLgpdRequests } from "@/service/lgpd.service";
 import { getServiceErrorMessage } from "@/service/helpers/service-error.helper";
 import { useAuth } from "@/context/AuthContext";
-import { LgpdEmployeeExportResponse } from "@/types/legal";
+
+const TOTAL_LGPD_RIGHTS = 12;
 
 const PrivacyCenter = () => {
+  const navigate = useNavigate();
+  const { isDesktop } = usePrivacyResponsiveMode();
+  const { user } = useAuth();
+
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [refreshKey, setRefreshKey] = useState(0);
   const [showExportModal, setShowExportModal] = useState(false);
   const [isExporting, setIsExporting] = useState(false);
   const [exportManifest, setExportManifest] = useState<ExportManifest | null>(null);
-  const { user } = useAuth();
+
+  const [requestsCount, setRequestsCount] = useState(0);
+  const [isLoadingRequests, setIsLoadingRequests] = useState(true);
+
+  const newRequestAnchorRef = useRef<HTMLDivElement | null>(null);
 
   const handleToggleSidebar = useCallback(() => setSidebarOpen((prev) => !prev), []);
+  const handleBack = useCallback(() => navigate(APP_PATHS.dashboard), [navigate]);
 
-  const handleExportDataConfirmed = async () => {
+  useEffect(() => {
+    let cancelled = false;
+    setIsLoadingRequests(true);
+    listLgpdRequests()
+      .then((items) => {
+        if (cancelled) return;
+        setRequestsCount(items.length);
+      })
+      .catch(() => {
+        if (cancelled) return;
+        setRequestsCount(0);
+      })
+      .finally(() => {
+        if (!cancelled) setIsLoadingRequests(false);
+      });
+
+    return () => {
+      cancelled = true;
+    };
+  }, [refreshKey]);
+
+  const handleExportClick = useCallback(() => {
+    setShowExportModal(true);
+  }, []);
+
+  const handleExportConfirmed = useCallback(async () => {
     setIsExporting(true);
-
     try {
       const exportResponse = await exportMyData();
 
-      // Generate download file from the actual backend response
       const json = JSON.stringify(exportResponse, null, 2);
       const blob = new Blob([json], { type: "application/json" });
       const url = URL.createObjectURL(blob);
@@ -50,195 +76,85 @@ const PrivacyCenter = () => {
       document.body.removeChild(link);
       URL.revokeObjectURL(url);
 
-      // Show success message
       toast.success("Dados exportados com sucesso!");
-
-      // Display the actual backend manifest
       setExportManifest(exportResponse.manifest);
     } catch (error) {
-      toast.error(
-        getServiceErrorMessage(error, "Erro ao exportar dados. Tente novamente.")
-      );
+      toast.error(getServiceErrorMessage(error, "Erro ao exportar dados. Tente novamente."));
     } finally {
       setIsExporting(false);
     }
-  };
+  }, []);
 
-  const handleExportClick = () => {
-    setShowExportModal(true);
-  };
-
-  const handleDismissManifest = () => {
+  const handleDismissManifest = useCallback(() => {
     setExportManifest(null);
-  };
+  }, []);
+
+  const handleRequestSuccess = useCallback(() => {
+    setRefreshKey((value) => value + 1);
+  }, []);
+
+  const handleScrollToNewRequest = useCallback(() => {
+    const element =
+      newRequestAnchorRef.current ?? document.getElementById("nova-solicitacao-lgpd");
+    element?.scrollIntoView({ behavior: "smooth", block: "start" });
+  }, []);
+
+  const userName = user?.profile?.fullName ?? "";
+
+  const nextActionLabel =
+    requestsCount > 0
+      ? `${requestsCount} solicitação(ões) registrada(s) · acompanhe ou abra uma nova`
+      : "Exporte seus dados ou abra uma solicitação LGPD";
+
+  const exportManifestSlot = exportManifest ? (
+    <ExportManifestDisplay manifest={exportManifest} onDismiss={handleDismissManifest} />
+  ) : null;
 
   return (
-    <div className="min-h-screen bg-background relative overflow-hidden">
-      {/* Animated Background */}
-      <div className="fixed inset-0 z-0">
-        <div
-          className="absolute inset-0 opacity-5"
-          style={{
-            background: 'linear-gradient(-45deg, hsl(var(--black-primary)), hsl(var(--primary)), hsl(var(--black-primary)), hsl(var(--primary)))',
-            backgroundSize: '400% 400%',
-            animation: 'gradient-flow 15s ease-in-out infinite'
-          }}
-        />
-      </div>
+    <PageShell
+      sidebarOpen={sidebarOpen}
+      toggleSidebar={handleToggleSidebar}
+      mainClassName="pt-24 sm:pt-32 mobile-container pb-36 sm:pb-12 space-y-6 sm:space-y-8 relative z-10 overflow-x-hidden"
+    >
+      <div ref={newRequestAnchorRef} id="nova-solicitacao-lgpd" className="sr-only" />
 
-      <Header toggleSidebar={handleToggleSidebar} />
-      <Sidebar isOpen={sidebarOpen} toggleSidebar={handleToggleSidebar} />
-
-      {/* Export Confirmation Modal */}
       <ExportConfirmationModal
         open={showExportModal}
         onOpenChange={setShowExportModal}
-        onConfirm={handleExportDataConfirmed}
+        onConfirm={handleExportConfirmed}
       />
 
-      <main className="relative z-10 pt-20 lg:pt-24 pb-8 px-4 md:px-8">
-        <div className="max-w-4xl mx-auto">
-          <div className="mb-8">
-            <div className="flex items-center gap-3 mb-2">
-              <Lock className="h-8 w-8 text-primary" />
-              <h1 className="text-3xl md:text-4xl font-bold">Privacidade e Dados</h1>
-            </div>
-            <p className="text-muted-foreground">
-              Gerenciar seus dados pessoais de acordo com a LGPD
-            </p>
-          </div>
-
-          <div className="space-y-8">
-            {/* Biometric Consent Section */}
-            <section>
-              <div className="mb-4">
-                <h2 className="text-xl font-semibold mb-1">Consentimento Biométrico</h2>
-                <p className="text-sm text-muted-foreground">
-                  Controle o seu consentimento para registro de dados biométricos
-                </p>
-              </div>
-              <BiometricConsentCard />
-            </section>
-
-            <Separator />
-
-            {/* Data Export Section */}
-            <section>
-              <div className="mb-4">
-                <h2 className="text-xl font-semibold mb-1">Exportar Meus Dados</h2>
-                <p className="text-sm text-muted-foreground">
-                  Baixe uma cópia de todos os seus dados pessoais em formato JSON
-                </p>
-              </div>
-              <div className="space-y-4">
-                <Card>
-                  <CardContent className="pt-6">
-                    <Button
-                      onClick={handleExportClick}
-                      disabled={isExporting}
-                      className="gap-2"
-                    >
-                      <Download className="h-4 w-4" />
-                      Exportar Meus Dados
-                    </Button>
-                  </CardContent>
-                </Card>
-
-                {/* Export Manifest Display */}
-                {exportManifest && (
-                  <ExportManifestDisplay
-                    manifest={exportManifest}
-                    onDismiss={handleDismissManifest}
-                  />
-                )}
-              </div>
-            </section>
-
-            <Separator />
-
-            {/* LGPD Requests Section */}
-            <section>
-              <div className="mb-4">
-                <h2 className="text-xl font-semibold mb-1">Solicitações LGPD</h2>
-                <p className="text-sm text-muted-foreground">
-                  Envie e acompanhe suas solicitações de direitos sob a LGPD
-                </p>
-              </div>
-
-              <div className="grid gap-6">
-                <LgpdRequestForm onSuccess={() => setRefreshKey((k) => k + 1)} />
-                <LgpdRequestsList refreshKey={refreshKey} />
-              </div>
-            </section>
-
-            <Separator />
-
-            {/* Consent History Section */}
-            <section>
-              <div className="mb-4">
-                <h2 className="text-xl font-semibold mb-1">Histórico de Termos Aceitos</h2>
-                <p className="text-sm text-muted-foreground">
-                  Visualize um histórico completo de todos os consentimentos que você forneceu
-                </p>
-              </div>
-              <ConsentHistoryCard />
-            </section>
-
-            <Separator />
-
-            {/* Revocation Information Section */}
-            <section>
-              <div className="mb-4">
-                <h2 className="text-xl font-semibold mb-1">Revogação de Consentimentos</h2>
-                <p className="text-sm text-muted-foreground">
-                  Entenda como funciona e quais são as consequências da revogação
-                </p>
-              </div>
-              <RevocationInfoCard />
-            </section>
-
-            <Separator />
-
-            {/* Data Processing Catalog Section */}
-            <section>
-              <div className="mb-4">
-                <h2 className="text-xl font-semibold mb-1">Como Usamos Seus Dados</h2>
-                <p className="text-sm text-muted-foreground">
-                  Saiba quais dados coletamos, para que servem e quanto tempo os mantemos
-                </p>
-              </div>
-              <DataProcessingCatalogCard />
-            </section>
-
-            <Separator />
-
-            {/* Privacy Policy Section */}
-            <section>
-              <div className="mb-4">
-                <h2 className="text-xl font-semibold mb-1">Política de Privacidade</h2>
-                <p className="text-sm text-muted-foreground">
-                  Leia nossa política completa de privacidade e proteção de dados pessoais
-                </p>
-              </div>
-              <PrivacyPolicyCard />
-            </section>
-
-            <Separator />
-
-            {/* DPO Contact Section */}
-            <section>
-              <div className="mb-4">
-                <h2 className="text-xl font-semibold mb-1">Contato do Encarregado de Dados</h2>
-                <p className="text-sm text-muted-foreground">
-                  Fale diretamente com nosso Data Protection Officer sobre privacidade
-                </p>
-              </div>
-              <DPOContactCard />
-            </section>
-          </div>
-        </div>
-      </main>
-    </div>
+      {isDesktop ? (
+        <PrivacyDesktop
+          userName={userName}
+          totalRights={TOTAL_LGPD_RIGHTS}
+          totalRequests={requestsCount}
+          isLoadingRequests={isLoadingRequests}
+          refreshKey={refreshKey}
+          isExporting={isExporting}
+          onExport={handleExportClick}
+          onNewRequest={handleScrollToNewRequest}
+          onRequestSuccess={handleRequestSuccess}
+          onBack={handleBack}
+          exportManifestSlot={exportManifestSlot}
+        />
+      ) : (
+        <PrivacyMobile
+          userName={userName}
+          totalRights={TOTAL_LGPD_RIGHTS}
+          totalRequests={requestsCount}
+          isLoadingRequests={isLoadingRequests}
+          refreshKey={refreshKey}
+          isExporting={isExporting}
+          onExport={handleExportClick}
+          onRequestSuccess={handleRequestSuccess}
+          onNewRequest={handleScrollToNewRequest}
+          onBack={handleBack}
+          exportManifestSlot={exportManifestSlot}
+          nextActionLabel={nextActionLabel}
+        />
+      )}
+    </PageShell>
   );
 };
 

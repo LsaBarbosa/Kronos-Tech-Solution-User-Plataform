@@ -1,27 +1,24 @@
-# Subagent — QA & A11y
+# Subagent — QA and A11y
 
 ## Objetivo
 
-Validar build, lint, responsividade, acessibilidade e fluxos funcionais.
+Validar qualidade, acessibilidade e estados visuais.
 
-## Testes mínimos
+## Checklist
 
-- `npm run lint`
-- `npm run build`
-- abrir `/aprovacoes-abono` como `MANAGER`;
-- filtrar por colaborador;
-- alternar `PENDING`, `APPROVED`, `REJECTED`;
-- selecionar solicitação;
-- baixar anexo quando houver;
-- aprovar com confirmação;
-- rejeitar com confirmação;
-- validar estado vazio;
-- validar mobile sem tabela.
+- botões com texto ou `aria-label`;
+- foco visível;
+- status com texto, não só cor;
+- contraste adequado;
+- loading em exportação;
+- confirmação de ações sensíveis;
+- CTA desabilitado com motivo quando aplicável;
+- mobile com área de toque adequada;
+- desktop sem overflow horizontal inesperado.
 
-## Acessibilidade
+## Comandos
 
-- texto nos botões;
-- `aria-label` em ícones isolados;
-- contraste dos chips;
-- navegação por teclado;
-- foco visível.
+```bash
+npm run lint
+npm run build
+```

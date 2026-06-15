@@ -2,29 +2,22 @@
 
 ## Objetivo
 
-Mapear os arquivos atuais da rota `/aprovacoes-abono`, contratos usados e componentes reutilizáveis.
+Mapear o estado atual da rota `/privacidade` antes da implementação.
 
-## Leia no front-end
+## Ler
 
 - `src/App.tsx`
 - `src/config/app-routes.ts`
-- `src/pages/ManualRegisterApprovals.tsx`
-- `src/hooks/useTimeOffApprovals.ts`
-- `src/service/records.service.ts`
-- `src/service/document.service.ts`
-- `src/types/recordApproval.ts`
-- `src/utils/document-resolution.ts`
-- `src/components/Header.tsx`
-- `src/components/Sidebar.tsx`
-- `src/components/ui/*`
+- `src/pages/PrivacyCenter.tsx`
+- `src/service/lgpd.service.ts`
+- `src/config/api-routes.ts`
+- `src/components/privacy/*`
+- documentação `kronos-business` branch `main`
 
-## Leia na documentação
+## Entregar
 
-- `04-mapa-modulos-telas.md`
-- `references/docs/kronos_aprovacoes_abono_diretriz_visual.md`
-
-## Saída
-
-- Lista de arquivos que serão alterados.
-- Lista de arquivos apenas lidos.
-- Observações de risco.
+- arquivo-alvo da rota;
+- componentes reutilizáveis;
+- serviços HTTP existentes;
+- permissões e rotas relacionadas;
+- pontos de legado a remover.

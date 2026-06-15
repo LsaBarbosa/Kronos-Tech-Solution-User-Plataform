@@ -2,40 +2,29 @@
 
 ## Objetivo
 
-Definir e implementar a arquitetura visual desktop/mobile.
+Desenhar a arquitetura de componentes da nova tela.
 
 ## Desktop
 
-- Hero com métricas.
-- Card de fila de solicitações com filtros.
-- Lista densa, mas não obrigatoriamente tabela.
-- Painel lateral de solicitação selecionada.
-- Botões separados e confirmados.
+- hero institucional;
+- métricas;
+- painel de ações principais;
+- solicitações recentes;
+- painel lateral de governança;
+- CTAs no contexto.
 
 ## Mobile
 
-- Header compacto.
-- Métricas horizontais.
-- Busca e chips.
-- Cards empilhados.
-- Painel fixo inferior.
-- Detalhe/evidência em drawer/modal.
+- topo compacto;
+- métricas resumidas;
+- cards de ações;
+- card DPO/política;
+- bottom CTA;
+- modais/sheets para fluxos sensíveis.
 
-## Componentes sugeridos
+## Regras
 
-- `TimeOffApprovalDesktop`
-- `TimeOffApprovalMobile`
-- `TimeOffApprovalMetrics`
-- `TimeOffApprovalFilters`
-- `TimeOffApprovalQueue`
-- `TimeOffApprovalCard`
-- `TimeOffApprovalDetailPanel`
-- `TimeOffApprovalDecisionBar`
-- `TimeOffApprovalConfirmDialog`
-- `TimeOffApprovalStatusBadge`
-
-## Saída
-
-- Estrutura de componentes.
-- Estratégia de breakpoint.
-- Plano de remoção do legado.
+- Evitar duplicação de lógica entre desktop e mobile.
+- Criar componentes pequenos e legíveis.
+- Manter dados e handlers no nível adequado.
+- Não quebrar componentes existentes de privacidade.

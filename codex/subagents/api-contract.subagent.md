@@ -2,30 +2,23 @@
 
 ## Objetivo
 
-Garantir que a nova UI use os contratos existentes sem alteração.
+Garantir que nenhum contrato HTTP seja alterado.
 
-## Back-end esperado
+## Conferir no front-end
 
-- `GET /records/time-off/requests`
-  - query: `page`, `size`, `status`, `employeeName?`
-  - retorno: `TimeRecordPageResponse`
+- `src/service/lgpd.service.ts`
+- `src/config/api-routes.ts`
+- componentes de termos e consentimentos
 
-- `PATCH /records/time-off/approve/{timeRecordId}`
-  - sem body
-  - retorno esperado: `204`
+## Conferir no back-end
 
-- `PATCH /records/time-off/reject/{timeRecordId}`
-  - sem body
-  - retorno esperado: `204`
+- `LgpdController`
+- `TermsController`
+- `PublicPrivacyController`, se usado por links públicos
 
-## Front-end esperado
+## Proibições
 
-- `listTimeOffRequests(params)`
-- `approveTimeOff(timeRecordId)`
-- `rejectTimeOff(timeRecordId)`
-- `downloadDocument(documentId, fileName, employeeId)`
-
-## Saída
-
-- Confirmação de que nenhum contrato foi modificado.
-- Lista de chamadas preservadas.
+- Não renomear payloads.
+- Não trocar método HTTP.
+- Não alterar URLs.
+- Não alterar semântica de confirmação de exportação.
