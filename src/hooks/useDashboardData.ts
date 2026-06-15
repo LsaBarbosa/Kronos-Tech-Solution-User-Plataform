@@ -9,6 +9,7 @@ import { hasApprovalPermission } from "@/types/dashboard";
 import type { UserData } from "@/types/user"; 
 import { isAuthServiceError, normalizeServiceError } from "@/service/helpers/service-error.helper";
 import { showErrorToast } from "@/lib/feedback";
+import { APP_PATHS } from "@/config/app-routes";
 
 interface UseDashboardDataReturn {
     userData: UserData & { role: string } | null; 
@@ -90,7 +91,7 @@ export const useDashboardData = (): UseDashboardDataReturn => {
     }, [allWarnings, userData]);
     
     const handleWarningClick = useCallback(async () => {
-        navigate("/avisos"); 
+        navigate(APP_PATHS.avisos); 
         if (newWarnings.length > 0) {
             try {
                 await updateLastSeenMessageTimestamp(); 

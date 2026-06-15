@@ -19,6 +19,7 @@ interface UseMessagesReturn {
   hasNextPage: boolean;
   selectedMessage: Message | null;
   isLoading: boolean;
+  isFetching: boolean;
   isDeleting: boolean;
   isDialogOpen: boolean;
   isConfirmDeleteDialogOpen: boolean;
@@ -151,6 +152,7 @@ export const useMessages = (): UseMessagesReturn => {
     hasNextPage,
     selectedMessage,
     isLoading: messagesQuery.isLoading,
+    isFetching: messagesQuery.isFetching,
     isDeleting: deleteMutation.isPending,
     isDialogOpen,
     isConfirmDeleteDialogOpen,

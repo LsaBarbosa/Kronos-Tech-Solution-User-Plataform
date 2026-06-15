@@ -2,9 +2,9 @@ import { ArrowRight, CheckCircle2, Clock3, ListChecks } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Badge } from "@/components/ui/badge";
+import { cn } from "@/lib/utils";
 import type { VacationPeriodSummary } from "../types";
 import VacationDateRangeSummary from "./VacationDateRangeSummary";
-import VacationRulesCard from "./VacationRulesCard";
 
 interface VacationReviewPanelProps {
   summary: VacationPeriodSummary;
@@ -51,7 +51,12 @@ const VacationReviewPanel = ({
   const hasSuccess = Boolean(successCreatedIds?.length);
 
   return (
-    <Card className={className}>
+    <Card
+      className={cn(
+        "rounded-[28px] border border-[#E2E8F0] bg-white shadow-[0_16px_40px_rgba(16,26,51,0.08)]",
+        className
+      )}
+    >
       <CardHeader className="space-y-3">
         <div className="flex items-center gap-2">
           <Badge variant="outline" className="border-[#BFDBFE] bg-[#EFF6FF] text-[#1E3A8A]">
@@ -122,8 +127,6 @@ const VacationReviewPanel = ({
           </div>
         </div>
 
-        <VacationRulesCard />
-
         <div className="grid gap-3 sm:grid-cols-[minmax(0,1fr),auto]">
           <Button
             type="button"
@@ -149,4 +152,3 @@ const VacationReviewPanel = ({
 };
 
 export default VacationReviewPanel;
-

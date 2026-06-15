@@ -1,5 +1,5 @@
 import { useMemo } from "react";
-import { CalendarDays, CheckCircle2, Clock3 } from "lucide-react";
+import { CalendarDays, Clock3 } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Calendar } from "@/components/ui/calendar";
@@ -124,19 +124,20 @@ const MobileDateStep = ({
           className={cn(
             "rounded-[22px] border p-4 text-sm leading-6",
             hasValidPeriod
-              ? "border-[#B7E4C7] bg-[#DCFCE7] text-[#166534]"
+              ? "border-[#F3D08A] bg-[#FEF3C7] text-[#9A3412]"
               : validationMessage
                 ? "border-[#F3D08A] bg-[#FEF3C7] text-[#9A3412]"
                 : "border-[#BFDBFE] bg-[#EFF6FF] text-[#1E3A8A]"
           )}
         >
           <div className="flex items-start gap-2">
-            {hasValidPeriod ? (
-              <CheckCircle2 className="mt-0.5 h-4 w-4" />
-            ) : (
-              <Clock3 className="mt-0.5 h-4 w-4" />
-            )}
-            <p>{validationMessage ?? "Escolha datas futuras e mantenha um período contínuo."}</p>
+            <Clock3 className="mt-0.5 h-4 w-4" />
+            <p>
+              {validationMessage ??
+                (hasValidPeriod
+                  ? "Período válido. Aguardará aprovação após o envio."
+                  : "Escolha datas futuras e mantenha um período contínuo.")}
+            </p>
           </div>
         </div>
       </CardContent>
@@ -145,4 +146,3 @@ const MobileDateStep = ({
 };
 
 export default MobileDateStep;
-

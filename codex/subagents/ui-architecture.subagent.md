@@ -2,60 +2,44 @@
 
 ## Objetivo
 
-Criar arquitetura de UI clara, reutilizável e específica para a rota `/relatorio-detalhado`.
+Desenhar a decomposição de componentes da tela `/avisos`.
+
+## Componentes recomendados
+
+```text
+src/pages/avisos/
+├── AvisosPage.tsx ou manter Avisos.tsx como orquestrador
+├── AvisosDesktopView.tsx
+├── AvisosMobileView.tsx
+├── NoticeHero.tsx
+├── NoticeMetrics.tsx
+├── NoticeSearchFilters.tsx
+├── NoticeList.tsx
+├── NoticeCard.tsx
+├── NoticeDetailPanel.tsx
+├── NoticePermissionFooter.tsx
+├── NoticeDeleteDialog.tsx
+└── notice-ui.helpers.ts
+```
 
 ## Desktop
 
-Implementar como construtor de relatório:
-
-- hero largo com título `Solicitação inteligente de relatório de ponto`;
-- cards de escopo `CTO`, `MANAGER`, `PARTNER`;
-- grid de filtros em blocos compactos;
-- seleção de datas por chips e calendário/dropdown quando necessário;
-- painel direito com governança por ROLE;
-- resumo esperado;
-- botões `Gerar relatório`, `Limpar filtros`, `Baixar PDF`, `Ver resultados`.
+- grid com lista à esquerda e detalhe à direita;
+- métricas no hero;
+- filtros horizontais;
+- seleção persistente;
+- paginação no card da lista.
 
 ## Mobile
 
-Implementar como fluxo guiado:
+- cards empilhados;
+- detalhe em modal/drawer;
+- rodapé fixo com permissão;
+- CTA contextual para abrir aviso selecionado.
 
-- topo compacto com ROLE atual;
-- card `Escopo atual`;
-- etapa 1: datas;
-- etapa 2: referência e status;
-- etapa 3: o que aparece por ROLE;
-- rodapé fixo com resumo e botão `Gerar relatório`.
+## Regras
 
-## Componentização sugerida
-
-```text
-src/components/relatorio-detalhado/
-├── DetailedReportDesktop.tsx
-├── DetailedReportMobile.tsx
-├── ReportScopeBadge.tsx
-├── ReportRoleCards.tsx
-├── ReportFilterField.tsx
-├── ReportDateChips.tsx
-├── ReportStatusChips.tsx
-├── ReportGovernancePanel.tsx
-├── ReportExpectedSummary.tsx
-├── ReportResultsSummary.tsx
-└── ReportActionFooter.tsx
-```
-
-## Estado compartilhado
-
-Extrair o estado e handlers para `useDetailedReportBuilder`, ou manter no page component se ficar simples. Evitar duplicar regras em desktop e mobile.
-
-## Estilo
-
-Usar Tailwind e componentes atuais do projeto. Cores principais:
-
-- `#0B1220` para topo/sidebar;
-- `#2563EB` para CTA e seleção;
-- `#7C3AED` para CTO;
-- `#16A34A` para sucesso/trabalhadas;
-- `#DC2626` para erro/saldo negativo;
-- `#0D9488` para PARTNER;
-- `#F8FAFC` para fundo.
+- Usar Tailwind e componentes existentes.
+- Não usar tabela no mobile.
+- Evitar CSS global.
+- Preservar dark mode quando possível.

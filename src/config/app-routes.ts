@@ -198,9 +198,9 @@ export const APP_ROUTE_META = {
       { label: "Status do Registro", path: APP_PATHS.statusDoRegistro },
     ],
   }),
-  ferias: defineRoute(APP_PATHS.ferias, "Gestão de Férias", {
+  ferias: defineRoute(APP_PATHS.ferias, "Aprovação de Férias", {
     allowedRoles: ["MANAGER"],
-    breadcrumbs: [{ label: "Início", path: APP_PATHS.dashboard }, { label: "Gestão de Férias", path: APP_PATHS.ferias }],
+    breadcrumbs: [{ label: "Início", path: APP_PATHS.dashboard }, { label: "Aprovação de Férias", path: APP_PATHS.ferias }],
   }),
   aprovacoesAbono: defineRoute(APP_PATHS.aprovacoesAbono, "Gestão de Horas Manuais", {
     allowedRoles: ["MANAGER"],

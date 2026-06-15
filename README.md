@@ -1,86 +1,77 @@
-# Kronos — Pacote Codex CLI para `/relatorio-detalhado`
+# Kronos — Pacote Codex CLI para refatoração da tela de avisos
 
-Este pacote orienta o Codex CLI na refatoração da tela de **relatório detalhado de ponto** da rota `/relatorio-detalhado` no front-end `Kronos-Tech-Solution-User-Plataform`, branch `feature/lgpd-compliance-new-ui`.
+## Escopo
 
-## Objetivo
+Refatorar a tela de comunicação interna atualmente implementada em:
 
-Transformar a rota `/relatorio-detalhado` em uma **central de solicitação e geração de relatório de ponto**, com experiência diferente para desktop e mobile:
+- `src/pages/Avisos.tsx`
+- hook relacionado: `src/hooks/useMessages.ts`
+- serviço relacionado: `src/service/message.service.ts`
+- tipos relacionados: `src/types/message.ts`
+- criação de aviso: `src/pages/CriarAviso.tsx`
 
-- **Desktop:** construtor avançado de relatório em duas colunas, com filtros, governança por ROLE, prévia e área de resultados.
-- **Mobile:** fluxo guiado em etapas, com escopo atual, datas, referência/status, explicação por ROLE e CTA fixo inferior.
+## Rota
 
-## Referências obrigatórias
+Pedido do usuário: `/aviso`.
 
-Use estes arquivos antes de implementar:
+Constatação na branch `feature/lgpd-compliance-new-ui`:
 
-```text
-references/docs/kronos_relatorio_detalhado_diretriz_visual.md
-references/mockups/kronos_relatorio_detalhado_desktop.png
-references/mockups/kronos_relatorio_detalhado_mobile.png
-```
+- `APP_PATHS.avisos = "/avisos"`;
+- `App.tsx` renderiza `Avisos` em `APP_PATHS.avisos`;
+- a diretriz visual enviada também referencia `/avisos`.
 
-## Repositórios e branches
+Regra para o Codex:
 
-```text
-Back-end:  LsaBarbosa/Kronos-Tech-Solutions-KTS            branch PROD_HOSTINGER_V2
-Front-end: LsaBarbosa/Kronos-Tech-Solution-User-Plataform  branch feature/lgpd-compliance-new-ui
-Docs:      LsaBarbosa/kronos-business                      branch main
-```
+1. Refatorar a rota real usada pelo produto: `/avisos`.
+2. Não criar uma rota paralela sem necessidade.
+3. Se o workspace local realmente possuir `/aviso`, adaptar para o padrão local.
+4. Se for necessária compatibilidade, criar redirect explícito `/aviso -> /avisos`, sem duplicar a tela.
 
-## Contrato HTTP que não deve ser alterado
+## Objetivo de produto
 
-A tela deve continuar usando o contrato já existente:
+Transformar a tela em uma **central de comunicação interna** com experiências distintas:
 
-```http
-POST /records/report?employeeId={uuid opcional}
-```
+- **Desktop**: mural corporativo com lista à esquerda, detalhe à direita, métricas superiores, busca, filtros e ações administrativas por permissão.
+- **Mobile**: leitura rápida por cards, busca, chips de prioridade, detalhe em modal/tela dedicada e rodapé com permissão atual.
 
-Body:
-
-```json
-{
-  "reference": "08:00",
-  "active": true,
-  "dates": ["13-06-2026", "14-06-2026"],
-  "statuses": ["CREATED", "ABSENCE"]
-}
-```
-
-Regras:
-
-- `reference` deve ser `HH:mm`.
-- `dates` deve ter pelo menos uma data.
-- `employeeId` só deve ser enviado quando houver colaborador selecionado/permitido.
-- Para `PARTNER`, o colaborador fica bloqueado na sessão.
-- Para `MANAGER`, usar colaboradores do tenant/equipe.
-- Para `CTO`, comunicar escopo administrativo ampliado e preservar capacidade de seleção quando disponível no produto.
-
-## Arquivos de orientação
+## Referências incluídas
 
 ```text
-codex/skills/kronos-relatorio-detalhado-ui.skill.md
-codex/agents/kronos-relatorio-detalhado-ui.agent.md
-codex/subagents/repo-mapper.subagent.md
-codex/subagents/report-domain.subagent.md
-codex/subagents/ui-architecture.subagent.md
-codex/subagents/api-contract.subagent.md
-codex/subagents/qa-a11y.subagent.md
-codex/subagents/legacy-cleaner.subagent.md
-codex/rules/kronos-relatorio-detalhado-ui.rules.md
-docs/flag-redis-adherence.md
-docs/api-contract-map.md
-plano-acao-relatorio-detalhado-ui.md
-prompt-codex-relatorio-detalhado-ui.md
-checklist-validacao-relatorio-detalhado-ui.md
+references/
+├── docs/
+│   └── kronos_avisos_diretriz_visual.md
+└── mockups/
+    ├── kronos_avisos_desktop.png
+    └── kronos_avisos_mobile.png
 ```
+
+## Arquivos de coordenação do Codex
+
+```text
+codex/
+├── skills/
+│   └── kronos-avisos-ui.skill.md
+├── agents/
+│   └── kronos-avisos-ui.agent.md
+├── rules/
+│   └── kronos-avisos-ui.rules.md
+└── subagents/
+    ├── repo-mapper.subagent.md
+    ├── notice-domain.subagent.md
+    ├── ui-architecture.subagent.md
+    ├── api-contract.subagent.md
+    ├── qa-a11y.subagent.md
+    └── legacy-cleaner.subagent.md
+```
+
+## Comando sugerido
+
+Copie o conteúdo de `prompt-codex-avisos-ui.md` e execute no Codex CLI dentro do repositório front-end.
 
 ## Resultado esperado
 
-Ao final, a rota `/relatorio-detalhado` deve:
-
-- preservar os dados e ações existentes;
-- remover visual legado da tela, mantendo apenas a nova implementação;
-- ter UX distinta em desktop e mobile;
-- respeitar permissões por ROLE;
-- mostrar exportação apenas após resultado;
-- manter acessibilidade, feedbacks de erro e estados de loading.
+- Nova tela `/avisos` com identidade visual baseada nos mockups.
+- Desktop e mobile com experiências diferentes, não apenas redimensionadas.
+- Contratos HTTP preservados.
+- Regras de permissão por `CTO`, `MANAGER` e `PARTNER` respeitadas.
+- Legado removido após validação.

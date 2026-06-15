@@ -1,5 +1,5 @@
 import { useMemo } from "react";
-import { CalendarDays, Clock3, ShieldCheck, TreePalm } from "lucide-react";
+import { CalendarDays, Clock3, TreePalm } from "lucide-react";
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
 import { Badge } from "@/components/ui/badge";
@@ -9,7 +9,6 @@ import { cn } from "@/lib/utils";
 import type { ManagerOption } from "@/types/vacation";
 import VacationManagerSelector from "./VacationManagerSelector";
 import { formatVacationDate, getVacationPeriodSummary, isVacationDateDisabled } from "../utils/vacation-date-utils";
-import { getVacationValidationMessage } from "../utils/vacation-validation";
 
 interface VacationPeriodPlannerProps {
   startDate?: Date;
@@ -46,9 +45,9 @@ const VacationPeriodPlanner = ({
   const helperMessage =
     validationMessage ??
     (summary.isValid
-      ? "Período futuro e contínuo. Será enviado como solicitação para aprovação do manager."
+      ? "Período válido. A solicitação aguardará aprovação após o envio."
       : "Escolha datas futuras e mantenha um período contínuo.");
-  const helperTone = summary.isValid ? "success" : validationMessage ? "warning" : "info";
+  const helperTone = summary.isValid || validationMessage ? "warning" : "info";
 
   const monthLabel = format(startDate ?? new Date(), "MMMM yyyy", { locale: ptBR })
     .replace(/^./, (value) => value.toUpperCase());
@@ -81,10 +80,10 @@ const VacationPeriodPlanner = ({
             variant="outline"
             className={cn(
               "font-semibold",
-              summary.isValid ? "border-[#B7E4C7] bg-[#DCFCE7] text-[#166534]" : "border-[#BFDBFE] bg-[#EFF6FF] text-[#1E3A8A]"
+              summary.isValid ? "border-[#F3D08A] bg-[#FEF3C7] text-[#9A3412]" : "border-[#BFDBFE] bg-[#EFF6FF] text-[#1E3A8A]"
             )}
           >
-            {summary.isValid ? `${summary.dayCount} dias` : "Período em preparação"}
+            {summary.isValid ? "Período válido" : "Período em preparação"}
           </Badge>
         </div>
       </CardHeader>
@@ -152,9 +151,7 @@ const VacationPeriodPlanner = ({
           )}
         >
           <div className="flex items-start gap-2">
-            {helperTone === "success" ? (
-              <ShieldCheck className="mt-0.5 h-4 w-4" />
-            ) : helperTone === "warning" ? (
+            {helperTone === "warning" ? (
               <TreePalm className="mt-0.5 h-4 w-4" />
             ) : (
               <Clock3 className="mt-0.5 h-4 w-4" />
@@ -168,4 +165,3 @@ const VacationPeriodPlanner = ({
 };
 
 export default VacationPeriodPlanner;
-

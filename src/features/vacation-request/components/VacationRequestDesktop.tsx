@@ -9,9 +9,9 @@ import { cn } from "@/lib/utils";
 import type { VacationRequestViewModel } from "../types";
 import { mapManagerOptionToDisplay } from "../mappers/vacation-request.mapper";
 import VacationHero from "./VacationHero";
-import VacationPlanningGrid from "./VacationPlanningGrid";
 import VacationPeriodPlanner from "./VacationPeriodPlanner";
 import VacationReviewPanel from "./VacationReviewPanel";
+import VacationRulesCard from "./VacationRulesCard";
 import { formatVacationDate, getVacationPeriodSummary } from "../utils/vacation-date-utils";
 
 interface VacationRequestDesktopProps {
@@ -199,42 +199,42 @@ const VacationRequestDesktop = ({ viewModel }: VacationRequestDesktopProps) => {
               </div>
             ) : null}
 
-            <VacationPlanningGrid
-              className="mt-6"
-              left={
-                <div className="space-y-6">
-                  <VacationPeriodPlanner
-                    startDate={viewModel.startDate}
-                    endDate={viewModel.endDate}
-                    managerId={viewModel.managerId}
-                    managerOptions={viewModel.managerOptions}
-                    selectedManager={viewModel.selectedManager}
-                    isLoadingManagers={viewModel.isLoadingManagers}
-                    isSubmitting={viewModel.isSubmitting}
-                    managerErrorMessage={viewModel.managerErrorMessage}
-                    validationMessage={viewModel.validationMessage}
-                    onStartDateChange={viewModel.setStartDate}
-                    onEndDateChange={viewModel.setEndDate}
-                    onManagerChange={viewModel.setManagerId}
-                  />
-                </div>
-              }
-              right={
-                <VacationReviewPanel
-                  summary={summary}
-                  startLabel={viewModel.startDate ? formatVacationDate(viewModel.startDate) : undefined}
-                  endLabel={viewModel.endDate ? formatVacationDate(viewModel.endDate) : undefined}
-                  managerLabel={selectedManagerDisplay?.displayName}
+            <div className="mt-6 flex justify-center">
+              <div className="w-full max-w-[1180px]">
+                <VacationPeriodPlanner
+                  startDate={viewModel.startDate}
+                  endDate={viewModel.endDate}
+                  managerId={viewModel.managerId}
+                  managerOptions={viewModel.managerOptions}
+                  selectedManager={viewModel.selectedManager}
+                  isLoadingManagers={viewModel.isLoadingManagers}
                   isSubmitting={viewModel.isSubmitting}
-                  canSubmit={viewModel.canSubmit}
-                  validationMessage={viewModel.validationMessage ?? viewModel.submitErrorMessage}
-                  successCreatedIds={viewModel.successCreatedIds}
-                  onSubmit={viewModel.submit}
-                  onScrollToRules={scrollToRules}
-                  className="h-fit"
+                  managerErrorMessage={viewModel.managerErrorMessage}
+                  validationMessage={viewModel.validationMessage}
+                  onStartDateChange={viewModel.setStartDate}
+                  onEndDateChange={viewModel.setEndDate}
+                  onManagerChange={viewModel.setManagerId}
                 />
-              }
-            />
+              </div>
+            </div>
+
+            <div className="mt-6 grid gap-6 xl:grid-cols-[minmax(0,1fr)_480px]">
+              <VacationRulesCard className="h-fit" />
+
+              <VacationReviewPanel
+                summary={summary}
+                startLabel={viewModel.startDate ? formatVacationDate(viewModel.startDate) : undefined}
+                endLabel={viewModel.endDate ? formatVacationDate(viewModel.endDate) : undefined}
+                managerLabel={selectedManagerDisplay?.displayName}
+                isSubmitting={viewModel.isSubmitting}
+                canSubmit={viewModel.canSubmit}
+                validationMessage={viewModel.validationMessage ?? viewModel.submitErrorMessage}
+                successCreatedIds={viewModel.successCreatedIds}
+                onSubmit={viewModel.submit}
+                onScrollToRules={scrollToRules}
+                className="h-fit"
+              />
+            </div>
           </main>
         </div>
       </div>

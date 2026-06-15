@@ -4,6 +4,7 @@ import { useState, useEffect, useCallback, useMemo } from "react";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { ToastAction } from "@/components/ui/toast"; // Importado como componente
+import { APP_PATHS } from "@/config/app-routes";
 import type { MessagePayload, MessagePriority } from "@/types/message";
 import type { EmployeeListItem } from "@/types/document";
 import { fetchActiveEmployees, postMessage } from "@/service/message.service"
@@ -179,7 +180,7 @@ export const useCreateAvisoForm = (): UseCreateAvisoFormReturn => { // 💡 CORR
                 title: "Aviso criado",
                 description: toastDescription,
                 action: (
-                    <ToastAction altText="Ir para avisos" onClick={() => navigate("/avisos")}>
+                    <ToastAction altText="Ir para avisos" onClick={() => navigate(APP_PATHS.avisos)}>
                         Ir para Avisos
                     </ToastAction>
                 ),

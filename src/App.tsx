@@ -108,6 +108,7 @@ const App = () => (
                   <Route path={APP_PATHS.privacyProcessingCatalog} element={<PrivacyProcessingCatalog />} />
                   <Route path={APP_PATHS.privacyPolicy} element={<PrivacyPolicy />} />
                   <Route path={APP_PATHS.privacyBiometricTerm} element={<PrivacyBiometricTerm />} />
+                  <Route path="/aviso" element={<Navigate to={APP_PATHS.avisos} replace />} />
 
                   <Route element={<ProtectedRoute />}>
                     <Route path={APP_PATHS.dashboard} element={<Dashboard />} />

@@ -1,24 +1,29 @@
 {
-  "package": "kronos_codex_relatorio_detalhado_ui",
-  "target_route": "/relatorio-detalhado",
-  "target_screen": "Relatório detalhado de ponto",
-  "frontend_repository": "LsaBarbosa/Kronos-Tech-Solution-User-Plataform",
-  "frontend_branch": "feature/lgpd-compliance-new-ui",
-  "backend_repository": "LsaBarbosa/Kronos-Tech-Solutions-KTS",
-  "backend_branch": "PROD_HOSTINGER_V2",
-  "documentation_repository": "LsaBarbosa/kronos-business",
-  "documentation_branch": "main",
-  "visual_directive": "references/docs/kronos_relatorio_detalhado_diretriz_visual.md",
-  "mockups": [
-    "references/mockups/kronos_relatorio_detalhado_desktop.png",
-    "references/mockups/kronos_relatorio_detalhado_mobile.png"
+  "artifact": "kronos_codex_avisos_ui",
+  "target": {
+    "frontend_repo": "LsaBarbosa/Kronos-Tech-Solution-User-Plataform",
+    "frontend_branch": "feature/lgpd-compliance-new-ui",
+    "backend_repo": "LsaBarbosa/Kronos-Tech-Solutions-KTS",
+    "backend_branch": "PROD_HOSTINGER_V2",
+    "business_repo": "LsaBarbosa/kronos-business",
+    "business_branch": "main",
+    "requested_route": "/aviso",
+    "observed_frontend_route": "/avisos",
+    "frontend_page": "src/pages/Avisos.tsx",
+    "frontend_hook": "src/hooks/useMessages.ts",
+    "frontend_service": "src/service/message.service.ts",
+    "creation_page": "src/pages/CriarAviso.tsx",
+    "backend_resource": "/messages"
+  },
+  "references": [
+    "references/docs/kronos_avisos_diretriz_visual.md",
+    "references/mockups/kronos_avisos_desktop.png",
+    "references/mockups/kronos_avisos_mobile.png"
   ],
-  "generated_for": "Codex CLI",
-  "principles": [
-    "Refatorar UI/UX sem mudar contrato HTTP",
-    "Criar experiência desktop e mobile diferentes",
-    "Preservar regras por ROLE: CTO, MANAGER e PARTNER",
-    "Exportação só fica disponível após resultado",
-    "Remover legado somente após validar que não há uso compartilhado"
+  "generated_at": "2026-06-14T12:50:10.684586Z",
+  "notes": [
+    "A diretriz enviada usa /avisos. O repositório front-end também usa APP_PATHS.avisos = /avisos.",
+    "O pedido menciona /aviso. O Codex deve confirmar a rota real no workspace e preservar a rota usada pelo produto; se houver necessidade de compatibilidade, adicionar redirect controlado de /aviso para /avisos.",
+    "Não alterar contratos HTTP: usar GET/POST/DELETE /messages já existentes."
   ]
 }

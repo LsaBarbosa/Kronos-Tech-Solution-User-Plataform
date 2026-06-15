@@ -2,54 +2,35 @@
 
 ## Objetivo
 
-Validar que a nova UI consome o back-end sem alterar contrato.
+Garantir compatibilidade total com o back-end `PROD_HOSTINGER_V2`.
 
-## Endpoints principais
+## Contratos esperados
 
-```http
-POST /records/report?employeeId={uuid opcional}
-PUT /records/update/time-record/{timeRecordId}
-GET/PDF local via exportação client-side existente
-```
+- `GET /messages?page=&size=`
+- `POST /messages`
+- `DELETE /messages/{messageId}`
 
-## Payload de relatório
+## Conferir no front
 
-```ts
-type DetailedReportQueryParams = {
-  reference: string;
-  active: boolean;
-  dates: string[];
-  statuses?: string[];
-  employeeId?: string;
-}
-```
+- `API_ROUTES.MESSAGES`
+- `fetchMessages`
+- `postMessage`
+- `deleteMessage`
+- `useMessages`
+- `CriarAviso.tsx`
 
-## Validações obrigatórias no front
+## Conferir no back
 
-- `reference` deve bater com `/^([01]\\d|2[0-3]):[0-5]\\d$/`.
-- `dates.length > 0`.
-- `dates` deve seguir o padrão já esperado pelo serviço atual.
-- `statuses` só deve ser enviado quando tiver itens.
-- `employeeId` deve ser enviado em query param apenas quando aplicável.
+- `ApiPaths.MESSAGES`
+- `MessageController`
+- `CreateMessageRequest`
+- `MessageResponse`
+- `MessagePriority`
 
-## Preservar serviços existentes
+## Saída
 
-Não quebrar:
+Informar:
 
-- `fetchDetailedReport`;
-- `fetchReportEmployees`;
-- `fetchManagerOptions`;
-- `updateTimeRecord`;
-- `downloadDocument` usado nos resultados;
-- `loadPdfLibraries` e `downloadCsvFile`.
-
-## Testes manuais mínimos
-
-1. Buscar com data e referência válida.
-2. Tentar buscar sem data.
-3. Tentar referência inválida.
-4. Buscar com status selecionado.
-5. Buscar como `PARTNER` sem selector de colaborador.
-6. Buscar como `MANAGER` com colaborador selecionado.
-7. Gerar PDF após resultado.
-8. Confirmar que PDF antes de resultado está bloqueado.
+- contrato preservado;
+- qualquer divergência entre front e back;
+- qualquer ajuste recomendado sem implementar back-end.

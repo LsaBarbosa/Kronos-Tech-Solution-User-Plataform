@@ -2,34 +2,29 @@
 
 ## Objetivo
 
-Mapear o estado atual dos três repositórios antes da implementação.
+Mapear a estrutura real do front-end e confirmar os arquivos afetados.
 
-## Checklist
+## Ler obrigatoriamente
 
-1. Confirmar branches:
-   - back-end: `PROD_HOSTINGER_V2`;
-   - front-end: `feature/lgpd-compliance-new-ui`;
-   - docs: `main`.
-2. Identificar arquivo da rota:
-   - `src/pages/RelatorioDetalhado.tsx`.
-3. Confirmar rota:
-   - `src/config/app-routes.ts` possui `relatorioDetalhado: "/relatorio-detalhado"`.
-   - `src/App.tsx` renderiza `RelatorioDetalhado` em rota autenticada.
-4. Procurar usos de:
-   - `RelatorioFiltros`;
-   - `ResultadosRelatorioDetalhado`;
-   - `RegistroEdicaoModal`.
-5. Mapear serviços:
-   - `fetchDetailedReport`;
-   - `fetchReportEmployees`;
-   - `fetchManagerOptions`;
-   - `updateTimeRecord`;
-   - exportação PDF/CSV.
+- `package.json`
+- `src/App.tsx`
+- `src/config/app-routes.ts`
+- `src/pages/Avisos.tsx`
+- `src/pages/CriarAviso.tsx`
+- `src/hooks/useMessages.ts`
+- `src/service/message.service.ts`
+- `src/types/message.ts`
+- componentes UI em `src/components/ui/*`
+- `src/components/Sidebar.tsx`
+- `src/components/Header.tsx`
 
-## Saída esperada
+## Saída
 
-Antes de editar, criar uma nota local no terminal/resumo com:
+Gerar um resumo com:
 
-- arquivos que serão alterados;
-- arquivos que não podem ser removidos por serem compartilhados;
-- riscos de regressão.
+- rota real (`/avisos` ou `/aviso`);
+- página renderizada;
+- hook usado;
+- serviço usado;
+- componentes que serão criados/removidos;
+- riscos de compatibilidade.

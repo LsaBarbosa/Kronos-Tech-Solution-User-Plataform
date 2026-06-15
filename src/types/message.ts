@@ -13,6 +13,7 @@ export interface Message {
   createdAt: string;
   senderEmployeeId: string;
   recipientEmployeeId?: string; // Se nulo, visível apenas para o remetente (Manager/CTO)
+  senderName?: string;
 }
 
 /**

@@ -2,18 +2,25 @@
 
 ## Objetivo
 
-Remover o legado da rota `/relatorio-detalhado` após implementação e validação.
+Remover o legado da tela antiga após a nova implementação estar validada.
 
-## Procedimento
+## Procurar e remover
 
-1. Rodar busca por referências:
+- imports mortos em `Avisos.tsx`;
+- funções antigas não usadas;
+- estados antigos de dialog duplicados;
+- cards/listagens antigas;
+- CSS/classes obsoletas;
+- comentários de correção antigos que não fazem mais sentido;
+- componentes temporários.
 
-```bash
-rg "RelatorioFiltros|ResultadosRelatorioDetalhado|RelatorioDetalhado|useDetailedReportBuilder|relatorio-detalhado" src
-```
+## Não remover
 
-2. Se `RelatorioFiltros` for usado por `StatusRegistro`, não deletar.
-3. Remover somente imports e JSX legado de `RelatorioDetalhado.tsx`.
-4. Remover componentes novos descartados durante a implementação.
-5. Garantir que `npm run build` não aponte imports mortos.
-6. Registrar no resumo final o que foi removido e o que foi preservado por uso compartilhado.
+- `CriarAviso.tsx`, salvo se for refatorado conscientemente.
+- `useMessages.ts`, salvo se substituído por hook equivalente.
+- Serviços compartilhados.
+- Tipos usados por criação de aviso.
+
+## Saída
+
+Listar arquivos removidos/alterados e motivo.

@@ -15,13 +15,13 @@ import { queryKeys } from "@/lib/query-keys";
 export const useVacationApprovals = (params: VacationQueryParams) => {
     const queryClient = useQueryClient();
 
-    const { data, isLoading } = useQuery({
+    const { data, isLoading, isFetching, error, refetch } = useQuery({
         queryKey: [...queryKeys.vacationRequests, params],
         queryFn: () => fetchVacationRequests(params),
         placeholderData: EMPTY_VACATION_REQUEST_PAGE,
     });
 
-    const { mutate: approveMutate, isPending: isApproving } = useMutation({
+    const { mutate: approveMutate, mutateAsync: approveMutateAsync, isPending: isApproving } = useMutation({
         mutationFn: (ids: number[]) => approveVacationRequest(ids),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: queryKeys.vacationRequests });
@@ -32,7 +32,7 @@ export const useVacationApprovals = (params: VacationQueryParams) => {
         },
     });
 
-    const { mutate: rejectMutate, isPending: isRejecting } = useMutation({
+    const { mutate: rejectMutate, mutateAsync: rejectMutateAsync, isPending: isRejecting } = useMutation({
         mutationFn: (ids: number[]) => rejectVacationRequest(ids),
         onSuccess: () => {
             queryClient.invalidateQueries({ queryKey: queryKeys.vacationRequests });
@@ -54,8 +54,14 @@ export const useVacationApprovals = (params: VacationQueryParams) => {
         totalElements: pageData.totalElements,
         currentPage: pageData.currentPage,
         isLoading,
+        isFetching,
+        isError: Boolean(error),
+        error,
+        refetch,
         isMutating: isApproving || isRejecting,
         approve,
         reject,
+        approveAsync: approveMutateAsync,
+        rejectAsync: rejectMutateAsync,
     };
 };
