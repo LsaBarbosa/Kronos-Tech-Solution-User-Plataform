@@ -15,6 +15,7 @@ import type {
 } from "./dashboard-command-center.types";
 
 const PENDING_PANEL_ID = "dashboard-pending-panel";
+const NOTICES_ID = "dashboard-notices";
 
 interface DashboardMobileProps {
   data: DashboardCommandCenterData;
@@ -24,6 +25,11 @@ interface DashboardMobileProps {
 const DashboardMobile = ({ data, actions }: DashboardMobileProps) => {
   const handleScrollToPending = useCallback(() => {
     const target = document.getElementById(PENDING_PANEL_ID);
+    target?.scrollIntoView({ behavior: "smooth", block: "start" });
+  }, []);
+
+  const handleScrollToNotices = useCallback(() => {
+    const target = document.getElementById(NOTICES_ID);
     target?.scrollIntoView({ behavior: "smooth", block: "start" });
   }, []);
 
@@ -45,9 +51,9 @@ const DashboardMobile = ({ data, actions }: DashboardMobileProps) => {
       <DashboardMetricStrip
         variant="mobile"
         data={data}
-        onJornadaClick={actions.goToRelatorio}
-        onPendingClick={handleScrollToPending}
-        onWarningClick={data.handleWarningClick}
+        onDocumentosClick={actions.goToDocumentos}
+        onEspelhoPontoClick={actions.goToEspelhoPonto}
+        onWarningClick={handleScrollToNotices}
         onProfileClick={actions.goToPerfil}
       />
 
@@ -153,12 +159,14 @@ const DashboardMobile = ({ data, actions }: DashboardMobileProps) => {
       ) : null}
 
 
-      <DashboardNoticeList
-        warnings={data.newWarnings}
-        isManager={data.isManager}
-        onOpenWarnings={() => void data.handleWarningClick()}
-        onCreateWarning={actions.goToCriarAviso}
-      />
+      <div id={NOTICES_ID} className="scroll-mt-24">
+        <DashboardNoticeList
+          warnings={data.newWarnings}
+          isManager={data.isManager}
+          onOpenWarnings={() => void data.handleWarningClick()}
+          onCreateWarning={actions.goToCriarAviso}
+        />
+      </div>
 
       <div id={PENDING_PANEL_ID} className="scroll-mt-24">
         <DashboardPendingPanel

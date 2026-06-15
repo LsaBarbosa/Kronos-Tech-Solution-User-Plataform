@@ -112,6 +112,7 @@ const Dashboard = () => {
       goToFerias: () => navigate(APP_PATHS.ferias),
       goToAprovacoesAbono: () => navigate(APP_PATHS.aprovacoesAbono),
       goToMeusDocumentos: () => navigate(APP_PATHS.meusDocumentos),
+      goToDocumentos: () => navigate(APP_PATHS.documentos),
       goToEnviarDocumentoColaborador: () => navigate(APP_PATHS.enviarDocumentoColaborador),
       goToSolicitarFerias: () => navigate(APP_PATHS.solicitarFerias),
       goToSolicitarAbono: () => navigate(APP_PATHS.solicitarAbono),

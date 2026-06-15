@@ -12,6 +12,7 @@ import type {
 } from "./dashboard-command-center.types";
 
 const PENDING_PANEL_ID = "dashboard-pending-panel";
+const NOTICES_ID = "dashboard-notices";
 
 interface DashboardDesktopProps {
   data: DashboardCommandCenterData;
@@ -33,8 +34,8 @@ const SkeletonStrip = () => (
 );
 
 const DashboardDesktop = ({ data, actions }: DashboardDesktopProps) => {
-  const handleScrollToPending = useCallback(() => {
-    const target = document.getElementById(PENDING_PANEL_ID);
+  const handleScrollToNotices = useCallback(() => {
+    const target = document.getElementById(NOTICES_ID);
     target?.scrollIntoView({ behavior: "smooth", block: "start" });
   }, []);
 
@@ -56,9 +57,9 @@ const DashboardDesktop = ({ data, actions }: DashboardDesktopProps) => {
         <DashboardMetricStrip
           variant="desktop"
           data={data}
-          onJornadaClick={actions.goToRelatorio}
-          onPendingClick={handleScrollToPending}
-          onWarningClick={data.handleWarningClick}
+          onDocumentosClick={actions.goToDocumentos}
+          onEspelhoPontoClick={actions.goToEspelhoPonto}
+          onWarningClick={handleScrollToNotices}
           onProfileClick={actions.goToPerfil}
         />
       )}
@@ -77,12 +78,14 @@ const DashboardDesktop = ({ data, actions }: DashboardDesktopProps) => {
 
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-        <DashboardNoticeList
-          warnings={data.newWarnings}
-          isManager={data.isManager}
-          onOpenWarnings={() => void data.handleWarningClick()}
-          onCreateWarning={actions.goToCriarAviso}
-        />
+        <div id={NOTICES_ID} className="scroll-mt-28">
+          <DashboardNoticeList
+            warnings={data.newWarnings}
+            isManager={data.isManager}
+            onOpenWarnings={() => void data.handleWarningClick()}
+            onCreateWarning={actions.goToCriarAviso}
+          />
+        </div>
         <div id={PENDING_PANEL_ID} className="scroll-mt-28">
           <DashboardPendingPanel
             data={data}

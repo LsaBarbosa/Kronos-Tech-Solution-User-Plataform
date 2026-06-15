@@ -35,6 +35,7 @@ export interface DashboardCommandCenterActions {
   goToFerias: () => void;
   goToAprovacoesAbono: () => void;
   goToMeusDocumentos: () => void;
+  goToDocumentos: () => void;
   goToEnviarDocumentoColaborador: () => void;
   goToSolicitarFerias: () => void;
   goToSolicitarAbono: () => void;

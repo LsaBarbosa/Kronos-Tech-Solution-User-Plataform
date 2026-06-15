@@ -2,11 +2,10 @@ import type { KeyboardEvent } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 import {
-  AlertTriangle,
   Building,
   Clock as ClockIcon,
+  FileSearch,
   MessageSquareWarning,
-  Zap,
   type LucideIcon,
 } from "lucide-react";
 import type { DashboardCommandCenterData } from "./dashboard-command-center.types";
@@ -14,8 +13,8 @@ import type { DashboardCommandCenterData } from "./dashboard-command-center.type
 interface DashboardMetricStripProps {
   variant: "desktop" | "mobile";
   data: DashboardCommandCenterData;
-  onJornadaClick?: () => void;
-  onPendingClick?: () => void;
+  onDocumentosClick?: () => void;
+  onEspelhoPontoClick?: () => void;
   onWarningClick?: () => void;
   onProfileClick?: () => void;
 }
@@ -45,22 +44,11 @@ const handleKeyDown = (callback?: () => void) =>
 const DashboardMetricStrip = ({
   variant,
   data,
-  onJornadaClick,
-  onPendingClick,
+  onDocumentosClick,
+  onEspelhoPontoClick,
   onWarningClick,
   onProfileClick,
 }: DashboardMetricStripProps) => {
-  const pendingValue = data.hasApprovalPermission ? String(data.totalPendingCount) : "Acesso";
-  const pendingDesc = data.hasApprovalPermission
-    ? "Ponto, férias e abonos"
-    : "Documentos, férias e abonos";
-  const pendingTone =
-    !data.hasApprovalPermission
-      ? { bg: "bg-[#EFF6FF]", text: "text-[#1D4ED8]", accent: "from-[#2563EB] to-[#1D4ED8]" }
-      : data.totalPendingCount > 0
-        ? { bg: "bg-[#FEE2E2]", text: "text-[#B91C1C]", accent: "from-[#DC2626] to-[#F97316]" }
-        : { bg: "bg-[#DCFCE7]", text: "text-[#15803D]", accent: "from-[#16A34A] to-[#22D3EE]" };
-
   const warningTone =
     data.newWarnings.length > 0
       ? { bg: "bg-[#FEF3C7]", text: "text-[#92400E]", accent: "from-[#F59E0B] to-[#FB923C]" }
@@ -68,29 +56,26 @@ const DashboardMetricStrip = ({
 
   const metrics: MetricItem[] = [
     {
-      icon: ClockIcon,
-      label: "Jornada",
-      value: "Online",
-      description: "Relógio e relatório de ponto",
+      icon: FileSearch,
+      label: "Documentos",
+      value: "Buscar",
+      description: "Encontre documentos trabalhistas",
       tone: "from-[#1E3A8A] to-[#2563EB]",
       bgIcon: "bg-[#EFF6FF]",
       textValue: "text-[#1D4ED8]",
-      onClick: onJornadaClick,
-      ariaLabel: "Abrir relatório de ponto",
+      onClick: onDocumentosClick,
+      ariaLabel: "Abrir busca de documentos",
     },
     {
-      icon: data.hasApprovalPermission ? AlertTriangle : Zap,
-      label: data.hasApprovalPermission ? "Pendências" : "Acesso rápido",
-      value: data.countsAreLoading ? "..." : pendingValue,
-      description: pendingDesc,
-      tone: pendingTone.accent,
-      bgIcon: pendingTone.bg,
-      textValue: pendingTone.text,
-      onClick: onPendingClick,
-      ariaLabel: data.hasApprovalPermission
-        ? "Abrir apuração de horas"
-        : "Abrir acesso rápido",
-      loading: data.countsAreLoading,
+      icon: ClockIcon,
+      label: "Ponto",
+      value: "Espelho",
+      description: "Acompanhe entradas, saídas e saldo",
+      tone: "from-[#0D9488] to-[#22D3EE]",
+      bgIcon: "bg-[#CCFBF1]",
+      textValue: "text-[#0F766E]",
+      onClick: onEspelhoPontoClick,
+      ariaLabel: "Abrir espelho de ponto",
     },
     {
       icon: MessageSquareWarning,
@@ -101,8 +86,8 @@ const DashboardMetricStrip = ({
       tone: warningTone.accent,
       bgIcon: warningTone.bg,
       textValue: warningTone.text,
-      onClick: data.newWarnings.length > 0 ? onWarningClick : undefined,
-      ariaLabel: data.newWarnings.length > 0 ? "Abrir avisos recentes" : undefined,
+      onClick: onWarningClick,
+      ariaLabel: "Ir até avisos e mensagens",
     },
     {
       icon: Building,
