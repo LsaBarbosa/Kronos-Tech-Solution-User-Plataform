@@ -4,7 +4,6 @@ import { Card, CardContent } from "@/components/ui/card";
 import { CheckinDashboardCard } from "@/components/checkin/CheckinDashboardCard";
 import DashboardHero from "./DashboardHero";
 import DashboardMetricStrip from "./DashboardMetricStrip";
-import DashboardOperationalClock from "./DashboardOperationalClock";
 import DashboardProfilePanel from "./DashboardProfilePanel";
 import DashboardNoticeList from "./DashboardNoticeList";
 import DashboardPendingPanel from "./DashboardPendingPanel";
@@ -52,7 +51,7 @@ const DashboardMobile = ({ data, actions }: DashboardMobileProps) => {
         onProfileClick={actions.goToPerfil}
       />
 
-      <DashboardOperationalClock variant="mobile" />
+      <CheckinDashboardCard />
 
       <div className="space-y-3">
         <DashboardMobileActionCard
@@ -153,7 +152,6 @@ const DashboardMobile = ({ data, actions }: DashboardMobileProps) => {
         </Card>
       ) : null}
 
-      <CheckinDashboardCard />
 
       <DashboardNoticeList
         warnings={data.newWarnings}

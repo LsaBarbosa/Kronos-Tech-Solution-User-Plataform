@@ -3,7 +3,6 @@ import { Card, CardContent } from "@/components/ui/card";
 import { CheckinDashboardCard } from "@/components/checkin/CheckinDashboardCard";
 import DashboardHero from "./DashboardHero";
 import DashboardMetricStrip from "./DashboardMetricStrip";
-import DashboardOperationalClock from "./DashboardOperationalClock";
 import DashboardProfilePanel from "./DashboardProfilePanel";
 import DashboardNoticeList from "./DashboardNoticeList";
 import DashboardPendingPanel from "./DashboardPendingPanel";
@@ -66,7 +65,7 @@ const DashboardDesktop = ({ data, actions }: DashboardDesktopProps) => {
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
         <div className="lg:col-span-2">
-          <DashboardOperationalClock variant="desktop" />
+          <CheckinDashboardCard />
         </div>
         <DashboardProfilePanel
           variant="desktop"
@@ -76,7 +75,6 @@ const DashboardDesktop = ({ data, actions }: DashboardDesktopProps) => {
         />
       </div>
 
-      <CheckinDashboardCard />
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
         <DashboardNoticeList
