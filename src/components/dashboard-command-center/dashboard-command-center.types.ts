@@ -41,4 +41,5 @@ export interface DashboardCommandCenterActions {
   goToSolicitarAbono: () => void;
   goToEspelhoPonto: () => void;
   goToDashboard: () => void;
+  goToAdministracao: () => void;
 }

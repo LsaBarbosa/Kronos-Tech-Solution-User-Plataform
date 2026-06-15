@@ -6,6 +6,7 @@ import {
   Clock as ClockIcon,
   FileSearch,
   MessageSquareWarning,
+  Shield,
   type LucideIcon,
 } from "lucide-react";
 import type { DashboardCommandCenterData } from "./dashboard-command-center.types";
@@ -17,6 +18,7 @@ interface DashboardMetricStripProps {
   onEspelhoPontoClick?: () => void;
   onWarningClick?: () => void;
   onProfileClick?: () => void;
+  onAdministracaoClick?: () => void;
 }
 
 interface MetricItem {
@@ -48,6 +50,7 @@ const DashboardMetricStrip = ({
   onEspelhoPontoClick,
   onWarningClick,
   onProfileClick,
+  onAdministracaoClick,
 }: DashboardMetricStripProps) => {
   const warningTone =
     data.newWarnings.length > 0
@@ -89,17 +92,29 @@ const DashboardMetricStrip = ({
       onClick: onWarningClick,
       ariaLabel: "Ir até avisos e mensagens",
     },
-    {
-      icon: Building,
-      label: "Perfil",
-      value: data.roleLabel || "Colaborador",
-      description: data.userData?.companyName || "Empresa não informada",
-      tone: "from-[#7C3AED] to-[#A855F7]",
-      bgIcon: "bg-[#EDE9FE]",
-      textValue: "text-[#5B21B6]",
-      onClick: onProfileClick,
-      ariaLabel: "Abrir detalhes do colaborador",
-    },
+    data.isManager
+      ? {
+          icon: Shield,
+          label: "Administração",
+          value: "Painel",
+          description: "Colaboradores, folha, férias, abonos, auditoria e LGPD",
+          tone: "from-[#1E3A8A] to-[#2563EB]",
+          bgIcon: "bg-[#EFF6FF]",
+          textValue: "text-[#1D4ED8]",
+          onClick: onAdministracaoClick,
+          ariaLabel: "Abrir painel administrativo",
+        }
+      : {
+          icon: Building,
+          label: "Perfil",
+          value: data.roleLabel || "Colaborador",
+          description: data.userData?.companyName || "Empresa não informada",
+          tone: "from-[#7C3AED] to-[#A855F7]",
+          bgIcon: "bg-[#EDE9FE]",
+          textValue: "text-[#5B21B6]",
+          onClick: onProfileClick,
+          ariaLabel: "Abrir detalhes do colaborador",
+        },
   ];
 
   const visibleMetrics = variant === "mobile" ? metrics.slice(0, 3) : metrics;

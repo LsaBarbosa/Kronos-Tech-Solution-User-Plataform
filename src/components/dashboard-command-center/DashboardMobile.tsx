@@ -1,5 +1,5 @@
 import { useCallback } from "react";
-import { AlertTriangle, Briefcase, Clock, MessageSquareWarning, User2 } from "lucide-react";
+import { AlertTriangle, Briefcase, Clock, MessageSquareWarning, Shield, User2 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { CheckinDashboardCard } from "@/components/checkin/CheckinDashboardCard";
 import DashboardHero from "./DashboardHero";
@@ -55,6 +55,7 @@ const DashboardMobile = ({ data, actions }: DashboardMobileProps) => {
         onEspelhoPontoClick={actions.goToEspelhoPonto}
         onWarningClick={handleScrollToNotices}
         onProfileClick={actions.goToPerfil}
+        onAdministracaoClick={actions.goToAdministracao}
       />
 
       <CheckinDashboardCard />
@@ -123,6 +124,17 @@ const DashboardMobile = ({ data, actions }: DashboardMobileProps) => {
             toneClass="bg-[#CCFBF1]"
             textClass="text-[#0F766E]"
             onClick={actions.goToEmpresa}
+          />
+        ) : null}
+        {data.isManager ? (
+          <DashboardMobileActionCard
+            icon={Shield}
+            label="Administração"
+            title="Painel administrativo"
+            description="Colaboradores, folha, férias, abonos, auditoria e LGPD"
+            toneClass="bg-[#EFF6FF]"
+            textClass="text-[#1D4ED8]"
+            onClick={actions.goToAdministracao}
           />
         ) : null}
       </div>

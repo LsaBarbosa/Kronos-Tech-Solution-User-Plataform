@@ -58,6 +58,7 @@ export const APP_PATHS = {
   ferias: "/ferias",
   aprovacoesAbono: "/aprovacoes-abono",
   meusDocumentos: "/meus-documentos",
+  administracao: "/administracao",
   privacidade: "/privacidade",
   privacyProcessingCatalog: "/privacy/processing-catalog",
   privacyPolicy: "/privacy/policy",
@@ -211,6 +212,11 @@ export const APP_ROUTE_META = {
   }),
   meusDocumentos: defineRoute(APP_PATHS.meusDocumentos, "Meus Documentos", {
     breadcrumbs: [{ label: "Início", path: APP_PATHS.dashboard }, { label: "Meus Documentos", path: APP_PATHS.meusDocumentos }],
+  }),
+  administracao: defineRoute(APP_PATHS.administracao, "Administração", {
+    allowedRoles: ["CTO", "MANAGER"],
+    showInMenu: false,
+    breadcrumbs: [{ label: "Início", path: APP_PATHS.dashboard }, { label: "Administração", path: APP_PATHS.administracao }],
   }),
   privacidade: defineRoute(APP_PATHS.privacidade, "Privacidade e Dados", {
     breadcrumbs: [{ label: "Início", path: APP_PATHS.dashboard }, { label: "Privacidade e Dados", path: APP_PATHS.privacidade }],

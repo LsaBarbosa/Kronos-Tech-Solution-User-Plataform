@@ -44,6 +44,7 @@ const RequestManualRegistration = lazy(() =>
   }))
 );
 const PrivacyCenter = lazy(() => import("./pages/PrivacyCenter"));
+const Administracao = lazy(() => import("./pages/Administracao"));
 const AdminLgpdRequests = lazy(() =>
   import("./components/privacy/AdminLgpdRequests").then((module) => ({
     default: module.AdminLgpdRequests,
@@ -142,6 +143,7 @@ const App = () => (
                     {renderProtectedRoleRoute({ routeKey: "lgpdAdminInventory", element: <AdminInventory /> })}
                     {renderProtectedRoleRoute({ routeKey: "lgpdAdminInventoryForm", element: <InventoryForm /> })}
                     {renderProtectedRoleRoute({ routeKey: "lgpdAdminInventoryEdit", element: <InventoryForm /> })}
+                    {renderProtectedRoleRoute({ routeKey: "administracao", element: <Administracao /> })}
                   </Route>
 
                   <Route path="/privacy-policy" element={<Navigate to={APP_PATHS.privacyPolicy} replace />} />

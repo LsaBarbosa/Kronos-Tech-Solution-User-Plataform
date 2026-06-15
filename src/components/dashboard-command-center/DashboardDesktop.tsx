@@ -61,6 +61,7 @@ const DashboardDesktop = ({ data, actions }: DashboardDesktopProps) => {
           onEspelhoPontoClick={actions.goToEspelhoPonto}
           onWarningClick={handleScrollToNotices}
           onProfileClick={actions.goToPerfil}
+          onAdministracaoClick={actions.goToAdministracao}
         />
       )}
 

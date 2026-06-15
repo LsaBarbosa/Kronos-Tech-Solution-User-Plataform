@@ -118,6 +118,7 @@ const Dashboard = () => {
       goToSolicitarAbono: () => navigate(APP_PATHS.solicitarAbono),
       goToEspelhoPonto: () => navigate(APP_PATHS.espelhoPonto),
       goToDashboard: () => navigate(APP_PATHS.dashboard),
+      goToAdministracao: () => navigate(APP_PATHS.administracao),
     }),
     [navigate]
   );
