@@ -2,16 +2,13 @@
 
 ## Objetivo
 
-Remover o legado visual da rota `/privacidade` após a nova implementação passar nos testes.
+Remover implementação visual antiga após a nova tela funcionar.
 
-## Verificar
+## Ações
 
-- `PrivacyCenter.tsx` não mantém layout antigo em paralelo.
-- componentes antigos não usados foram removidos somente se não forem referenciados em outras rotas.
-- imports mortos foram removidos.
-- estados antigos sem uso foram removidos.
-- CSS/classes antigas específicas da tela não permanecem sem uso.
-
-## Atenção
-
-Não remover componentes compartilhados como `BiometricConsentCard`, `LgpdRequestForm`, `LgpdRequestsList`, `ConsentHistoryCard`, `DPOContactCard`, `PrivacyPolicyCard`, `DataProcessingCatalogCard` se ainda forem usados pela nova tela ou por outras rotas.
+- Remover card único legado.
+- Remover imports antigos não usados.
+- Remover estados que perderam função.
+- Garantir que só exista uma implementação ativa.
+- Não apagar serviços compartilhados usados por outras telas.
+- Não alterar rotas sem necessidade.

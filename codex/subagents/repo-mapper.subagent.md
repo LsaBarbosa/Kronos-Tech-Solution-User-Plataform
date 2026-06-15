@@ -2,22 +2,30 @@
 
 ## Objetivo
 
-Mapear o estado atual da rota `/privacidade` antes da implementação.
+Mapear arquivos necessários antes da implementação.
 
-## Ler
+## Ler no front-end
 
-- `src/App.tsx`
-- `src/config/app-routes.ts`
-- `src/pages/PrivacyCenter.tsx`
-- `src/service/lgpd.service.ts`
+- `src/pages/AuditoriaFiscal.tsx`
+- `src/service/fiscal.service.ts`
 - `src/config/api-routes.ts`
-- `src/components/privacy/*`
-- documentação `kronos-business` branch `main`
+- `src/config/app-routes.ts`
+- `src/App.tsx`
+- `src/context/AuthContext.tsx`
+- `src/components/PageShell.tsx`
 
-## Entregar
+## Ler no back-end
 
-- arquivo-alvo da rota;
-- componentes reutilizáveis;
-- serviços HTTP existentes;
-- permissões e rotas relacionadas;
-- pontos de legado a remover.
+- `src/main/java/com/kts/kronos/adapter/in/web/http/LegalController.java`
+- `src/main/java/com/kts/kronos/constants/ApiPaths.java`
+
+## Resultado esperado
+
+Entregar ao agente principal:
+
+- rota real;
+- componente real;
+- serviços reais;
+- endpoints reais;
+- papel permitido;
+- arquivos que podem ser alterados com segurança.

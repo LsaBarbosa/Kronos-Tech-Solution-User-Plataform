@@ -2,29 +2,29 @@
 
 ## Objetivo
 
-Desenhar a arquitetura de componentes da nova tela.
+Desenhar e implementar a arquitetura visual desktop/mobile.
 
 ## Desktop
 
-- hero institucional;
-- métricas;
-- painel de ações principais;
-- solicitações recentes;
-- painel lateral de governança;
-- CTAs no contexto.
+- Hero institucional.
+- Cards de tipo de arquivo.
+- Mês de referência.
+- Painel de conformidade.
+- CTA contextual.
 
 ## Mobile
 
-- topo compacto;
-- métricas resumidas;
-- cards de ações;
-- card DPO/política;
-- bottom CTA;
-- modais/sheets para fluxos sensíveis.
+- Topo compacto.
+- Etapas guiadas.
+- Prévia.
+- CTA fixo.
+- Sem tabela.
 
-## Regras
+## Componentização sugerida
 
-- Evitar duplicação de lógica entre desktop e mobile.
-- Criar componentes pequenos e legíveis.
-- Manter dados e handlers no nível adequado.
-- Não quebrar componentes existentes de privacidade.
+- `FiscalTypeCard`
+- `FiscalCompliancePanel`
+- `FiscalMobileFlow`
+- `FiscalReferenceSelector`
+
+Criar componentes apenas se simplificar a manutenção.

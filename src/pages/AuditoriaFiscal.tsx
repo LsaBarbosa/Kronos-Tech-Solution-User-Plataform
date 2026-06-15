@@ -1,264 +1,34 @@
-import { useState, useCallback } from "react";
-import { format } from "date-fns";
-import { ptBR } from "date-fns/locale";
-import {
-  Calendar as CalendarIcon,
-  Download,
-  Scale,
-  AlertCircle,
-  FileCode,
-  FileSignature,
-  BadgeCheck
-} from "lucide-react";
-import { cn } from "@/lib/utils";
-import { dateToBackendDatePattern } from "@/utils/date-format";
-
-// UI Components
-import { Button } from "@/components/ui/button";
-import { Calendar } from "@/components/ui/calendar";
-import {
-  Popover,
-  PopoverContent,
-  PopoverTrigger,
-} from "@/components/ui/popover";
-import {
-  Card,
-  CardContent,
-  CardDescription,
-  CardFooter,
-  CardHeader,
-  CardTitle,
-} from "@/components/ui/card";
-import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
-import { Label } from "@/components/ui/label";
-import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group";
-import { useToast } from "@/hooks/use-toast";
-
-// Services
-import { FiscalService } from "@/service/fiscal.service";
-import { getAdministrativeErrorMessage } from "@/service/helpers/admin-error-message.helper";
+import { useCallback, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import PageShell from "@/components/PageShell";
-import { LoadingState } from "@/components/states";
+import { APP_PATHS } from "@/config/app-routes";
+import FiscalDesktopView from "@/features/fiscal-audit/components/FiscalDesktopView";
+import FiscalMobileView from "@/features/fiscal-audit/components/FiscalMobileView";
+import { useFiscalAuditResponsiveMode } from "@/features/fiscal-audit/useFiscalAuditResponsiveMode";
+import { useFiscalAuditViewModel } from "@/features/fiscal-audit/useFiscalAuditViewModel";
 
-export default function AuditoriaFiscal() {
-  const [date, setDate] = useState<Date | undefined>(new Date());
-  const [reportType, setReportType] = useState<"AFD" | "AEJ" | "ATESTADO">("AEJ");
-  const [isLoading, setIsLoading] = useState(false);
-   const [sidebarOpen, setSidebarOpen] = useState(false);
+const AuditoriaFiscal = () => {
+  const navigate = useNavigate();
+  const { isDesktop } = useFiscalAuditResponsiveMode();
+  const viewModel = useFiscalAuditViewModel();
+
+  const [sidebarOpen, setSidebarOpen] = useState(false);
   const handleToggleSidebar = useCallback(() => setSidebarOpen((prev) => !prev), []);
-  // Controle do Calendário
-  const [isCalendarOpen, setIsCalendarOpen] = useState(false);
-
-  const { toast } = useToast();
-
-  const handleDateSelect = (selectedDate: Date | undefined) => {
-    setDate(selectedDate);
-    setIsCalendarOpen(false); // <--- Fecha o calendário ao selecionar
-  };
-
-  const handleDownload = async () => {
-    // Validação básica (Atestado é estático e não precisa de data)
-    if (reportType !== "ATESTADO" && !date) {
-      toast({ variant: "destructive", title: "Data obrigatória", description: "Selecione o mês de referência." });
-      return;
-    }
-
-    setIsLoading(true);
-
-    try {
-      const year = date?.getFullYear() || 2024;
-      const month = date?.getMonth() || 0;
-
-      // Define inicio e fim do mês
-      const startDate = dateToBackendDatePattern(new Date(year, month, 1));
-      const endDate = dateToBackendDatePattern(new Date(year, month + 1, 0));
-
-      toast({ title: "Processando...", description: `Gerando arquivo ${reportType}...` });
-
-      switch (reportType) {
-        case "AFD":
-          await FiscalService.downloadAfd();
-          break;
-        case "AEJ":
-          await FiscalService.downloadAej(startDate, endDate);
-          break;
-        case "ATESTADO":
-          await FiscalService.downloadTechnicalCertificate();
-          break;
-      }
-
-      toast({ title: "Sucesso!", description: "Arquivo baixado com sucesso.", variant: "default" });
-    } catch (error) {
-      toast({
-        variant: "destructive",
-        title: "Erro",
-        description: getAdministrativeErrorMessage(error, "fiscal"),
-      });
-    } finally {
-      setIsLoading(false);
-    }
-  };
+  const handleBack = useCallback(() => navigate(APP_PATHS.dashboard), [navigate]);
 
   return (
     <PageShell
       sidebarOpen={sidebarOpen}
       toggleSidebar={handleToggleSidebar}
-      mainClassName="pt-16 mobile-container py-4 sm:py-20 space-y-6 sm:space-y-8 relative z-10"
+      mainClassName="pt-24 sm:pt-32 mobile-container pb-36 sm:pb-12 space-y-6 sm:space-y-8 relative z-10 overflow-x-hidden"
     >
-      <div className="mx-auto max-w-3xl mt-10">
-          <div className="flex items-center gap-4 mb-8">
-            <div className="flex items-center gap-3">
-              <div className="p-2 bg-primary/10 rounded-lg">
-                <Scale className="h-6 w-6 text-primary" />
-              </div>
-              <div>
-                <h1 className="text-2xl sm:text-3xl mt-4 font-bold bg-gradient-to-r from-foreground to-primary bg-clip-text text-transparent page-title">
-                  Auditoria Fiscal</h1>
-                <p className="text-muted-foreground">Comunique-se de forma clara e objetiva com a equipe.</p>
-              </div>
-            </div>
-          </div>
-        <Card className="shadow-lg border-t-4 border-primary">
-          <CardHeader>
-            <CardTitle className="flex items-center gap-2 text-xl">
-              <Scale className="h-6 w-6 text-primary" />
-              Arquivos Legais (Portaria 671)
-            </CardTitle>
-            <CardDescription>
-              Emissão de arquivos fiscais para auditoria, fiscalização e controle de jornada.
-            </CardDescription>
-          </CardHeader>
-
-          <CardContent className="space-y-8">
-            
-            {/* 1. Seleção do Tipo de Relatório */}
-            <div className="space-y-4">
-              <Label className="text-base font-semibold">Tipo de Arquivo</Label>
-              <RadioGroup 
-                defaultValue="AEJ" 
-                value={reportType} 
-                onValueChange={(v) => setReportType(v as "AFD" | "AEJ" | "ATESTADO")}
-                className="grid grid-cols-1 md:grid-cols-3 gap-4"
-              >
-                {/* Opção AEJ */}
-                <div>
-                  <RadioGroupItem value="AEJ" id="aej" className="peer sr-only" />
-                  <Label
-                    htmlFor="aej"
-                    className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:border-primary/40 hover:bg-primary/10 dark:hover:bg-primary/20 peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary cursor-pointer transition-all h-full"
-                  >
-                    <FileSignature className="mb-3 h-6 w-6 text-muted-foreground peer-data-[state=checked]:text-primary" />
-                    <span className="font-semibold text-sm">AEJ</span>
-                    <span className="text-xs text-muted-foreground text-center mt-1">Arquivo Eletrônico de Jornada</span>
-                  </Label>
-                </div>
-
-                {/* Opção AFD */}
-                <div>
-                  <RadioGroupItem value="AFD" id="afd" className="peer sr-only" />
-                  <Label
-                    htmlFor="afd"
-                    className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:border-primary/40 hover:bg-primary/10 dark:hover:bg-primary/20 peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary cursor-pointer transition-all h-full"
-                  >
-                    <FileCode className="mb-3 h-6 w-6 text-muted-foreground peer-data-[state=checked]:text-primary" />
-                    <span className="font-semibold text-sm">AFD</span>
-                    <span className="text-xs text-muted-foreground text-center mt-1">Arquivo Fonte de Dados</span>
-                  </Label>
-                </div>
-
-                {/* Opção Atestado */}
-                <div>
-                  <RadioGroupItem value="ATESTADO" id="atestado" className="peer sr-only" />
-                  <Label
-                    htmlFor="atestado"
-                    className="flex flex-col items-center justify-between rounded-md border-2 border-muted bg-popover p-4 hover:border-primary/40 hover:bg-primary/10 dark:hover:bg-primary/20 peer-data-[state=checked]:border-primary [&:has([data-state=checked])]:border-primary cursor-pointer transition-all h-full"
-                  >
-                    <BadgeCheck className="mb-3 h-6 w-6 text-muted-foreground peer-data-[state=checked]:text-primary" />
-                    <span className="font-semibold text-sm">Atestado</span>
-                    <span className="text-xs text-muted-foreground text-center mt-1">Certificado Técnico</span>
-                  </Label>
-                </div>
-              </RadioGroup>
-            </div>
-
-            {/* Renderização Condicional dos Filtros */}
-            <div className="space-y-6 animate-in fade-in slide-in-from-top-2">
-              
-              {/* Aviso para Atestado (que não tem filtros) */}
-              {reportType === "ATESTADO" && (
-                 <Alert className="bg-muted/50">
-                   <AlertCircle className="h-4 w-4" />
-                   <AlertTitle>Arquivo Estático</AlertTitle>
-                   <AlertDescription>
-                     O Atestado Técnico é um documento da empresa e não depende de data ou colaborador específico.
-                   </AlertDescription>
-                 </Alert>
-              )}
-
-              {/* Filtros para AEJ e AFD */}
-              {reportType !== "ATESTADO" && (
-                <>
-                  {/* 3. Seleção de Data (Com fechamento automático) */}
-                  <div className="flex flex-col space-y-2">
-                    <Label>Mês de Referência</Label>
-                    <Popover open={isCalendarOpen} onOpenChange={setIsCalendarOpen}>
-                      <PopoverTrigger asChild>
-                        <Button
-                          variant={"outline"}
-                          className={cn(
-                            "w-full justify-start text-left font-normal h-11",
-                            !date && "text-muted-foreground"
-                          )}
-                        >
-                          <CalendarIcon className="mr-2 h-4 w-4" />
-                          {date ? format(date, "MMMM 'de' yyyy", { locale: ptBR }) : <span>Selecione a data</span>}
-                        </Button>
-                      </PopoverTrigger>
-                      <PopoverContent className="w-auto p-0" align="start">
-                        <Calendar
-                          mode="single"
-                          selected={date}
-                          onSelect={handleDateSelect} // Usa a função que fecha o modal
-                          initialFocus
-                          locale={ptBR}
-                          disabled={(date) => date > new Date()}
-                        />
-                      </PopoverContent>
-                    </Popover>
-                  </div>
-                </>
-              )}
-            </div>
-
-            {isLoading && (
-              <LoadingState
-                title={`Gerando arquivo ${reportType}...`}
-                description="Aguarde o término do download antes de solicitar outro relatório."
-                className="rounded-lg border border-primary/20 bg-primary/5 py-4"
-              />
-            )}
-
-          </CardContent>
-
-          <CardFooter className="flex justify-end pt-4 border-t bg-muted/20">
-            <Button 
-              size="lg" 
-              onClick={handleDownload} 
-              disabled={isLoading || (reportType !== "ATESTADO" && !date)}
-              className="w-full sm:w-auto gap-2 bg-primary hover:bg-primary/70 text-white"
-            >
-              {isLoading ? (
-                "Gerando..."
-              ) : (
-                <>
-                  <Download className="h-5 w-5" /> 
-                  Baixar {reportType}
-                </>
-              )}
-            </Button>
-          </CardFooter>
-        </Card>
-      </div>
+      {isDesktop ? (
+        <FiscalDesktopView viewModel={viewModel} onBack={handleBack} />
+      ) : (
+        <FiscalMobileView viewModel={viewModel} onBack={handleBack} />
+      )}
     </PageShell>
   );
-}
+};
+
+export default AuditoriaFiscal;

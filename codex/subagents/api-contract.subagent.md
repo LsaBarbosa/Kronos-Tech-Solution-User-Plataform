@@ -2,23 +2,27 @@
 
 ## Objetivo
 
-Garantir que nenhum contrato HTTP seja alterado.
+Impedir quebra de contrato HTTP.
 
-## Conferir no front-end
+## Contratos
 
-- `src/service/lgpd.service.ts`
-- `src/config/api-routes.ts`
-- componentes de termos e consentimentos
+```text
+GET /legal/technical-certificate
+GET /legal/afd
+GET /legal/aej?startDate=YYYY-MM-DD&endDate=YYYY-MM-DD
+```
 
-## Conferir no back-end
+## Preservar
 
-- `LgpdController`
-- `TermsController`
-- `PublicPrivacyController`, se usado por links públicos
+- `responseType: "blob"`.
+- `Content-Disposition` para nome real do arquivo.
+- fallback local de nome de arquivo.
+- `dateToBackendDatePattern`.
+- tratamento administrativo de erro.
 
-## Proibições
+## Proibido
 
-- Não renomear payloads.
-- Não trocar método HTTP.
-- Não alterar URLs.
-- Não alterar semântica de confirmação de exportação.
+- Enviar mês para AFD se o serviço não aceita.
+- Enviar data para ATESTADO.
+- Trocar GET por POST.
+- Criar payload novo.

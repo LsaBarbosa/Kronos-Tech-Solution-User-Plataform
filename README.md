@@ -1,71 +1,68 @@
-# Kronos — Pacote Codex CLI — UI `/privacidade`
+# Kronos — Pacote Codex para `/auditoria`
 
-## Objetivo
+Este pacote orienta o Codex CLI a refatorar a tela **Auditoria Fiscal** na rota `/auditoria`, transformando a experiência atual em uma **central de arquivos legais e fiscais** para conformidade de jornada.
 
-Este pacote orienta o Codex CLI a refatorar a rota `/privacidade` do front-end Kronos para uma nova experiência visual e funcional.
+## Escopo
 
-A tela deve deixar de parecer uma página longa com seções empilhadas e passar a funcionar como um **centro de direitos do titular LGPD**, com duas experiências reais:
+- Repositório front-end: `Kronos-Tech-Solution-User-Plataform`
+- Branch front-end: `feature/lgpd-compliance-new-ui`
+- Repositório back-end: `Kronos-Tech-Solutions-KTS`
+- Branch back-end: `PROD_HOSTINGER_V2`
+- Repositório de documentação: `kronos-business`
+- Branch documentação: `main`
+- Rota: `/auditoria`
+- Arquivo principal atual: `src/pages/AuditoriaFiscal.tsx`
 
-- **Desktop:** painel de privacidade e governança, com cards de ações principais, solicitações recentes e painel lateral de transparência.
-- **Mobile:** fluxo de autoatendimento por cards, com ações grandes, leitura rápida e CTA fixo.
-
-## Repositórios e branches
-
-| Camada | Repositório | Branch |
-|---|---|---|
-| Back-end | `LsaBarbosa/Kronos-Tech-Solutions-KTS` | `PROD_HOSTINGER_V2` |
-| Front-end | `LsaBarbosa/Kronos-Tech-Solution-User-Plataform` | `feature/lgpd-compliance-new-ui` |
-| Documentação | `LsaBarbosa/kronos-business` | `main` |
-
-## Arquivos de referência incluídos
+## Referências incluídas
 
 ```text
 references/
 ├── docs/
-│   └── kronos_privacidade_diretriz_visual.md
+│   └── kronos_auditoria_fiscal_diretriz_visual.md
 └── mockups/
-    ├── kronos_privacidade_desktop.png
-    └── kronos_privacidade_mobile.png
+    ├── kronos_auditoria_fiscal_desktop.png
+    └── kronos_auditoria_fiscal_mobile.png
 ```
 
-## Arquivos a instalar ou consultar no projeto
+## Resultado esperado
+
+A tela deve deixar de ser um card único com radio buttons e calendário e passar a funcionar como **Fiscal Compliance Console**:
+
+- Desktop: console fiscal com hero, cards grandes de AEJ/AFD/ATESTADO, mês de referência, painel lateral de conformidade e CTA explícito.
+- Mobile: fluxo guiado com seleção compacta de tipo, referência, prévia e CTA fixo.
+- Contratos HTTP preservados.
+- Legado visual removido após teste.
+- Sem alteração de back-end, salvo se o Codex encontrar divergência real de contrato.
+
+## Contratos que devem ser preservados
 
 ```text
-codex/
-├── skills/
-│   └── kronos-privacidade-ui.skill.md
-├── agents/
-│   └── kronos-privacidade-ui.agent.md
-├── rules/
-│   └── kronos-privacidade-ui.rules.md
-└── subagents/
-    ├── repo-mapper.subagent.md
-    ├── privacy-domain.subagent.md
-    ├── ui-architecture.subagent.md
-    ├── api-contract.subagent.md
-    ├── qa-a11y.subagent.md
-    └── legacy-cleaner.subagent.md
+GET /legal/technical-certificate
+GET /legal/afd
+GET /legal/aej?startDate=YYYY-MM-DD&endDate=YYYY-MM-DD
 ```
 
-## Arquivos de execução
+## Comandos mínimos de validação
 
-| Arquivo | Função |
-|---|---|
-| `plano-acao-privacidade-ui.md` | Sequência cronológica de implementação. |
-| `prompt-codex-privacidade-ui.md` | Prompt principal para colar no Codex CLI. |
-| `checklist-validacao-privacidade-ui.md` | Critérios de validação final. |
-| `manifest.json` | Mapa do pacote. |
+Executar no front-end:
 
-## Regra central
+```bash
+npm install
+npm run lint
+npm run build
+```
 
-Preservar os contratos HTTP existentes. A tarefa é de **refatoração de UI/UX**, não de mudança de back-end.
+Se existirem testes no workspace:
 
-A implementação deve reaproveitar os serviços e componentes existentes sempre que possível:
+```bash
+npm test
+```
 
-- `src/pages/PrivacyCenter.tsx`
-- `src/service/lgpd.service.ts`
-- `src/config/api-routes.ts`
-- `src/components/privacy/*`
-- `src/context/AuthContext.tsx`
+## Observações de negócio
 
-Após implementar e validar, remover o legado visual antigo da rota `/privacidade`, deixando somente a nova experiência.
+- `AEJ` usa período/mês e gera `.p7s`.
+- `AFD` não deve sugerir que mês seja obrigatório.
+- `ATESTADO` é documento estático e não depende de data.
+- A rota é restrita a `MANAGER` e `CTO`.
+- Loading deve bloquear múltiplas solicitações.
+- Erros devem usar linguagem administrativa.
