@@ -1,45 +1,33 @@
-# Subagent — UI Architecture
+# Subagent — ui-architecture
 
-## Objetivo
+## Missão
 
-Desenhar a decomposição de componentes da tela `/avisos`.
-
-## Componentes recomendados
-
-```text
-src/pages/avisos/
-├── AvisosPage.tsx ou manter Avisos.tsx como orquestrador
-├── AvisosDesktopView.tsx
-├── AvisosMobileView.tsx
-├── NoticeHero.tsx
-├── NoticeMetrics.tsx
-├── NoticeSearchFilters.tsx
-├── NoticeList.tsx
-├── NoticeCard.tsx
-├── NoticeDetailPanel.tsx
-├── NoticePermissionFooter.tsx
-├── NoticeDeleteDialog.tsx
-└── notice-ui.helpers.ts
-```
+Projetar a nova UI com experiências reais para desktop e mobile.
 
 ## Desktop
 
-- grid com lista à esquerda e detalhe à direita;
-- métricas no hero;
-- filtros horizontais;
-- seleção persistente;
-- paginação no card da lista.
+Construir um **Secure Document Vault / console documental**:
+
+- header/hero institucional;
+- cards de escopo por ROLE;
+- filtros em grade;
+- chips de tipos documentais;
+- painel de resultados à direita;
+- bloco de governança;
+- ações de download/exclusão.
 
 ## Mobile
 
-- cards empilhados;
-- detalhe em modal/drawer;
-- rodapé fixo com permissão;
-- CTA contextual para abrir aviso selecionado.
+Construir uma **busca guiada**:
 
-## Regras
+- topo compacto;
+- card de escopo;
+- seção 1: tipo documental;
+- seção 2: filtros;
+- seção 3: resultados;
+- CTA fixo inferior;
+- cards de documentos.
 
-- Usar Tailwind e componentes existentes.
-- Não usar tabela no mobile.
-- Evitar CSS global.
-- Preservar dark mode quando possível.
+## Entrega
+
+Propor/implementar estrutura de componentes clara, removendo o visual legado.

@@ -1,30 +1,25 @@
-# Subagent — Repo Mapper
+# Subagent — repo-mapper
 
-## Objetivo
+## Missão
 
-Mapear a estrutura real do front-end e confirmar os arquivos afetados.
+Mapear a implementação atual de `/documentos` antes de qualquer alteração.
 
-## Ler obrigatoriamente
+## Checklist
 
-- `package.json`
-- `src/App.tsx`
-- `src/config/app-routes.ts`
-- `src/pages/Avisos.tsx`
-- `src/pages/CriarAviso.tsx`
-- `src/hooks/useMessages.ts`
-- `src/service/message.service.ts`
-- `src/types/message.ts`
-- componentes UI em `src/components/ui/*`
-- `src/components/Sidebar.tsx`
-- `src/components/Header.tsx`
+1. Localizar a rota `/documentos` e `/meus-documentos`.
+2. Confirmar componente renderizado.
+3. Mapear `Documentos.tsx`.
+4. Mapear `useDocumentsPage`.
+5. Mapear `document.service.ts`.
+6. Mapear `types/document.ts`.
+7. Mapear componentes reutilizáveis do design system.
+8. Confirmar se há helpers de role/session no `AuthContext`.
 
-## Saída
+## Entrega
 
-Gerar um resumo com:
+Retornar resumo contendo:
 
-- rota real (`/avisos` ou `/aviso`);
-- página renderizada;
-- hook usado;
-- serviço usado;
-- componentes que serão criados/removidos;
-- riscos de compatibilidade.
+- arquivos lidos;
+- estado atual da tela;
+- dependências críticas;
+- pontos que não podem quebrar.

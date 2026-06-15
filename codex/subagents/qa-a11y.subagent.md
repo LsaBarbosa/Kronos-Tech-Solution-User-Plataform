@@ -1,28 +1,26 @@
-# Subagent — QA & A11y
+# Subagent — qa-a11y
 
-## Objetivo
+## Missão
 
-Validar qualidade visual, responsividade, acessibilidade e segurança de interação.
+Validar qualidade, acessibilidade e estados visuais.
 
 ## Checklist
 
-- foco visível;
-- botões com labels;
-- prioridade textual;
-- contraste nos chips amarelo/vermelho;
-- confirmação destrutiva por teclado;
-- loading acessível;
-- estado vazio;
-- erro claro;
-- mobile com toque mínimo 44px;
-- desktop com ordem lógica de leitura.
+- Desktop >= 1024px conforme mockup.
+- Mobile <= 480px conforme mockup.
+- Sem scroll horizontal.
+- CTA desabilitado com razão visual.
+- Loading localizado em busca/download/exclusão.
+- Estado vazio claro.
+- Foco visível em inputs, chips e botões.
+- Botões com `aria-label` quando só ícone.
+- Contraste aceitável em chips amarelos/vermelhos.
+- `PARTNER` não vê seleção de colaborador.
+- Exclusão exige confirmação.
 
-## Testes manuais
+## Comandos
 
-- `PARTNER`: listar, abrir detalhe, paginar, não ver ações admin.
-- `MANAGER`: listar, criar aviso, abrir detalhe, deletar com confirmação.
-- `CTO`: validar como regra do produto. Se front permitir e back não permitir, documentar divergência.
-- Filtro por prioridade.
-- Busca por título e conteúdo.
-- Estado sem resultado.
-- Estado sem avisos.
+```bash
+npm run lint
+npm run build
+```

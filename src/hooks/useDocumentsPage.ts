@@ -34,6 +34,8 @@ export const useDocumentsPage = () => {
   const [activeEmployeeFilter, setActiveEmployeeFilter] = useState("true");
   const [isFetchingEmployees, setIsFetchingEmployees] = useState(false);
   const [isPartner, setIsPartner] = useState(false);
+  const [documentPendingDelete, setDocumentPendingDelete] = useState<DocumentItem | null>(null);
+  const [isDeletingDocument, setIsDeletingDocument] = useState(false);
 
   const { status: authStatus, role, user } = useAuth();
 
@@ -159,28 +161,38 @@ export const useDocumentsPage = () => {
     setSearchDate(date);
   }, []);
 
-  const handleDeleteDocument = useCallback(
-    async (documentId: string, documentName: string) => {
-      if (!selectedEmployeeId) {
-        showErrorToast("Atenção", "Funcionário não selecionado. Não é possível deletar.");
-        return;
-      }
+  const requestDeleteDocument = useCallback((document: DocumentItem) => {
+    setDocumentPendingDelete(document);
+  }, []);
 
-      if (!window.confirm(`Você tem certeza que deseja excluir o documento "${documentName}"?`)) {
-        return;
-      }
+  const cancelDeleteDocument = useCallback(() => {
+    if (isDeletingDocument) return;
+    setDocumentPendingDelete(null);
+  }, [isDeletingDocument]);
 
-      try {
-        await deleteDocument(documentId, selectedEmployeeId || undefined);
-        setDocuments((prev) => prev.filter((doc) => doc.id !== documentId));
-        showSuccessToast("Documento excluído", `Documento "${documentName}" excluído com sucesso!`);
-      } catch (error) {
+  const confirmDeleteDocument = useCallback(async () => {
+    const target = documentPendingDelete;
+    if (!target) return;
+
+    if (!selectedEmployeeId) {
+      showErrorToast("Atenção", "Funcionário não selecionado. Não é possível deletar.");
+      setDocumentPendingDelete(null);
+      return;
+    }
+
+    setIsDeletingDocument(true);
+    try {
+      await deleteDocument(target.id, selectedEmployeeId || undefined);
+      setDocuments((prev) => prev.filter((doc) => doc.id !== target.id));
+      showSuccessToast("Documento excluído", `Documento "${target.name}" excluído com sucesso!`);
+      setDocumentPendingDelete(null);
+    } catch (error) {
       console.error("Erro ao excluir documento:", error);
       showErrorToast("Erro", getAdministrativeErrorMessage(error, "document"));
-      }
-    },
-    [selectedEmployeeId]
-  );
+    } finally {
+      setIsDeletingDocument(false);
+    }
+  }, [documentPendingDelete, selectedEmployeeId]);
 
   const handleDownload = useCallback(async (document: DocumentItem) => {
     try {
@@ -207,9 +219,18 @@ export const useDocumentsPage = () => {
     }
   }, []);
 
+  const clearFilters = useCallback(() => {
+    setSelectedDocumentType("");
+    setSearchDate("");
+    if (!isPartner) {
+      setSelectedEmployeeId("");
+    }
+  }, [isPartner]);
+
   return {
     sidebarOpen,
     handleToggleSidebar,
+    role,
     employees,
     selectedEmployeeId,
     setSelectedEmployeeId,
@@ -224,11 +245,17 @@ export const useDocumentsPage = () => {
     setActiveEmployeeFilter,
     isFetchingEmployees,
     isPartner,
+    currentUserName,
     handleSearch,
-    handleDeleteDocument,
     handleDownload,
     handleDateFilterChange,
     formatDate,
     getDocumentTypeLabel,
+    clearFilters,
+    documentPendingDelete,
+    isDeletingDocument,
+    requestDeleteDocument,
+    cancelDeleteDocument,
+    confirmDeleteDocument,
   };
 };

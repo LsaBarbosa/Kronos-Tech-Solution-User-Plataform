@@ -142,6 +142,11 @@ describe("Documentos", () => {
     mockDeleteDocument.mockResolvedValue(undefined);
   });
 
+  const getPayslipChip = () =>
+    screen.getByRole("radio", { name: /Contracheque/i });
+  const getSearchButton = () =>
+    screen.getByRole("button", { name: /Buscar documentos/i });
+
   it("bloqueia a busca sem tipo selecionado e depois carrega documentos", async () => {
     const user = userEvent.setup();
 
@@ -151,12 +156,12 @@ describe("Documentos", () => {
       </MemoryRouter>
     );
 
-    expect(screen.getByRole("button", { name: /Buscar Documentos/i })).toBeDisabled();
+    expect(getSearchButton()).toBeDisabled();
 
-    await user.selectOptions(screen.getByRole("combobox"), "PAYSLIP");
-    expect(screen.getByRole("button", { name: /Buscar Documentos/i })).toBeEnabled();
+    await user.click(getPayslipChip());
+    expect(getSearchButton()).toBeEnabled();
 
-    await user.click(screen.getByRole("button", { name: /Buscar Documentos/i }));
+    await user.click(getSearchButton());
 
     await waitFor(() => {
       expect(mockFetchDocuments).toHaveBeenCalledWith({
@@ -179,9 +184,9 @@ describe("Documentos", () => {
       </MemoryRouter>
     );
 
-    await user.selectOptions(screen.getByRole("combobox"), "PAYSLIP");
-    expect(screen.getByRole("button", { name: /Buscar Documentos/i })).toBeEnabled();
-    await user.click(screen.getByRole("button", { name: /Buscar Documentos/i }));
+    await user.click(getPayslipChip());
+    expect(getSearchButton()).toBeEnabled();
+    await user.click(getSearchButton());
 
     await waitFor(() => {
       expect(mockToast.error).toHaveBeenCalledWith("Erro", {

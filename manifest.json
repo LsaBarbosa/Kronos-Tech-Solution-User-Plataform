@@ -1,29 +1,34 @@
 {
-  "artifact": "kronos_codex_avisos_ui",
-  "target": {
-    "frontend_repo": "LsaBarbosa/Kronos-Tech-Solution-User-Plataform",
-    "frontend_branch": "feature/lgpd-compliance-new-ui",
-    "backend_repo": "LsaBarbosa/Kronos-Tech-Solutions-KTS",
-    "backend_branch": "PROD_HOSTINGER_V2",
-    "business_repo": "LsaBarbosa/kronos-business",
-    "business_branch": "main",
-    "requested_route": "/aviso",
-    "observed_frontend_route": "/avisos",
-    "frontend_page": "src/pages/Avisos.tsx",
-    "frontend_hook": "src/hooks/useMessages.ts",
-    "frontend_service": "src/service/message.service.ts",
-    "creation_page": "src/pages/CriarAviso.tsx",
-    "backend_resource": "/messages"
-  },
+  "name": "kronos_codex_documentos_ui",
+  "route": "/documentos",
+  "related_route": "/meus-documentos",
+  "target_frontend_repo": "Kronos-Tech-Solution-User-Plataform",
+  "target_frontend_branch": "feature/lgpd-compliance-new-ui",
+  "target_backend_repo": "Kronos-Tech-Solutions-KTS",
+  "target_backend_branch": "PROD_HOSTINGER_V2",
+  "documentation_repo": "kronos-business",
+  "documentation_branch": "main",
+  "generated_at": "2026-06-14T12:55:52.657227Z",
   "references": [
-    "references/docs/kronos_avisos_diretriz_visual.md",
-    "references/mockups/kronos_avisos_desktop.png",
-    "references/mockups/kronos_avisos_mobile.png"
+    "references/docs/kronos_documentos_diretriz_visual.md",
+    "references/mockups/kronos_documentos_desktop.png",
+    "references/mockups/kronos_documentos_mobile.png"
   ],
-  "generated_at": "2026-06-14T12:50:10.684586Z",
-  "notes": [
-    "A diretriz enviada usa /avisos. O repositório front-end também usa APP_PATHS.avisos = /avisos.",
-    "O pedido menciona /aviso. O Codex deve confirmar a rota real no workspace e preservar a rota usada pelo produto; se houver necessidade de compatibilidade, adicionar redirect controlado de /aviso para /avisos.",
-    "Não alterar contratos HTTP: usar GET/POST/DELETE /messages já existentes."
+  "contracts": [
+    "GET /documents?employeeId=&date=&type=",
+    "GET /documents/{documentId}?employeeId=",
+    "DELETE /documents/{documentId}?employeeId=",
+    "GET /employee?active="
+  ],
+  "codex_files": [
+    "codex/skills/kronos-documentos-ui.skill.md",
+    "codex/agents/kronos-documentos-ui.agent.md",
+    "codex/rules/kronos-documentos-ui.rules.md",
+    "codex/subagents/repo-mapper.subagent.md",
+    "codex/subagents/document-domain.subagent.md",
+    "codex/subagents/ui-architecture.subagent.md",
+    "codex/subagents/api-contract.subagent.md",
+    "codex/subagents/qa-a11y.subagent.md",
+    "codex/subagents/legacy-cleaner.subagent.md"
   ]
 }

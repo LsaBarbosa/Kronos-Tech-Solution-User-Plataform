@@ -1,36 +1,40 @@
-# Subagent — API Contract
+# Subagent — api-contract
 
-## Objetivo
+## Missão
 
-Garantir compatibilidade total com o back-end `PROD_HOSTINGER_V2`.
+Validar que a refatoração não quebra integração com backend.
 
-## Contratos esperados
+## Contrato esperado
 
-- `GET /messages?page=&size=`
-- `POST /messages`
-- `DELETE /messages/{messageId}`
+### Listar documentos
 
-## Conferir no front
+```txt
+GET /documents?employeeId=&date=&type=
+```
 
-- `API_ROUTES.MESSAGES`
-- `fetchMessages`
-- `postMessage`
-- `deleteMessage`
-- `useMessages`
-- `CriarAviso.tsx`
+### Download
 
-## Conferir no back
+```txt
+GET /documents/{documentId}?employeeId=
+```
 
-- `ApiPaths.MESSAGES`
-- `MessageController`
-- `CreateMessageRequest`
-- `MessageResponse`
-- `MessagePriority`
+### Excluir
 
-## Saída
+```txt
+DELETE /documents/{documentId}?employeeId=
+```
 
-Informar:
+### Colaboradores
 
-- contrato preservado;
-- qualquer divergência entre front e back;
-- qualquer ajuste recomendado sem implementar back-end.
+```txt
+GET /employee?active=
+```
+
+## Checklist
+
+- `type` enviado como enum aceito.
+- `employeeId` omitido ou enviado conforme role e estado.
+- `date` enviado apenas se preenchido.
+- download usa blob e `Content-Disposition`.
+- exclusão remove item da lista local apenas após sucesso.
+- erros continuam usando feedback já existente.
