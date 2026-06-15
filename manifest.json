@@ -1,31 +1,51 @@
 {
-  "artifact": "kronos_codex_enviar_documentos_ui",
-  "generated_at": "2026-06-14T13:04:36",
-  "target": {
-    "backend_repo": "LsaBarbosa/Kronos-Tech-Solutions-KTS",
-    "backend_branch": "PROD_HOSTINGER_V2",
-    "frontend_repo": "LsaBarbosa/Kronos-Tech-Solution-User-Plataform",
-    "frontend_branch": "feature/lgpd-compliance-new-ui",
-    "documentation_repo": "LsaBarbosa/kronos-business",
-    "documentation_branch": "main",
-    "route": "/enviar-documento-colaborador",
-    "current_page_component": "src/pages/DocumentoColaborador.tsx",
-    "related_page_component": "src/pages/EnviarDocumentos.tsx",
-    "primary_hook": "src/hooks/useCollaboratorDocumentUpload.ts",
-    "service": "src/service/document.service.ts",
-    "backend_controller": "src/main/java/com/kts/kronos/adapter/in/web/http/DocumentController.java"
+  "package": "kronos_codex_aprovacoes_abono_ui",
+  "target_route": "/aprovacoes-abono",
+  "target_screen": "ManualRegisterApprovals",
+  "frontend_repository": {
+    "name": "LsaBarbosa/Kronos-Tech-Solution-User-Plataform",
+    "branch": "feature/lgpd-compliance-new-ui",
+    "primary_files": [
+      "src/App.tsx",
+      "src/config/app-routes.ts",
+      "src/pages/ManualRegisterApprovals.tsx",
+      "src/hooks/useTimeOffApprovals.ts",
+      "src/service/records.service.ts",
+      "src/service/document.service.ts",
+      "src/types/recordApproval.ts",
+      "src/utils/document-resolution.ts",
+      "src/components/Sidebar.tsx",
+      "src/components/Header.tsx",
+      "src/components/ui/*"
+    ]
+  },
+  "backend_repository": {
+    "name": "LsaBarbosa/Kronos-Tech-Solutions-KTS",
+    "branch": "PROD_HOSTINGER_V2",
+    "primary_files": [
+      "src/main/java/com/kts/kronos/constants/ApiPaths.java",
+      "src/main/java/com/kts/kronos/adapter/in/web/http/TimeRecordController.java",
+      "src/main/java/com/kts/kronos/adapter/in/web/dto/timerecord/*",
+      "src/main/java/com/kts/kronos/application/service/TimeRecordService.java"
+    ]
+  },
+  "documentation_repository": {
+    "name": "LsaBarbosa/kronos-business",
+    "branch": "main",
+    "primary_files": [
+      "04-mapa-modulos-telas.md",
+      "references/docs/kronos_aprovacoes_abono_diretriz_visual.md"
+    ]
   },
   "references": {
-    "visual_guideline": "references/docs/kronos_enviar_documentos_diretriz_visual.md",
-    "desktop_mockup": "references/mockups/kronos_enviar_documentos_desktop.png",
-    "mobile_mockup": "references/mockups/kronos_enviar_documentos_mobile.png"
+    "visual_directive": "references/docs/kronos_aprovacoes_abono_diretriz_visual.md",
+    "desktop_mockup": "references/mockups/kronos_aprovacoes_abono_desktop.png",
+    "mobile_mockup": "references/mockups/kronos_aprovacoes_abono_mobile.png"
   },
-  "constraints": [
-    "Não alterar contrato HTTP.",
-    "Preservar multipart POST /documents com params employeeId e type e request part file.",
-    "Priorizar /enviar-documento-colaborador; não confundir com /enviar-documentos.",
-    "Criar experiências distintas para desktop e mobile.",
-    "Remover legado visual após implementação e validação.",
-    "Garantir validação de arquivo, tamanho, tipo, loading e sucesso/erro."
+  "non_goals": [
+    "Não alterar contratos HTTP do backend.",
+    "Não criar novas regras de negócio fora do escopo da UI.",
+    "Não manter o legado renderizando em paralelo após a implementação final.",
+    "Não transformar mobile em tabela reduzida."
   ]
 }

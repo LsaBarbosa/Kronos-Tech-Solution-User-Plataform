@@ -1,28 +1,41 @@
-# Subagent — ui-architecture
+# Subagent — UI Architecture
 
 ## Objetivo
 
-Desenhar a arquitetura de componentes da nova tela.
+Definir e implementar a arquitetura visual desktop/mobile.
 
-## Sugestão de componentes
+## Desktop
 
-```text
-DocumentUploadPage
-DocumentUploadDesktop
-DocumentUploadMobile
-UploadHero
-RoleScopeCards
-UploadStepCard
-UploadDropzone
-UploadPreviewPanel
-UploadGovernancePanel
-MobileUploadStepper
-MobileUploadFooter
-```
+- Hero com métricas.
+- Card de fila de solicitações com filtros.
+- Lista densa, mas não obrigatoriamente tabela.
+- Painel lateral de solicitação selecionada.
+- Botões separados e confirmados.
 
-## Saída esperada
+## Mobile
 
-- Componentes criados.
-- Props necessárias.
-- Responsabilidades de cada componente.
-- Como preservar estado do hook atual.
+- Header compacto.
+- Métricas horizontais.
+- Busca e chips.
+- Cards empilhados.
+- Painel fixo inferior.
+- Detalhe/evidência em drawer/modal.
+
+## Componentes sugeridos
+
+- `TimeOffApprovalDesktop`
+- `TimeOffApprovalMobile`
+- `TimeOffApprovalMetrics`
+- `TimeOffApprovalFilters`
+- `TimeOffApprovalQueue`
+- `TimeOffApprovalCard`
+- `TimeOffApprovalDetailPanel`
+- `TimeOffApprovalDecisionBar`
+- `TimeOffApprovalConfirmDialog`
+- `TimeOffApprovalStatusBadge`
+
+## Saída
+
+- Estrutura de componentes.
+- Estratégia de breakpoint.
+- Plano de remoção do legado.

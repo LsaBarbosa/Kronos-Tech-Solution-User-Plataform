@@ -1,19 +1,27 @@
-# Subagent — legacy-cleaner
+# Subagent — Legacy Cleaner
 
 ## Objetivo
 
-Remover o legado visual após a nova UI.
+Remover a implementação visual antiga sem quebrar a rota ou os contratos.
 
-## Procurar
+## Remover/substituir
 
-- Imports não usados.
-- Cards antigos.
-- Layout antigo centralizado.
-- Classes antigas sem uso.
-- Funções duplicadas.
-- Componentes mortos.
+- tabela mobile reaproveitada como card legado;
+- hook `useIsDesktop` manual baseado em `window.innerWidth`, se substituído por solução existente do projeto;
+- JSX monolítico antigo dentro de `ManualRegisterApprovals.tsx`;
+- comentários obsoletos;
+- imports não usados.
 
-## Saída esperada
+## Preservar
 
-- Lista de remoções.
-- Confirmação de que só a nova implementação permanece.
+- rota `/aprovacoes-abono`;
+- `ManualRegisterApprovals` como page exportada;
+- `useTimeOffApprovals` ou suas responsabilidades;
+- download de evidência;
+- toast de sucesso/erro;
+- paginação.
+
+## Saída
+
+- Lista de código removido.
+- Confirmação de ausência de legado renderizado.

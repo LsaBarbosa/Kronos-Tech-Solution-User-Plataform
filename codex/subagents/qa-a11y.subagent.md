@@ -1,18 +1,27 @@
-# Subagent — qa-a11y
+# Subagent — QA & A11y
 
 ## Objetivo
 
-Validar qualidade, acessibilidade e responsividade.
+Validar build, lint, responsividade, acessibilidade e fluxos funcionais.
 
-## Checklist
+## Testes mínimos
 
-- Build passa.
-- Lint passa.
-- CTA desabilitado com motivo.
-- Upload por clique e drag/drop.
-- Dropzone com foco de teclado.
-- Loading no envio.
-- Erros próximos ao campo.
-- Mobile com toque mínimo.
-- Desktop com painel lateral.
-- Sem console errors.
+- `npm run lint`
+- `npm run build`
+- abrir `/aprovacoes-abono` como `MANAGER`;
+- filtrar por colaborador;
+- alternar `PENDING`, `APPROVED`, `REJECTED`;
+- selecionar solicitação;
+- baixar anexo quando houver;
+- aprovar com confirmação;
+- rejeitar com confirmação;
+- validar estado vazio;
+- validar mobile sem tabela.
+
+## Acessibilidade
+
+- texto nos botões;
+- `aria-label` em ícones isolados;
+- contraste dos chips;
+- navegação por teclado;
+- foco visível.

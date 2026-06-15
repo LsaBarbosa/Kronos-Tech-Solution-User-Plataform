@@ -1,31 +1,31 @@
-# Subagent — api-contract
+# Subagent — API Contract
 
 ## Objetivo
 
-Garantir que o front continue compatível com o back-end.
+Garantir que a nova UI use os contratos existentes sem alteração.
 
-## Conferir
+## Back-end esperado
 
-```http
-POST /documents
-GET /documents
-GET /documents/{documentId}
-DELETE /documents/{documentId}
-```
+- `GET /records/time-off/requests`
+  - query: `page`, `size`, `status`, `employeeName?`
+  - retorno: `TimeRecordPageResponse`
 
-## Para upload
+- `PATCH /records/time-off/approve/{timeRecordId}`
+  - sem body
+  - retorno esperado: `204`
 
-```text
-params:
-- employeeId
-- type
+- `PATCH /records/time-off/reject/{timeRecordId}`
+  - sem body
+  - retorno esperado: `204`
 
-formData:
-- file
-```
+## Front-end esperado
 
-## Saída esperada
+- `listTimeOffRequests(params)`
+- `approveTimeOff(timeRecordId)`
+- `rejectTimeOff(timeRecordId)`
+- `downloadDocument(documentId, fileName, employeeId)`
 
-- Contrato preservado.
-- Nenhuma alteração necessária no back-end.
-- Pontos de risco, se houver.
+## Saída
+
+- Confirmação de que nenhum contrato foi modificado.
+- Lista de chamadas preservadas.

@@ -1,57 +1,65 @@
-# Kronos — Pacote Codex CLI para `/enviar-documento-colaborador`
+# Kronos — Pacote Codex CLI para `/aprovacoes-abono`
 
 ## Objetivo
 
-Orientar o Codex CLI na refatoração da tela **Enviar documento** na rota `/enviar-documento-colaborador`, transformando a experiência em um **cofre de envio documental seguro**.
+Este pacote orienta o **Codex CLI** a refatorar a tela de aprovação de abonos da rota `/aprovacoes-abono`, no front-end `Kronos-Tech-Solution-User-Plataform`, branch `feature/lgpd-compliance-new-ui`.
 
-A implementação deve usar como referência:
+A nova tela deve deixar de ser uma tabela/formulário legado e passar a funcionar como uma **mesa de aprovação gerencial de abonos**, com fila de solicitações, filtros, detalhe contextual, evidência/anexo, impacto em horas/registros e decisão explícita de aprovar ou rejeitar.
 
-- `references/docs/kronos_enviar_documentos_diretriz_visual.md`
-- `references/mockups/kronos_enviar_documentos_desktop.png`
-- `references/mockups/kronos_enviar_documentos_mobile.png`
+## Repositórios e branches obrigatórios
 
-## Repositórios e branches
-
-| Repositório | Branch | Uso |
+| Área | Repositório | Branch |
 |---|---|---|
-| `LsaBarbosa/Kronos-Tech-Solutions-KTS` | `PROD_HOSTINGER_V2` | Contratos HTTP e regras de upload/documentos |
-| `LsaBarbosa/Kronos-Tech-Solution-User-Plataform` | `feature/lgpd-compliance-new-ui` | Implementação da tela |
-| `LsaBarbosa/kronos-business` | `main` | Norteador funcional e documentação de produto |
+| Back-end | `Kronos-Tech-Solutions-KTS` | `PROD_HOSTINGER_V2` |
+| Front-end | `Kronos-Tech-Solution-User-Plataform` | `feature/lgpd-compliance-new-ui` |
+| Documentação | `kronos-business` | `main` |
 
-## Arquivo-alvo principal
-
-```text
-src/pages/DocumentoColaborador.tsx
-```
-
-## Arquivos de apoio
+## Arquivos de referência incluídos
 
 ```text
-src/hooks/useCollaboratorDocumentUpload.ts
-src/service/document.service.ts
-src/types/document.ts
-src/config/app-routes.ts
-src/App.tsx
-src/components/Header.tsx
-src/components/Sidebar.tsx
-src/components/ui/*
+references/
+├── docs/
+│   └── kronos_aprovacoes_abono_diretriz_visual.md
+└── mockups/
+    ├── kronos_aprovacoes_abono_desktop.png
+    └── kronos_aprovacoes_abono_mobile.png
 ```
 
-## Observação sobre rotas
-
-O front-end possui duas rotas relacionadas:
+## Arquivos do Codex
 
 ```text
-/enviar-documentos               -> EnviarDocumentos
-/enviar-documento-colaborador    -> DocumentoColaborador
+codex/
+├── skills/
+│   └── kronos-aprovacoes-abono-ui.skill.md
+├── agents/
+│   └── kronos-aprovacoes-abono-ui.agent.md
+├── rules/
+│   └── kronos-aprovacoes-abono-ui.rules.md
+└── subagents/
+    ├── repo-mapper.subagent.md
+    ├── time-off-approval-domain.subagent.md
+    ├── ui-architecture.subagent.md
+    ├── api-contract.subagent.md
+    ├── qa-a11y.subagent.md
+    └── legacy-cleaner.subagent.md
 ```
 
-O pedido atual é para `/enviar-documento-colaborador`. Portanto, a refatoração principal deve ocorrer em `DocumentoColaborador.tsx`. Não migrar a tela errada.
+## Ordem recomendada
+
+1. Leia `prompt-codex-aprovacoes-abono-ui.md`.
+2. Carregue a skill principal.
+3. Use o agent principal para coordenar os subagents.
+4. Execute o plano em `plano-acao-aprovacoes-abono-ui.md`.
+5. Valide com `checklist-validacao-aprovacoes-abono-ui.md`.
 
 ## Resultado esperado
 
-- Desktop: console de upload com hero, cards de ROLE, etapas, dropzone, prévia e governança lateral.
-- Mobile: fluxo guiado com escopo atual, etapas empilhadas, validações e CTA fixo.
-- Contrato HTTP preservado.
-- Legado visual removido após teste.
-- Validações de arquivo, tipo, tamanho e destino visíveis e acessíveis.
+- `/aprovacoes-abono` com **desktop e mobile realmente distintos**.
+- Desktop com hero, métricas, fila, filtro, detalhe lateral e ações separadas.
+- Mobile com inbox por cards, chips de status e painel fixo inferior de decisão.
+- Contratos atuais preservados:
+  - `GET /records/time-off/requests`
+  - `PATCH /records/time-off/approve/{timeRecordId}`
+  - `PATCH /records/time-off/reject/{timeRecordId}`
+  - download de evidência por documento quando disponível.
+- Legado removido após teste.
