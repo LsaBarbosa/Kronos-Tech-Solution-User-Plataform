@@ -1,4 +1,4 @@
-import type { ReactNode } from "react";
+import { useCallback, type ReactNode } from "react";
 import { ChevronLeft, Download, Fingerprint, FilePlus2, History } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import BiometricConsentCard from "@/components/privacy/BiometricConsentCard";
@@ -18,11 +18,12 @@ interface PrivacyDesktopProps {
   refreshKey: number;
   isExporting: boolean;
   onExport: () => void;
-  onNewRequest: () => void;
   onRequestSuccess: () => void;
   onBack: () => void;
   exportManifestSlot?: ReactNode;
 }
+
+const REQUEST_CARD_ID = "nova-solicitacao-lgpd";
 
 const PrivacyDesktop = ({
   userName,
@@ -32,11 +33,14 @@ const PrivacyDesktop = ({
   refreshKey,
   isExporting,
   onExport,
-  onNewRequest,
   onRequestSuccess,
   onBack,
   exportManifestSlot,
 }: PrivacyDesktopProps) => {
+  const handleScrollToRequest = useCallback(() => {
+    const target = document.getElementById(REQUEST_CARD_ID);
+    target?.scrollIntoView({ behavior: "smooth", block: "start" });
+  }, []);
   return (
     <div className="mx-auto w-full max-w-[1600px] space-y-6 lg:space-y-8">
       <div className="flex">
@@ -56,7 +60,7 @@ const PrivacyDesktop = ({
         variant="desktop"
         userName={userName}
         onExport={onExport}
-        onNewRequest={onNewRequest}
+        onNewRequest={handleScrollToRequest}
         isExporting={isExporting}
       />
 
@@ -116,6 +120,7 @@ const PrivacyDesktop = ({
               </PrivacyActionCard>
 
               <PrivacyActionCard
+                id={REQUEST_CARD_ID}
                 icon={FilePlus2}
                 label="Direitos LGPD"
                 title="Nova solicitação LGPD"

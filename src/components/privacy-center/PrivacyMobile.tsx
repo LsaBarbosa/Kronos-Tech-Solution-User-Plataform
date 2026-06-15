@@ -1,4 +1,4 @@
-import type { ReactNode } from "react";
+import { useCallback, useState, type ReactNode } from "react";
 import { ChevronLeft, Mail, ShieldAlert } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
@@ -21,11 +21,12 @@ interface PrivacyMobileProps {
   isExporting: boolean;
   onExport: () => void;
   onRequestSuccess: () => void;
-  onNewRequest: () => void;
   onBack: () => void;
   exportManifestSlot?: ReactNode;
   nextActionLabel: string;
 }
+
+const REQUEST_ITEM_ID = "nova-solicitacao-lgpd";
 
 const PrivacyMobile = ({
   userName,
@@ -36,11 +37,19 @@ const PrivacyMobile = ({
   isExporting,
   onExport,
   onRequestSuccess,
-  onNewRequest,
   onBack,
   exportManifestSlot,
   nextActionLabel,
 }: PrivacyMobileProps) => {
+  const [openItem, setOpenItem] = useState<string>("biometric");
+
+  const handleScrollToRequest = useCallback(() => {
+    setOpenItem("request");
+    requestAnimationFrame(() => {
+      const target = document.getElementById(REQUEST_ITEM_ID);
+      target?.scrollIntoView({ behavior: "smooth", block: "start" });
+    });
+  }, []);
   return (
     <div className="mx-auto w-full max-w-3xl space-y-4 pb-36">
       <div className="flex">
@@ -70,6 +79,9 @@ const PrivacyMobile = ({
         onExport={onExport}
         onRequestSuccess={onRequestSuccess}
         exportManifestSlot={exportManifestSlot}
+        openValue={openItem}
+        onOpenValueChange={setOpenItem}
+        requestItemId={REQUEST_ITEM_ID}
       />
 
       <PrivacyRecentRequests refreshKey={refreshKey} />
@@ -120,7 +132,7 @@ const PrivacyMobile = ({
         nextActionLabel={nextActionLabel}
         isExporting={isExporting}
         onExport={onExport}
-        onNewRequest={onNewRequest}
+        onNewRequest={handleScrollToRequest}
       />
     </div>
   );

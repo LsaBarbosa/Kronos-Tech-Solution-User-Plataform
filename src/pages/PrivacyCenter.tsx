@@ -1,4 +1,4 @@
-import { useCallback, useEffect, useRef, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import PageShell from "@/components/PageShell";
 import { APP_PATHS } from "@/config/app-routes";
@@ -29,8 +29,6 @@ const PrivacyCenter = () => {
 
   const [requestsCount, setRequestsCount] = useState(0);
   const [isLoadingRequests, setIsLoadingRequests] = useState(true);
-
-  const newRequestAnchorRef = useRef<HTMLDivElement | null>(null);
 
   const handleToggleSidebar = useCallback(() => setSidebarOpen((prev) => !prev), []);
   const handleBack = useCallback(() => navigate(APP_PATHS.dashboard), [navigate]);
@@ -93,12 +91,6 @@ const PrivacyCenter = () => {
     setRefreshKey((value) => value + 1);
   }, []);
 
-  const handleScrollToNewRequest = useCallback(() => {
-    const element =
-      newRequestAnchorRef.current ?? document.getElementById("nova-solicitacao-lgpd");
-    element?.scrollIntoView({ behavior: "smooth", block: "start" });
-  }, []);
-
   const userName = user?.profile?.fullName ?? "";
 
   const nextActionLabel =
@@ -116,8 +108,6 @@ const PrivacyCenter = () => {
       toggleSidebar={handleToggleSidebar}
       mainClassName="pt-24 sm:pt-32 mobile-container pb-36 sm:pb-12 space-y-6 sm:space-y-8 relative z-10 overflow-x-hidden"
     >
-      <div ref={newRequestAnchorRef} id="nova-solicitacao-lgpd" className="sr-only" />
-
       <ExportConfirmationModal
         open={showExportModal}
         onOpenChange={setShowExportModal}
@@ -133,7 +123,6 @@ const PrivacyCenter = () => {
           refreshKey={refreshKey}
           isExporting={isExporting}
           onExport={handleExportClick}
-          onNewRequest={handleScrollToNewRequest}
           onRequestSuccess={handleRequestSuccess}
           onBack={handleBack}
           exportManifestSlot={exportManifestSlot}
@@ -148,7 +137,6 @@ const PrivacyCenter = () => {
           isExporting={isExporting}
           onExport={handleExportClick}
           onRequestSuccess={handleRequestSuccess}
-          onNewRequest={handleScrollToNewRequest}
           onBack={handleBack}
           exportManifestSlot={exportManifestSlot}
           nextActionLabel={nextActionLabel}

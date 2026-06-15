@@ -37,8 +37,8 @@ const PrivacyMetricStrip = ({
     },
     {
       icon: Fingerprint,
-      label: "Consentimento",
-      value: "Biometria",
+      label: variant === "mobile" ? "Biometria" : "Consentimento",
+      value: variant === "mobile" ? "LGPD" : "Biometria",
       tone: "from-[#0D9488] to-[#22D3EE]",
     },
     {
@@ -76,7 +76,7 @@ const PrivacyMetricStrip = ({
               <Icon className="h-4.5 w-4.5" />
             </span>
             <div className="min-w-0 flex-1">
-              <p className="text-[10px] font-semibold uppercase tracking-[0.18em] text-[#94A3B8]">
+              <p className="truncate text-[10px] font-semibold uppercase tracking-[0.18em] text-[#94A3B8]">
                 {label}
               </p>
               <p className="truncate text-sm font-semibold text-[#0F172A]">{value}</p>

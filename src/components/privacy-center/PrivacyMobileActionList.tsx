@@ -19,6 +19,9 @@ interface PrivacyMobileActionListProps {
   onExport: () => void;
   onRequestSuccess: () => void;
   exportManifestSlot?: ReactNode;
+  openValue?: string;
+  onOpenValueChange?: (value: string) => void;
+  requestItemId?: string;
 }
 
 interface Action {
@@ -36,6 +39,9 @@ const PrivacyMobileActionList = ({
   onExport,
   onRequestSuccess,
   exportManifestSlot,
+  openValue,
+  onOpenValueChange,
+  requestItemId,
 }: PrivacyMobileActionListProps) => {
   const actions: Action[] = [
     {
@@ -92,12 +98,26 @@ const PrivacyMobileActionList = ({
     },
   ];
 
+  const isControlled = openValue !== undefined;
+
   return (
-    <Accordion type="single" collapsible defaultValue="biometric" className="space-y-3">
+    <Accordion
+      type="single"
+      collapsible
+      {...(isControlled
+        ? { value: openValue, onValueChange: (next: string) => onOpenValueChange?.(next) }
+        : { defaultValue: "biometric" })}
+      className="space-y-3"
+    >
       {actions.map((action) => {
         const Icon = action.icon;
+        const itemId = action.key === "request" ? requestItemId : undefined;
         return (
-          <Card key={action.key} className="overflow-hidden border-border/70 shadow-sm">
+          <Card
+            key={action.key}
+            id={itemId}
+            className="overflow-hidden border-border/70 shadow-sm scroll-mt-24"
+          >
             <AccordionItem value={action.key} className="border-none">
               <AccordionTrigger
                 className="items-center gap-3 px-4 py-3 hover:no-underline"

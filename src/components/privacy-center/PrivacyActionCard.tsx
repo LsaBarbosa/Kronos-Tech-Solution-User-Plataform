@@ -11,6 +11,7 @@ interface PrivacyActionCardProps {
   tone: string;
   children?: ReactNode;
   className?: string;
+  id?: string;
 }
 
 const PrivacyActionCard = ({
@@ -21,9 +22,10 @@ const PrivacyActionCard = ({
   tone,
   children,
   className,
+  id,
 }: PrivacyActionCardProps) => {
   return (
-    <Card className={cn("border-border/70 shadow-sm", className)}>
+    <Card id={id} className={cn("border-border/70 shadow-sm scroll-mt-24", className)}>
       <div className="flex items-start gap-3 border-b border-border/60 bg-[#F8FAFC] px-5 py-4">
         <span
           aria-hidden="true"
