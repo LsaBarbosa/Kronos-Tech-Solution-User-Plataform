@@ -22,6 +22,10 @@ const AvisosPage = () => {
     navigate(APP_PATHS.criarAviso);
   }, [navigate]);
 
+  const handleBack = useCallback(() => {
+    navigate(APP_PATHS.dashboard);
+  }, [navigate]);
+
   useEffect(() => {
     if (model.messages.length === 0) {
       if (model.selectedMessage) {
@@ -63,9 +67,9 @@ const AvisosPage = () => {
       mainClassName="pt-24 sm:pt-32 mobile-container pb-36 sm:pb-12 space-y-6 sm:space-y-8 relative z-10 overflow-x-hidden"
     >
       {isDesktop ? (
-        <AvisosDesktopView model={model} onCreate={handleCreate} />
+        <AvisosDesktopView model={model} onCreate={handleCreate} onBack={handleBack} />
       ) : (
-        <AvisosMobileView model={model} onCreate={handleCreate} />
+        <AvisosMobileView model={model} onCreate={handleCreate} onBack={handleBack} />
       )}
 
       <NoticeDeleteDialog

@@ -12,6 +12,7 @@ import NoticeDetailPanel from "./NoticeDetailPanel";
 interface AvisosDesktopViewProps {
   model: AvisosViewModel;
   onCreate: () => void;
+  onBack: () => void;
 }
 
 const EmptyState = ({
@@ -28,7 +29,7 @@ const EmptyState = ({
   </div>
 );
 
-const AvisosDesktopView = ({ model, onCreate }: AvisosDesktopViewProps) => {
+const AvisosDesktopView = ({ model, onCreate, onBack }: AvisosDesktopViewProps) => {
   const {
     messages,
     visibleMessages,
@@ -57,6 +58,19 @@ const AvisosDesktopView = ({ model, onCreate }: AvisosDesktopViewProps) => {
 
   return (
     <div className="mx-auto w-full max-w-[1600px] space-y-6 lg:space-y-8">
+      <div className="flex">
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          onClick={onBack}
+          className="h-10 gap-1 border-[#D8E2EC] bg-white text-[#102A43] hover:bg-[#F4F6F9]"
+        >
+          <ChevronLeft className="h-4 w-4" />
+          Voltar ao início
+        </Button>
+      </div>
+
       <NoticeHero
         variant="desktop"
         canCreate={canCreate}

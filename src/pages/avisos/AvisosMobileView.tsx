@@ -13,6 +13,7 @@ import NoticePermissionFooter from "./NoticePermissionFooter";
 interface AvisosMobileViewProps {
   model: AvisosViewModel;
   onCreate: () => void;
+  onBack: () => void;
 }
 
 const EmptyState = ({
@@ -28,7 +29,7 @@ const EmptyState = ({
   </div>
 );
 
-const AvisosMobileView = ({ model, onCreate }: AvisosMobileViewProps) => {
+const AvisosMobileView = ({ model, onCreate, onBack }: AvisosMobileViewProps) => {
   const {
     messages,
     visibleMessages,
@@ -57,6 +58,19 @@ const AvisosMobileView = ({ model, onCreate }: AvisosMobileViewProps) => {
 
   return (
     <div className="mx-auto w-full max-w-3xl space-y-4 pb-36">
+      <div className="flex">
+        <Button
+          type="button"
+          variant="outline"
+          size="sm"
+          onClick={onBack}
+          className="h-10 gap-1 border-[#D8E2EC] bg-white text-[#102A43] hover:bg-[#F4F6F9]"
+        >
+          <ChevronLeft className="h-4 w-4" />
+          Início
+        </Button>
+      </div>
+
       <NoticeHero
         variant="mobile"
         canCreate={canCreate}
