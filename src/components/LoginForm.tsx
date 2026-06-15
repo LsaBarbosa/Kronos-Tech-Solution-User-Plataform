@@ -1,16 +1,16 @@
-import { useState, useEffect } from "react";
+import { useEffect, useState } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
+import { Loader2, LogIn, ScanFace, ShieldCheck } from "lucide-react";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { FormInput, PasswordInput, FieldGroup } from "@/components/ui";
-import Clock from "@/components/Clock";
-import { ScanFace } from "lucide-react";
-import { toast } from "@/hooks/use-toast";
+import { Card, CardContent } from "@/components/ui/card";
+import { FieldGroup, FormInput, PasswordInput } from "@/components/ui";
 import FaceLoginModal from "@/components/FaceLoginModal";
 import { BiometricConsentGuard } from "@/components/BiometricConsentGuard";
-import { useNavigate, useLocation } from "react-router-dom";
-import { loginWithPassword } from "@/service/auth.service";
 import { useAuth } from "@/context/AuthContext";
+import { loginWithPassword } from "@/service/auth.service";
 import { getServiceErrorMessage } from "@/service/helpers/service-error.helper";
+import { toast } from "@/hooks/use-toast";
 import { APP_PATHS } from "@/config/app-routes";
 
 const LoginForm = () => {
@@ -24,71 +24,44 @@ const LoginForm = () => {
   const { login } = useAuth();
 
   useEffect(() => {
-    if ((location.state as Record<string, unknown>)?.reason === "session_expired") {
+    if ((location.state as Record<string, unknown> | null)?.reason === "session_expired") {
       toast.error("Tempo de sessão expirado.");
     }
   }, [location]);
 
-  const handleLogin = async (e: React.FormEvent) => {
-    e.preventDefault();
+  const handleLogin = async (event: React.FormEvent) => {
+    event.preventDefault();
     setIsSubmitting(true);
-
     try {
       await loginWithPassword({ username, password });
       await login();
-
       toast.success("Login realizado com sucesso!");
       navigate("/dashboard", { replace: true });
-
     } catch (error) {
-      toast.error(
-        getServiceErrorMessage(error, "Erro desconhecido ao tentar fazer login.")
-      );
+      toast.error(getServiceErrorMessage(error, "Erro desconhecido ao tentar fazer login."));
     } finally {
       setIsSubmitting(false);
     }
   };
 
   return (
-    <div className="min-h-screen bg-background relative overflow-hidden flex items-center justify-center px-4">
-      {/* Fundo Animado */}
-      <div className="fixed inset-0 z-0">
-        <div
-          className="absolute inset-0 opacity-5"
-          style={{
-            background: 'linear-gradient(-45deg, hsl(var(--black-primary)), hsl(var(--primary)), hsl(var(--black-primary)), hsl(var(--primary)))',
-            backgroundSize: '400% 400%',
-            animation: 'gradient-flow 15s ease-in-out infinite'
-          }}
-        />
-        <div className="absolute inset-0">
-          <div
-            className="absolute top-1/4 left-1/4 w-32 h-32 opacity-3"
-            style={{
-              background: 'linear-gradient(135deg, hsl(var(--primary) / 0.1), transparent)',
-              borderRadius: '30% 70% 70% 30% / 30% 30% 70% 70%',
-              animation: 'float-shapes 20s ease-in-out infinite'
-            }}
-          />
-          <div
-            className="absolute top-3/4 right-1/4 w-48 h-48 opacity-2"
-            style={{
-              background: 'linear-gradient(45deg, hsl(var(--black-primary) / 0.05), transparent)',
-              borderRadius: '70% 30% 30% 70% / 70% 70% 30% 30%',
-              animation: 'float-shapes 25s ease-in-out infinite reverse'
-            }}
-          />
+    <>
+      <Card className="overflow-hidden border-[#E2E8F0] bg-white shadow-[0_24px_70px_-35px_rgba(15,23,42,0.55)]">
+        <div className="space-y-1 border-b border-[#E2E8F0] bg-[#F8FAFC] px-6 py-5">
+          <Badge className="border border-[#BFDBFE] bg-[#EFF6FF] text-[#1D4ED8]">
+            <ShieldCheck className="mr-1 h-3 w-3" />
+            Acesso protegido
+          </Badge>
+          <h2 className="text-xl font-semibold text-[#0F172A] sm:text-2xl">
+            Entrar na plataforma
+          </h2>
+          <p className="text-sm text-[#64748B]">
+            Use seu usuário corporativo ou biometria facial.
+          </p>
         </div>
-      </div>
 
-      <Card className="w-full max-w-md border border-border bg-card shadow-card relative z-10">
-        <CardHeader className="space-y-1 text-center pb-8">
-          <CardTitle className="text-2xl md:text-3xl font-bold text-foreground px-2">
-            Kronos Plataform
-          </CardTitle>
-        </CardHeader>
-        <CardContent className="space-y-6">
-          <form onSubmit={handleLogin} className="space-y-6">
+        <CardContent className="space-y-5 px-6 py-6">
+          <form onSubmit={handleLogin} className="space-y-4">
             <FieldGroup>
               <FormInput
                 id="username"
@@ -96,107 +69,77 @@ const LoginForm = () => {
                 label="Nome de Usuário"
                 placeholder="seu.nome.de.usuario"
                 value={username}
-                onChange={(e) => setUsername(e.target.value)}
+                onChange={(event) => setUsername(event.target.value)}
                 className="h-12"
                 required
                 disabled={isSubmitting}
+                autoComplete="username"
               />
-
               <PasswordInput
                 id="password"
                 label="Senha"
                 placeholder="••••••••"
                 value={password}
-                onChange={(e) => setPassword(e.target.value)}
+                onChange={(event) => setPassword(event.target.value)}
                 className="h-12 pr-10"
                 required
                 disabled={isSubmitting}
+                autoComplete="current-password"
               />
             </FieldGroup>
-            <div className="flex justify-center mb-4">
-              <Clock />
-            </div>
-            
-            <div className="space-y-3">
-                <Button
-                  type="submit"
-                  variant="default" 
-                  className="w-full h-12 font-medium transition-smooth"
-                  disabled={isSubmitting}
-                >
-                  {isSubmitting ? "Entrando..." : "Entrar"}
-                </Button>
 
-                <div className="relative flex items-center py-2">
-                    <div className="flex-grow border-t border-border"></div>
-                    <span className="flex-shrink-0 mx-4 text-muted-foreground text-xs">OU</span>
-                    <div className="flex-grow border-t border-border"></div>
-                </div>
-
-                {/* Botão para Login Facial */}
-                <Button
-                    type="button"
-                    variant="outline"
-                    className="w-full h-12 font-medium transition-smooth flex items-center gap-2 border-primary/50 text-primary hover:bg-primary/5"
-                    disabled={isSubmitting}
-                    onClick={() => setIsFaceLoginOpen(true)}
-                >
-                    <ScanFace className="h-5 w-5" />
-                    Entrar com Biometria Facial
-                </Button>
-            </div>
-          </form>
-           <div className="text-center">
             <Button
-              variant="link"
-              onClick={() => navigate("/senha-primeiro-acesso")}
-              className="text-sm text-muted-foreground hover:text-primary transition-smooth"
+              type="submit"
+              disabled={isSubmitting}
+              className="h-12 w-full gap-2 bg-[#2563EB] text-white hover:bg-[#1D4ED8]"
             >
-              Primeiro acesso/ Recuperar senha
+              {isSubmitting ? (
+                <Loader2 className="h-4 w-4 animate-spin" aria-hidden="true" />
+              ) : (
+                <LogIn className="h-4 w-4" aria-hidden="true" />
+              )}
+              {isSubmitting ? "Entrando..." : "Entrar"}
             </Button>
+          </form>
+
+          <div className="relative flex items-center py-1">
+            <div className="flex-grow border-t border-[#E2E8F0]" />
+            <span className="mx-3 text-[11px] font-semibold uppercase tracking-[0.22em] text-[#94A3B8]">
+              ou
+            </span>
+            <div className="flex-grow border-t border-[#E2E8F0]" />
           </div>
-          <div className="border-t pt-4">
-            <p className="text-xs text-muted-foreground text-center mb-3">
-              Informações de Privacidade e Dados
-            </p>
-            <div className="space-y-2">
-              <Button
-                variant="link"
-                onClick={() => navigate(APP_PATHS.privacyPolicy)}
-                className="block w-full text-xs text-primary hover:text-primary/80 transition-smooth"
-              >
-                Política de Privacidade
-              </Button>
-              <Button
-                variant="link"
-                onClick={() => navigate(APP_PATHS.privacyProcessingCatalog)}
-                className="block w-full text-xs text-primary hover:text-primary/80 transition-smooth"
-              >
-                Catálogo de Tratamento de Dados
-              </Button>
-              <Button
-                variant="link"
-                onClick={() => navigate(APP_PATHS.privacyBiometricTerm)}
-                className="block w-full text-xs text-primary hover:text-primary/80 transition-smooth"
-              >
-                Termo de Biometria Facial
-              </Button>
-            </div>
+
+          <Button
+            type="button"
+            variant="outline"
+            disabled={isSubmitting}
+            onClick={() => setIsFaceLoginOpen(true)}
+            className="h-12 w-full gap-2 border-[#DDD6FE] bg-[#F5F3FF] text-[#5B21B6] hover:bg-[#EDE9FE]"
+          >
+            <ScanFace className="h-5 w-5" />
+            Entrar com Biometria Facial
+          </Button>
+
+          <div className="text-center">
+            <Button
+              type="button"
+              variant="link"
+              onClick={() => navigate(APP_PATHS.senhaPrimeiroAcesso)}
+              className="h-auto p-0 text-sm text-[#1D4ED8] hover:text-[#1E3A8A]"
+            >
+              Primeiro acesso / Recuperar senha
+            </Button>
           </div>
         </CardContent>
       </Card>
 
-      {/* Componente do Modal Facial */}
-      {isFaceLoginOpen && (
+      {isFaceLoginOpen ? (
         <BiometricConsentGuard onCancel={() => setIsFaceLoginOpen(false)}>
-          <FaceLoginModal
-            isOpen={isFaceLoginOpen}
-            onOpenChange={setIsFaceLoginOpen}
-          />
+          <FaceLoginModal isOpen={isFaceLoginOpen} onOpenChange={setIsFaceLoginOpen} />
         </BiometricConsentGuard>
-      )}
-
-    </div>
+      ) : null}
+    </>
   );
 };
 

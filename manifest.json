@@ -1,0 +1,28 @@
+{
+  "package": "kronos_codex_header_ui",
+  "target": {
+    "element": "Header global",
+    "frontend_repo": "Kronos-Tech-Solution-User-Plataform",
+    "frontend_branch": "feature/lgpd-compliance-new-ui",
+    "backend_repo": "Kronos-Tech-Solutions-KTS",
+    "backend_branch": "PROD_HOSTINGER_V2",
+    "documentation_repo": "kronos-business",
+    "documentation_branch": "main"
+  },
+  "goal": "Refatorar o Header global para uma barra de comando segura, responsiva, distinta entre desktop e mobile, presente nas rotas autenticadas da plataforma Kronos.",
+  "references": {
+    "directive": "references/docs/kronos_header_diretriz_visual.md",
+    "desktop_mockup": "references/mockups/kronos_header_desktop.png",
+    "mobile_mockup": "references/mockups/kronos_header_mobile.png"
+  },
+  "generated_at": "2026-06-15T15:00:49.182195Z",
+  "expected_outputs": [
+    "skills",
+    "agent",
+    "subagents",
+    "rules",
+    "action plan",
+    "codex prompt",
+    "validation checklist"
+  ]
+}

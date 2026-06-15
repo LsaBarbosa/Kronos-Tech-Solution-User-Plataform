@@ -1,7 +1,5 @@
-import LoginForm from "@/components/LoginForm";
+import LoginGateway from "@/components/login-gateway/LoginGateway";
 
-const Login = () => {
-  return <LoginForm />;
-};
+const Login = () => <LoginGateway />;
 
 export default Login;
