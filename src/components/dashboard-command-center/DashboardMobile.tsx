@@ -1,5 +1,5 @@
 import { useCallback } from "react";
-import { AlertTriangle, Briefcase, Clock, MessageSquareWarning, Shield, User2 } from "lucide-react";
+import { AlertTriangle, Briefcase, Clock, FileUp, MessageSquareWarning, Shield, User2 } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { CheckinDashboardCard } from "@/components/checkin/CheckinDashboardCard";
 import DashboardHero from "./DashboardHero";
@@ -56,6 +56,8 @@ const DashboardMobile = ({ data, actions }: DashboardMobileProps) => {
         onWarningClick={handleScrollToNotices}
         onProfileClick={actions.goToPerfil}
         onAdministracaoClick={actions.goToAdministracao}
+        onEnviarDocumentoClick={actions.goToEnviarDocumentoColaborador}
+        onEmpresaClick={actions.goToEmpresa}
       />
 
       <CheckinDashboardCard />
@@ -126,7 +128,18 @@ const DashboardMobile = ({ data, actions }: DashboardMobileProps) => {
             onClick={actions.goToEmpresa}
           />
         ) : null}
-        {data.isManager ? (
+        {data.isPartner ? (
+          <DashboardMobileActionCard
+            icon={FileUp}
+            label="Documentos"
+            title="Enviar documento"
+            description="Envie um documento pessoal"
+            toneClass="bg-[#EDE9FE]"
+            textClass="text-[#5B21B6]"
+            onClick={actions.goToEnviarDocumentoColaborador}
+          />
+        ) : null}
+        {data.isManager || data.isCto ? (
           <DashboardMobileActionCard
             icon={Shield}
             label="Administração"

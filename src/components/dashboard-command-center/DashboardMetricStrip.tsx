@@ -2,9 +2,11 @@ import type { KeyboardEvent } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 import {
+  Briefcase,
   Building,
   Clock as ClockIcon,
   FileSearch,
+  FileUp,
   MessageSquareWarning,
   Shield,
   type LucideIcon,
@@ -19,6 +21,8 @@ interface DashboardMetricStripProps {
   onWarningClick?: () => void;
   onProfileClick?: () => void;
   onAdministracaoClick?: () => void;
+  onEnviarDocumentoClick?: () => void;
+  onEmpresaClick?: () => void;
 }
 
 interface MetricItem {
@@ -51,86 +55,130 @@ const DashboardMetricStrip = ({
   onWarningClick,
   onProfileClick,
   onAdministracaoClick,
+  onEnviarDocumentoClick,
+  onEmpresaClick,
 }: DashboardMetricStripProps) => {
   const warningTone =
     data.newWarnings.length > 0
       ? { bg: "bg-[#FEF3C7]", text: "text-[#92400E]", accent: "from-[#F59E0B] to-[#FB923C]" }
       : { bg: "bg-[#EFF6FF]", text: "text-[#1D4ED8]", accent: "from-[#2563EB] to-[#22D3EE]" };
 
-  const metrics: MetricItem[] = [
-    {
-      icon: FileSearch,
-      label: "Documentos",
-      value: "Buscar",
-      description: "Encontre documentos trabalhistas",
-      tone: "from-[#1E3A8A] to-[#2563EB]",
-      bgIcon: "bg-[#EFF6FF]",
-      textValue: "text-[#1D4ED8]",
-      onClick: onDocumentosClick,
-      ariaLabel: "Abrir busca de documentos",
-    },
-    {
-      icon: ClockIcon,
-      label: "Ponto",
-      value: "Espelho",
-      description: "Acompanhe entradas, saídas e saldo",
-      tone: "from-[#0D9488] to-[#22D3EE]",
-      bgIcon: "bg-[#CCFBF1]",
-      textValue: "text-[#0F766E]",
-      onClick: onEspelhoPontoClick,
-      ariaLabel: "Abrir espelho de ponto",
-    },
-    {
-      icon: MessageSquareWarning,
-      label: "Avisos",
-      value: String(data.newWarnings.length),
-      description:
-        data.newWarnings.length > 0 ? "Novas mensagens internas" : "Nenhuma mensagem nova",
-      tone: warningTone.accent,
-      bgIcon: warningTone.bg,
-      textValue: warningTone.text,
-      onClick: onWarningClick,
-      ariaLabel: "Ir até avisos e mensagens",
-    },
-    data.isManager
-      ? {
-          icon: Shield,
-          label: "Administração",
-          value: "Painel",
-          description: "Colaboradores, folha, férias, abonos, auditoria e LGPD",
-          tone: "from-[#1E3A8A] to-[#2563EB]",
-          bgIcon: "bg-[#EFF6FF]",
-          textValue: "text-[#1D4ED8]",
-          onClick: onAdministracaoClick,
-          ariaLabel: "Abrir painel administrativo",
-        }
-      : {
-          icon: Building,
-          label: "Perfil",
-          value: data.roleLabel || "Colaborador",
-          description: data.userData?.companyName || "Empresa não informada",
-          tone: "from-[#7C3AED] to-[#A855F7]",
-          bgIcon: "bg-[#EDE9FE]",
-          textValue: "text-[#5B21B6]",
-          onClick: onProfileClick,
-          ariaLabel: "Abrir detalhes do colaborador",
-        },
-  ];
+  const documentosCard: MetricItem = {
+    icon: FileSearch,
+    label: "Documentos",
+    value: "Buscar",
+    description: "Encontre documentos trabalhistas",
+    tone: "from-[#1E3A8A] to-[#2563EB]",
+    bgIcon: "bg-[#EFF6FF]",
+    textValue: "text-[#1D4ED8]",
+    onClick: onDocumentosClick,
+    ariaLabel: "Abrir busca de documentos",
+  };
+
+  const pontoCard: MetricItem = {
+    icon: ClockIcon,
+    label: "Ponto",
+    value: "Espelho",
+    description: "Acompanhe entradas, saídas e saldo",
+    tone: "from-[#0D9488] to-[#22D3EE]",
+    bgIcon: "bg-[#CCFBF1]",
+    textValue: "text-[#0F766E]",
+    onClick: onEspelhoPontoClick,
+    ariaLabel: "Abrir espelho de ponto",
+  };
+
+  const avisosCard: MetricItem = {
+    icon: MessageSquareWarning,
+    label: "Avisos",
+    value: String(data.newWarnings.length),
+    description:
+      data.newWarnings.length > 0 ? "Novas mensagens internas" : "Nenhuma mensagem nova",
+    tone: warningTone.accent,
+    bgIcon: warningTone.bg,
+    textValue: warningTone.text,
+    onClick: onWarningClick,
+    ariaLabel: "Ir até avisos e mensagens",
+  };
+
+  const perfilCard: MetricItem = {
+    icon: Building,
+    label: "Perfil",
+    value: data.roleLabel || "Colaborador",
+    description: data.userData?.companyName || "Empresa não informada",
+    tone: "from-[#7C3AED] to-[#A855F7]",
+    bgIcon: "bg-[#EDE9FE]",
+    textValue: "text-[#5B21B6]",
+    onClick: onProfileClick,
+    ariaLabel: "Abrir detalhes do colaborador",
+  };
+
+  const administracaoCard: MetricItem = {
+    icon: Shield,
+    label: "Administração",
+    value: "Painel",
+    description: "Colaboradores, folha, férias, abonos, auditoria e LGPD",
+    tone: "from-[#1E3A8A] to-[#2563EB]",
+    bgIcon: "bg-[#EFF6FF]",
+    textValue: "text-[#1D4ED8]",
+    onClick: onAdministracaoClick,
+    ariaLabel: "Abrir painel administrativo",
+  };
+
+  const enviarDocumentoCard: MetricItem = {
+    icon: FileUp,
+    label: "Documentos",
+    value: "Enviar",
+    description: "Envie um documento pessoal",
+    tone: "from-[#7C3AED] to-[#A855F7]",
+    bgIcon: "bg-[#EDE9FE]",
+    textValue: "text-[#5B21B6]",
+    onClick: onEnviarDocumentoClick,
+    ariaLabel: "Abrir envio de documento",
+  };
+
+  const empresaCard: MetricItem = {
+    icon: Briefcase,
+    label: "Empresa",
+    value: "Gerenciar",
+    description: "Dados institucionais da empresa",
+    tone: "from-[#0D9488] to-[#22D3EE]",
+    bgIcon: "bg-[#CCFBF1]",
+    textValue: "text-[#0F766E]",
+    onClick: onEmpresaClick,
+    ariaLabel: "Abrir gestão da empresa",
+  };
+
+  const metrics: MetricItem[] = [documentosCard, pontoCard, avisosCard];
+
+  if (data.isCto) {
+    metrics.push(administracaoCard, empresaCard);
+  } else if (data.isManager) {
+    metrics.push(administracaoCard);
+  } else {
+    metrics.push(perfilCard, enviarDocumentoCard);
+  }
 
   const visibleMetrics = variant === "mobile" ? metrics.slice(0, 3) : metrics;
+
+  const desktopColsClass =
+    metrics.length >= 5
+      ? "xl:grid-cols-5"
+      : metrics.length === 4
+        ? "xl:grid-cols-4"
+        : "xl:grid-cols-3";
 
   return (
     <div
       className={cn(
         "grid gap-3",
-        variant === "mobile" ? "grid-cols-3" : "grid-cols-2 sm:gap-4 xl:grid-cols-4"
+        variant === "mobile" ? "grid-cols-3" : `grid-cols-2 sm:gap-4 ${desktopColsClass}`
       )}
     >
       {visibleMetrics.map(({ icon: Icon, label, value, description, tone, bgIcon, textValue, onClick, ariaLabel }) => {
         const interactive = Boolean(onClick);
         return (
           <Card
-            key={label}
+            key={`${label}-${value}`}
             className={cn(
               "relative overflow-hidden border-border/70 shadow-sm",
               interactive &&

@@ -1,167 +1,204 @@
-import { useState } from "react";
-import Header from "@/components/Header";
-import Sidebar from "@/components/Sidebar";
-import { Button } from "@/components/ui/button";
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
-import { Building2, Plus, Search, User, Edit } from "lucide-react"; // 💡 Importamos o ícone Edit
+import { useCallback, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import {
+  ArrowRight,
+  Building2,
+  ChevronLeft,
+  Edit3,
+  PlusCircle,
+  Search,
+  Sparkles,
+  UserPlus,
+  type LucideIcon,
+} from "lucide-react";
+import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
+import { Card, CardContent } from "@/components/ui/card";
+import PageShell from "@/components/PageShell";
 import { APP_PATHS } from "@/config/app-routes";
+import { cn } from "@/lib/utils";
+
+interface EmpresaAction {
+  key: string;
+  label: string;
+  title: string;
+  description: string;
+  icon: LucideIcon;
+  tone: string;
+  accentBg: string;
+  accentText: string;
+  ctaLabel: string;
+  path: string;
+}
+
+const ACTIONS: EmpresaAction[] = [
+  {
+    key: "create",
+    label: "Cadastro",
+    title: "Criar empresa",
+    description: "Cadastre uma nova empresa no tenant, com dados institucionais e responsáveis.",
+    icon: PlusCircle,
+    tone: "from-[#16A34A] to-[#22D3EE]",
+    accentBg: "bg-[#DCFCE7]",
+    accentText: "text-[#15803D]",
+    ctaLabel: "Nova empresa",
+    path: APP_PATHS.empresaCriar,
+  },
+  {
+    key: "add-manager",
+    label: "Administradores",
+    title: "Adicionar administrador",
+    description: "Crie um novo administrador (MANAGER) com acesso operacional ao tenant.",
+    icon: UserPlus,
+    tone: "from-[#1E3A8A] to-[#2563EB]",
+    accentBg: "bg-[#EFF6FF]",
+    accentText: "text-[#1D4ED8]",
+    ctaLabel: "Novo administrador",
+    path: APP_PATHS.criarAdministrador,
+  },
+  {
+    key: "search",
+    label: "Consulta",
+    title: "Buscar empresa",
+    description: "Pesquise e visualize empresas cadastradas com filtros e detalhe.",
+    icon: Search,
+    tone: "from-[#0D9488] to-[#22D3EE]",
+    accentBg: "bg-[#CCFBF1]",
+    accentText: "text-[#0F766E]",
+    ctaLabel: "Buscar empresas",
+    path: APP_PATHS.empresaBuscar,
+  },
+  {
+    key: "update",
+    label: "Manutenção",
+    title: "Atualizar empresa",
+    description: "Edite dados, status e contatos de empresas existentes.",
+    icon: Edit3,
+    tone: "from-[#7C3AED] to-[#A855F7]",
+    accentBg: "bg-[#EDE9FE]",
+    accentText: "text-[#5B21B6]",
+    ctaLabel: "Atualizar dados",
+    path: APP_PATHS.empresaAtualizar,
+  },
+];
 
 const Empresa = () => {
-  const [sidebarOpen, setSidebarOpen] = useState(false);
   const navigate = useNavigate();
+  const [sidebarOpen, setSidebarOpen] = useState(false);
 
-  const handleToggleSidebar = () => setSidebarOpen((prev) => !prev);
+  const handleToggleSidebar = useCallback(() => setSidebarOpen((prev) => !prev), []);
+  const handleBack = useCallback(() => navigate(APP_PATHS.dashboard), [navigate]);
+
   return (
-   <div className="min-h-screen bg-background relative  overflow-hidden">
-      {/* Animated Background and Header/Sidebar components */}
-      <div className="fixed inset-0 z-0">
-        <div
-          className="absolute inset-0 opacity-5"
-          style={{
-            background: 'linear-gradient(-45deg, hsl(var(--black-primary)), hsl(var(--primary)), hsl(var(--black-primary)), hsl(var(--primary)))',
-            backgroundSize: '400% 400%',
-            animation: 'gradient-flow 15s ease-in-out infinite'
-          }}
-        />
-        <div className="absolute inset-0">
-          <div
-            className="absolute top-1/4 left-1/4 w-32 h-32 opacity-3"
-            style={{
-              background: 'linear-gradient(135deg, hsl(var(--primary) / 0.50), transparent)',
-              borderRadius: '30% 70% 70% 30% / 30% 30% 70% 70%',
-              animation: 'float-shapes 20s ease-in-out infinite'
-            }}
-          />
-          <div
-            className="absolute top-3/4 right-1/4 w-48 h-48 opacity-2"
-            style={{
-              background: 'linear-gradient(45deg, hsl(var(--black-primary) / 0.50), transparent)',
-              borderRadius: '70% 30% 30% 70% / 70% 70% 30% 30%',
-              animation: 'float-shapes 25s ease-in-out infinite reverse'
-            }}
-          />
-          <div
-            className="absolute top-1/2 right-1/3 w-24 h-24 opacity-4"
-            style={{
-              background: 'radial-gradient(circle, hsl(var(--primary) / 0.50), transparent)',
-              borderRadius: '50%',
-              animation: 'float-shapes 18s ease-in-out infinite 5s'
-            }}
-          />
+    <PageShell
+      sidebarOpen={sidebarOpen}
+      toggleSidebar={handleToggleSidebar}
+      mainClassName="pt-24 sm:pt-32 mobile-container pb-12 px-4 sm:px-6 lg:px-8 space-y-6 sm:space-y-8 relative z-10 bg-[#F8FAFC] overflow-x-hidden"
+    >
+      <div className="mx-auto w-full max-w-[1600px] space-y-6 lg:space-y-8">
+        <div className="flex">
+          <Button
+            type="button"
+            variant="outline"
+            size="sm"
+            onClick={handleBack}
+            className="h-10 gap-1 border-[#D8E2EC] bg-white text-[#102A43] hover:bg-[#F4F6F9]"
+          >
+            <ChevronLeft className="h-4 w-4" />
+            Voltar ao início
+          </Button>
         </div>
-      </div>
 
-    <Sidebar isOpen={sidebarOpen} toggleSidebar={handleToggleSidebar} />
-
-      <div className="flex-1 flex flex-col overflow-hidden">
-        {/* 💡 CORREÇÃO: Header usa 'toggleSidebar' */}
-        <Header toggleSidebar={handleToggleSidebar} />
-
-      <main className="pt-16 mobile-container py-4 sm:py-20 space-y-6 sm:space-y-8 relative z-10">
-          <div className="max-w-6xl mx-auto py-8">
-            <div className="text-center mb-8">
-              <div className="flex justify-center mb-4">
-                <Building2 className="h-12 w-12 text-primary" />
+        <Card className="relative overflow-hidden border-border/70 shadow-[0_24px_70px_-35px_rgba(15,23,42,0.55)]">
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(34,211,238,0.14),transparent_30%),radial-gradient(circle_at_bottom_left,rgba(37,99,235,0.20),transparent_30%)]" />
+          <div className="relative bg-[linear-gradient(135deg,#0B1220_0%,#101A33_52%,#1E3A8A_100%)] px-6 py-7 text-white sm:px-8 sm:py-8">
+            <div className="flex flex-col gap-4 xl:flex-row xl:items-end xl:justify-between">
+              <div className="max-w-3xl space-y-3">
+                <Badge className="border-white/15 bg-white/10 text-white">
+                  <Sparkles className="mr-1.5 h-3.5 w-3.5" />
+                  Painel institucional
+                </Badge>
+                <h1 className="text-3xl font-semibold leading-tight xl:text-4xl">
+                  Gestão de empresas
+                </h1>
+                <p className="max-w-2xl text-sm leading-6 text-white/78 sm:text-base">
+                  Cadastre novas empresas, gerencie administradores, pesquise registros existentes
+                  e mantenha os dados institucionais atualizados.
+                </p>
               </div>
-              <h1 className="text-2xl sm:text-3xl font-bold bg-gradient-to-r from-foreground to-primary bg-clip-text text-transparent page-title">Gestão de Empresas</h1>
-              <p className="text-muted-foreground">
-                Gerencie as empresas e colaboradores do sistema
-              </p>
-            </div>
-
-            {/* 🎯 ALTERAÇÃO AQUI: Grid de 2 colunas no md e 4 colunas no lg */}
-            <div className="grid md:grid-cols-2 lg:grid-cols-4 gap-6">
-
-              {/* CARD 1: CRIAR EMPRESA */}
-              <Card className="hover:shadow-lg transition-shadow cursor-pointer" onClick={() => navigate(APP_PATHS.empresaCriar)}>
-                <CardHeader>
-                  <div className="flex items-center gap-3">
-                    <Plus className="h-8 w-8 text-green-600" />
-                    <div>
-                      <CardTitle>Criar Empresa</CardTitle>
-                      <CardDescription>
-                        Cadastre uma nova empresa no sistema
-                      </CardDescription>
-                    </div>
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <Button className="w-full" variant="outline">
-                    <Plus className="h-4 w-4 mr-2" />
-                    Nova Empresa
-                  </Button>
-                </CardContent>
-              </Card>
-
-              {/* CARD 2: ADICIONAR COLABORADOR */}
-              <Card className="hover:shadow-lg transition-shadow cursor-pointer" onClick={() => navigate(APP_PATHS.criarAdministrador)}>
-                <CardHeader>
-                  <div className="flex items-center gap-3">
-                    <User className="h-8 w-8 text-primary" />
-                    <div>
-                      <CardTitle>Adicionar Colaborador</CardTitle>
-                      <CardDescription>
-                        Cadastre um novo funcionário ou parceiro
-                      </CardDescription>
-                    </div>
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <Button className="w-full" variant="outline">
-                    <User className="h-4 w-4 mr-2" />
-                    Novo Colaborador
-                  </Button>
-                </CardContent>
-              </Card>
-
-              {/* CARD 3: BUSCAR EMPRESA */}
-              <Card className="hover:shadow-lg transition-shadow cursor-pointer" onClick={() => navigate(APP_PATHS.empresaBuscar)}>
-                <CardHeader>
-                  <div className="flex items-center gap-3">
-                    <Search className="h-8 w-8 text-blue-600" />
-                    <div>
-                      <CardTitle>Buscar Empresa</CardTitle>
-                      <CardDescription>
-                        Pesquise e visualize empresas cadastradas
-                      </CardDescription>
-                    </div>
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <Button className="w-full" variant="outline">
-                    <Search className="h-4 w-4 mr-2" />
-                    Buscar Empresas
-                  </Button>
-                </CardContent>
-              </Card>
-
-              {/* 🆕 CARD 4: ATUALIZAR EMPRESA */}
-              <Card className="hover:shadow-lg transition-shadow cursor-pointer" onClick={() => navigate(APP_PATHS.empresaAtualizar)}>
-                <CardHeader>
-                  <div className="flex items-center gap-3">
-                    <Edit className="h-8 w-8 text-orange-500" /> {/* Ícone para Edição */}
-                    <div>
-                      <CardTitle>Atualizar Empresa</CardTitle>
-                      <CardDescription>
-                        Edite dados e status de empresas existentes
-                      </CardDescription>
-                    </div>
-                  </div>
-                </CardHeader>
-                <CardContent>
-                  <Button className="w-full" variant="outline">
-                    <Edit className="h-4 w-4 mr-2" />
-                    Atualizar Dados
-                  </Button>
-                </CardContent>
-              </Card>
-
+              <div className="flex flex-wrap gap-2 xl:justify-end">
+                <Badge className="border-white/15 bg-white/10 px-3 py-1.5 text-white">
+                  <Building2 className="mr-2 h-3.5 w-3.5" />
+                  {ACTIONS.length} ações disponíveis
+                </Badge>
+                <Badge className="border-cyan-300/30 bg-cyan-400/10 text-cyan-50">
+                  Acesso restrito · CTO
+                </Badge>
+              </div>
             </div>
           </div>
-        </main>
+        </Card>
+
+        <div className="grid gap-4 sm:gap-6 md:grid-cols-2 xl:grid-cols-4">
+          {ACTIONS.map((action) => {
+            const Icon = action.icon;
+            return (
+              <Card
+                key={action.key}
+                className="group overflow-hidden border-border/70 shadow-sm transition hover:border-[#2563EB] hover:shadow-md"
+                role="button"
+                tabIndex={0}
+                aria-label={action.title}
+                onClick={() => navigate(action.path)}
+                onKeyDown={(event) => {
+                  if (event.key === "Enter" || event.key === " ") {
+                    event.preventDefault();
+                    navigate(action.path);
+                  }
+                }}
+              >
+                <div className={cn("h-1 w-full bg-gradient-to-r", action.tone)} />
+                <CardContent className="space-y-4 px-5 py-5">
+                  <div className="flex items-start justify-between gap-3">
+                    <span
+                      aria-hidden="true"
+                      className={cn(
+                        "flex h-12 w-12 items-center justify-center rounded-2xl",
+                        action.accentBg,
+                        action.accentText
+                      )}
+                    >
+                      <Icon className="h-6 w-6" />
+                    </span>
+                    <Badge className="border-border/70 bg-[#F8FAFC] text-[10px] font-semibold uppercase tracking-[0.18em] text-[#475569]">
+                      {action.label}
+                    </Badge>
+                  </div>
+
+                  <div className="space-y-1">
+                    <p className="text-base font-semibold text-[#0F172A]">{action.title}</p>
+                    <p className="text-xs leading-5 text-[#64748B]">{action.description}</p>
+                  </div>
+
+                  <Button
+                    type="button"
+                    variant="outline"
+                    className="h-10 w-full justify-between gap-2 border-[#D8E2EC] bg-white text-[#102A43] hover:bg-[#F4F6F9]"
+                    onClick={(event) => {
+                      event.stopPropagation();
+                      navigate(action.path);
+                    }}
+                  >
+                    {action.ctaLabel}
+                    <ArrowRight className="h-4 w-4 text-[#1D4ED8] transition-transform group-hover:translate-x-0.5" />
+                  </Button>
+                </CardContent>
+              </Card>
+            );
+          })}
+        </div>
       </div>
-    </div>
+    </PageShell>
   );
 };
 
