@@ -15,7 +15,7 @@ import type {
   DashboardCommandCenterData,
 } from "./dashboard-command-center.types";
 
-const PENDING_PANEL_ID = "dashboard-pending-panel-mobile";
+const PENDING_PANEL_ID = "dashboard-pending-panel";
 
 interface DashboardMobileProps {
   data: DashboardCommandCenterData;

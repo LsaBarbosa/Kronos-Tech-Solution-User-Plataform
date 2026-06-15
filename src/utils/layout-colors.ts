@@ -5,10 +5,12 @@
 
 export const layoutColors = {
   header: {
-    background: "bg-background",
-    border: "border-b border-border",
-    shadow: "shadow-sm",
-    combined: "bg-background border-b border-border shadow-sm",
+    background: "bg-white",
+    border: "border-b border-[#E2E8F0]",
+    accent: "border-t-2 border-t-[#22D3EE]",
+    shadow: "shadow-[0_8px_24px_-18px_rgba(15,23,42,0.35)]",
+    combined:
+      "bg-white border-b border-[#E2E8F0] border-t-2 border-t-[#22D3EE] shadow-[0_8px_24px_-18px_rgba(15,23,42,0.35)]",
   },
   sidebar: {
     container: {

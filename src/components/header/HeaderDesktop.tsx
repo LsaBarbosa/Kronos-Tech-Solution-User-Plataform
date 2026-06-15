@@ -1,0 +1,70 @@
+import { Menu } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import HeaderBrand from "./HeaderBrand";
+import HeaderRouteContext from "./HeaderRouteContext";
+import HeaderRoleChip from "./HeaderRoleChip";
+import HeaderNotifications from "./HeaderNotifications";
+import HeaderAccountMenu from "./HeaderAccountMenu";
+
+interface HeaderDesktopProps {
+  role: string;
+  fullName: string | null | undefined;
+  email: string | null | undefined;
+  pendingCount: number;
+  pendingHasError: boolean;
+  pendingLoading: boolean;
+  onLogout: () => Promise<void>;
+  onToggleSidebar: () => void;
+}
+
+const HeaderDesktop = ({
+  role,
+  fullName,
+  email,
+  pendingCount,
+  pendingHasError,
+  pendingLoading,
+  onLogout,
+  onToggleSidebar,
+}: HeaderDesktopProps) => {
+  return (
+    <div className="mx-auto flex h-16 max-w-[1600px] items-center gap-4 px-4 sm:px-6">
+      <div className="flex min-w-0 flex-1 items-center gap-3">
+        <Button
+          type="button"
+          variant="ghost"
+          size="icon"
+          onClick={onToggleSidebar}
+          aria-label="Abrir menu lateral"
+          className="h-10 w-10 text-[#0F172A] hover:bg-[#F1F5F9]"
+        >
+          <Menu className="h-5 w-5" />
+        </Button>
+        <HeaderBrand variant="desktop" />
+        <span aria-hidden="true" className="hidden h-6 w-px shrink-0 bg-[#E2E8F0] sm:block" />
+        <div className="hidden min-w-0 items-center gap-3 sm:flex">
+          <HeaderRouteContext variant="desktop" />
+          <HeaderRoleChip role={role} />
+        </div>
+      </div>
+
+      <div className="flex items-center justify-end gap-2 sm:gap-3">
+        <HeaderNotifications
+          pendingCount={pendingCount}
+          hasError={pendingHasError}
+          isLoading={pendingLoading}
+          variant="desktop"
+        />
+        <HeaderAccountMenu
+          fullName={fullName}
+          email={email}
+          role={role}
+          variant="desktop"
+          onLogout={onLogout}
+        />
+      </div>
+    </div>
+  );
+};
+
+export default HeaderDesktop;

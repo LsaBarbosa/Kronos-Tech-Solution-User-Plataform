@@ -1,60 +1,47 @@
 // src/components/Header.tsx
 
-import { Menu, Clock } from "lucide-react";
-import { Button } from "@/components/ui/button";
-import { useNavigate } from "react-router-dom";
+import { useCallback } from "react";
+import HeaderDesktop from "@/components/header/HeaderDesktop";
+import HeaderMobile from "@/components/header/HeaderMobile";
+import { useHeaderResponsiveMode } from "@/components/header/useHeaderResponsiveMode";
+import { useHeaderPendingCount } from "@/components/header/useHeaderPendingCount";
+import { useAuth } from "@/context/AuthContext";
 import { headerStyles } from "@/utils/layout-colors";
-import { useCheckin } from "@/context/CheckinContext";
 
 interface HeaderProps {
   toggleSidebar: () => void;
 }
 
 const Header = ({ toggleSidebar }: HeaderProps) => {
-  const navigate = useNavigate();
-  const { openCheckin } = useCheckin();
+  const { isDesktop } = useHeaderResponsiveMode();
+  const { status, user, role, logout } = useAuth();
+
+  const fullName = user?.profile?.fullName ?? null;
+  const email = user?.profile?.email ?? null;
+
+  const { totalPending, isLoading, hasError } = useHeaderPendingCount(
+    role,
+    status === "authenticated"
+  );
+
+  const handleLogout = useCallback(async () => {
+    await logout();
+  }, [logout]);
+
+  const sharedProps = {
+    role,
+    fullName,
+    email,
+    pendingCount: totalPending,
+    pendingHasError: hasError,
+    pendingLoading: isLoading,
+    onLogout: handleLogout,
+    onToggleSidebar: toggleSidebar,
+  };
 
   return (
     <header className={headerStyles.container}>
-      <div className={headerStyles.content + " relative"}>
-
-        {/* 1. Left side - Hamburger menu */}
-        <div className="flex items-center gap-4">
-          <Button
-            variant="ghost"
-            size="icon"
-            onClick={toggleSidebar}
-            aria-label="Abrir menu lateral"
-            className="text-primary hover:bg-primary/10 hover:text-primary focus-visible:ring-2 focus-visible:ring-primary/30 transition-colors"
-          >
-            <Menu className="h-6 w-6" />
-          </Button>
-        </div>
-
-        {/* 2. Center - Logo */}
-        <div className="absolute left-1/2 top-1/2 transform -translate-x-1/2 -translate-y-1/2">
-          <img
-            src="/Kronos_logo.png"
-            alt="Kronos Tech Solution"
-            onClick={() => navigate("/dashboard")}
-            className={headerStyles.logo}
-          />
-        </div>
-
-        {/* 3. Right side - Register Point Button */}
-        <div className={headerStyles.actionGroup}>
-          <Button
-            onClick={openCheckin}
-            size="sm"
-            variant="default"
-            className="gap-2"
-            aria-label="Abrir fluxo de registro de ponto"
-          >
-            <Clock className="w-4 h-4" />
-            Registrar Ponto
-          </Button>
-        </div>
-      </div>
+      {isDesktop ? <HeaderDesktop {...sharedProps} /> : <HeaderMobile {...sharedProps} />}
     </header>
   );
 };

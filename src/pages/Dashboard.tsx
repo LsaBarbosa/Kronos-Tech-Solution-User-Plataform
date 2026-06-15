@@ -1,5 +1,5 @@
-import { useCallback, useMemo, useState } from "react";
-import { useNavigate } from "react-router-dom";
+import { useCallback, useEffect, useMemo, useState } from "react";
+import { useLocation, useNavigate } from "react-router-dom";
 import PageShell from "@/components/PageShell";
 import { APP_PATHS } from "@/config/app-routes";
 import DashboardDesktop from "@/components/dashboard-command-center/DashboardDesktop";
@@ -16,6 +16,7 @@ import { getRoleDisplayName } from "@/types/dashboard";
 
 const Dashboard = () => {
   const navigate = useNavigate();
+  const location = useLocation();
   const { isDesktop } = useDashboardResponsiveMode();
 
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -23,6 +24,19 @@ const Dashboard = () => {
 
   const handleToggleSidebar = useCallback(() => setSidebarOpen((prev) => !prev), []);
   const toggleSalary = useCallback(() => setShowSalary((prev) => !prev), []);
+
+  useEffect(() => {
+    const state = location.state as { scrollTo?: string } | null;
+    if (state?.scrollTo !== "pending" && location.hash !== "#dashboard-pending-panel") {
+      return;
+    }
+    const target = document.getElementById("dashboard-pending-panel");
+    if (!target) return;
+    const id = window.setTimeout(() => {
+      target.scrollIntoView({ behavior: "smooth", block: "start" });
+    }, 80);
+    return () => window.clearTimeout(id);
+  }, [location.hash, location.state]);
 
   const {
     userData,
