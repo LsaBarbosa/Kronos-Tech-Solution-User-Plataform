@@ -1,7 +1,7 @@
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
-import { ArrowRight, CalendarDays, ShieldCheck, Sparkles, User2 } from "lucide-react";
+import { ArrowRight, CalendarDays, ShieldCheck, Sparkles, TimerReset, User2 } from "lucide-react";
 import { getFirstName } from "@/utils/dashboard-utils";
 
 interface DashboardHeroProps {
@@ -131,9 +131,10 @@ const DashboardHero = ({
               variant="outline"
               size="lg"
               onClick={onSecondaryAction}
-              className="h-12 w-full border-white/30 bg-white/10 text-white hover:bg-white/20 hover:text-white"
+              className="h-12 w-full gap-2 border-white/30 bg-white/10 text-white hover:bg-white/20 hover:text-white"
             >
-              Meu perfil
+              <TimerReset className="h-4 w-4" />
+              Solicitar abono
             </Button>
           </div>
         </div>

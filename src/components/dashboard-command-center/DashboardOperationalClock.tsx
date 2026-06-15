@@ -23,10 +23,10 @@ const DashboardOperationalClock = ({ variant }: DashboardOperationalClockProps) 
           </span>
           <div>
             <p className="text-xs font-semibold uppercase tracking-[0.22em] text-muted-foreground">
-              Controle de ponto online
+              Registro de ponto
             </p>
             <h2 className="text-base font-semibold text-[#0F172A] sm:text-lg">
-              Relógio operacional
+              Marque sua entrada ou saída
             </h2>
           </div>
         </div>

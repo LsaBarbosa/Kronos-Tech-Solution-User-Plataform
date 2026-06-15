@@ -48,7 +48,7 @@ const DashboardDesktop = ({ data, actions }: DashboardDesktopProps) => {
         fullName={data.userData?.fullName}
         roleLabel={data.roleLabel}
         onPrimaryAction={actions.goToRelatorio}
-        onSecondaryAction={actions.goToPerfil}
+        onSecondaryAction={actions.goToSolicitarAbono}
       />
 
       {data.isLoading ? (
