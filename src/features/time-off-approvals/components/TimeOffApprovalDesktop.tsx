@@ -53,7 +53,8 @@ const TimeOffApprovalDesktop = ({ viewModel, onBack }: TimeOffApprovalDesktopPro
       <TimeOffApprovalHero
         variant="desktop"
         pending={metrics.pending}
-        visible={metrics.visible}
+        approved={metrics.approved}
+        rejected={metrics.rejected}
         withEvidence={metrics.withEvidence}
       />
 

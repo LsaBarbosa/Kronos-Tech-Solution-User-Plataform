@@ -2,38 +2,35 @@
 
 ## Objetivo
 
-Projetar e implementar a arquitetura visual responsiva do header.
+Projetar e implementar a nova arquitetura visual.
 
 ## Desktop
 
-- layout horizontal;
-- três zonas: esquerda, centro, direita;
-- breadcrumb/rota;
-- CTA textual;
-- chips e badge.
+Criar estrutura:
+
+- `ApprovalShell`;
+- `ApprovalHero`;
+- `ApprovalMetrics`;
+- `ApprovalFilters`;
+- `ApprovalInboxTable`;
+- `ApprovalDetailPanel`;
+- `ApprovalDecisionDialog`.
+
+Os nomes são sugestões; adapte ao padrão do projeto.
 
 ## Mobile
 
-- barra compacta;
-- marca curta;
-- menu em destaque;
-- role chip;
-- notificação por badge;
-- CTA de ponto prioritário;
-- texto reduzido.
+Criar estrutura:
 
-## Componentização sugerida
+- `ApprovalMobileHeader`;
+- `ApprovalMobileMetrics`;
+- `ApprovalStatusChips`;
+- `ApprovalRequestCard`;
+- `ApprovalBottomDecisionPanel`.
 
-- `HeaderBrand`
-- `HeaderRouteContext`
-- `HeaderSessionStatus`
-- `HeaderRoleChip`
-- `HeaderCheckinAction`
-- `HeaderNotifications`
-- `HeaderAccountMenu`
+## Regras
 
-## Atenção
-
-- evitar acoplamento excessivo no `Header.tsx`;
-- manter helpers puros para route labels, iniciais, status e classes;
-- preservar padrão do design system do projeto.
+- Mobile não usa tabela.
+- Desktop não usa apenas cards empilhados.
+- Estados de loading e vazio são específicos por experiência.
+- Evitar duplicação excessiva de lógica; compartilhar view-model e handlers.

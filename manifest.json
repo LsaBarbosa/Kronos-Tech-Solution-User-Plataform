@@ -1,28 +1,35 @@
 {
-  "package": "kronos_codex_header_ui",
-  "target": {
-    "element": "Header global",
-    "frontend_repo": "Kronos-Tech-Solution-User-Plataform",
-    "frontend_branch": "feature/lgpd-compliance-new-ui",
-    "backend_repo": "Kronos-Tech-Solutions-KTS",
-    "backend_branch": "PROD_HOSTINGER_V2",
-    "documentation_repo": "kronos-business",
-    "documentation_branch": "main"
-  },
-  "goal": "Refatorar o Header global para uma barra de comando segura, responsiva, distinta entre desktop e mobile, presente nas rotas autenticadas da plataforma Kronos.",
+  "package": "kronos_codex_aprovar_ferias_ui",
+  "generated_at": "2026-06-14T12:32:16Z",
+  "target_route": "/ferias",
+  "target_frontend_repo": "LsaBarbosa/Kronos-Tech-Solution-User-Plataform",
+  "target_frontend_branch": "feature/lgpd-compliance-new-ui",
+  "target_backend_repo": "LsaBarbosa/Kronos-Tech-Solutions-KTS",
+  "target_backend_branch": "PROD_HOSTINGER_V2",
+  "target_docs_repo": "LsaBarbosa/kronos-business",
+  "target_docs_branch": "main",
+  "visual_direction": "Vacation Approval Command Desk",
   "references": {
-    "directive": "references/docs/kronos_header_diretriz_visual.md",
-    "desktop_mockup": "references/mockups/kronos_header_desktop.png",
-    "mobile_mockup": "references/mockups/kronos_header_mobile.png"
+    "directive": "references/docs/kronos_aprovar_ferias_diretriz_visual.md",
+    "desktop_mockup": "references/mockups/kronos_aprovar_ferias_desktop.png",
+    "mobile_mockup": "references/mockups/kronos_aprovar_ferias_mobile.png"
   },
-  "generated_at": "2026-06-15T15:00:49.182195Z",
-  "expected_outputs": [
-    "skills",
-    "agent",
-    "subagents",
-    "rules",
-    "action plan",
-    "codex prompt",
-    "validation checklist"
+  "expected_codex_inputs": [
+    "src/pages/VacationRequests.tsx or equivalent /ferias page",
+    "src/App.tsx or router configuration",
+    "vacation/time-record services and hooks",
+    "ui component primitives",
+    "layout components Header/Sidebar",
+    "backend ApiPaths.java",
+    "backend TimeRecordController.java",
+    "backend RequestVacationRequest/VacationApprovalRequest DTOs",
+    "kronos-business route and business docs"
+  ],
+  "constraints": [
+    "Do not change backend HTTP contracts unless local compilation proves the existing frontend contract is incompatible.",
+    "Remove legacy implementation after the new implementation is integrated and tested.",
+    "Desktop and mobile must be different experiences, not just resized layout.",
+    "Approve/reject actions must be separated, confirmed, and disabled for finalized requests.",
+    "Use status labels, not color-only signals."
   ]
 }

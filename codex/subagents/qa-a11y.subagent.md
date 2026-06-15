@@ -2,26 +2,32 @@
 
 ## Objetivo
 
-Validar qualidade, acessibilidade e responsividade.
+Validar qualidade, responsividade e acessibilidade.
 
-## Checklist
+## Testes manuais
 
-- desktop 1366x768 ou superior;
-- mobile 390x844 ou similar;
+1. Desktop >= 1280px.
+2. Tablet entre 768px e 1024px.
+3. Mobile 360px–430px.
+4. Sem solicitações.
+5. Filtro sem resultado.
+6. Solicitação pendente.
+7. Solicitação aprovada.
+8. Solicitação rejeitada.
+9. Mutação com sucesso.
+10. Mutação com erro.
+
+## Validações técnicas
+
+- `npm run lint`
+- `npm run build`
+- testes existentes, se houver
+
+## Acessibilidade
+
 - navegação por teclado;
+- labels;
+- contraste;
 - foco visível;
-- menu abre/fecha;
-- check-in abre modal;
-- notificações têm label;
-- account menu abre e permite logout;
-- header não cobre conteúdo;
-- contraste validado;
-- build/lint/test passando.
-
-## Comandos
-
-```bash
-npm run lint
-npm run build
-npm run test
-```
+- botões com texto;
+- confirmação acessível.

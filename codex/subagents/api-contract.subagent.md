@@ -2,21 +2,30 @@
 
 ## Objetivo
 
-Garantir que a refatoração do header não quebre contratos com back-end.
+Preservar integração existente entre front-end e back-end.
 
-## Contratos envolvidos
+## Arquivos a ler
 
-- autenticação/sessão via `AuthContext`;
-- logout via `/auth/logout`;
-- perfil via `loadSessionProfile`;
-- termos via `checkTermsStatus`;
-- check-in via `registerCheckin`;
-- avisos via serviços existentes de mensagens, se usados.
+### Front
 
-## Regras
+- service de férias/time records;
+- hook da tela `/ferias`;
+- tipos usados por vacation requests;
+- interceptors/cliente HTTP.
 
-- Não criar endpoint novo.
-- Não mudar payloads.
-- Não inferir permissões além do que já existe.
-- Falha em badge de avisos não pode derrubar o header.
-- Falha de sessão deve seguir handler existente de sessão expirada.
+### Back
+
+- `ApiPaths.java`;
+- `TimeRecordController.java`;
+- DTOs de vacation request;
+- service/usecase relacionado.
+
+## Checklist
+
+- Endpoint de listagem confirmado.
+- Query params confirmados.
+- Endpoint de aprovação confirmado.
+- Endpoint de rejeição confirmado.
+- Payload confirmado.
+- Tratamento de erro preservado.
+- CSRF/cookie preservados pelo cliente HTTP atual.

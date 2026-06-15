@@ -31,8 +31,10 @@ export interface TimeOffApprovalsViewModel {
 
   metrics: {
     pending: number;
-    visible: number;
+    approved: number;
+    rejected: number;
     withEvidence: number;
+    visible: number;
   };
 
   decisionTarget: TimeOffApprovalViewModel | null;
@@ -147,8 +149,10 @@ export const useTimeOffApprovalViewModel = (): TimeOffApprovalsViewModel => {
   const metrics = useMemo(
     () => ({
       pending: requests.filter((item) => item.isPending).length,
-      visible: requests.length,
+      approved: requests.filter((item) => item.isApproved).length,
+      rejected: requests.filter((item) => item.isRejected).length,
       withEvidence: requests.filter((item) => Boolean(item.documentId)).length,
+      visible: requests.length,
     }),
     [requests]
   );

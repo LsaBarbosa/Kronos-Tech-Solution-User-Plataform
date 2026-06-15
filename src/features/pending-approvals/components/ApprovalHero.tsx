@@ -1,23 +1,13 @@
 import { Badge } from "@/components/ui/badge";
 import { Card } from "@/components/ui/card";
-import { CalendarCheck, ClipboardCheck, Clock, ShieldCheck } from "lucide-react";
-import TimeOffApprovalMetrics from "./TimeOffApprovalMetrics";
+import { ClipboardCheck, ScrollText, ShieldCheck } from "lucide-react";
 
-interface TimeOffApprovalHeroProps {
+interface ApprovalHeroProps {
   variant: "desktop" | "mobile";
-  pending: number;
-  approved: number;
-  rejected: number;
-  withEvidence: number;
+  pendingTotal: number;
 }
 
-const TimeOffApprovalHero = ({
-  variant,
-  pending,
-  approved,
-  rejected,
-  withEvidence,
-}: TimeOffApprovalHeroProps) => {
+const ApprovalHero = ({ variant, pendingTotal }: ApprovalHeroProps) => {
   if (variant === "mobile") {
     return (
       <Card className="overflow-hidden border-border/70 shadow-sm">
@@ -27,31 +17,21 @@ const TimeOffApprovalHero = ({
               <div className="flex items-center gap-2">
                 <ClipboardCheck className="h-5 w-5 text-cyan-300" />
                 <span className="text-[11px] font-semibold uppercase tracking-[0.28em] text-white/70">
-                  Aprovação de abonos
+                  Apuração de horas
                 </span>
               </div>
               <div className="space-y-2">
                 <h1 className="text-xl font-semibold leading-tight">
-                  Decida abonos com evidência, período e contexto
+                  Decisão de ajustes de ponto
                 </h1>
                 <p className="text-sm leading-6 text-white/78">
-                  Filtre solicitações, analise documentos anexos e aprove ou rejeite registros de abono.
+                  Compare o registro atual com a proposta antes de aprovar ou rejeitar.
                 </p>
               </div>
             </div>
             <Badge className="shrink-0 border border-[#FCD34D]/70 bg-[#FEF3C7]/90 text-[#92400E]">
-              {pending} pendentes
+              {pendingTotal} pendentes
             </Badge>
-          </div>
-
-          <div className="mt-4">
-            <TimeOffApprovalMetrics
-              variant="hero"
-              pending={pending}
-              approved={approved}
-              rejected={rejected}
-              withEvidence={withEvidence}
-            />
           </div>
         </div>
       </Card>
@@ -65,54 +45,43 @@ const TimeOffApprovalHero = ({
         <div className="flex flex-col gap-6 xl:flex-row xl:items-end xl:justify-between">
           <div className="max-w-4xl space-y-4">
             <div className="flex flex-wrap items-center gap-2">
-              <Badge className="border-white/15 bg-white/10 text-white">Time-Off Approval Desk</Badge>
+              <Badge className="border-white/15 bg-white/10 text-white">
+                Time Adjustment Approval Desk
+              </Badge>
               <Badge className="border-cyan-300/30 bg-cyan-400/10 text-cyan-50">Gestão</Badge>
               <Badge className="border border-[#FCD34D]/70 bg-[#FEF3C7]/90 text-[#92400E]">
-                {pending} pendentes
+                {pendingTotal} pendentes
               </Badge>
             </div>
 
             <div className="space-y-2">
               <p className="text-[11px] font-semibold uppercase tracking-[0.34em] text-white/68">
-                Aprovação de abonos
+                Apuração de horas
               </p>
               <h1 className="text-3xl font-semibold leading-tight xl:text-4xl">
-                Decida abonos com evidência, período e contexto
+                Decida ajustes de ponto com contexto e comparação
               </h1>
               <p className="max-w-3xl text-sm leading-6 text-white/78 sm:text-base">
-                Filtre solicitações, analise documentos anexos e aprove ou rejeite registros de abono.
+                Filtre por colaborador, compare o registro atual com a proposta de alteração e aprove
+                ou rejeite com impacto trabalhista visível.
               </p>
             </div>
-          </div>
 
-          <div className="w-full max-w-xl xl:w-[520px]">
-            <TimeOffApprovalMetrics
-              variant="hero"
-              pending={pending}
-              approved={approved}
-              rejected={rejected}
-              withEvidence={withEvidence}
-            />
+            <div className="flex flex-wrap gap-2">
+              <Badge className="border-white/15 bg-white/10 px-3 py-1.5 text-white">
+                <ShieldCheck className="mr-2 h-3.5 w-3.5" />
+                Decisão rastreável
+              </Badge>
+              <Badge className="border-white/15 bg-white/10 px-3 py-1.5 text-white">
+                <ScrollText className="mr-2 h-3.5 w-3.5" />
+                Comparativo atual × proposto
+              </Badge>
+            </div>
           </div>
-        </div>
-
-        <div className="mt-5 flex flex-wrap gap-2">
-          <Badge className="border-white/15 bg-white/10 px-3 py-1.5 text-white">
-            <CalendarCheck className="mr-2 h-3.5 w-3.5" />
-            Impacto trabalhista
-          </Badge>
-          <Badge className="border-white/15 bg-white/10 px-3 py-1.5 text-white">
-            <Clock className="mr-2 h-3.5 w-3.5" />
-            Horas detalhadas
-          </Badge>
-          <Badge className="border-white/15 bg-white/10 px-3 py-1.5 text-white">
-            <ShieldCheck className="mr-2 h-3.5 w-3.5" />
-            Decisão rastreável
-          </Badge>
         </div>
       </div>
     </Card>
   );
 };
 
-export default TimeOffApprovalHero;
+export default ApprovalHero;

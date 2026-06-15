@@ -1,74 +1,91 @@
-# Kronos — Pacote Codex CLI — Header global
+# Kronos Codex Package — Aprovação de Férias `/ferias`
 
-## Objetivo
+Este pacote orienta o **Codex CLI** na refatoração completa da tela `/ferias` no front-end `Kronos-Tech-Solution-User-Plataform`, branch `feature/lgpd-compliance-new-ui`.
 
-Refatorar o componente global `Header` do front-end `Kronos-Tech-Solution-User-Plataform`, branch `feature/lgpd-compliance-new-ui`, transformando-o em uma barra global de orientação, sessão, segurança e ação rápida da plataforma.
-
-O novo header deve seguir a diretriz visual `references/docs/kronos_header_diretriz_visual.md` e os mockups:
-
-- `references/mockups/kronos_header_desktop.png`
-- `references/mockups/kronos_header_mobile.png`
+A tela deve deixar de ser uma listagem simples e passar a funcionar como uma **mesa de aprovação gerencial de férias**.
 
 ## Escopo
 
-### Alterar
+- Repositório front-end: `LsaBarbosa/Kronos-Tech-Solution-User-Plataform`
+- Branch front-end: `feature/lgpd-compliance-new-ui`
+- Repositório back-end: `LsaBarbosa/Kronos-Tech-Solutions-KTS`
+- Branch back-end: `PROD_HOSTINGER_V2`
+- Repositório de documentação: `LsaBarbosa/kronos-business`
+- Branch de documentação: `main`
+- Rota alvo: `/ferias`
 
-- `src/components/Header.tsx`
-- `src/utils/layout-colors.ts`
-- `src/components/PageShell.tsx`, se necessário
-- componentes auxiliares novos sob `src/components/header/`
-- testes relacionados ao header, navegação, sessão, role, logout e CTA de ponto
+## Referências incluídas
 
-### Preservar
-
-- contrato de autenticação atual;
-- `AuthContext`;
-- `CheckinContext`;
-- `ProtectedRoute`;
-- `RoleRoute`;
-- `APP_PATHS`;
-- `APP_ROUTE_META`;
-- `Sidebar`;
-- `CheckinModal`;
-- comportamento de logout;
-- fluxo de registro de ponto existente.
-
-### Não fazer
-
-- não alterar endpoints do back-end;
-- não alterar RBAC de rotas;
-- não mover regras de autorização para o front-end;
-- não remover a proteção real do back-end;
-- não criar header autenticado em rotas públicas que possuem identidade própria, como `/login`, salvo se o workspace já tiver arquitetura explícita para isso;
-- não recriar a aplicação;
-- não alterar páginas fora do necessário para integração do header global.
+```text
+references/
+├── docs/
+│   └── kronos_aprovar_ferias_diretriz_visual.md
+└── mockups/
+    ├── kronos_aprovar_ferias_desktop.png
+    └── kronos_aprovar_ferias_mobile.png
+```
 
 ## Resultado esperado
 
-O header deve ficar presente nas telas autenticadas, com:
+### Desktop
 
-- menu lateral;
-- marca Kronos;
-- rota/contexto atual;
-- role da sessão;
-- status de sessão protegida;
-- indicador LGPD/consentimento;
-- CTA `Registrar ponto`;
-- avisos/notificações com badge;
-- avatar/perfil;
-- logout em menu seguro;
-- experiência desktop e mobile realmente diferentes.
+Experiência de **mesa de aprovação**:
 
-## Execução recomendada
+- sidebar persistente;
+- header de contexto;
+- hero institucional;
+- métricas superiores;
+- filtros horizontais;
+- inbox/tabela de solicitações;
+- detalhe lateral da solicitação selecionada;
+- ações separadas de aprovar e rejeitar lote;
+- confirmação antes de mutações sensíveis.
 
-1. Leia a diretriz visual.
-2. Inspecione `src/components/Header.tsx`.
-3. Inspecione `src/components/PageShell.tsx`.
-4. Inspecione `src/context/AuthContext.tsx`.
-5. Inspecione `src/context/CheckinContext.tsx`.
-6. Inspecione `src/config/app-routes.ts`.
-7. Inspecione `src/components/Sidebar.tsx`.
-8. Implemente o novo header.
-9. Remova o legado do header antigo.
-10. Execute lint, build e testes.
-11. Valide desktop/mobile contra os mockups.
+### Mobile
+
+Experiência de **inbox de decisões**:
+
+- topo compacto;
+- métricas curtas;
+- busca simples;
+- chips de status;
+- cards de solicitação;
+- seleção contextual;
+- painel fixo inferior;
+- botões grandes de aprovar/rejeitar.
+
+## Arquivos de execução
+
+```text
+codex/
+├── skills/
+│   └── kronos-aprovar-ferias-ui.skill.md
+├── agents/
+│   └── kronos-aprovar-ferias-ui.agent.md
+├── rules/
+│   └── kronos-aprovar-ferias-ui.rules.md
+└── subagents/
+    ├── repo-mapper.subagent.md
+    ├── vacation-approval-domain.subagent.md
+    ├── ui-architecture.subagent.md
+    ├── api-contract.subagent.md
+    ├── qa-a11y.subagent.md
+    └── legacy-cleaner.subagent.md
+```
+
+## Ordem recomendada
+
+1. Ler `prompt-codex-aprovar-ferias-ui.md`.
+2. Aplicar `codex/rules/kronos-aprovar-ferias-ui.rules.md`.
+3. Executar o plano em `plano-acao-aprovar-ferias-ui.md`.
+4. Validar com `checklist-validacao-aprovar-ferias-ui.md`.
+
+## Observações críticas
+
+- A rota `/ferias` é gerencial e deve ser usada por `MANAGER`.
+- O fluxo aprova/rejeita **lotes de registros diários** criados pela solicitação de férias.
+- `REQUEST_VACATION` deve ser entendido como status pendente.
+- Aprovação deve converter registros para `VACATION`.
+- Rejeição deve converter registros para `VACATION_REJECTED`.
+- Estados finalizados não devem exibir CTA ativo de aprovação/rejeição.
+- As decisões são sensíveis e precisam de confirmação explícita.

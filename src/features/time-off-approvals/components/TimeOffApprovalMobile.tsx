@@ -68,7 +68,8 @@ const TimeOffApprovalMobile = ({ viewModel, onBack }: TimeOffApprovalMobileProps
       <TimeOffApprovalHero
         variant="mobile"
         pending={metrics.pending}
-        visible={metrics.visible}
+        approved={metrics.approved}
+        rejected={metrics.rejected}
         withEvidence={metrics.withEvidence}
       />
 

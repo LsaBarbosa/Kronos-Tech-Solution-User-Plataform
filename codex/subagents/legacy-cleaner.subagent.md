@@ -2,17 +2,18 @@
 
 ## Objetivo
 
-Remover o legado depois da nova implementação estar funcional.
+Remover legado após a nova implementação funcionar.
 
-## Procurar
+## Tarefas
 
-- classes antigas não usadas em `layout-colors.ts`;
-- imports de `Header` duplicados;
-- headers manuais em páginas;
-- CSS legado específico do header;
-- lógica de logout duplicada;
-- CTA de ponto duplicado fora do header, quando não for parte de uma página específica.
+1. Remover JSX antigo da página.
+2. Remover estados locais que deixaram de ser usados.
+3. Remover imports não utilizados.
+4. Remover componentes auxiliares antigos sem uso.
+5. Remover CSS/classes específicas antigas sem referência.
+6. Confirmar que não há fallback visual antigo.
+7. Rodar lint/build.
 
 ## Regra
 
-Remover apenas o que estiver comprovadamente morto. Não remover componentes públicos ou fluxos ainda utilizados.
+Não remover hooks/services ainda usados por outras rotas.

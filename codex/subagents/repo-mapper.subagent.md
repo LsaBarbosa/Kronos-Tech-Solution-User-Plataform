@@ -2,24 +2,25 @@
 
 ## Objetivo
 
-Mapear a implementação atual do header, layout autenticado, rotas, sidebar, sessão e check-in.
+Mapear o estado atual da rota `/ferias` antes de qualquer alteração.
 
-## Ler
+## Tarefas
 
-- `src/components/Header.tsx`
-- `src/components/PageShell.tsx`
-- `src/components/Sidebar.tsx`
-- `src/App.tsx`
-- `src/config/app-routes.ts`
-- `src/context/AuthContext.tsx`
-- `src/context/CheckinContext.tsx`
-- `src/utils/layout-colors.ts`
+1. Confirmar branch atual:
+   - `git branch --show-current`
+2. Confirmar rota `/ferias` no router.
+3. Localizar arquivo da página.
+4. Localizar hooks e services usados.
+5. Localizar componentes compartilhados que podem ser reaproveitados.
+6. Identificar dependências de UI disponíveis.
 
-## Entregar
+## Saída esperada
 
-- lista de arquivos afetados;
-- pontos de duplicação;
-- páginas que usam `PageShell`;
-- páginas que importam `Header` diretamente;
-- riscos de regressão;
-- recomendação de integração global.
+Gerar um resumo com:
+
+- arquivo da rota;
+- componentes usados;
+- hooks/services;
+- tipos;
+- pontos de legado que serão removidos;
+- riscos técnicos.
