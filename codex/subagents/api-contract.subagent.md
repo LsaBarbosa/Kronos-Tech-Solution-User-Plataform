@@ -1,40 +1,31 @@
 # Subagent — api-contract
 
-## Missão
+## Objetivo
 
-Validar que a refatoração não quebra integração com backend.
+Garantir que o front continue compatível com o back-end.
 
-## Contrato esperado
+## Conferir
 
-### Listar documentos
-
-```txt
-GET /documents?employeeId=&date=&type=
+```http
+POST /documents
+GET /documents
+GET /documents/{documentId}
+DELETE /documents/{documentId}
 ```
 
-### Download
+## Para upload
 
-```txt
-GET /documents/{documentId}?employeeId=
+```text
+params:
+- employeeId
+- type
+
+formData:
+- file
 ```
 
-### Excluir
+## Saída esperada
 
-```txt
-DELETE /documents/{documentId}?employeeId=
-```
-
-### Colaboradores
-
-```txt
-GET /employee?active=
-```
-
-## Checklist
-
-- `type` enviado como enum aceito.
-- `employeeId` omitido ou enviado conforme role e estado.
-- `date` enviado apenas se preenchido.
-- download usa blob e `Content-Disposition`.
-- exclusão remove item da lista local apenas após sucesso.
-- erros continuam usando feedback já existente.
+- Contrato preservado.
+- Nenhuma alteração necessária no back-end.
+- Pontos de risco, se houver.

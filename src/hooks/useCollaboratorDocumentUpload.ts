@@ -68,15 +68,18 @@ export const useCollaboratorDocumentUpload = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [employees, setEmployees] = useState<SelectedEmployee[]>([]);
   const [selectedEmployeeId, setSelectedEmployeeId] = useState("");
-  const [selectedDocumentType, setSelectedDocumentType] = useState<DocumentType>("PAYSLIP");
+  const [selectedDocumentType, setSelectedDocumentType] = useState<DocumentType>("EMPLOYEE_DOCUMENTS");
   const [activeEmployeeFilter, setActiveEmployeeFilter] = useState("true");
   const [selectedFile, setSelectedFile] = useState<File | null>(null);
   const [isDragOver, setIsDragOver] = useState(false);
   const [isUploading, setIsUploading] = useState(false);
+  const [isOptimizingFile, setIsOptimizingFile] = useState(false);
   const [isFetchingEmployees, setIsFetchingEmployees] = useState(false);
   const [isPartner, setIsPartner] = useState(false);
   const [currentUserName, setCurrentUserName] = useState("");
   const [userRole, setUserRole] = useState("");
+  const [fileError, setFileError] = useState<string | null>(null);
+  const [lastUploadAt, setLastUploadAt] = useState<Date | null>(null);
 
   const fileInputRef = useRef<HTMLInputElement>(null);
   const { toast } = useToast();
@@ -107,7 +110,7 @@ export const useCollaboratorDocumentUpload = () => {
       setSelectedEmployeeId("");
     }
 
-    setSelectedDocumentType(isManager ? "PAYSLIP" : "TIME_OFF");
+    setSelectedDocumentType("EMPLOYEE_DOCUMENTS");
 
     if (!isManager) {
       return;
@@ -148,27 +151,15 @@ export const useCollaboratorDocumentUpload = () => {
     setIsDragOver(false);
   }, []);
 
-  const handleDrop = useCallback((event: DragEvent) => {
-    event.preventDefault();
-    setIsDragOver(false);
-    const file = event.dataTransfer.files?.[0];
-    if (file) {
-      setSelectedFile(file);
-    }
-  }, []);
-
   const resetFileInput = useCallback(() => {
     if (fileInputRef.current) {
       fileInputRef.current.value = "";
     }
   }, []);
 
-  const handleFileSelect = useCallback(
-    async (event: ChangeEvent<HTMLInputElement>) => {
-      const file = event.target.files?.[0];
-      if (!file) {
-        return;
-      }
+  const validateAndSetFile = useCallback(
+    async (file: File) => {
+      setFileError(null);
 
       const fileExtension = file.name.split(".").pop()?.toLowerCase();
       const isAllowed = ALLOWED_MIME_TYPES.some(
@@ -176,21 +167,26 @@ export const useCollaboratorDocumentUpload = () => {
       );
 
       if (!isAllowed) {
+        const message = `Formato não suportado. Aceitos: ${ALLOWED_MIME_TYPES.join(", ").toUpperCase()}.`;
+        setFileError(message);
         toast({
           title: "Formato de arquivo inválido",
-          description: `O arquivo "${file.name}" não é suportado. Tipos aceitos: ${ALLOWED_MIME_TYPES.join(", ")}.`,
+          description: `O arquivo "${file.name}" não é suportado.`,
           variant: "destructive",
         });
         resetFileInput();
         return;
       }
 
+      setIsOptimizingFile(true);
       try {
         const finalFile = await compressImage(file);
         if (finalFile.size > MAX_UPLOAD_SIZE_BYTES) {
+          const message = `Arquivo "${file.name}" excede o limite de 5MB.`;
+          setFileError(message);
           toast({
             title: "Arquivo muito grande",
-            description: `O arquivo "${file.name}" excede o limite máximo de 5MB.`,
+            description: message,
             variant: "destructive",
           });
           resetFileInput();
@@ -200,21 +196,49 @@ export const useCollaboratorDocumentUpload = () => {
         setSelectedFile(finalFile);
       } catch (error) {
         console.error("Erro ao processar arquivo:", error);
+        const message = "Não foi possível processar o arquivo selecionado.";
+        setFileError(message);
         toast({
           title: "Erro",
-          description: "Não foi possível processar o arquivo selecionado.",
+          description: message,
           variant: "destructive",
         });
         resetFileInput();
+      } finally {
+        setIsOptimizingFile(false);
       }
     },
     [resetFileInput, toast]
   );
 
+  const handleDrop = useCallback(
+    (event: DragEvent) => {
+      event.preventDefault();
+      setIsDragOver(false);
+      const file = event.dataTransfer.files?.[0];
+      if (file) {
+        void validateAndSetFile(file);
+      }
+    },
+    [validateAndSetFile]
+  );
+
+  const handleFileSelect = useCallback(
+    async (event: ChangeEvent<HTMLInputElement>) => {
+      const file = event.target.files?.[0];
+      if (!file) {
+        return;
+      }
+      await validateAndSetFile(file);
+    },
+    [validateAndSetFile]
+  );
+
   const removeFile = useCallback(
-    (event: MouseEvent<HTMLButtonElement>) => {
-      event.stopPropagation();
+    (event?: MouseEvent<HTMLButtonElement>) => {
+      event?.stopPropagation();
       setSelectedFile(null);
+      setFileError(null);
       resetFileInput();
     },
     [resetFileInput]
@@ -240,6 +264,8 @@ export const useCollaboratorDocumentUpload = () => {
       });
 
       setSelectedFile(null);
+      setFileError(null);
+      setLastUploadAt(new Date());
       resetFileInput();
       if (userRole !== "MANAGER") {
         setSelectedEmployeeId("");
@@ -269,15 +295,19 @@ export const useCollaboratorDocumentUpload = () => {
     selectedFile,
     isDragOver,
     isUploading,
+    isOptimizingFile,
     isFetchingEmployees,
     isPartner,
     currentUserName,
     userRole,
+    fileError,
+    lastUploadAt,
     fileInputRef,
     handleDragOver,
     handleDragLeave,
     handleDrop,
     handleFileSelect,
+    validateAndSetFile,
     handleUpload,
     removeFile,
   };

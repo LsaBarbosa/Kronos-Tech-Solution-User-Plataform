@@ -1,34 +1,31 @@
 {
-  "name": "kronos_codex_documentos_ui",
-  "route": "/documentos",
-  "related_route": "/meus-documentos",
-  "target_frontend_repo": "Kronos-Tech-Solution-User-Plataform",
-  "target_frontend_branch": "feature/lgpd-compliance-new-ui",
-  "target_backend_repo": "Kronos-Tech-Solutions-KTS",
-  "target_backend_branch": "PROD_HOSTINGER_V2",
-  "documentation_repo": "kronos-business",
-  "documentation_branch": "main",
-  "generated_at": "2026-06-14T12:55:52.657227Z",
-  "references": [
-    "references/docs/kronos_documentos_diretriz_visual.md",
-    "references/mockups/kronos_documentos_desktop.png",
-    "references/mockups/kronos_documentos_mobile.png"
-  ],
-  "contracts": [
-    "GET /documents?employeeId=&date=&type=",
-    "GET /documents/{documentId}?employeeId=",
-    "DELETE /documents/{documentId}?employeeId=",
-    "GET /employee?active="
-  ],
-  "codex_files": [
-    "codex/skills/kronos-documentos-ui.skill.md",
-    "codex/agents/kronos-documentos-ui.agent.md",
-    "codex/rules/kronos-documentos-ui.rules.md",
-    "codex/subagents/repo-mapper.subagent.md",
-    "codex/subagents/document-domain.subagent.md",
-    "codex/subagents/ui-architecture.subagent.md",
-    "codex/subagents/api-contract.subagent.md",
-    "codex/subagents/qa-a11y.subagent.md",
-    "codex/subagents/legacy-cleaner.subagent.md"
+  "artifact": "kronos_codex_enviar_documentos_ui",
+  "generated_at": "2026-06-14T13:04:36",
+  "target": {
+    "backend_repo": "LsaBarbosa/Kronos-Tech-Solutions-KTS",
+    "backend_branch": "PROD_HOSTINGER_V2",
+    "frontend_repo": "LsaBarbosa/Kronos-Tech-Solution-User-Plataform",
+    "frontend_branch": "feature/lgpd-compliance-new-ui",
+    "documentation_repo": "LsaBarbosa/kronos-business",
+    "documentation_branch": "main",
+    "route": "/enviar-documento-colaborador",
+    "current_page_component": "src/pages/DocumentoColaborador.tsx",
+    "related_page_component": "src/pages/EnviarDocumentos.tsx",
+    "primary_hook": "src/hooks/useCollaboratorDocumentUpload.ts",
+    "service": "src/service/document.service.ts",
+    "backend_controller": "src/main/java/com/kts/kronos/adapter/in/web/http/DocumentController.java"
+  },
+  "references": {
+    "visual_guideline": "references/docs/kronos_enviar_documentos_diretriz_visual.md",
+    "desktop_mockup": "references/mockups/kronos_enviar_documentos_desktop.png",
+    "mobile_mockup": "references/mockups/kronos_enviar_documentos_mobile.png"
+  },
+  "constraints": [
+    "Não alterar contrato HTTP.",
+    "Preservar multipart POST /documents com params employeeId e type e request part file.",
+    "Priorizar /enviar-documento-colaborador; não confundir com /enviar-documentos.",
+    "Criar experiências distintas para desktop e mobile.",
+    "Remover legado visual após implementação e validação.",
+    "Garantir validação de arquivo, tamanho, tipo, loading e sucesso/erro."
   ]
 }

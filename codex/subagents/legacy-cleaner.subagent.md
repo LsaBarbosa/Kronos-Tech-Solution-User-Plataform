@@ -1,22 +1,19 @@
 # Subagent — legacy-cleaner
 
-## Missão
+## Objetivo
 
-Remover resíduos da implementação anterior depois que a nova UI estiver funcional.
+Remover o legado visual após a nova UI.
 
-## Remover ou consolidar
+## Procurar
 
-- blocos visuais antigos de `Documentos.tsx`;
-- instruções antigas que tratam a tela como formulário simples;
-- CSS/classes não utilizadas pela nova tela;
-- duplicação de mapeamento de labels;
-- imports não utilizados;
-- componentes temporários deixados no arquivo.
+- Imports não usados.
+- Cards antigos.
+- Layout antigo centralizado.
+- Classes antigas sem uso.
+- Funções duplicadas.
+- Componentes mortos.
 
-## Não remover
+## Saída esperada
 
-- lógica de API funcional;
-- tratamento de erro;
-- toasts;
-- validações;
-- rotas existentes `/documentos` e `/meus-documentos`.
+- Lista de remoções.
+- Confirmação de que só a nova implementação permanece.

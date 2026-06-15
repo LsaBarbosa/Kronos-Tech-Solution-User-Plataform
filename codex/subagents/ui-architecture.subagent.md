@@ -1,33 +1,28 @@
 # Subagent — ui-architecture
 
-## Missão
+## Objetivo
 
-Projetar a nova UI com experiências reais para desktop e mobile.
+Desenhar a arquitetura de componentes da nova tela.
 
-## Desktop
+## Sugestão de componentes
 
-Construir um **Secure Document Vault / console documental**:
+```text
+DocumentUploadPage
+DocumentUploadDesktop
+DocumentUploadMobile
+UploadHero
+RoleScopeCards
+UploadStepCard
+UploadDropzone
+UploadPreviewPanel
+UploadGovernancePanel
+MobileUploadStepper
+MobileUploadFooter
+```
 
-- header/hero institucional;
-- cards de escopo por ROLE;
-- filtros em grade;
-- chips de tipos documentais;
-- painel de resultados à direita;
-- bloco de governança;
-- ações de download/exclusão.
+## Saída esperada
 
-## Mobile
-
-Construir uma **busca guiada**:
-
-- topo compacto;
-- card de escopo;
-- seção 1: tipo documental;
-- seção 2: filtros;
-- seção 3: resultados;
-- CTA fixo inferior;
-- cards de documentos.
-
-## Entrega
-
-Propor/implementar estrutura de componentes clara, removendo o visual legado.
+- Componentes criados.
+- Props necessárias.
+- Responsabilidades de cada componente.
+- Como preservar estado do hook atual.

@@ -1,54 +1,57 @@
-# Kronos — Pacote Codex CLI para `/documentos`
-
-Este pacote contém instruções, skills, agents, subagents, rules, plano de ação e prompt para refatorar a tela de busca documental da rota `/documentos`.
+# Kronos — Pacote Codex CLI para `/enviar-documento-colaborador`
 
 ## Objetivo
 
-Transformar `/documentos` em uma **central de busca documental segura**, com duas experiências distintas:
+Orientar o Codex CLI na refatoração da tela **Enviar documento** na rota `/enviar-documento-colaborador`, transformando a experiência em um **cofre de envio documental seguro**.
 
-- **Desktop:** console documental com filtros, escopo por role e resultados lado a lado.
-- **Mobile:** busca guiada por etapas, com CTA fixo e cards de documentos.
+A implementação deve usar como referência:
 
-## Repositórios alvo
+- `references/docs/kronos_enviar_documentos_diretriz_visual.md`
+- `references/mockups/kronos_enviar_documentos_desktop.png`
+- `references/mockups/kronos_enviar_documentos_mobile.png`
 
-| Repositório | Branch |
-|---|---|
-| `Kronos-Tech-Solutions-KTS` | `PROD_HOSTINGER_V2` |
-| `Kronos-Tech-Solution-User-Plataform` | `feature/lgpd-compliance-new-ui` |
-| `kronos-business` | `main` |
+## Repositórios e branches
 
-## Arquivos de referência
+| Repositório | Branch | Uso |
+|---|---|---|
+| `LsaBarbosa/Kronos-Tech-Solutions-KTS` | `PROD_HOSTINGER_V2` | Contratos HTTP e regras de upload/documentos |
+| `LsaBarbosa/Kronos-Tech-Solution-User-Plataform` | `feature/lgpd-compliance-new-ui` | Implementação da tela |
+| `LsaBarbosa/kronos-business` | `main` | Norteador funcional e documentação de produto |
 
-```txt
-references/docs/kronos_documentos_diretriz_visual.md
-references/mockups/kronos_documentos_desktop.png
-references/mockups/kronos_documentos_mobile.png
+## Arquivo-alvo principal
+
+```text
+src/pages/DocumentoColaborador.tsx
 ```
 
-## Arquivos principais do pacote
+## Arquivos de apoio
 
-```txt
-codex/skills/kronos-documentos-ui.skill.md
-codex/agents/kronos-documentos-ui.agent.md
-codex/rules/kronos-documentos-ui.rules.md
-plano-acao-documentos-ui.md
-prompt-codex-documentos-ui.md
-checklist-validacao-documentos-ui.md
+```text
+src/hooks/useCollaboratorDocumentUpload.ts
+src/service/document.service.ts
+src/types/document.ts
+src/config/app-routes.ts
+src/App.tsx
+src/components/Header.tsx
+src/components/Sidebar.tsx
+src/components/ui/*
 ```
 
-## Como usar
+## Observação sobre rotas
 
-1. Extraia este pacote no workspace.
-2. Abra o arquivo `prompt-codex-documentos-ui.md`.
-3. Cole o prompt no Codex CLI.
-4. Garanta que o Codex tenha acesso aos três repositórios e aos arquivos de referência.
-5. Execute o plano de ação.
-6. Valide com o checklist.
+O front-end possui duas rotas relacionadas:
 
-## Observações importantes
+```text
+/enviar-documentos               -> EnviarDocumentos
+/enviar-documento-colaborador    -> DocumentoColaborador
+```
 
-- A refatoração deve preservar os contratos HTTP atuais.
-- A tela deve respeitar `CTO`, `MANAGER` e `PARTNER`.
-- `PARTNER` não pode selecionar outro colaborador.
-- Exclusão é ação destrutiva e deve exigir confirmação.
-- A nova versão deve remover o legado visual da tela antiga.
+O pedido atual é para `/enviar-documento-colaborador`. Portanto, a refatoração principal deve ocorrer em `DocumentoColaborador.tsx`. Não migrar a tela errada.
+
+## Resultado esperado
+
+- Desktop: console de upload com hero, cards de ROLE, etapas, dropzone, prévia e governança lateral.
+- Mobile: fluxo guiado com escopo atual, etapas empilhadas, validações e CTA fixo.
+- Contrato HTTP preservado.
+- Legado visual removido após teste.
+- Validações de arquivo, tipo, tamanho e destino visíveis e acessíveis.
