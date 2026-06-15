@@ -1,7 +1,10 @@
+import { Link } from "react-router-dom";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
-import { FolderLock, ShieldCheck, Lock, FileSearch } from "lucide-react";
+import { ArrowUpRight, FolderLock, ShieldCheck, Lock, FileSearch, UploadCloud } from "lucide-react";
+import { APP_PATHS } from "@/config/app-routes";
 import type { DocumentScopeCopy } from "../documents-ui.helpers";
 
 interface DocumentsHeroProps {
@@ -42,6 +45,18 @@ const DocumentsHero = ({ variant, scope }: DocumentsHeroProps) => {
             <Badge className="border-white/15 bg-white/10 text-white">Busca segura</Badge>
             <Badge className="border-cyan-300/30 bg-cyan-400/10 text-cyan-50">LGPD</Badge>
           </div>
+
+          <Button
+            asChild
+            size="sm"
+            className="mt-4 h-11 w-full gap-1 bg-white text-[#0B1220] hover:bg-white/90"
+          >
+            <Link to={APP_PATHS.enviarDocumentoColaborador}>
+              <UploadCloud className="h-4 w-4" />
+              Enviar documento
+              <ArrowUpRight className="ml-auto h-4 w-4" />
+            </Link>
+          </Button>
         </div>
       </Card>
     );
@@ -95,6 +110,18 @@ const DocumentsHero = ({ variant, scope }: DocumentsHeroProps) => {
                 {scope.title}
               </p>
             </div>
+
+            <Button
+              asChild
+              size="lg"
+              className="h-12 w-full gap-1 bg-white text-[#0B1220] hover:bg-white/90"
+            >
+              <Link to={APP_PATHS.enviarDocumentoColaborador}>
+                <UploadCloud className="h-4 w-4" />
+                Enviar documento
+                <ArrowUpRight className="ml-auto h-4 w-4" />
+              </Link>
+            </Button>
           </div>
         </div>
       </div>

@@ -1,7 +1,10 @@
+import { Link } from "react-router-dom";
 import { Badge } from "@/components/ui/badge";
+import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
-import { FolderLock, ShieldCheck, Lock, UploadCloud } from "lucide-react";
+import { ArrowUpRight, FileSearch, FolderLock, ShieldCheck, Lock, UploadCloud } from "lucide-react";
+import { APP_PATHS } from "@/config/app-routes";
 import type { UploadScopeCopy } from "../upload-ui.helpers";
 
 interface UploadHeroProps {
@@ -45,6 +48,18 @@ const UploadHero = ({ variant, scope, recipientName }: UploadHeroProps) => {
             <Badge className="border-white/15 bg-white/10 text-white">PDF/JPG/PNG</Badge>
             <Badge className="border-cyan-300/30 bg-cyan-400/10 text-cyan-50">≤ 5MB</Badge>
           </div>
+
+          <Button
+            asChild
+            size="sm"
+            className="mt-4 h-11 w-full gap-1 bg-white text-[#0B1220] hover:bg-white/90"
+          >
+            <Link to={APP_PATHS.documentos}>
+              <FileSearch className="h-4 w-4" />
+              Buscar documentos
+              <ArrowUpRight className="ml-auto h-4 w-4" />
+            </Link>
+          </Button>
         </div>
       </Card>
     );
@@ -102,6 +117,18 @@ const UploadHero = ({ variant, scope, recipientName }: UploadHeroProps) => {
                 {scope.title}
               </p>
             </div>
+
+            <Button
+              asChild
+              size="lg"
+              className="h-12 w-full gap-1 bg-white text-[#0B1220] hover:bg-white/90"
+            >
+              <Link to={APP_PATHS.documentos}>
+                <FileSearch className="h-4 w-4" />
+                Buscar documentos
+                <ArrowUpRight className="ml-auto h-4 w-4" />
+              </Link>
+            </Button>
           </div>
         </div>
       </div>
