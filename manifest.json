@@ -1,0 +1,40 @@
+{
+  "name": "kronos_codex_correcao_frontend_ui",
+  "purpose": "Pacote de execução Codex CLI para corrigir falhas da auditoria front-end Kronos e gerar correcao-front-end.md.",
+  "target_repositories": [
+    {
+      "name": "Kronos-Tech-Solution-User-Plataform",
+      "branch": "feature/lgpd-compliance-new-ui",
+      "role": "front-end alvo de correção"
+    },
+    {
+      "name": "Kronos-Tech-Solutions-KTS",
+      "branch": "PROD_HOSTINGER_V2",
+      "role": "back-end para contratos e regras"
+    },
+    {
+      "name": "kronos-business",
+      "branch": "main",
+      "role": "documentação norteadora"
+    }
+  ],
+  "execution_mode": "corrigir_codigo_com_relatorio",
+  "main_output": "correção-front-end.md",
+  "audit_input": "references/auditoria/auditoria-front-end.md",
+  "validation_commands": [
+    "npm run lint",
+    "npx tsc --noEmit",
+    "npm run build",
+    "npx vitest run",
+    "npm audit --audit-level=moderate"
+  ],
+  "created_artifacts": [
+    "codex/skills/kronos-correcao-front-end.skill.md",
+    "codex/agents/kronos-correcao-front-end.agent.md",
+    "codex/rules/kronos-correcao-front-end.rules.md",
+    "plano-acao-correcao-front-end.md",
+    "prompt-codex-correcao-front-end.md",
+    "checklist-validacao-correcao-front-end.md",
+    "templates/correcao-front-end.template.md"
+  ]
+}

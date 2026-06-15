@@ -1,6 +1,6 @@
 import { Clock, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { useCheckin } from '@/context/CheckinContext';
+import { useCheckin } from '@/hooks/useCheckin';
 import { useAuth } from '@/context/AuthContext';
 
 export const CheckinButton = () => {

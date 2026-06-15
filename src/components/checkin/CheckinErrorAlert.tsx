@@ -1,7 +1,7 @@
 import { AlertCircle, RotateCcw, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { useCheckin } from '@/context/CheckinContext';
+import { useCheckin } from '@/hooks/useCheckin';
 
 export const CheckinErrorAlert = () => {
   const { state, retry, closeCheckin } = useCheckin();

@@ -2,7 +2,7 @@ import { Clock as ClockIcon, Fingerprint } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import Clock from "@/components/Clock";
-import { useCheckin } from "@/context/CheckinContext";
+import { useCheckin } from "@/hooks/useCheckin";
 
 interface DashboardOperationalClockProps {
   variant: "desktop" | "mobile";

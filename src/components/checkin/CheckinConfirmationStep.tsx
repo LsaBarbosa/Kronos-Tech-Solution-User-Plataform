@@ -1,7 +1,7 @@
 import { CheckCircle, Loader2, RefreshCcw, Send } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
-import { useCheckin } from '@/context/CheckinContext';
+import { useCheckin } from '@/hooks/useCheckin';
 import { format } from 'date-fns';
 import { ptBR } from 'date-fns/locale';
 

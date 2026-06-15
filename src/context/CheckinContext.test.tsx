@@ -1,6 +1,7 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { render, screen, waitFor, fireEvent } from '@testing-library/react';
-import { CheckinProvider, useCheckin } from './CheckinContext';
+import { CheckinProvider } from './CheckinContext';
+import { useCheckin } from '@/hooks/useCheckin';
 import type { ReactNode } from 'react';
 
 vi.mock('@/service/records.service', () => ({

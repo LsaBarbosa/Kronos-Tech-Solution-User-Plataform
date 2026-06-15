@@ -26,38 +26,46 @@ const AvisosPage = () => {
     navigate(APP_PATHS.dashboard);
   }, [navigate]);
 
+  const {
+    messages,
+    visibleMessages,
+    selectedMessage,
+    handleCloseDialog,
+    handleOpenMessage,
+  } = model;
+
   useEffect(() => {
-    if (model.messages.length === 0) {
-      if (model.selectedMessage) {
-        model.handleCloseDialog();
+    if (messages.length === 0) {
+      if (selectedMessage) {
+        handleCloseDialog();
       }
       return;
     }
 
     if (isDesktop) {
-      const selectedVisible = model.visibleMessages.some(
-        (message) => message.messageId === model.selectedMessage?.messageId
+      const selectedVisible = visibleMessages.some(
+        (message) => message.messageId === selectedMessage?.messageId
       );
 
-      if (!selectedVisible && model.visibleMessages.length > 0) {
-        model.handleOpenMessage(model.visibleMessages[0]);
+      if (!selectedVisible && visibleMessages.length > 0) {
+        handleOpenMessage(visibleMessages[0]);
       }
       return;
     }
 
     if (
-      model.selectedMessage &&
-      !model.visibleMessages.some((message) => message.messageId === model.selectedMessage?.messageId)
+      selectedMessage &&
+      !visibleMessages.some((message) => message.messageId === selectedMessage?.messageId)
     ) {
-      model.handleCloseDialog();
+      handleCloseDialog();
     }
   }, [
     isDesktop,
-    model.handleCloseDialog,
-    model.handleOpenMessage,
-    model.messages.length,
-    model.selectedMessage,
-    model.visibleMessages,
+    handleCloseDialog,
+    handleOpenMessage,
+    messages.length,
+    selectedMessage,
+    visibleMessages,
   ]);
 
   return (

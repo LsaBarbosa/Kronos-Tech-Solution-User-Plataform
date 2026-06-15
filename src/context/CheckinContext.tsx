@@ -1,6 +1,5 @@
 import {
   useCallback,
-  useContext,
   useMemo,
   useRef,
   useState,
@@ -281,14 +280,4 @@ export const CheckinProvider = ({ children }: { children: ReactNode }) => {
   );
 
   return <CheckinContext.Provider value={value}>{children}</CheckinContext.Provider>;
-};
-
-export const useCheckin = () => {
-  const context = useContext(CheckinContext);
-
-  if (!context) {
-    throw new Error('useCheckin deve ser usado dentro de CheckinProvider.');
-  }
-
-  return context;
 };

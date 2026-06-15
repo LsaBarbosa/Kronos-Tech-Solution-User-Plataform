@@ -1,7 +1,7 @@
 import { useEffect, useRef } from 'react';
 import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
 import { BiometricConsentGuard } from '@/components/BiometricConsentGuard';
-import { useCheckin } from '@/context/CheckinContext';
+import { useCheckin } from '@/hooks/useCheckin';
 import { CheckinLocationStep } from './CheckinLocationStep';
 import { CheckinCameraStep } from './CheckinCameraStep';
 import { CheckinConfirmationStep } from './CheckinConfirmationStep';

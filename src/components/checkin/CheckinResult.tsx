@@ -1,7 +1,7 @@
 import { CheckCircle, Clock } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { useCheckin } from '@/context/CheckinContext';
+import { useCheckin } from '@/hooks/useCheckin';
 
 export const CheckinResult = () => {
   const { state, closeCheckin, resetCheckin } = useCheckin();

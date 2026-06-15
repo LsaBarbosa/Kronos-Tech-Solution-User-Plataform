@@ -1,7 +1,7 @@
 import { Camera, RefreshCcw, Loader2 } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { Card, CardContent } from '@/components/ui/card';
-import { useCheckin } from '@/context/CheckinContext';
+import { useCheckin } from '@/hooks/useCheckin';
 import { captureFrameFromVideo, stopCameraStream } from '@/utils/camera.util';
 import { useEffect, useRef, useState } from 'react';
 

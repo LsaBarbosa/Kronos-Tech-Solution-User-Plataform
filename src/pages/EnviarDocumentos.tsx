@@ -1,8 +1,7 @@
 // src/pages/EnviarDocumentos.tsx
 
 import { useState, useCallback } from "react";
-import Header from "@/components/Header";
-import Sidebar from "@/components/Sidebar";
+import PageShell from "@/components/PageShell";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
@@ -13,10 +12,9 @@ import { Input } from "@/components/ui/input";
 // 💡 NOVO: Importa o hook customizado
 import { useDocumentUpload } from "@/hooks/useDocumentUpload";
 // 💡 NOVO: Importa utilitários de tipo
-import { ALLOWED_ACCEPT_STRING, ALLOWED_MIME_TYPES, MAX_UPLOAD_SIZE_BYTES } from "@/types/document"; 
+import { ALLOWED_ACCEPT_STRING, ALLOWED_MIME_TYPES, MAX_UPLOAD_SIZE_BYTES } from "@/types/document";
 
 const EnviarDocumentos = () => {
-  // 💡 Estado de UI (Sidebar) é o único estado mantido localmente
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const handleToggleSidebar = useCallback(() => setSidebarOpen((prev) => !prev), []);
   
@@ -36,52 +34,12 @@ const EnviarDocumentos = () => {
   } = useDocumentUpload();
 
   return (
- <div className="min-h-screen bg-background relative  overflow-hidden">
-      {/* Animated Background and Header/Sidebar components */}
-      <div className="fixed inset-0 z-0">
-        <div
-          className="absolute inset-0 opacity-5"
-          style={{
-            background: 'linear-gradient(-45deg, hsl(var(--black-primary)), hsl(var(--primary)), hsl(var(--black-primary)), hsl(var(--primary)))',
-            backgroundSize: '400% 400%',
-            animation: 'gradient-flow 15s ease-in-out infinite'
-          }}
-        />
-        <div className="absolute inset-0">
-          <div
-            className="absolute top-1/4 left-1/4 w-32 h-32 opacity-3"
-            style={{
-              background: 'linear-gradient(135deg, hsl(var(--primary) / 0.50), transparent)',
-              borderRadius: '30% 70% 70% 30% / 30% 30% 70% 70%',
-              animation: 'float-shapes 20s ease-in-out infinite'
-            }}
-          />
-          <div
-            className="absolute top-3/4 right-1/4 w-48 h-48 opacity-2"
-            style={{
-              background: 'linear-gradient(45deg, hsl(var(--black-primary) / 0.50), transparent)',
-              borderRadius: '70% 30% 30% 70% / 70% 70% 30% 30%',
-              animation: 'float-shapes 25s ease-in-out infinite reverse'
-            }}
-          />
-          <div
-            className="absolute top-1/2 right-1/3 w-24 h-24 opacity-4"
-            style={{
-              background: 'radial-gradient(circle, hsl(var(--primary) / 0.50), transparent)',
-              borderRadius: '50%',
-              animation: 'float-shapes 18s ease-in-out infinite 5s'
-            }}
-          />
-        </div>
-      </div>
-
-    <Sidebar isOpen={sidebarOpen} toggleSidebar={handleToggleSidebar} />
-
-      <div className="flex-1 flex flex-col overflow-hidden">
-        {/* 💡 CORREÇÃO: Header usa 'toggleSidebar' */}
-        <Header toggleSidebar={handleToggleSidebar} />
-
-      <main className="pt-16 mobile-container py-4 sm:py-20 space-y-6 sm:space-y-8 relative z-10">
+    <PageShell
+      sidebarOpen={sidebarOpen}
+      toggleSidebar={handleToggleSidebar}
+      mainClassName="pt-24 sm:pt-32 mobile-container pb-12 px-4 sm:px-6 lg:px-8 space-y-6 sm:space-y-8 relative z-10 bg-[#F8FAFC] overflow-x-hidden"
+    >
+      <div className="mx-auto w-full max-w-3xl space-y-6">
           <div className="flex items-center gap-4 mb-8">
             <div className="flex items-center gap-3">
               <div className="p-2 bg-primary/10 rounded-lg">
@@ -95,8 +53,7 @@ const EnviarDocumentos = () => {
               </div>
             </div>
           </div>
-          
-          <div className="max-w-xl mx-auto space-y-6">
+
             <Card className="border-l-4 border-l-primary shadow-card">
               <CardHeader className="bg-gradient-to-r from-primary/5 to-primary/10 border-b border-border">
                 <CardTitle className="text-xl text-foreground">Upload de Arquivo</CardTitle>
@@ -209,10 +166,8 @@ const EnviarDocumentos = () => {
                 </div>
               </CardContent>
             </Card>
-          </div>
-        </main>
       </div>
-    </div>
+    </PageShell>
   );
 };
 

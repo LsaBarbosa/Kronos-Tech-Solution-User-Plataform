@@ -3,13 +3,13 @@ import { render, screen } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 import RelatorioDetalhado from "./RelatorioDetalhado";
 import { useAuth } from "@/context/AuthContext";
-import { useCheckin } from "@/context/CheckinContext";
+import { useCheckin } from "@/hooks/useCheckin";
 
 vi.mock("@/context/AuthContext", () => ({
   useAuth: vi.fn(),
 }));
 
-vi.mock("@/context/CheckinContext", () => ({
+vi.mock("@/hooks/useCheckin", () => ({
   useCheckin: vi.fn(),
 }));
 
