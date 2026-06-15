@@ -99,23 +99,27 @@ export const ReportResultsSummary = ({
 
       <CardContent className="space-y-4 p-4">
         <div className="grid gap-3 sm:grid-cols-2 xl:grid-cols-4">
-          <div className="rounded-2xl border border-[#D8E2EC] bg-[#F5F8FB] px-4 py-3">
+          <div className="min-w-0 rounded-2xl border border-[#D8E2EC] bg-[#F5F8FB] px-4 py-3">
             <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[#627D98]">Horas trabalhadas</p>
             <p className="mt-1 text-2xl font-bold text-[#102A43]">{summary.totalWorkedHours}</p>
           </div>
-          <div className="rounded-2xl border border-[#D8E2EC] bg-[#F5F8FB] px-4 py-3">
+          <div className="min-w-0 rounded-2xl border border-[#D8E2EC] bg-[#F5F8FB] px-4 py-3">
             <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[#627D98]">Saldo do período</p>
             <p className={cn("mt-1 text-2xl font-bold", summary.totalBalance.startsWith("-") ? "text-[#D64545]" : "text-[#1C8C7C]")}>
               {summary.totalBalance}
             </p>
           </div>
-          <div className="rounded-2xl border border-[#D8E2EC] bg-[#F5F8FB] px-4 py-3">
+          <div className="min-w-0 rounded-2xl border border-[#D8E2EC] bg-[#F5F8FB] px-4 py-3">
             <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[#627D98]">Status mais recorrente</p>
-            <p className="mt-1 text-base font-semibold text-[#102A43]">{summary.mostRecurringStatus}</p>
+            <p className="mt-1 break-words text-sm font-semibold leading-5 text-[#102A43]">
+              {summary.mostRecurringStatus}
+            </p>
           </div>
-          <div className="rounded-2xl border border-[#D8E2EC] bg-[#F5F8FB] px-4 py-3">
+          <div className="min-w-0 rounded-2xl border border-[#D8E2EC] bg-[#F5F8FB] px-4 py-3">
             <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[#627D98]">Período</p>
-            <p className="mt-1 text-sm font-semibold text-[#102A43]">{summary.periodLabel}</p>
+            <p className="mt-1 break-words text-sm font-semibold leading-5 text-[#102A43]">
+              {summary.periodLabel}
+            </p>
           </div>
         </div>
 

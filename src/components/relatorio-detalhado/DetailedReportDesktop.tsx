@@ -135,6 +135,15 @@ export const DetailedReportDesktop = ({ viewModel }: DetailedReportDesktopProps)
             onScrollToResults={scrollToResults}
             summaryLabel={viewModel.selectionSummary}
           />
+
+          <ReportResultsSummary
+            searchState={searchState}
+            summary={reportSummary}
+            errorMessage={searchError}
+            onDownloadPDF={handleDownloadPDF}
+            onDownloadCSV={handleDownloadCSV}
+            hasResults={hasResults}
+          />
         </div>
 
         <div className="space-y-6 min-w-0">
@@ -153,15 +162,6 @@ export const DetailedReportDesktop = ({ viewModel }: DetailedReportDesktopProps)
             selectedEmployeeLabel={selectedEmployeeLabel}
             selectedStatusesCount={selectedStatuses.length}
             reportActive={reportActive}
-          />
-
-          <ReportResultsSummary
-            searchState={searchState}
-            summary={reportSummary}
-            errorMessage={searchError}
-            onDownloadPDF={handleDownloadPDF}
-            onDownloadCSV={handleDownloadCSV}
-            hasResults={hasResults}
           />
         </div>
       </div>
