@@ -1,6 +1,5 @@
 import HeaderBrand from "./HeaderBrand";
 import HeaderNav from "./HeaderNav";
-import HeaderRouteContext from "./HeaderRouteContext";
 import HeaderNotifications from "./HeaderNotifications";
 import HeaderAccountMenu from "./HeaderAccountMenu";
 
@@ -27,10 +26,6 @@ const HeaderDesktop = ({
     <div className="mx-auto flex h-16 max-w-[1600px] items-center gap-4 px-4 sm:px-6">
       <div className="flex min-w-0 items-center gap-3">
         <HeaderBrand variant="desktop" />
-        <span aria-hidden="true" className="hidden h-6 w-px shrink-0 bg-[#E2E8F0] sm:block" />
-        <div className="hidden min-w-0 items-center gap-3 sm:flex">
-          <HeaderRouteContext variant="desktop" />
-        </div>
       </div>
 
       <div className="flex min-w-0 flex-1 justify-center">

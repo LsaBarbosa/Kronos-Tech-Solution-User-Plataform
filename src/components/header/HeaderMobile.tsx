@@ -1,6 +1,5 @@
 import HeaderBrand from "./HeaderBrand";
 import HeaderNav from "./HeaderNav";
-import HeaderRouteContext from "./HeaderRouteContext";
 import HeaderNotifications from "./HeaderNotifications";
 import HeaderAccountMenu from "./HeaderAccountMenu";
 
@@ -27,11 +26,7 @@ const HeaderMobile = ({
     <div className="flex h-16 items-center gap-2 px-3 sm:px-4">
       <HeaderNav role={role} variant="mobile" />
       <HeaderBrand variant="mobile" />
-      <div className="ml-2 flex min-w-0 flex-1 items-center gap-2">
-        <div className="min-w-0">
-          <HeaderRouteContext variant="mobile" />
-        </div>
-      </div>
+      <div className="ml-2 flex min-w-0 flex-1" />
       <div className="flex shrink-0 items-center gap-1.5">
         <HeaderNotifications
           pendingCount={pendingCount}
