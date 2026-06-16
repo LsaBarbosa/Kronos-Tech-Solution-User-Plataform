@@ -55,9 +55,9 @@ const renderFaceLoginModal = () =>
 const captureFace = async () => {
   const user = userEvent.setup();
 
-  const video = await screen.findByText("Capturar Rosto").then(() =>
-    document.querySelector("video")
-  );
+  const video = await screen
+    .findByRole("button", { name: /capturar rosto/i })
+    .then(() => document.querySelector("video"));
 
   expect(video).not.toBeNull();
   fireEvent.loadedMetadata(video as HTMLVideoElement);

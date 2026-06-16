@@ -6,7 +6,6 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { FieldGroup, FormInput, PasswordInput } from "@/components/ui";
 import FaceLoginModal from "@/components/FaceLoginModal";
-import { BiometricConsentGuard } from "@/components/BiometricConsentGuard";
 import { useAuth } from "@/context/AuthContext";
 import { loginWithPassword } from "@/service/auth.service";
 import { getServiceErrorMessage } from "@/service/helpers/service-error.helper";
@@ -135,9 +134,7 @@ const LoginForm = () => {
       </Card>
 
       {isFaceLoginOpen ? (
-        <BiometricConsentGuard onCancel={() => setIsFaceLoginOpen(false)}>
-          <FaceLoginModal isOpen={isFaceLoginOpen} onOpenChange={setIsFaceLoginOpen} />
-        </BiometricConsentGuard>
+        <FaceLoginModal isOpen={isFaceLoginOpen} onOpenChange={setIsFaceLoginOpen} />
       ) : null}
     </>
   );
