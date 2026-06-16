@@ -30,9 +30,9 @@ vi.mock("@/service/csrf.service", () => ({
   preloadCsrfToken: vi.fn().mockResolvedValue(undefined),
 }));
 
-vi.mock("@/utils/report-export", () => ({
-  loadPdfLibraries: vi.fn(),
-  downloadCsvFile: vi.fn(),
+vi.mock("@/features/detailed-report-export", () => ({
+  downloadDetailedReportPdf: vi.fn(),
+  downloadDetailedReportCsv: vi.fn(),
 }));
 
 const mockUseAuth = vi.mocked(useAuth);

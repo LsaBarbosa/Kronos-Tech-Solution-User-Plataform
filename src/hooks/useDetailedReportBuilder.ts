@@ -15,8 +15,11 @@ import {
 import type { DetailedReportItem, Employee, EditRecordFormData, Manager } from "@/utils/report-utils";
 import { editRecordSchema } from "@/utils/report-utils";
 import { getRoleMeta, isValidReferenceTime, summarizeDetailedReport, formatSelectedDatesLabel, buildSelectionSummary, type ReportRoleMeta, type ReportSearchState, type ReportSummary } from "@/components/relatorio-detalhado/report-ui.helpers";
-import { loadPdfLibraries, downloadCsvFile } from "@/utils/report-export";
-import { formatDateWithDayOfWeek, getTranslatedStatus, isHoliday } from "@/utils/report-utils";
+import {
+  downloadDetailedReportPdf,
+  downloadDetailedReportCsv,
+  type ReportExportPayload,
+} from "@/features/detailed-report-export";
 
 export type EmployeeScope = "active" | "inactive";
 
@@ -313,251 +316,75 @@ export const useDetailedReportBuilder = (): DetailedReportBuilderViewModel => {
     await executeSearch();
   }, [executeSearch]);
 
+  const buildExportPayload = useCallback((): ReportExportPayload | null => {
+    if (!reportData.length) return null;
+
+    const isSelfReport = isPartner;
+    const profile = user?.profile;
+
+    return {
+      records: reportData,
+      identity: {
+        companyName: reportData[0]?.employeeData?.companyName || profile?.companyName || "",
+        companyCnpj: null,
+        employeeName: reportData[0]?.employeeData?.employeeName || profile?.fullName || "",
+        employeeMaskedCpf: profile?.maskedCpf ?? null,
+        employeeJobPosition: profile?.jobPosition ?? null,
+        referenceTime,
+        employeeId: reportData[0]?.employeeId ?? null,
+        isSelfReport,
+      },
+      context: {
+        selectedDates,
+        selectedStatuses,
+        reportActive,
+        role: normalizedRole,
+        generatedByUsername: user?.account?.username ?? null,
+        generatedAt: new Date(),
+      },
+    };
+  }, [
+    isPartner,
+    normalizedRole,
+    referenceTime,
+    reportActive,
+    reportData,
+    selectedDates,
+    selectedStatuses,
+    user,
+  ]);
+
   const handleDownloadPDF = useCallback(async () => {
-    if (!reportData.length) {
+    const payload = buildExportPayload();
+    if (!payload) {
       toast({ title: "Erro", description: "Não há dados para gerar o PDF.", variant: "destructive" });
       return;
     }
-
-    const { jsPDF, autoTable } = await loadPdfLibraries();
-    const doc = new jsPDF();
-
-    const PRIMARY_COLOR: [number, number, number] = [16, 42, 67];
-    const ACCENT_COLOR: [number, number, number] = [31, 78, 95];
-    const TEXT_COLOR: [number, number, number] = [51, 65, 85];
-    const LABEL_COLOR: [number, number, number] = [98, 125, 152];
-    const BG_LIGHT: [number, number, number] = [245, 248, 251];
-
-    const getStatusRGB = (status: string): [number, number, number] => {
-      switch (status) {
-        case "CREATED":
-          return [22, 163, 74];
-        case "UPDATED":
-          return [37, 99, 235];
-        case "PENDING":
-          return [234, 179, 8];
-        case "ABSENCE":
-          return [220, 38, 38];
-        case "DAY_OFF":
-          return [100, 116, 139];
-        case "TIME_OFF":
-          return [147, 51, 234];
-        case "VACATION":
-          return [13, 148, 136];
-        case "IMPLICIT_BREAK":
-          return [156, 163, 175];
-        case "PENDING_APPROVAL":
-          return [249, 115, 22];
-        default:
-          return [71, 85, 105];
-      }
-    };
-
-    const timeToMinutes = (value: string) => {
-      if (!value || value === "--:--") {
-        return 0;
-      }
-
-      const sign = value.startsWith("-") ? -1 : 1;
-      const parts = value.replace("-", "").split(":");
-      if (parts.length !== 2) {
-        return 0;
-      }
-
-      const [hours, minutes] = parts.map(Number);
-      return sign * ((hours * 60) + minutes);
-    };
-
-    const minutesToTime = (totalMinutes: number) => {
-      const sign = totalMinutes < 0 ? "-" : "";
-      const absMinutes = Math.abs(totalMinutes);
-      const hours = Math.floor(absMinutes / 60);
-      const minutes = absMinutes % 60;
-      return `${sign}${String(hours).padStart(2, "0")}:${String(minutes).padStart(2, "0")}`;
-    };
-
-    const parseReportDate = (value: string) => {
-      const [day, month, year] = value.split("-").map(Number);
-      if (!day || !month || !year) {
-        return null;
-      }
-
-      const date = new Date(year, month - 1, day);
-      return Number.isNaN(date.getTime()) ? null : date;
-    };
-
-    let totalMinutesWorked = 0;
-    let totalMinutesBalance = 0;
-
-    reportData.forEach((item) => {
-      if (item.statusRecord !== "IMPLICIT_BREAK" && item.statusRecord !== "PENDING") {
-        totalMinutesWorked += timeToMinutes(item.hoursWork);
-        totalMinutesBalance += timeToMinutes(item.balance);
-      }
-    });
-
-    const fileName = `relatorio_detalhado_${format(new Date(), "yyyyMMdd_HHmmss")}.pdf`;
-    const employeeName = reportData[0]?.employeeData?.employeeName || "N/A";
-    const companyName = reportData[0]?.employeeData?.companyName || "N/A";
-    const periodStart = selectedDates[0] ? format(selectedDates[0], "dd/MM/yyyy") : "-";
-    const periodEnd = selectedDates[selectedDates.length - 1] ? format(selectedDates[selectedDates.length - 1], "dd/MM/yyyy") : "-";
-
-    doc.setFillColor(PRIMARY_COLOR[0], PRIMARY_COLOR[1], PRIMARY_COLOR[2]);
-    doc.rect(14, 15, 2, 12, "F");
-
-    doc.setFont("helvetica", "bold");
-    doc.setFontSize(22);
-    doc.setTextColor(TEXT_COLOR[0], TEXT_COLOR[1], TEXT_COLOR[2]);
-    doc.text("Relatório de Ponto", 20, 24);
-
-    doc.setFont("helvetica", "normal");
-    doc.setFontSize(9);
-    doc.setTextColor(LABEL_COLOR[0], LABEL_COLOR[1], LABEL_COLOR[2]);
-    doc.text(`Gerado em: ${format(new Date(), "dd/MM/yyyy HH:mm")}`, 196, 24, { align: "right" });
-
-    const boxY = 32;
-    const boxHeight = 35;
-    doc.setFillColor(BG_LIGHT[0], BG_LIGHT[1], BG_LIGHT[2]);
-    doc.setDrawColor(226, 232, 240);
-    doc.roundedRect(14, boxY, 182, boxHeight, 2, 2, "FD");
-
-    const col1X = 20;
-    doc.setFontSize(8);
-    doc.setTextColor(LABEL_COLOR[0], LABEL_COLOR[1], LABEL_COLOR[2]);
-    doc.text("EMPRESA", col1X, boxY + 8);
-    doc.setFontSize(10);
-    doc.setFont("helvetica", "bold");
-    doc.setTextColor(TEXT_COLOR[0], TEXT_COLOR[1], TEXT_COLOR[2]);
-    doc.text(companyName.toUpperCase(), col1X, boxY + 13);
-
-    doc.setFontSize(8);
-    doc.setFont("helvetica", "normal");
-    doc.setTextColor(LABEL_COLOR[0], LABEL_COLOR[1], LABEL_COLOR[2]);
-    doc.text("COLABORADOR", col1X, boxY + 23);
-    doc.setFontSize(10);
-    doc.setFont("helvetica", "bold");
-    doc.setTextColor(TEXT_COLOR[0], TEXT_COLOR[1], TEXT_COLOR[2]);
-    doc.text(employeeName.toUpperCase(), col1X, boxY + 28);
-
-    const col2X = 110;
-    const col3X = 155;
-    doc.setFontSize(8);
-    doc.setFont("helvetica", "normal");
-    doc.setTextColor(LABEL_COLOR[0], LABEL_COLOR[1], LABEL_COLOR[2]);
-    doc.text("PERÍODO SELECIONADO", col2X, boxY + 8);
-    doc.setFontSize(10);
-    doc.setFont("helvetica", "bold");
-    doc.setTextColor(TEXT_COLOR[0], TEXT_COLOR[1], TEXT_COLOR[2]);
-    doc.text(`${periodStart} a ${periodEnd}`, col2X, boxY + 13);
-
-    doc.setFontSize(8);
-    doc.setFont("helvetica", "normal");
-    doc.setTextColor(LABEL_COLOR[0], LABEL_COLOR[1], LABEL_COLOR[2]);
-    doc.text("TOTAL TRABALHADO", col2X, boxY + 23);
-    doc.text("SALDO DO PERÍODO", col3X, boxY + 23);
-
-    doc.setFontSize(12);
-    doc.setFont("helvetica", "bold");
-    doc.setTextColor(TEXT_COLOR[0], TEXT_COLOR[1], TEXT_COLOR[2]);
-    doc.text(minutesToTime(totalMinutesWorked), col2X, boxY + 29);
-
-    doc.setTextColor(totalMinutesBalance < 0 ? 220 : 22, totalMinutesBalance < 0 ? 38 : 163, totalMinutesBalance < 0 ? 38 : 74);
-    doc.text(minutesToTime(totalMinutesBalance), col3X, boxY + 29);
-
-    const tableBody = reportData.map((item) => {
-      const isBreak = item.statusRecord === "IMPLICIT_BREAK";
-      const isPending = item.statusRecord === "PENDING";
-      const formattedDateStart = formatDateWithDayOfWeek(item.startWork);
-      const formattedDateEnd = isPending ? "-" : formatDateWithDayOfWeek(item.endWork);
-      const displayEndHour = isPending ? "--:--" : item.endHour;
-      const displayDuration = isPending ? "--:--" : item.hoursWork;
-      const displayBalance = isBreak || isPending ? "00:00" : item.balance;
-      const colInicio = `${formattedDateStart}\n${item.startHour}`;
-      const colFim = isPending ? "Em andamento" : `${formattedDateEnd}\n${displayEndHour}`;
-      const statusRGB = getStatusRGB(item.statusRecord);
-      const parsedDate = parseReportDate(item.startWork);
-      const isItemHoliday = parsedDate ? isHoliday(parsedDate) : false;
-      const statusLabel = getTranslatedStatus(item.statusRecord);
-
-      return [
-        { content: colInicio, styles: { halign: "center" } },
-        { content: colFim, styles: { halign: "center" } },
-        { content: displayDuration, styles: { halign: "center" } },
-        { content: displayBalance, styles: { halign: "center" } },
-        {
-          content: isItemHoliday ? `${statusLabel} (FERIADO)` : statusLabel,
-          styles: {
-            fontStyle: "bold",
-            textColor: [255, 255, 255],
-            fillColor: statusRGB,
-            halign: "center",
-            cellPadding: 3,
-          },
-        },
-      ];
-    });
-
-    autoTable(doc, {
-      startY: boxY + boxHeight + 10,
-      head: [["Início da Jornada", "Fim da Jornada", "Duração", "Saldo", "Status"]],
-      body: tableBody,
-      theme: "grid",
-      styles: {
-        fontSize: 9,
-        cellPadding: 4,
-        valign: "middle",
-        lineWidth: 0,
-        lineColor: [226, 232, 240],
-      },
-      headStyles: {
-        fillColor: ACCENT_COLOR,
-        textColor: 255,
-        fontStyle: "bold",
-        halign: "center",
-        cellPadding: 5,
-        lineWidth: 0,
-      },
-      columnStyles: {
-        0: { cellWidth: 45 },
-        1: { cellWidth: 45 },
-        2: { cellWidth: 25 },
-        3: { cellWidth: 25 },
-        4: { cellWidth: "auto", fontStyle: "bold" },
-      },
-      alternateRowStyles: {
-        fillColor: [249, 250, 251],
-      },
-    });
-
-    doc.save(fileName);
-  }, [reportData, selectedDates, toast]);
+    try {
+      await downloadDetailedReportPdf(payload);
+      toast({ title: "PDF gerado", description: "Relatório detalhado baixado em PDF." });
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Falha ao gerar o PDF.";
+      console.error("Erro ao gerar PDF:", error);
+      toast({ title: "Erro", description: message, variant: "destructive" });
+    }
+  }, [buildExportPayload, toast]);
 
   const handleDownloadCSV = useCallback(async () => {
-    if (!reportData.length) {
+    const payload = buildExportPayload();
+    if (!payload) {
       toast({ title: "Erro", description: "Não há dados para gerar o CSV.", variant: "destructive" });
       return;
     }
-
-    const headers = ["Data Início", "Hora Início", "Data Fim", "Hora Fim", "Duração", "Saldo", "Status", "Funcionário", "Empresa"];
-    const rows = reportData.map((item) => {
-      const isPending = item.statusRecord === "PENDING";
-      return [
-        item.startWork,
-        item.startHour,
-        isPending ? "" : item.endWork,
-        isPending ? "" : item.endHour,
-        isPending ? "" : item.hoursWork,
-        item.statusRecord === "IMPLICIT_BREAK" || isPending ? "00:00" : item.balance,
-        getTranslatedStatus(item.statusRecord),
-        item.employeeData.employeeName,
-        item.employeeData.companyName,
-      ];
-    });
-
-    const fileName = `relatorio_detalhado_csv_${format(new Date(), "yyyyMMdd_HHmmss")}.csv`;
-    downloadCsvFile(rows, headers, fileName);
-    toast({ title: "CSV Gerado", description: "Relatório detalhado baixado em formato CSV!" });
-  }, [reportData, toast]);
+    try {
+      downloadDetailedReportCsv(payload);
+      toast({ title: "CSV gerado", description: "Relatório detalhado baixado em CSV." });
+    } catch (error) {
+      const message = error instanceof Error ? error.message : "Falha ao gerar o CSV.";
+      console.error("Erro ao gerar CSV:", error);
+      toast({ title: "Erro", description: message, variant: "destructive" });
+    }
+  }, [buildExportPayload, toast]);
 
   const handleEditRecord = useCallback(
     (record: DetailedReportItem) => {
