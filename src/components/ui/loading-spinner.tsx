@@ -29,7 +29,7 @@ const LoadingSpinner = React.forwardRef<HTMLDivElement, LoadingSpinnerProps>(
           aria-hidden="true"
         />
         {label && <p className="text-sm text-muted-foreground">{label}</p>}
-        <span className="sr-only">Loading...</span>
+        <span className="sr-only">Carregando...</span>
       </div>
     )
   }

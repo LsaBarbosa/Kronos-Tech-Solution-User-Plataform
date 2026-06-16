@@ -27,7 +27,7 @@ const DPOContactCard: React.FC = () => {
               <div className="flex items-center gap-2">
                 <Mail className="h-4 w-4 text-primary" />
                 <div>
-                  <p className="text-sm font-medium">Email</p>
+                  <p className="text-sm font-medium">E-mail</p>
                   <a
                     href="mailto:dpo@kronos-tech.com.br"
                     className="text-sm text-primary hover:underline"

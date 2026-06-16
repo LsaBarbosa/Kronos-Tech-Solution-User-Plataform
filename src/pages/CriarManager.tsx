@@ -159,7 +159,7 @@ const CriarManager = () => {
 
                                         <FormField control={form.control} name="email" render={({ field }) => (
                                             <FormItem>
-                                                <FormLabel className="text-base font-semibold">Email</FormLabel>
+                                                <FormLabel className="text-base font-semibold">E-mail</FormLabel>
                                                 <FormControl><Input type="email" placeholder="email@exemplo.com" className="h-12 text-base" {...field} /></FormControl>
                                                 <FormMessage />
                                             </FormItem>

@@ -363,7 +363,7 @@ const CreateCollaboratorDesktop = ({ vm }: CreateCollaboratorDesktopProps) => {
                     name="email"
                     render={({ field }) => (
                       <FormItem className="min-w-0">
-                        <FormLabel>Email</FormLabel>
+                        <FormLabel>E-mail</FormLabel>
                         <FormControl>
                           <Input type="email" placeholder="nome@empresa.com" className="h-12 rounded-xl" {...field} />
                         </FormControl>
@@ -764,7 +764,7 @@ const CreateCollaboratorDesktop = ({ vm }: CreateCollaboratorDesktopProps) => {
                   <StatusBadge
                     label={vm.savedEmployeeId ? "Liberado" : "Bloqueado"}
                     tone={vm.savedEmployeeId ? "success" : "warning"}
-                    description={vm.savedEmployeeId ? "EmployeeId disponível." : "Aguarde o passo 1."}
+                    description={vm.savedEmployeeId ? "ID do colaborador disponível." : "Aguarde o passo 1."}
                   />
                 </div>
               </CardHeader>
@@ -802,7 +802,7 @@ const CreateCollaboratorDesktop = ({ vm }: CreateCollaboratorDesktopProps) => {
                   render={({ field }) => (
                     <FormItem>
                       <div className="flex items-center justify-between gap-3">
-                        <FormLabel>Username</FormLabel>
+                        <FormLabel>Nome de usuário</FormLabel>
                         <StatusBadge
                           label={usernameBadge.label}
                           tone={usernameBadge.tone}

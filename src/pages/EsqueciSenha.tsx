@@ -82,11 +82,11 @@ const EsqueciSenha = () => {
                   name="email"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Email</FormLabel>
+                      <FormLabel>E-mail</FormLabel>
                       <div className="relative">
                         <FormControl>
-                          <Input 
-                            placeholder="seu.email@exemplo.com" 
+                          <Input
+                            placeholder="seu.email@exemplo.com"
                             type="email"
                             {...field}
                           />

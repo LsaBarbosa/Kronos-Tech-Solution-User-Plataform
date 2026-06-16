@@ -153,7 +153,7 @@ const CriarEmpresa = () => {
                               {...field}
                             />
                           </FormControl>
-                          <FormDescription>Email principal da empresa</FormDescription>
+                          <FormDescription>E-mail principal da empresa</FormDescription>
                           <FormMessage />
                         </FormItem>
                       )}

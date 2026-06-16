@@ -123,7 +123,7 @@ const BuscarEmpresa = () => {
                       <TableRow>
                         <TableHead>Nome</TableHead>
                         <TableHead>CNPJ</TableHead>
-                        <TableHead>Email</TableHead>
+                        <TableHead>E-mail</TableHead>
                         <TableHead>Status</TableHead>
                         <TableHead>Endereço</TableHead>
                         <TableHead className="text-right">Ações</TableHead>
@@ -233,9 +233,9 @@ const BuscarEmpresa = () => {
                   name="email"
                   render={({ field }) => (
                     <FormItem>
-                      <FormLabel>Email</FormLabel>
+                      <FormLabel>E-mail</FormLabel>
                       <FormControl>
-                        <Input placeholder="Digite o email" type="email" {...field} />
+                        <Input placeholder="Digite o e-mail" type="email" {...field} />
                       </FormControl>
                       <FormMessage />
                     </FormItem>

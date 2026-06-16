@@ -46,12 +46,12 @@ const VacationManagerSelector = ({
       <div className="flex items-start justify-between gap-3">
         <div className="space-y-1">
           <p className="text-xs font-semibold uppercase tracking-[0.18em] text-[#64748B]">
-            Manager responsável
+            Gestor responsável
           </p>
           <p className="text-sm leading-6 text-[#64748B]">
             {compact
               ? "Quem vai aprovar sua solicitação."
-              : "Escolha o manager que vai analisar o período solicitado."}
+              : "Escolha o gestor que vai analisar o período solicitado."}
           </p>
         </div>
         {isLoadingManagers ? (
@@ -68,12 +68,12 @@ const VacationManagerSelector = ({
         disabled={isLoadingManagers || isSubmitting || managerOptions.length === 0}
       >
         <SelectTrigger className="h-11 border-[#E2E8F0] bg-white text-[#0F172A]">
-          <SelectValue placeholder="Selecionar manager" />
+          <SelectValue placeholder="Selecionar gestor" />
         </SelectTrigger>
         <SelectContent>
           {managerOptions.length === 0 ? (
             <SelectItem value="__empty__" disabled>
-              Nenhum manager disponível
+              Nenhum gestor disponível
             </SelectItem>
           ) : (
             managerOptions.map((manager) => {
