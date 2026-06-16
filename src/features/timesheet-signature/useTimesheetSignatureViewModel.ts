@@ -25,12 +25,19 @@ const extractBackendMessage = (error: unknown): string | undefined => {
   return data?.message ?? data?.detail ?? normalized.message;
 };
 
+export interface SelectedPeriod {
+  year: number;
+  month: number;
+}
+
 export interface TimesheetSignatureViewModel {
   isLoading: boolean;
   isSubmitting: boolean;
   isPreviewLoading: boolean;
   status: PreviousMonthSignatureStatus | null;
   lastSignature: SignPreviousMonthResponse | null;
+  selectedPeriod: SelectedPeriod | null;
+  setSelectedPeriod: (period: SelectedPeriod | null) => void;
   refresh: () => Promise<void>;
   preview: () => Promise<void>;
   sign: (password: string) => Promise<boolean>;
@@ -62,11 +69,15 @@ export const useTimesheetSignatureViewModel = (): TimesheetSignatureViewModel =>
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [isPreviewLoading, setIsPreviewLoading] = useState(false);
   const [hasPreviewed, setHasPreviewed] = useState(false);
+  const [selectedPeriod, setSelectedPeriodState] = useState<SelectedPeriod | null>(null);
 
   const refresh = useCallback(async () => {
     setIsLoading(true);
     try {
-      const data = await TimesheetSignatureService.getPreviousMonthStatus();
+      const data = await TimesheetSignatureService.getMonthStatus(
+        selectedPeriod?.year,
+        selectedPeriod?.month
+      );
       setStatus(data);
       setHasPreviewed(false);
     } catch (error) {
@@ -78,28 +89,37 @@ export const useTimesheetSignatureViewModel = (): TimesheetSignatureViewModel =>
     } finally {
       setIsLoading(false);
     }
-  }, [toast]);
+  }, [selectedPeriod, toast]);
 
   useEffect(() => {
     void refresh();
   }, [refresh]);
 
+  const setSelectedPeriod = useCallback((period: SelectedPeriod | null) => {
+    setSelectedPeriodState(period);
+    setHasPreviewed(false);
+    setStatus(null);
+  }, []);
+
   const preview = useCallback(async () => {
     setIsPreviewLoading(true);
     try {
-      const { blob } = await TimesheetSignatureService.fetchPreviousMonthPreviewPdf();
+      const { blob } = await TimesheetSignatureService.fetchMonthPreviewPdf(
+        selectedPeriod?.year,
+        selectedPeriod?.month
+      );
       setHasPreviewed(true);
       openBlobInNewTab(blob);
     } catch (error) {
       toast({
         variant: "destructive",
-        title: "Não foi possível abrir o espelho do mês anterior",
+        title: "Não foi possível abrir o espelho do período selecionado",
         description: extractBackendMessage(error) ?? "Tente novamente em instantes.",
       });
     } finally {
       setIsPreviewLoading(false);
     }
-  }, [toast]);
+  }, [selectedPeriod, toast]);
 
   const sign = useCallback(
     async (password: string): Promise<boolean> => {
@@ -125,7 +145,7 @@ export const useTimesheetSignatureViewModel = (): TimesheetSignatureViewModel =>
         toast({
           variant: "destructive",
           title: "Não foi possível assinar",
-          description: "Hash dos registros não foi resolvido. Recarregue a tela.",
+          description: "O resumo criptográfico dos registros não foi resolvido. Recarregue a tela.",
         });
         return false;
       }
@@ -133,6 +153,8 @@ export const useTimesheetSignatureViewModel = (): TimesheetSignatureViewModel =>
       setIsSubmitting(true);
       try {
         const response = await TimesheetSignatureService.sign({
+          referenceYear: status.referenceYear,
+          referenceMonth: status.referenceMonth,
           confirmed: true,
           declarationVersion: status.declarationVersion,
           declarationHashSha256: status.declarationHashSha256,
@@ -142,7 +164,7 @@ export const useTimesheetSignatureViewModel = (): TimesheetSignatureViewModel =>
         setLastSignature(response);
         toast({
           title: "Assinatura registrada",
-          description: `Hash: ${response.pointMirrorHashSha256.slice(0, 16)}…`,
+          description: `Resumo SHA-256: ${response.pointMirrorHashSha256.slice(0, 16)}…`,
         });
         await refresh();
         return true;
@@ -196,11 +218,25 @@ export const useTimesheetSignatureViewModel = (): TimesheetSignatureViewModel =>
       isPreviewLoading,
       status,
       lastSignature,
+      selectedPeriod,
+      setSelectedPeriod,
       refresh,
       preview,
       sign,
       downloadSigned,
     }),
-    [isLoading, isPreviewLoading, isSubmitting, lastSignature, preview, refresh, sign, status, downloadSigned]
+    [
+      downloadSigned,
+      isLoading,
+      isPreviewLoading,
+      isSubmitting,
+      lastSignature,
+      preview,
+      refresh,
+      selectedPeriod,
+      setSelectedPeriod,
+      sign,
+      status,
+    ]
   );
 };

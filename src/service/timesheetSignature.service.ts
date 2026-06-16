@@ -12,25 +12,31 @@ import type {
 
 const root = (path: string) => buildRoute(API_ROUTES.RECORDS, path);
 
+const periodParams = (year?: number, month?: number): Record<string, number> | undefined =>
+  year !== undefined && year !== null && month !== undefined && month !== null
+    ? { year, month }
+    : undefined;
+
 export const TimesheetSignatureService = {
-  async getPreviousMonthStatus(): Promise<PreviousMonthSignatureStatus> {
+  async getMonthStatus(year?: number, month?: number): Promise<PreviousMonthSignatureStatus> {
     const response = await api.get<PreviousMonthSignatureStatus>(
-      root(TIMESHEET_SIGNATURE_PATHS.PREVIOUS_MONTH_STATUS)
+      root(TIMESHEET_SIGNATURE_PATHS.STATUS),
+      { params: periodParams(year, month) }
     );
     return response.data;
   },
 
-  async fetchPreviousMonthPreviewPdf(): Promise<{ blob: Blob }> {
+  async fetchMonthPreviewPdf(year?: number, month?: number): Promise<{ blob: Blob }> {
     const response = await api.get<Blob>(
-      root(TIMESHEET_SIGNATURE_PATHS.PREVIOUS_MONTH_PREVIEW),
-      { responseType: "blob" }
+      root(TIMESHEET_SIGNATURE_PATHS.PREVIEW),
+      { responseType: "blob", params: periodParams(year, month) }
     );
     return { blob: response.data };
   },
 
   async sign(request: SignPreviousMonthRequest): Promise<SignPreviousMonthResponse> {
     const response = await api.post<SignPreviousMonthResponse>(
-      root(TIMESHEET_SIGNATURE_PATHS.PREVIOUS_MONTH_SIGN),
+      root(TIMESHEET_SIGNATURE_PATHS.SIGN),
       request
     );
     return response.data;

@@ -31,8 +31,8 @@ vi.mock("@/context/AuthContext", () => ({
 }));
 
 const serviceMock = vi.hoisted(() => ({
-  getPreviousMonthStatus: vi.fn(),
-  fetchPreviousMonthPreviewPdf: vi.fn(),
+  getMonthStatus: vi.fn(),
+  fetchMonthPreviewPdf: vi.fn(),
   sign: vi.fn(),
   downloadSignedDocument: vi.fn(),
 }));
@@ -77,7 +77,7 @@ describe("AssinaturaPonto", () => {
   });
 
   it("renderiza o status elegível com mês de referência", async () => {
-    serviceMock.getPreviousMonthStatus.mockResolvedValueOnce(baseStatus());
+    serviceMock.getMonthStatus.mockResolvedValueOnce(baseStatus());
 
     renderPage();
 
@@ -87,7 +87,7 @@ describe("AssinaturaPonto", () => {
   });
 
   it("lista bloqueios e não exibe o formulário quando status está BLOCKED", async () => {
-    serviceMock.getPreviousMonthStatus.mockResolvedValueOnce(
+    serviceMock.getMonthStatus.mockResolvedValueOnce(
       baseStatus({
         status: "BLOCKED",
         eligible: false,
@@ -103,7 +103,7 @@ describe("AssinaturaPonto", () => {
   });
 
   it("não submete sem checkbox marcado e sem senha", async () => {
-    serviceMock.getPreviousMonthStatus.mockResolvedValueOnce(baseStatus());
+    serviceMock.getMonthStatus.mockResolvedValueOnce(baseStatus());
 
     renderPage();
 
@@ -112,8 +112,8 @@ describe("AssinaturaPonto", () => {
   });
 
   it("submete e limpa a senha após a tentativa", async () => {
-    serviceMock.getPreviousMonthStatus.mockResolvedValueOnce(baseStatus());
-    serviceMock.fetchPreviousMonthPreviewPdf.mockResolvedValueOnce({
+    serviceMock.getMonthStatus.mockResolvedValueOnce(baseStatus());
+    serviceMock.fetchMonthPreviewPdf.mockResolvedValueOnce({
       blob: new Blob([new Uint8Array([1, 2, 3])], { type: "application/pdf" }),
     });
     serviceMock.sign.mockResolvedValueOnce({
@@ -128,7 +128,7 @@ describe("AssinaturaPonto", () => {
       pointMirrorDocumentId: null,
       declarationVersion: "1.0",
     });
-    serviceMock.getPreviousMonthStatus.mockResolvedValue(
+    serviceMock.getMonthStatus.mockResolvedValue(
       baseStatus({
         status: "ALREADY_SIGNED",
         alreadySigned: true,

@@ -19,6 +19,8 @@ export interface PreviousMonthSignatureStatus {
 }
 
 export interface SignPreviousMonthRequest {
+  referenceYear: number;
+  referenceMonth: number;
   confirmed: boolean;
   declarationVersion: string;
   declarationHashSha256: string;

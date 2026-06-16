@@ -43,9 +43,9 @@ export const DOCUMENT_PATHS = {
 } as const;
 
 export const TIMESHEET_SIGNATURE_PATHS = {
-  PREVIOUS_MONTH_STATUS: "timesheet-signatures/previous-month/status",
-  PREVIOUS_MONTH_PREVIEW: "timesheet-signatures/previous-month/preview",
-  PREVIOUS_MONTH_SIGN: "timesheet-signatures/previous-month/sign",
+  STATUS: "timesheet-signatures/status",
+  PREVIEW: "timesheet-signatures/preview",
+  SIGN: "timesheet-signatures/sign",
   DOCUMENT: (signatureId: string) => `timesheet-signatures/${signatureId}/document`,
   ADMIN: "timesheet-signatures/admin",
 } as const;

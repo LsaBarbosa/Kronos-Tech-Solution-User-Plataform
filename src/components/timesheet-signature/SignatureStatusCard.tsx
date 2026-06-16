@@ -54,10 +54,10 @@ const SignatureStatusCard = ({ status, onDownloadSigned }: SignatureStatusCardPr
                 digitalmente (PAdES) pelo certificado da empresa.
               </p>
               <p className="text-xs text-emerald-900/80 dark:text-emerald-100/80 break-all">
-                Hash espelho: {status.pointMirrorHashSha256}
+                Resumo criptográfico do espelho (SHA-256): {status.pointMirrorHashSha256}
               </p>
               <p className="text-xs text-emerald-900/80 dark:text-emerald-100/80 break-all">
-                Hash registros: {status.recordsSnapshotHashSha256}
+                Resumo criptográfico dos registros (SHA-256): {status.recordsSnapshotHashSha256}
               </p>
             </div>
           </div>
