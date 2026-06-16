@@ -1,5 +1,12 @@
 import { useEffect, useRef } from 'react';
-import { Dialog, DialogContent, DialogHeader, DialogTitle } from '@/components/ui/dialog';
+import { AlertOctagon, Camera, CheckCircle2, FileCheck2, MapPin } from 'lucide-react';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
 import { BiometricConsentGuard } from '@/components/BiometricConsentGuard';
 import { useCheckin } from '@/hooks/useCheckin';
 import { CheckinLocationStep } from './CheckinLocationStep';
@@ -7,6 +14,70 @@ import { CheckinCameraStep } from './CheckinCameraStep';
 import { CheckinConfirmationStep } from './CheckinConfirmationStep';
 import { CheckinResult } from './CheckinResult';
 import { CheckinErrorAlert } from './CheckinErrorAlert';
+import { CheckinStepIndicator, type CheckinStep } from './CheckinStepIndicator';
+
+const getCurrentStep = (status: string): CheckinStep => {
+  switch (status) {
+    case 'idle':
+    case 'requesting_location':
+    case 'location_ready':
+      return 'location';
+    case 'requesting_camera':
+    case 'camera_ready':
+    case 'capturing_face':
+      return 'camera';
+    case 'ready_to_submit':
+    case 'submitting':
+      return 'confirm';
+    case 'success':
+      return 'result';
+    case 'error':
+      return 'error';
+    default:
+      return 'location';
+  }
+};
+
+const STEP_META: Record<
+  CheckinStep,
+  { eyebrow: string; title: string; description: string; Icon: typeof MapPin; iconTone: string }
+> = {
+  location: {
+    eyebrow: 'Etapa 1 de 3',
+    title: 'Confirmar localização',
+    description: 'Validamos que você está dentro do raio permitido para o registro.',
+    Icon: MapPin,
+    iconTone: 'bg-[#EFF6FF] text-[#1D4ED8]',
+  },
+  camera: {
+    eyebrow: 'Etapa 2 de 3',
+    title: 'Captura facial',
+    description: 'Centralize o rosto e mantenha boa iluminação para validar a marcação.',
+    Icon: Camera,
+    iconTone: 'bg-[#EDE9FE] text-[#5B21B6]',
+  },
+  confirm: {
+    eyebrow: 'Etapa 3 de 3',
+    title: 'Confirmar registro',
+    description: 'Revise os dados antes de enviar para validação.',
+    Icon: FileCheck2,
+    iconTone: 'bg-[#FEF3C7] text-[#92400E]',
+  },
+  result: {
+    eyebrow: 'Concluído',
+    title: 'Registro realizado',
+    description: 'Sua marcação foi enviada com sucesso e validada pelo servidor.',
+    Icon: CheckCircle2,
+    iconTone: 'bg-[#DCFCE7] text-[#15803D]',
+  },
+  error: {
+    eyebrow: 'Atenção',
+    title: 'Não foi possível registrar',
+    description: 'Revise as permissões e tente novamente.',
+    Icon: AlertOctagon,
+    iconTone: 'bg-[#FEE2E2] text-[#B91C1C]',
+  },
+};
 
 const CheckinModalContent = () => {
   const { state } = useCheckin();
@@ -18,6 +89,10 @@ const CheckinModalContent = () => {
       cameraStreamRef.current = null;
     }
   }, [state.isModalOpen]);
+
+  const step = getCurrentStep(state.status);
+  const meta = STEP_META[step];
+  const StepIcon = meta.Icon;
 
   const renderContent = () => {
     if (state.error && state.status === 'error') {
@@ -48,37 +123,36 @@ const CheckinModalContent = () => {
     }
   };
 
-  const getTitle = () => {
-    switch (state.status) {
-      case 'idle':
-      case 'requesting_location':
-      case 'location_ready':
-        return 'Localização';
-      case 'requesting_camera':
-      case 'camera_ready':
-      case 'capturing_face':
-        return 'Captura Facial';
-      case 'ready_to_submit':
-      case 'submitting':
-        return 'Confirmação';
-      case 'success':
-        return 'Registro Realizado';
-      case 'error':
-        return 'Erro no Registro';
-      default:
-        return 'Registrar Ponto';
-    }
-  };
+  const showStepIndicator = step !== 'result' && step !== 'error';
 
   return (
     <Dialog open={state.isModalOpen} onOpenChange={() => {}}>
-      <DialogContent className="sm:max-w-[425px]">
-        <DialogHeader>
-          <DialogTitle>{getTitle()}</DialogTitle>
+      <DialogContent className="max-w-[480px] gap-0 rounded-2xl border border-[#E2E8F0] bg-white p-0 shadow-[0_18px_50px_rgba(11,18,32,0.18)] sm:max-w-[520px]">
+        <DialogHeader className="space-y-3 border-b border-[#E2E8F0] bg-[#F8FAFC] p-6">
+          <div className="flex items-start gap-3">
+            <span
+              aria-hidden="true"
+              className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl ${meta.iconTone}`}
+            >
+              <StepIcon className="h-5 w-5" />
+            </span>
+            <div className="min-w-0 space-y-1">
+              <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[#64748B]">
+                {meta.eyebrow}
+              </p>
+              <DialogTitle className="text-lg font-semibold text-[#0F172A]">
+                {meta.title}
+              </DialogTitle>
+              <DialogDescription className="text-sm text-[#64748B]">
+                {meta.description}
+              </DialogDescription>
+            </div>
+          </div>
+
+          {showStepIndicator ? <CheckinStepIndicator current={step} /> : null}
         </DialogHeader>
-        <div className="py-4">
-          {renderContent()}
-        </div>
+
+        <div className="p-6">{renderContent()}</div>
       </DialogContent>
     </Dialog>
   );

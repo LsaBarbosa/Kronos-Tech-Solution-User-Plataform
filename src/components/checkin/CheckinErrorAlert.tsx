@@ -1,7 +1,32 @@
-import { AlertCircle, RotateCcw, X } from 'lucide-react';
+import { AlertOctagon, RotateCcw, X } from 'lucide-react';
 import { Button } from '@/components/ui/button';
-import { Card, CardContent } from '@/components/ui/card';
+import { Card } from '@/components/ui/card';
 import { useCheckin } from '@/hooks/useCheckin';
+
+const getErrorTitle = (code: string): string => {
+  switch (code) {
+    case 'LOCATION_PERMISSION_DENIED':
+      return 'Permissão de localização negada';
+    case 'LOCATION_UNAVAILABLE':
+      return 'Localização indisponível';
+    case 'LOCATION_TIMEOUT':
+      return 'Tempo limite ao obter localização';
+    case 'CAMERA_PERMISSION_DENIED':
+      return 'Permissão de câmera negada';
+    case 'CAMERA_UNAVAILABLE':
+      return 'Câmera indisponível';
+    case 'SESSION_EXPIRED':
+      return 'Sessão expirada';
+    case 'FACE_NOT_RECOGNIZED':
+      return 'Rosto não reconhecido';
+    case 'OUT_OF_ALLOWED_RADIUS':
+      return 'Fora da área permitida';
+    case 'NETWORK_ERROR':
+      return 'Erro de conexão';
+    default:
+      return 'Erro ao registrar ponto';
+  }
+};
 
 export const CheckinErrorAlert = () => {
   const { state, retry, closeCheckin } = useCheckin();
@@ -11,31 +36,6 @@ export const CheckinErrorAlert = () => {
     return null;
   }
 
-  const getErrorTitle = (code: string): string => {
-    switch (code) {
-      case 'LOCATION_PERMISSION_DENIED':
-        return 'Permissão de Localização Negada';
-      case 'LOCATION_UNAVAILABLE':
-        return 'Localização Indisponível';
-      case 'LOCATION_TIMEOUT':
-        return 'Tempo Limite de Localização';
-      case 'CAMERA_PERMISSION_DENIED':
-        return 'Permissão de Câmera Negada';
-      case 'CAMERA_UNAVAILABLE':
-        return 'Câmera Indisponível';
-      case 'SESSION_EXPIRED':
-        return 'Sessão Expirada';
-      case 'FACE_NOT_RECOGNIZED':
-        return 'Rosto Não Reconhecido';
-      case 'OUT_OF_ALLOWED_RADIUS':
-        return 'Fora da Área Permitida';
-      case 'NETWORK_ERROR':
-        return 'Erro de Conexão';
-      default:
-        return 'Erro ao Registrar Ponto';
-    }
-  };
-
   const handleRetry = async () => {
     try {
       await retry();
@@ -44,43 +44,46 @@ export const CheckinErrorAlert = () => {
     }
   };
 
-  const shouldShowSettings = error.code === 'LOCATION_PERMISSION_DENIED' ||
-    error.code === 'CAMERA_PERMISSION_DENIED';
+  const shouldShowSettings =
+    error.code === 'LOCATION_PERMISSION_DENIED' || error.code === 'CAMERA_PERMISSION_DENIED';
 
   return (
     <div className="space-y-4">
-      <Card className="border-red-200 bg-red-50">
-        <CardContent className="pt-6">
-          <div className="flex gap-3">
-            <AlertCircle className="w-5 h-5 text-red-600 flex-shrink-0 mt-0.5" />
-            <div className="flex-1">
-              <h3 className="font-semibold text-red-900">{getErrorTitle(error.code)}</h3>
-              <p className="text-sm text-red-800 mt-1">{error.message}</p>
-              {shouldShowSettings && (
-                <p className="text-xs text-red-700 mt-2">
-                  Abra as configurações do navegador para autorizar a permissão.
-                </p>
-              )}
-            </div>
+      <Card className="border border-[#FECACA] bg-[#FEE2E2] p-5">
+        <div className="flex items-start gap-3">
+          <span
+            aria-hidden="true"
+            className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-white text-[#B91C1C] shadow-[0_8px_20px_rgba(220,38,38,0.18)]"
+          >
+            <AlertOctagon className="h-5 w-5" />
+          </span>
+          <div className="min-w-0 space-y-1">
+            <p className="text-sm font-semibold text-[#7F1D1D]">{getErrorTitle(error.code)}</p>
+            <p className="text-xs leading-5 text-[#B91C1C]">{error.message}</p>
+            {shouldShowSettings ? (
+              <p className="text-[11px] leading-5 text-[#B91C1C]/85">
+                Abra as configurações do navegador para autorizar a permissão e tente novamente.
+              </p>
+            ) : null}
           </div>
-        </CardContent>
+        </div>
       </Card>
 
       <div className="flex gap-2">
         <Button
           onClick={closeCheckin}
           variant="outline"
-          className="flex-1"
+          className="h-11 flex-1 gap-2 rounded-2xl border-[#E2E8F0] text-sm font-semibold text-[#0F172A] hover:bg-[#F1F5F9]"
         >
-          <X className="w-4 h-4 mr-2" />
+          <X className="h-4 w-4" />
           Cancelar
         </Button>
         <Button
           onClick={handleRetry}
-          className="flex-1"
+          className="h-11 flex-1 gap-2 rounded-2xl bg-[#2563EB] text-sm font-semibold text-white shadow-[0_10px_24px_rgba(37,99,235,0.18)] hover:bg-[#1D4ED8]"
         >
-          <RotateCcw className="w-4 h-4 mr-2" />
-          Tentar Novamente
+          <RotateCcw className="h-4 w-4" />
+          Tentar novamente
         </Button>
       </div>
     </div>
