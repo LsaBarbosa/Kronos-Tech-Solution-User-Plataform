@@ -14,7 +14,7 @@ const RelatorioDetalhado = () => {
     <PageShell
       sidebarOpen={sidebarOpen}
       toggleSidebar={() => setSidebarOpen((previous) => !previous)}
-      mainClassName="pt-16 px-4 py-5 sm:px-6 sm:py-8 lg:px-8 relative z-10 overflow-x-hidden bg-[#D9E2EB]"
+      mainClassName="pt-24 sm:pt-32 px-4 pb-5 sm:px-6 sm:pb-8 lg:px-8 relative z-10 overflow-x-hidden bg-[#D9E2EB]"
     >
       <div className="mx-auto w-full max-w-7xl">
         {isDesktop ? (

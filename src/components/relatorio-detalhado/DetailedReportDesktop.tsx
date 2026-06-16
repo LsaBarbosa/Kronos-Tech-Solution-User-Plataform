@@ -1,5 +1,5 @@
 import { Link } from "react-router-dom";
-import { ArrowUpRight, BarChart3, ClipboardEdit } from "lucide-react";
+import { ArrowUpRight, BarChart3, ClipboardEdit, FileSpreadsheet } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import type { DetailedReportBuilderViewModel } from "@/hooks/useDetailedReportBuilder";
@@ -86,6 +86,13 @@ export const DetailedReportDesktop = ({ viewModel }: DetailedReportDesktopProps)
               <Link to={APP_PATHS.statusDoRegistro}>
                 <ClipboardEdit className="h-4 w-4" />
                 Status do registro
+                <ArrowUpRight className="ml-auto h-4 w-4" />
+              </Link>
+            </Button>
+            <Button asChild className="h-11 w-full gap-1 rounded-2xl bg-white text-[#102A43] hover:bg-white/90">
+              <Link to={APP_PATHS.espelhoPonto}>
+                <FileSpreadsheet className="h-4 w-4" />
+                Espelho de ponto
                 <ArrowUpRight className="ml-auto h-4 w-4" />
               </Link>
             </Button>
