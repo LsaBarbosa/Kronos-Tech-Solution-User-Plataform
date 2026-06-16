@@ -23,6 +23,7 @@ const BuscarEmpresa = lazy(() => import("./pages/BuscarEmpresa"));
 const AtualizarEmpresa = lazy(() => import("./pages/AtualizarEmpresa"));
 const RelatorioDetalhado = lazy(() => import("./pages/RelatorioDetalhado"));
 const EspelhoPonto = lazy(() => import("./pages/EspelhoPonto"));
+const AssinaturaPonto = lazy(() => import("./pages/AssinaturaPonto"));
 const AuditoriaFiscal = lazy(() => import("./pages/AuditoriaFiscal"));
 const Documentos = lazy(() => import("./pages/Documentos"));
 const EnviarDocumentos = lazy(() => import("./pages/EnviarDocumentos"));
@@ -115,6 +116,7 @@ const App = () => (
                     <Route path={APP_PATHS.dashboard} element={<Dashboard />} />
                     <Route path={APP_PATHS.relatorioDetalhado} element={<RelatorioDetalhado />} />
                     <Route path={APP_PATHS.espelhoPonto} element={<EspelhoPonto />} />
+                    <Route path={APP_PATHS.assinaturaPonto} element={<AssinaturaPonto />} />
                     <Route path={APP_PATHS.documentos} element={<Documentos />} />
                     <Route path={APP_PATHS.meusDocumentos} element={<Documentos />} />
                     <Route path={APP_PATHS.enviarDocumentos} element={<EnviarDocumentos />} />

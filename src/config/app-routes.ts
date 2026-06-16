@@ -37,6 +37,7 @@ export const APP_PATHS = {
   dashboard: "/dashboard",
   relatorioDetalhado: "/relatorio-detalhado",
   espelhoPonto: "/espelho-ponto",
+  assinaturaPonto: "/assinatura-ponto",
   usuario: "/usuario",
   empresa: "/empresa",
   empresaCriar: "/empresa/criar",
@@ -86,6 +87,9 @@ export const APP_ROUTE_META = {
   }),
   espelhoPonto: defineRoute(APP_PATHS.espelhoPonto, "Espelho de Ponto", {
     breadcrumbs: [{ label: "Início", path: APP_PATHS.dashboard }, { label: "Espelho de Ponto", path: APP_PATHS.espelhoPonto }],
+  }),
+  assinaturaPonto: defineRoute(APP_PATHS.assinaturaPonto, "Assinatura do Ponto", {
+    breadcrumbs: [{ label: "Início", path: APP_PATHS.dashboard }, { label: "Assinatura do Ponto", path: APP_PATHS.assinaturaPonto }],
   }),
   usuario: defineRoute(APP_PATHS.usuario, "Usuário", {
     breadcrumbs: [{ label: "Início", path: APP_PATHS.dashboard }, { label: "Usuário", path: APP_PATHS.usuario }],

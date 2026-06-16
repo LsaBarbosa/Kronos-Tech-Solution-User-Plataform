@@ -9,6 +9,7 @@ import {
   ClipboardCheck,
   Calculator,
   FilePlus,
+  FileSignature,
   FileText,
   Folder,
   FolderOpen,
@@ -151,9 +152,10 @@ const buildEntries = (role: string | null | undefined): NavEntry[] => {
     leaf("Início", APP_PATHS.dashboard, Home),
     leaf(APP_ROUTE_META.relatorioDetalhado.label, APP_PATHS.relatorioDetalhado, BarChart3),
     leaf(APP_ROUTE_META.espelhoPonto.label, APP_PATHS.espelhoPonto, CalendarRange),
+    leaf(APP_ROUTE_META.assinaturaPonto.label, APP_PATHS.assinaturaPonto, FileSignature),
     leaf(APP_ROUTE_META.avisos.label, APP_PATHS.avisos, BellMinus),
     {
-      kind: "group",
+      kind: "group" as const,
       label: "Solicitar",
       icon: PlusCircle,
       visible: true,
@@ -167,7 +169,7 @@ const buildEntries = (role: string | null | undefined): NavEntry[] => {
       ],
     },
     {
-      kind: "group",
+      kind: "group" as const,
       label: "Documentos",
       icon: Folder,
       visible: true,
@@ -186,7 +188,7 @@ const buildEntries = (role: string | null | undefined): NavEntry[] => {
     },
     leaf(APP_ROUTE_META.empresa.label, APP_PATHS.empresa, Building2, isCto),
     {
-      kind: "group",
+      kind: "group" as const,
       label: "Administrador",
       icon: Shield,
       visible: adminSections.length > 0,
