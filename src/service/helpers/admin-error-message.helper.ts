@@ -48,6 +48,11 @@ export const getAdministrativeErrorMessage = (
       return message;
     }
 
+    const code = (normalized.response as { data?: { code?: string } } | undefined)?.data?.code;
+    if (code === "DIGITAL_SIGNATURE_UNAVAILABLE") {
+      return "Assinatura digital indisponível no momento. Verifique o certificado configurado e tente novamente.";
+    }
+
     if (normalized.kind === "serviceUnavailable" || normalized.status === 503) {
       return "Serviço temporariamente indisponível. Tente novamente em instantes.";
     }

@@ -243,7 +243,22 @@ api.interceptors.response.use(
   },
   async (error) => {
     if (error.response) {
-      const { status, data } = error.response;
+      const { status } = error.response;
+      // Quando o request pediu blob mas o backend respondeu erro (JSON), o axios entrega
+      // `data` como Blob. Aqui tentamos parsear esse Blob para que o getErrorCode e o
+      // normalizeServiceError consigam extrair `code`/`message` reais do backend.
+      if (
+        error.response.data instanceof Blob &&
+        error.response.data.type.includes("json")
+      ) {
+        try {
+          const text = await error.response.data.text();
+          error.response.data = text ? JSON.parse(text) : null;
+        } catch {
+          // mantém Blob original se falhar o parse — não vamos mascarar nada
+        }
+      }
+      const { data } = error.response;
       const errorCode = getErrorCode(data);
       const originalRequest = error.config;
 
