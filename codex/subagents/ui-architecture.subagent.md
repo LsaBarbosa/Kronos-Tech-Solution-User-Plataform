@@ -1,28 +1,18 @@
-# Subagent — ui-architecture
+# Subagent — UI Architecture
 
 ## Objetivo
+Definir e implementar arquitetura de UI responsiva.
 
-Definir e implementar a arquitetura visual e técnica da tela.
+## Tarefas
+- Criar ou adaptar feature `lgpd-admin-request-details`.
+- Separar componentes desktop e mobile.
+- Criar hook de responsive mode usando `matchMedia`.
+- Criar hero com status, SLA, tipo e exportabilidade.
+- Criar painel principal do caso.
+- Criar timeline de fluxo.
+- Criar painel de ações.
+- Criar barra inferior mobile de próxima decisão.
+- Reutilizar tokens visuais do padrão novo Kronos.
 
-## Desktop
-
-- hero;
-- métricas;
-- filtros;
-- inbox;
-- painel lateral.
-
-## Mobile
-
-- resumo;
-- busca;
-- chips;
-- cards;
-- bottom bar/drawer.
-
-## Entregar
-
-- componentes criados;
-- fluxo de props;
-- padrão responsivo;
-- remoção do legado substituído.
+## Saída esperada
+Nova UI integrada à rota atual e sem legado visual.

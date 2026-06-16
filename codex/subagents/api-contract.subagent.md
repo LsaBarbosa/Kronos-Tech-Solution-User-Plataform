@@ -1,22 +1,24 @@
-# Subagent — api-contract
+# Subagent — API Contract
 
 ## Objetivo
+Garantir preservação dos contratos existentes.
 
-Garantir que os contratos de API sejam preservados.
+## Tarefas
+- Ler `src/service/lgpd.service.ts`.
+- Confirmar endpoints administrativos:
+  - `GET /lgpd/admin/requests/{requestId}`
+  - assign
+  - notes
+  - complete
+  - reject
+  - transition-status
+  - request-complement
+  - cancel
+  - anonymization-result
+  - export
+- Verificar DTOs no back-end.
+- Não alterar assinatura dos services sem necessidade.
+- Se criar hook, ele deve encapsular os mesmos services.
 
-## Verificar
-
-- `GET /lgpd/admin/requests`;
-- paginação;
-- filtros;
-- `employeeName`;
-- `companyId`;
-- `type`;
-- `status`;
-- `GET /lgpd/admin/requests/{requestId}`.
-
-## Entregar
-
-- mudanças necessárias no service;
-- compatibilidade retroativa;
-- contratos não alterados.
+## Saída esperada
+Garantia de compatibilidade front/back.

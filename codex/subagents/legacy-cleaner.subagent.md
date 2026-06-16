@@ -1,21 +1,15 @@
-# Subagent — legacy-cleaner
+# Subagent — Legacy Cleaner
 
 ## Objetivo
+Remover a implementação antiga depois que a nova estiver funcionando.
 
-Remover código legado substituído sem apagar funcionalidades úteis.
+## Tarefas
+- Remover JSX legado de `AdminLgpdRequestDetails.tsx`.
+- Remover imports mortos.
+- Remover helpers duplicados não usados.
+- Garantir que `AdminAnonymizationWorkflow` continue acessível.
+- Garantir que a rota exporte o componente correto.
+- Validar que não há arquivos órfãos.
 
-## Remover
-
-- tabela antiga dentro de `AdminLgpdRequests.tsx`, caso substituída;
-- helpers duplicados;
-- imports mortos;
-- CSS morto.
-
-## Preservar
-
-- rota;
-- entrypoint;
-- detalhes;
-- services;
-- contratos;
-- testes existentes.
+## Saída esperada
+Código limpo, sem duplicidade funcional.

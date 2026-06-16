@@ -1,20 +1,19 @@
-# Subagent — qa-a11y
+# Subagent — QA & A11y
 
 ## Objetivo
+Validar qualidade, acessibilidade e responsividade.
 
-Validar qualidade, responsividade e acessibilidade.
+## Tarefas
+- Testar desktop em 1366, 1536 e 1920.
+- Testar mobile em 390x844 e 430x932.
+- Validar navegação por teclado.
+- Validar labels e aria.
+- Rodar:
+  - `npm run lint`
+  - `npx tsc --noEmit`
+  - `npm run build`
+  - `npx vitest run`
+- Criar ou ajustar testes unitários para helpers.
 
-## Verificar
-
-- navegação por teclado;
-- foco visível;
-- botões com aria-label;
-- cards clicáveis acessíveis;
-- loading/erro/vazio;
-- viewports mobile e desktop.
-
-## Entregar
-
-- testes necessários;
-- checklist de QA;
-- problemas encontrados.
+## Saída esperada
+Lista de validações executadas e pendências.

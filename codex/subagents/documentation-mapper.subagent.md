@@ -1,25 +1,14 @@
-# Subagent — documentation-mapper
+# Subagent — Documentation Mapper
 
 ## Objetivo
+Cruzar a diretriz visual com a documentação `kronos-business`.
 
-Extrair do `kronos-business` as regras relacionadas a LGPD, solicitações administrativas, inventário, exportação e anonimização.
+## Tarefas
+- Ler `references/docs/kronos_lgpd_admin_request_details_diretriz_visual.md`.
+- Ler `kronos-business/04-mapa-modulos-telas.md`.
+- Confirmar objetivo de negócio da tela.
+- Confirmar serviços principais.
+- Extrair regras de UX e estados obrigatórios.
 
-## Buscar
-
-```text
-/lgpd/admin/requests
-/lgpd/admin/requests/:requestId
-Centro de privacidade
-Solicitações LGPD
-Inventário de tratamento
-Exportação
-Anonimização
-Direitos do titular
-```
-
-## Entregar
-
-- regras de negócio aplicáveis;
-- papéis autorizados;
-- fluxo esperado;
-- divergências entre documentação e código.
+## Saída esperada
+Resumo de regras funcionais e visuais que a implementação deve cumprir.

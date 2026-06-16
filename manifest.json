@@ -1,19 +1,29 @@
 {
-  "package": "kronos_codex_lgpd_admin_requests_ui",
-  "target_route": "/lgpd/admin/requests",
-  "target_frontend_repo": "Kronos-Tech-Solution-User-Plataform",
-  "target_frontend_branch": "feature/lgpd-compliance-new-ui",
-  "target_backend_repo": "Kronos-Tech-Solutions-KTS",
-  "target_backend_branch": "PROD_HOSTINGER_V2",
-  "target_docs_repo": "kronos-business",
-  "target_docs_branch": "main",
-  "target_component_current": "src/components/privacy/AdminLgpdRequests.tsx",
-  "target_detail_component_related": "src/components/privacy/AdminLgpdRequestDetails.tsx",
-  "mode": "implementation",
-  "created_at": "2026-06-16T00:33:52.258808Z",
-  "references": {
-    "visual_guideline": "references/docs/kronos_lgpd_admin_requests_diretriz_visual.md",
-    "desktop_mockup": "references/mockups/kronos_lgpd_admin_requests_desktop.png",
-    "mobile_mockup": "references/mockups/kronos_lgpd_admin_requests_mobile.png"
-  }
+  "package": "kronos_codex_lgpd_admin_request_details_ui",
+  "target": {
+    "frontend_repository": "Kronos-Tech-Solution-User-Plataform",
+    "frontend_branch": "feature/lgpd-compliance-new-ui",
+    "backend_repository": "Kronos-Tech-Solutions-KTS",
+    "backend_branch": "PROD_HOSTINGER_V2",
+    "documentation_repository": "kronos-business",
+    "documentation_branch": "main",
+    "route": "/lgpd/admin/requests/:requestId",
+    "route_alias_from_prompt": "/lgpd/admin/requests/{id}",
+    "current_component": "src/components/privacy/AdminLgpdRequestDetails.tsx",
+    "expected_output": "nova experiência desktop e mobile para tratamento completo de solicitação LGPD administrativa"
+  },
+  "generated_at": "2026-06-16T01:09:23.508101Z",
+  "references": [
+    "references/docs/kronos_lgpd_admin_request_details_diretriz_visual.md",
+    "references/mockups/kronos_lgpd_admin_request_details_desktop.png",
+    "references/mockups/kronos_lgpd_admin_request_details_mobile.png"
+  ],
+  "entrypoints": [
+    "prompt-codex-lgpd-admin-request-details-ui.md",
+    "plano-acao-lgpd-admin-request-details-ui.md",
+    "checklist-validacao-lgpd-admin-request-details-ui.md",
+    "codex/skills/kronos-lgpd-admin-request-details-ui.skill.md",
+    "codex/agents/kronos-lgpd-admin-request-details-ui.agent.md",
+    "codex/rules/kronos-lgpd-admin-request-details-ui.rules.md"
+  ]
 }

@@ -30,11 +30,10 @@ vi.mock("@/hooks/use-toast", () => ({
   },
 }));
 
-vi.mock("@/components/layout/AuthenticatedPageLayout", () => ({
-  AuthenticatedPageLayout: ({ children }: { children: ReactNode }) => (
+vi.mock("@/components/PageShell", () => ({
+  default: ({ children }: { children: ReactNode }) => (
     <div>
       <header>Mock Header</header>
-      <aside>Mock Sidebar</aside>
       {children}
     </div>
   ),
@@ -135,11 +134,11 @@ describe("AdminLgpdRequestDetails", () => {
     expect(screen.queryByRole("button", { name: /Concluir solicitação/i })).not.toBeInTheDocument();
   });
 
-  it("renders the authenticated Header and Sidebar", async () => {
+  it("renders the PageShell header", async () => {
     renderDetails(buildDetails("OPEN"));
 
     expect(await screen.findByText("Mock Header")).toBeInTheDocument();
-    expect(screen.getByText("Mock Sidebar")).toBeInTheDocument();
+    expect(screen.queryByText("Mock Sidebar")).not.toBeInTheDocument();
   });
 
   it("shows controller-review action for an IN_ANALYSIS request", async () => {
@@ -164,18 +163,23 @@ describe("AdminLgpdRequestDetails", () => {
     expect(await screen.findByRole("button", { name: /Aprovar exportação/i })).toBeInTheDocument();
   });
 
-  it("shows only one visible export-approval action for an exportable WAITING_LEGAL_REVIEW request", async () => {
+  it("opens the approval dialog without duplicating the export-approval action", async () => {
     const user = userEvent.setup();
     renderDetails(buildDetails("WAITING_LEGAL_REVIEW", "ACCESS"));
 
     const approvalButton = await screen.findByRole("button", { name: /Aprovar exportação/i });
 
-    expect(screen.getAllByRole("button", { name: /Aprovar exportação/i })).toHaveLength(1);
+    expect(
+      screen.getAllByRole("button", { name: /Aprovar exportação/i })
+    ).toHaveLength(1);
 
     await user.click(approvalButton);
 
-    expect(screen.getAllByRole("button", { name: /Aprovar exportação/i })).toHaveLength(1);
     expect(screen.getByRole("button", { name: /Confirmar aprovação/i })).toBeInTheDocument();
+    // Radix Dialog hides the trigger from the accessibility tree while open.
+    expect(
+      screen.queryAllByRole("button", { name: /Aprovar exportação/i, hidden: true }).length
+    ).toBeGreaterThan(0);
   });
 
   it("shows export and completion actions for an APPROVED_FOR_EXPORT request", async () => {

@@ -1,20 +1,16 @@
-# Subagent — security-lgpd
+# Subagent — Security LGPD
 
 ## Objetivo
+Revisar segurança, privacidade e ações sensíveis.
 
-Garantir segurança e conformidade LGPD na nova UI.
+## Tarefas
+- Confirmar que exportação exige fundamento legal, motivo operacional e notas.
+- Confirmar que rejeição exige motivo e nota pública.
+- Confirmar que cancelamento exige motivo.
+- Confirmar que ações destrutivas/sensíveis têm confirmação.
+- Confirmar que não há logs de dados pessoais.
+- Confirmar que ObjectURL de exportação é revogado.
+- Confirmar que dados sensíveis não vão para storage.
 
-## Verificar
-
-- sem dados sensíveis em storage;
-- sem console com payload;
-- sem ações destrutivas na lista;
-- status e risco legíveis;
-- atraso destacado;
-- dados sensíveis com realce visual.
-
-## Entregar
-
-- riscos mitigados;
-- riscos remanescentes;
-- recomendações.
+## Saída esperada
+Checklist LGPD com conformidade após a refatoração.
