@@ -98,4 +98,26 @@ describe("collaborator-view.helpers", () => {
     expect(filterCollaborators(records, { search: "", status: "all", group: "managers" })).toHaveLength(1);
     expect(filterCollaborators(records, { search: "", status: "all", group: "noAccount" })).toHaveLength(1);
   });
+
+  it("não vincula usuário quando o backend retorna response sem employeeId", () => {
+    const usersSemEmployeeId: UserSearchListItem[] = [
+      {
+        userId: "user-1",
+        employeeId: undefined as unknown as string,
+        username: "maria.silva",
+        role: "MANAGER",
+        active: true,
+      },
+    ];
+
+    const records = mergeCollaborators(employees, usersSemEmployeeId);
+
+    // Sem employeeId no payload do backend o front não tem como linkar.
+    // Regra "Não corrigir via comparação de nomes": match permanece estrito por employeeId.
+    expect(records[0]).toMatchObject({
+      employeeId: "emp-1",
+      userId: null,
+      hasAccount: false,
+    });
+  });
 });

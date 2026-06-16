@@ -31,7 +31,9 @@ export const mergeCollaborators = (
   });
 
   return employees.map((employee) => {
-    const matchedUser = employee.employeeId ? usersByEmployeeId.get(employee.employeeId) : undefined;
+    const matchedUser = employee.employeeId
+      ? usersByEmployeeId.get(employee.employeeId)
+      : undefined;
     const hasAccount = Boolean(matchedUser);
     const username = matchedUser?.username ?? "";
     const role = matchedUser?.role ?? null;

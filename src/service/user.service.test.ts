@@ -86,7 +86,7 @@ describe("user.service", () => {
     ).resolves.toBeUndefined();
   });
 
-  it("lista usuarios com o contrato resumido de /users/search", async () => {
+  it("lista usuarios com o contrato resumido de /users/search incluindo employeeId", async () => {
     server.use(
       http.get("*/users/search", ({ request }) => {
         const url = new URL(request.url);
@@ -96,6 +96,7 @@ describe("user.service", () => {
           users: [
             {
               userId: "user-1",
+              employeeId: "employee-1",
               username: "maria.silva",
               role: "PARTNER",
               active: true,
@@ -108,6 +109,7 @@ describe("user.service", () => {
     await expect(listUsers(true)).resolves.toEqual([
       {
         userId: "user-1",
+        employeeId: "employee-1",
         username: "maria.silva",
         role: "PARTNER",
         active: true,
