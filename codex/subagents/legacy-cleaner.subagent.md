@@ -1,15 +1,20 @@
-# Subagent — Legacy Cleaner
+# Subagent — legacy-cleaner
 
 ## Objetivo
-Remover a implementação antiga depois que a nova estiver funcionando.
+Remover código legado inline depois da nova implementação.
 
-## Tarefas
-- Remover JSX legado de `AdminLgpdRequestDetails.tsx`.
-- Remover imports mortos.
-- Remover helpers duplicados não usados.
-- Garantir que `AdminAnonymizationWorkflow` continue acessível.
-- Garantir que a rota exporte o componente correto.
-- Validar que não há arquivos órfãos.
+## Remover de `useDetailedReportBuilder.ts`
 
-## Saída esperada
-Código limpo, sem duplicidade funcional.
+- `getStatusRGB` local.
+- `timeToMinutes` local.
+- `minutesToTime` local.
+- `parseReportDate` local.
+- montagem direta de `autoTable`.
+- montagem direta de `headers` e `rows` CSV.
+- constantes de cor locais do PDF.
+
+## Garantir
+
+- O hook continua exportando `handleDownloadPDF` e `handleDownloadCSV` no view model.
+- As telas desktop/mobile não precisam ser reescritas se já chamam esses handlers.
+- Nenhum import morto permanece.

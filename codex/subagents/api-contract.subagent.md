@@ -1,24 +1,37 @@
-# Subagent — API Contract
+# Subagent — api-contract
 
 ## Objetivo
-Garantir preservação dos contratos existentes.
+Garantir que a refatoração respeite contratos existentes.
 
-## Tarefas
-- Ler `src/service/lgpd.service.ts`.
-- Confirmar endpoints administrativos:
-  - `GET /lgpd/admin/requests/{requestId}`
-  - assign
-  - notes
-  - complete
-  - reject
-  - transition-status
-  - request-complement
-  - cancel
-  - anonymization-result
-  - export
-- Verificar DTOs no back-end.
-- Não alterar assinatura dos services sem necessidade.
-- Se criar hook, ele deve encapsular os mesmos services.
+## Front-end
 
-## Saída esperada
-Garantia de compatibilidade front/back.
+Ler:
+
+```text
+src/service/records.service.ts
+src/utils/report-utils.tsx
+src/types/user.ts
+```
+
+Confirmar:
+
+- `fetchDetailedReport(params)` usa `POST /records/report`.
+- `employeeId` segue query param opcional.
+- `DetailedReportItem` não contém CNPJ/cargo/CPF do colaborador selecionado, exceto se derivado do usuário autenticado quando aplicável.
+
+## Back-end
+
+Ler:
+
+```text
+src/main/java/com/kts/kronos/adapter/in/web/http/TimeRecordController.java
+src/main/java/com/kts/kronos/adapter/in/web/dto/timerecord/ListReportRequest.java
+src/main/java/com/kts/kronos/adapter/in/web/dto/timerecord/TimeRecordResponse.java
+```
+
+Confirmar:
+
+- `@PostMapping(REPORT)`.
+- `@PreAuthorize(ANY_EMPLOYEE)`.
+- `ListReportRequest.reference` exige `HH:mm`.
+- `dates` segue padrão do back-end.

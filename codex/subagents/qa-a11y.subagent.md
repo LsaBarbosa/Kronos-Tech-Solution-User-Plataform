@@ -1,19 +1,23 @@
-# Subagent — QA & A11y
+# Subagent — qa-a11y
 
 ## Objetivo
-Validar qualidade, acessibilidade e responsividade.
+Validar experiência de download e regressões de UI.
 
-## Tarefas
-- Testar desktop em 1366, 1536 e 1920.
-- Testar mobile em 390x844 e 430x932.
-- Validar navegação por teclado.
-- Validar labels e aria.
-- Rodar:
-  - `npm run lint`
-  - `npx tsc --noEmit`
-  - `npm run build`
-  - `npx vitest run`
-- Criar ou ajustar testes unitários para helpers.
+## Verificações
 
-## Saída esperada
-Lista de validações executadas e pendências.
+- Botões PDF e CSV continuam acessíveis no desktop.
+- Botões PDF e CSV continuam acessíveis no mobile.
+- Botões não disparam download sem `reportData`.
+- Toast de erro permanece para ausência de dados.
+- Toast de sucesso permanece no CSV.
+- PDF não trava UI por exceção não tratada.
+- CSV abre em Excel/LibreOffice com colunas corretas.
+
+## Comandos
+
+```bash
+npm run lint
+npx tsc --noEmit
+npm run build
+npx vitest run
+```

@@ -1,86 +1,40 @@
-# Kronos — Pacote Codex CLI para `/relatorio-detalhado`
-
-Este pacote orienta o Codex CLI na refatoração da tela de **relatório detalhado de ponto** da rota `/relatorio-detalhado` no front-end `Kronos-Tech-Solution-User-Plataform`, branch `feature/lgpd-compliance-new-ui`.
+# Kronos Codex CLI — Refatoração de exportação do relatório detalhado
 
 ## Objetivo
 
-Transformar a rota `/relatorio-detalhado` em uma **central de solicitação e geração de relatório de ponto**, com experiência diferente para desktop e mobile:
+Refatorar a exportação gerada na rota `/relatorio-detalhado`, criando duas experiências distintas:
 
-- **Desktop:** construtor avançado de relatório em duas colunas, com filtros, governança por ROLE, prévia e área de resultados.
-- **Mobile:** fluxo guiado em etapas, com escopo atual, datas, referência/status, explicação por ROLE e CTA fixo inferior.
+- **PDF**: documento A4 orientado a contabilidade, fechamento de folha, conferência humana, impressão e arquivamento.
+- **CSV**: arquivo tabular orientado a importação, planilha, conciliação e automação, sem lógica visual de PDF.
 
-## Referências obrigatórias
+A implementação deve ocorrer no front-end `Kronos-Tech-Solution-User-Plataform`, branch `feature/lgpd-compliance-new-ui`, preservando os contratos atuais com o back-end `Kronos-Tech-Solutions-KTS`, branch `PROD_HOSTINGER_V2`.
 
-Use estes arquivos antes de implementar:
+## Regras centrais
 
-```text
-references/docs/kronos_relatorio_detalhado_diretriz_visual.md
-references/mockups/kronos_relatorio_detalhado_desktop.png
-references/mockups/kronos_relatorio_detalhado_mobile.png
-```
+1. Não inventar campos que o endpoint `/records/report` não fornece.
+2. O PDF de exemplo é referência visual, não contrato de dados.
+3. PDF e CSV devem ter propósitos diferentes.
+4. O PDF deve ser legível, paginado e seguro para impressão.
+5. O CSV deve ser estável, sem dados mascarados inventados, sem mutação indevida de conteúdo e protegido contra CSV injection.
+6. Remover o legado de exportação inline após a nova implementação.
+7. Criar ou atualizar testes automatizados.
 
-## Repositórios e branches
-
-```text
-Back-end:  LsaBarbosa/Kronos-Tech-Solutions-KTS            branch PROD_HOSTINGER_V2
-Front-end: LsaBarbosa/Kronos-Tech-Solution-User-Plataform  branch feature/lgpd-compliance-new-ui
-Docs:      LsaBarbosa/kronos-business                      branch main
-```
-
-## Contrato HTTP que não deve ser alterado
-
-A tela deve continuar usando o contrato já existente:
-
-```http
-POST /records/report?employeeId={uuid opcional}
-```
-
-Body:
-
-```json
-{
-  "reference": "08:00",
-  "active": true,
-  "dates": ["13-06-2026", "14-06-2026"],
-  "statuses": ["CREATED", "ABSENCE"]
-}
-```
-
-Regras:
-
-- `reference` deve ser `HH:mm`.
-- `dates` deve ter pelo menos uma data.
-- `employeeId` só deve ser enviado quando houver colaborador selecionado/permitido.
-- Para `PARTNER`, o colaborador fica bloqueado na sessão.
-- Para `MANAGER`, usar colaboradores do tenant/equipe.
-- Para `CTO`, comunicar escopo administrativo ampliado e preservar capacidade de seleção quando disponível no produto.
-
-## Arquivos de orientação
+## Arquivos locais de referência
 
 ```text
-codex/skills/kronos-relatorio-detalhado-ui.skill.md
-codex/agents/kronos-relatorio-detalhado-ui.agent.md
-codex/subagents/repo-mapper.subagent.md
-codex/subagents/report-domain.subagent.md
-codex/subagents/ui-architecture.subagent.md
-codex/subagents/api-contract.subagent.md
-codex/subagents/qa-a11y.subagent.md
-codex/subagents/legacy-cleaner.subagent.md
-codex/rules/kronos-relatorio-detalhado-ui.rules.md
-docs/flag-redis-adherence.md
-docs/api-contract-map.md
-plano-acao-relatorio-detalhado-ui.md
-prompt-codex-relatorio-detalhado-ui.md
-checklist-validacao-relatorio-detalhado-ui.md
+references/docs/kronos_relatorio_detalhado_pdf_diretriz_visual.md
+references/pdf-example/kronos_relatorio_detalhado_pdf_estilizacao.pdf
+references/pdf-renders/page-1.png
+references/pdf-renders/page-2.png
 ```
 
 ## Resultado esperado
 
-Ao final, a rota `/relatorio-detalhado` deve:
+Ao final, o Codex deve entregar:
 
-- preservar os dados e ações existentes;
-- remover visual legado da tela, mantendo apenas a nova implementação;
-- ter UX distinta em desktop e mobile;
-- respeitar permissões por ROLE;
-- mostrar exportação apenas após resultado;
-- manter acessibilidade, feedbacks de erro e estados de loading.
+- exportação PDF refatorada;
+- exportação CSV refatorada;
+- helpers testáveis extraídos do hook;
+- validação com `lint`, `tsc`, `build` e `vitest`;
+- remoção do código legado inline;
+- registro claro das alterações no output do Codex.

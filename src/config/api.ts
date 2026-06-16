@@ -291,17 +291,25 @@ api.interceptors.response.use(
           const revokedReason = headers["x-session-revoked-reason"];
           const errorCode = getErrorCode(data);
 
-          if (
+          const hasExplicitRevoke =
             revokedHeader === "true" ||
             errorCode === "SESSION_REVOKED" ||
-            revokedReason === "BIOMETRIC_CONSENT_REVOKED"
-          ) {
+            revokedReason === "BIOMETRIC_CONSENT_REVOKED";
+
+          // Download de arquivo binário (blob): um 401 sem sinais de revogação geralmente
+          // indica permissão/policy específica do endpoint (ex.: AEJ fiscal). Nesses casos
+          // não derrubamos a sessão — só propagamos o erro para o caller exibir o toast.
+          // Se a sessão estiver realmente expirada, a próxima chamada não-binária vai
+          // capturar isso e disparar o logout normalmente.
+          const isBlobResponse = originalRequest?.responseType === "blob";
+
+          if (hasExplicitRevoke) {
             onSessionExpiredCallback?.(
               revokedReason === "BIOMETRIC_CONSENT_REVOKED"
                 ? "biometric_consent_revoked"
                 : "revoked"
             );
-          } else {
+          } else if (!isBlobResponse) {
             onSessionExpiredCallback?.("expired");
           }
         }
