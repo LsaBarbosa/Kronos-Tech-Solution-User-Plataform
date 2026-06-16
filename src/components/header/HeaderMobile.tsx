@@ -1,7 +1,6 @@
 import HeaderBrand from "./HeaderBrand";
 import HeaderNav from "./HeaderNav";
 import HeaderRouteContext from "./HeaderRouteContext";
-import HeaderRoleChip from "./HeaderRoleChip";
 import HeaderNotifications from "./HeaderNotifications";
 import HeaderAccountMenu from "./HeaderAccountMenu";
 
@@ -34,7 +33,6 @@ const HeaderMobile = ({
         </div>
       </div>
       <div className="flex shrink-0 items-center gap-1.5">
-        <HeaderRoleChip role={role} size="xs" />
         <HeaderNotifications
           pendingCount={pendingCount}
           hasError={pendingHasError}

@@ -1,7 +1,6 @@
 import HeaderBrand from "./HeaderBrand";
 import HeaderNav from "./HeaderNav";
 import HeaderRouteContext from "./HeaderRouteContext";
-import HeaderRoleChip from "./HeaderRoleChip";
 import HeaderNotifications from "./HeaderNotifications";
 import HeaderAccountMenu from "./HeaderAccountMenu";
 
@@ -31,7 +30,6 @@ const HeaderDesktop = ({
         <span aria-hidden="true" className="hidden h-6 w-px shrink-0 bg-[#E2E8F0] sm:block" />
         <div className="hidden min-w-0 items-center gap-3 sm:flex">
           <HeaderRouteContext variant="desktop" />
-          <HeaderRoleChip role={role} />
         </div>
       </div>
 
