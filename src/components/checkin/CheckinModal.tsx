@@ -80,7 +80,7 @@ const STEP_META: Record<
 };
 
 const CheckinModalContent = () => {
-  const { state } = useCheckin();
+  const { state, closeCheckin } = useCheckin();
   const cameraStreamRef = useRef<MediaStream | null>(null);
 
   useEffect(() => {
@@ -89,6 +89,18 @@ const CheckinModalContent = () => {
       cameraStreamRef.current = null;
     }
   }, [state.isModalOpen]);
+
+  const isSubmitting = state.status === 'submitting';
+
+  const handleOpenChange = (open: boolean) => {
+    if (open) return;
+    if (isSubmitting) return;
+    if (cameraStreamRef.current) {
+      cameraStreamRef.current.getTracks().forEach((track) => track.stop());
+      cameraStreamRef.current = null;
+    }
+    closeCheckin();
+  };
 
   const step = getCurrentStep(state.status);
   const meta = STEP_META[step];
@@ -126,7 +138,7 @@ const CheckinModalContent = () => {
   const showStepIndicator = step !== 'result' && step !== 'error';
 
   return (
-    <Dialog open={state.isModalOpen} onOpenChange={() => {}}>
+    <Dialog open={state.isModalOpen} onOpenChange={handleOpenChange}>
       <DialogContent className="max-w-[480px] gap-0 rounded-2xl border border-[#E2E8F0] bg-white p-0 shadow-[0_18px_50px_rgba(11,18,32,0.18)] sm:max-w-[520px]">
         <DialogHeader className="space-y-3 border-b border-[#E2E8F0] bg-[#F8FAFC] p-6">
           <div className="flex items-start gap-3">

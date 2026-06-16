@@ -1,4 +1,4 @@
-import { Camera, CheckCircle2, Loader2, RefreshCcw } from 'lucide-react';
+import { Camera, CheckCircle2, Loader2, RefreshCcw, RotateCw } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 import { useCheckin } from '@/hooks/useCheckin';
 import { captureFrameFromVideo, stopCameraStream } from '@/utils/camera.util';
@@ -60,8 +60,7 @@ export const CheckinCameraStep = ({ cameraStreamRef }: CheckinCameraStepProps) =
     }
   };
 
-  const handleRetake = () => {
-    setImageSrc(null);
+  const startStream = () => {
     requestCamera()
       .then((stream) => {
         cameraStreamRef.current = stream;
@@ -75,7 +74,24 @@ export const CheckinCameraStep = ({ cameraStreamRef }: CheckinCameraStepProps) =
       });
   };
 
+  const handleRetake = () => {
+    setImageSrc(null);
+    startStream();
+  };
+
+  const handleRestartCamera = () => {
+    if (cameraStreamRef.current) {
+      stopCameraStream(cameraStreamRef.current);
+      cameraStreamRef.current = null;
+    }
+    if (videoRef.current) {
+      videoRef.current.srcObject = null;
+    }
+    startStream();
+  };
+
   const isCameraReady = state.status === 'camera_ready';
+  const isRequestingCamera = state.status === 'requesting_camera';
   const isCapturing = state.status === 'capturing_face';
 
   return (
@@ -162,15 +178,27 @@ export const CheckinCameraStep = ({ cameraStreamRef }: CheckinCameraStepProps) =
             </Button>
           </>
         ) : (
-          <Button
-            onClick={handleCapture}
-            disabled={!isCameraReady}
-            size="lg"
-            className="h-12 w-full gap-2 rounded-2xl bg-[#2563EB] text-sm font-semibold text-white shadow-[0_10px_24px_rgba(37,99,235,0.18)] hover:bg-[#1D4ED8] disabled:opacity-70"
-          >
-            <Camera className="h-4 w-4" />
-            Capturar rosto
-          </Button>
+          <div className="flex w-full flex-col gap-2">
+            <Button
+              type="button"
+              onClick={handleRestartCamera}
+              disabled={isRequestingCamera || isCapturing}
+              variant="outline"
+              className="h-11 w-full gap-2 rounded-2xl border-[#E2E8F0] text-sm font-semibold text-[#0F172A] hover:bg-[#F1F5F9] disabled:opacity-70"
+            >
+              <RotateCw className="h-4 w-4" />
+              Reinicializar câmera
+            </Button>
+            <Button
+              onClick={handleCapture}
+              disabled={!isCameraReady}
+              size="lg"
+              className="h-12 w-full gap-2 rounded-2xl bg-[#2563EB] text-sm font-semibold text-white shadow-[0_10px_24px_rgba(37,99,235,0.18)] hover:bg-[#1D4ED8] disabled:opacity-70"
+            >
+              <Camera className="h-4 w-4" />
+              Capturar rosto
+            </Button>
+          </div>
         )}
       </div>
     </div>
