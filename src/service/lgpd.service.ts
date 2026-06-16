@@ -239,7 +239,8 @@ export const listAdminRequests = async (
   size: number = 10,
   type?: LgpdRequestType,
   status?: LgpdRequestStatus,
-  companyId?: string
+  companyId?: string,
+  employeeName?: string
 ): Promise<PaginatedResponse<LgpdRequestAdminListResponse>> => {
   const params: Record<string, string | number> = {
     page,
@@ -256,6 +257,11 @@ export const listAdminRequests = async (
 
   if (companyId) {
     params.companyId = companyId;
+  }
+
+  const trimmedEmployeeName = employeeName?.trim();
+  if (trimmedEmployeeName) {
+    params.employeeName = trimmedEmployeeName;
   }
 
   const response = await api.get<SpringPageResponse<LgpdRequestAdminListResponse>>(

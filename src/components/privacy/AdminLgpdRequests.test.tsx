@@ -13,11 +13,10 @@ vi.mock("@/service/lgpd.service", () => ({
   listAdminRequests: listAdminRequestsMock,
 }));
 
-vi.mock("@/components/layout/AuthenticatedPageLayout", () => ({
-  AuthenticatedPageLayout: ({ children }: { children: ReactNode }) => (
+vi.mock("@/components/PageShell", () => ({
+  default: ({ children }: { children: ReactNode }) => (
     <div>
       <header>Mock Header</header>
-      <aside>Mock Sidebar</aside>
       {children}
     </div>
   ),
@@ -119,17 +118,19 @@ describe("AdminLgpdRequests", () => {
   it("renders the empty state when there are no requests", async () => {
     renderAdminRequests();
 
-    expect(await screen.findByText("Nenhuma solicitação encontrada")).toBeInTheDocument();
+    expect(
+      (await screen.findAllByText("Nenhuma solicitação encontrada"))[0]
+    ).toBeInTheDocument();
   });
 
-  it("renders the authenticated Header and Sidebar", async () => {
+  it("renders the PageShell header (no sidebar)", async () => {
     renderAdminRequests();
 
     expect(await screen.findByText("Mock Header")).toBeInTheDocument();
-    expect(screen.getByText("Mock Sidebar")).toBeInTheDocument();
+    expect(screen.queryByText("Mock Sidebar")).not.toBeInTheDocument();
   });
 
-  it("renders the requests table with fallback values", async () => {
+  it("renders the row content with fallback values for null assignedToName", async () => {
     listAdminRequestsMock.mockResolvedValue({
       ...emptyPage,
       content: [sampleRequest],
@@ -139,12 +140,14 @@ describe("AdminLgpdRequests", () => {
 
     renderAdminRequests();
 
-    expect(await screen.findByText("Maria Souza")).toBeInTheDocument();
-    expect(screen.getByText("Padaria Exemplo LTDA")).toBeInTheDocument();
-    expect(screen.getAllByText("Acesso aos meus dados").length).toBeGreaterThan(0);
+    expect((await screen.findAllByText("Maria Souza")).length).toBeGreaterThan(0);
+    expect(screen.getAllByText("Padaria Exemplo LTDA").length).toBeGreaterThan(0);
+    // type code badge appears in the row
+    expect(screen.getAllByText("ACCESS").length).toBeGreaterThan(0);
+    // status label "Aberto" appears in the row and side panel
     expect(screen.getAllByText("Aberto").length).toBeGreaterThan(0);
-    expect(screen.getByText("01/06/2026")).toBeInTheDocument();
-    expect(screen.getByText("—")).toBeInTheDocument();
+    // "Não atribuído" replaces null assignedToName in side panel
+    expect(screen.getByText("Não atribuído")).toBeInTheDocument();
   });
 
   it("does not break when createdAt is invalid", async () => {
@@ -167,13 +170,13 @@ describe("AdminLgpdRequests", () => {
 
     renderAdminRequests();
 
-    expect(await screen.findByText("UNKNOWN_TYPE")).toBeInTheDocument();
+    expect((await screen.findAllByText("UNKNOWN_TYPE")).length).toBeGreaterThan(0);
   });
 
   it("does not render SelectItem with an empty value", async () => {
     renderAdminRequests();
 
-    await screen.findByText("Nenhuma solicitação encontrada");
+    await screen.findAllByText("Nenhuma solicitação encontrada");
 
     expect(document.querySelector('[data-value=""]')).not.toBeInTheDocument();
   });
@@ -182,16 +185,30 @@ describe("AdminLgpdRequests", () => {
     const user = userEvent.setup();
 
     renderAdminRequests();
-    await screen.findByText("Nenhuma solicitação encontrada");
+    await screen.findAllByText("Nenhuma solicitação encontrada");
 
     await user.click(screen.getByRole("button", { name: "Acesso aos meus dados" }));
     await waitFor(() => {
-      expect(listAdminRequestsMock).toHaveBeenLastCalledWith(0, 10, "ACCESS", undefined, undefined);
+      expect(listAdminRequestsMock).toHaveBeenLastCalledWith(
+        0,
+        10,
+        "ACCESS",
+        undefined,
+        undefined,
+        undefined
+      );
     });
 
     await user.click(screen.getByRole("button", { name: "Todas as Solicitações" }));
     await waitFor(() => {
-      expect(listAdminRequestsMock).toHaveBeenLastCalledWith(0, 10, undefined, undefined, undefined);
+      expect(listAdminRequestsMock).toHaveBeenLastCalledWith(
+        0,
+        10,
+        undefined,
+        undefined,
+        undefined,
+        undefined
+      );
     });
   });
 
@@ -199,44 +216,35 @@ describe("AdminLgpdRequests", () => {
     const user = userEvent.setup();
 
     renderAdminRequests();
-    await screen.findByText("Nenhuma solicitação encontrada");
+    await screen.findAllByText("Nenhuma solicitação encontrada");
 
     await user.click(screen.getByRole("button", { name: "Aberto" }));
     await waitFor(() => {
-      expect(listAdminRequestsMock).toHaveBeenLastCalledWith(0, 10, undefined, "OPEN", undefined);
+      expect(listAdminRequestsMock).toHaveBeenLastCalledWith(
+        0,
+        10,
+        undefined,
+        "OPEN",
+        undefined,
+        undefined
+      );
     });
 
     await user.click(screen.getByRole("button", { name: "Todos os Status" }));
     await waitFor(() => {
-      expect(listAdminRequestsMock).toHaveBeenLastCalledWith(0, 10, undefined, undefined, undefined);
+      expect(listAdminRequestsMock).toHaveBeenLastCalledWith(
+        0,
+        10,
+        undefined,
+        undefined,
+        undefined,
+        undefined
+      );
     });
   });
 
-  it("navigates to the request details page when the row is clicked", async () => {
+  it("navigates to the request details when the chevron action is clicked", async () => {
     const user = userEvent.setup();
-    listAdminRequestsMock.mockResolvedValue({
-      ...emptyPage,
-      content: [sampleRequest],
-      totalElements: 1,
-      totalPages: 1,
-    });
-
-    renderAdminRequests();
-
-    await user.click(
-      await screen.findByRole("button", {
-        name: /Abrir detalhes da solicitação de Maria Souza/i,
-      })
-    );
-
-    expect(screen.getByTestId("location-probe")).toHaveTextContent(
-      "/lgpd/admin/requests/2a56db47-3817-44e7-9f92-f25aa8b745fa"
-    );
-  });
-
-  it("navigates to the request details page when the action is clicked", async () => {
-    const user = userEvent.setup();
-    const stopPropagationSpy = vi.spyOn(Event.prototype, "stopPropagation");
     listAdminRequestsMock.mockResolvedValue({
       ...emptyPage,
       content: [sampleRequest],
@@ -255,12 +263,9 @@ describe("AdminLgpdRequests", () => {
     expect(screen.getByTestId("location-probe")).toHaveTextContent(
       "/lgpd/admin/requests/2a56db47-3817-44e7-9f92-f25aa8b745fa"
     );
-    expect(stopPropagationSpy).toHaveBeenCalled();
-
-    stopPropagationSpy.mockRestore();
   });
 
-  it("navigates to the request details page when pressing Enter on the row", async () => {
+  it("navigates to the request details when pressing Enter on the row", async () => {
     const user = userEvent.setup();
     listAdminRequestsMock.mockResolvedValue({
       ...emptyPage,
@@ -282,7 +287,7 @@ describe("AdminLgpdRequests", () => {
     );
   });
 
-  it("navigates to the request details page when pressing Space on the row", async () => {
+  it("navigates to the request details when pressing Space on the row", async () => {
     const user = userEvent.setup();
     listAdminRequestsMock.mockResolvedValue({
       ...emptyPage,
@@ -302,5 +307,37 @@ describe("AdminLgpdRequests", () => {
     expect(screen.getByTestId("location-probe")).toHaveTextContent(
       "/lgpd/admin/requests/2a56db47-3817-44e7-9f92-f25aa8b745fa"
     );
+  });
+
+  it("navigates to the request details when the side panel CTA is clicked", async () => {
+    const user = userEvent.setup();
+    listAdminRequestsMock.mockResolvedValue({
+      ...emptyPage,
+      content: [sampleRequest],
+      totalElements: 1,
+      totalPages: 1,
+    });
+
+    renderAdminRequests();
+
+    const cta = await screen.findByRole("button", { name: "Abrir detalhes" });
+    await user.click(cta);
+
+    expect(screen.getByTestId("location-probe")).toHaveTextContent(
+      "/lgpd/admin/requests/2a56db47-3817-44e7-9f92-f25aa8b745fa"
+    );
+  });
+
+  it("marks overdue requests with a critical SLA badge", async () => {
+    listAdminRequestsMock.mockResolvedValue({
+      ...emptyPage,
+      content: [{ ...sampleRequest, isOverdue: true }],
+      totalElements: 1,
+      totalPages: 1,
+    });
+
+    renderAdminRequests();
+
+    expect((await screen.findAllByText("Atraso")).length).toBeGreaterThan(0);
   });
 });
