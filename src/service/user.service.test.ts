@@ -86,7 +86,7 @@ describe("user.service", () => {
     ).resolves.toBeUndefined();
   });
 
-  it("lista usuarios com o contrato resumido de /users/search incluindo employeeId", async () => {
+  it("lista usuarios com o contrato resumido de /users/search incluindo employeeId e biometricConsentAccepted", async () => {
     server.use(
       http.get("*/users/search", ({ request }) => {
         const url = new URL(request.url);
@@ -100,6 +100,7 @@ describe("user.service", () => {
               username: "maria.silva",
               role: "PARTNER",
               active: true,
+              biometricConsentAccepted: true,
             },
           ],
         });
@@ -113,6 +114,7 @@ describe("user.service", () => {
         username: "maria.silva",
         role: "PARTNER",
         active: true,
+        biometricConsentAccepted: true,
       },
     ]);
   });

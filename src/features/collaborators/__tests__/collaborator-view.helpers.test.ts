@@ -64,11 +64,12 @@ const users: UserSearchListItem[] = [
     username: "maria.silva",
     role: "MANAGER",
     active: true,
+    biometricConsentAccepted: true,
   },
 ];
 
 describe("collaborator-view.helpers", () => {
-  it("mescla colaborador e usuario pelo employeeId", () => {
+  it("mescla colaborador e usuario pelo employeeId e propaga biometricConsentAccepted", () => {
     const records = mergeCollaborators(employees, users);
 
     expect(records).toHaveLength(2);
@@ -86,17 +87,73 @@ describe("collaborator-view.helpers", () => {
       userId: null,
       username: "",
       hasAccount: false,
+      biometricState: "unknown",
+    });
+  });
+
+  it("marca biometricState=pending quando o usuário existe mas biometricConsentAccepted=false", () => {
+    const usersWithoutConsent: UserSearchListItem[] = [
+      {
+        userId: "user-1",
+        employeeId: "emp-1",
+        username: "maria.silva",
+        role: "PARTNER",
+        active: true,
+        biometricConsentAccepted: false,
+      },
+    ];
+
+    const records = mergeCollaborators(employees, usersWithoutConsent);
+
+    expect(records[0]).toMatchObject({
+      hasAccount: true,
       biometricState: "pending",
     });
   });
 
-  it("filtra por status, grupo e busca", () => {
-    const records = mergeCollaborators(employees, users);
+  it("filtra por PARTNER, MANAGER e Biometria", () => {
+    const partnerEmployee: EmployeeData = {
+      ...employees[0],
+      employeeId: "emp-3",
+      fullName: "Ana Lima",
+      email: "ana@kronos.com",
+      maskedCpf: "11122233300",
+      pis: "11122233300",
+    };
+    const employeesExt = [...employees, partnerEmployee];
+    const usersExt: UserSearchListItem[] = [
+      {
+        userId: "user-1",
+        employeeId: "emp-1",
+        username: "maria.silva",
+        role: "MANAGER",
+        active: true,
+        biometricConsentAccepted: true,
+      },
+      {
+        userId: "user-3",
+        employeeId: "emp-3",
+        username: "ana.lima",
+        role: "PARTNER",
+        active: true,
+        biometricConsentAccepted: false,
+      },
+    ];
+    const records = mergeCollaborators(employeesExt, usersExt);
 
-    expect(filterCollaborators(records, { search: "maria", status: "all", group: "all" })).toHaveLength(1);
-    expect(filterCollaborators(records, { search: "", status: "inactive", group: "all" })).toHaveLength(1);
-    expect(filterCollaborators(records, { search: "", status: "all", group: "managers" })).toHaveLength(1);
-    expect(filterCollaborators(records, { search: "", status: "all", group: "noAccount" })).toHaveLength(1);
+    expect(filterCollaborators(records, { search: "", status: "all", group: "managers" }))
+      .toHaveLength(1);
+    expect(filterCollaborators(records, { search: "", status: "all", group: "partners" }))
+      .toHaveLength(1);
+    // Biometria: somente quem tem consentimento aceito (registered)
+    expect(filterCollaborators(records, { search: "", status: "all", group: "biometric" }))
+      .toHaveLength(1);
+    // Busca por nome continua funcionando
+    expect(filterCollaborators(records, { search: "maria", status: "all", group: "all" }))
+      .toHaveLength(1);
+    // Status preservado
+    expect(filterCollaborators(records, { search: "", status: "inactive", group: "all" }))
+      .toHaveLength(1);
   });
 
   it("não vincula usuário quando o backend retorna response sem employeeId", () => {
@@ -107,6 +164,7 @@ describe("collaborator-view.helpers", () => {
         username: "maria.silva",
         role: "MANAGER",
         active: true,
+        biometricConsentAccepted: true,
       },
     ];
 

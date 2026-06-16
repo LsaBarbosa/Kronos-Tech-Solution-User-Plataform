@@ -15,8 +15,13 @@ import {
   matchesCollaboratorFilters,
 } from "./collaborator-formatters";
 
-const inferBiometricState = (hasAccount: boolean): CollaboratorRecord["biometricState"] =>
-  hasAccount ? "registered" : "pending";
+const inferBiometricState = (
+  hasAccount: boolean,
+  biometricConsentAccepted: boolean | undefined
+): CollaboratorRecord["biometricState"] => {
+  if (!hasAccount) return "unknown";
+  return biometricConsentAccepted ? "registered" : "pending";
+};
 
 export const mergeCollaborators = (
   employees: EmployeeData[],
@@ -38,7 +43,7 @@ export const mergeCollaborators = (
     const username = matchedUser?.username ?? "";
     const role = matchedUser?.role ?? null;
     const active = typeof matchedUser?.active === "boolean" ? matchedUser.active : employee.active;
-    const biometricState = inferBiometricState(hasAccount);
+    const biometricState = inferBiometricState(hasAccount, matchedUser?.biometricConsentAccepted);
 
     const collaborator: CollaboratorRecord = {
       ...employee,
@@ -99,19 +104,15 @@ export const filterCollaborators = (
       return false;
     }
 
+    if (filters.group === "partners" && record.role !== "PARTNER") {
+      return false;
+    }
+
     if (filters.group === "managers" && record.role !== "MANAGER") {
       return false;
     }
 
-    if (filters.group === "homeOffice" && !record.homeOffice) {
-      return false;
-    }
-
-    if (filters.group === "biometricPending" && record.biometricState !== "pending") {
-      return false;
-    }
-
-    if (filters.group === "noAccount" && record.hasAccount) {
+    if (filters.group === "biometric" && record.biometricState !== "registered") {
       return false;
     }
 
@@ -135,10 +136,9 @@ export const filterStatusOptions: Array<{ id: CollaboratorStatusFilter; label: s
 
 export const filterGroupOptions: Array<{ id: CollaboratorGroupFilter; label: string; description: string }> = [
   { id: "all", label: "Todos", description: "Todos os colaboradores" },
-  { id: "managers", label: "Gestores", description: "Somente gestores" },
-  { id: "homeOffice", label: "Home office", description: "Modelo remoto" },
-  { id: "biometricPending", label: "Biometria pendente", description: "Sem confirmação de cadastro" },
-  { id: "noAccount", label: "Sem usuário", description: "Conta ainda não vinculada" },
+  { id: "partners", label: "Somente colaboradores (PARTNER)", description: "Filtra contas com role PARTNER" },
+  { id: "managers", label: "Administradores (MANAGER)", description: "Filtra contas com role MANAGER" },
+  { id: "biometric", label: "Biometria", description: "Colaboradores com consentimento biométrico aceito" },
 ];
 
 export const isFilterActive = (records: CollaboratorRecord[], filters: CollaboratorFilters) =>

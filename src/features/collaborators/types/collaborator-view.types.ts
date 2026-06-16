@@ -5,10 +5,9 @@ export type CollaboratorStatusFilter = "all" | "active" | "inactive";
 
 export type CollaboratorGroupFilter =
   | "all"
+  | "partners"
   | "managers"
-  | "homeOffice"
-  | "biometricPending"
-  | "noAccount";
+  | "biometric";
 
 export type CollaboratorBiometricState = "registered" | "pending" | "unknown";
 

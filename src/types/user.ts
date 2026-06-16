@@ -23,6 +23,7 @@ export interface UserSearchListItem {
   username: string;
   role: "PARTNER" | "MANAGER";
   active: boolean;
+  biometricConsentAccepted: boolean;
 }
 
 export interface UserSearchListResponse {

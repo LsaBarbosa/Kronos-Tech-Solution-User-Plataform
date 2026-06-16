@@ -14,6 +14,7 @@ export const userFixture = {
         role: "MANAGER",
         active: true,
         employeeId: "emp-1",
+        biometricConsentAccepted: true,
       },
       {
         userId: "user-2",
@@ -21,6 +22,7 @@ export const userFixture = {
         role: "PARTNER",
         active: true,
         employeeId: "emp-2",
+        biometricConsentAccepted: false,
       },
     ],
   },
