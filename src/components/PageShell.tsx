@@ -1,12 +1,11 @@
 import type { ReactNode } from "react";
-import Sidebar from "@/components/Sidebar";
 import Header from "@/components/Header";
 import { cn } from "@/lib/utils";
 
 interface PageShellProps {
   children: ReactNode;
-  sidebarOpen: boolean;
-  toggleSidebar: () => void;
+  sidebarOpen?: boolean;
+  toggleSidebar?: () => void;
   mainClassName?: string;
   contentClassName?: string;
   withBackground?: boolean;
@@ -14,13 +13,10 @@ interface PageShellProps {
 
 const PageShell = ({
   children,
-  sidebarOpen,
-  toggleSidebar,
   mainClassName = "pt-28 sm:pt-40 mobile-container py-4 sm:py-20 space-y-6 sm:space-y-8 relative z-10",
   contentClassName = "flex-1 flex flex-col overflow-hidden",
   withBackground = true,
 }: PageShellProps) => {
-
   return (
     <div className="min-h-screen bg-background relative overflow-hidden">
       {withBackground && (
@@ -63,10 +59,8 @@ const PageShell = ({
         </div>
       )}
 
-      <Sidebar isOpen={sidebarOpen} toggleSidebar={toggleSidebar} />
-
       <div className={cn(contentClassName)}>
-        <Header toggleSidebar={toggleSidebar} />
+        <Header />
         <main className={mainClassName}>
           {children}
         </main>

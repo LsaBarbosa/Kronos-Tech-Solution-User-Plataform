@@ -1,6 +1,5 @@
-import { Menu } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import HeaderBrand from "./HeaderBrand";
+import HeaderNav from "./HeaderNav";
 import HeaderRouteContext from "./HeaderRouteContext";
 import HeaderRoleChip from "./HeaderRoleChip";
 import HeaderNotifications from "./HeaderNotifications";
@@ -14,7 +13,6 @@ interface HeaderMobileProps {
   pendingHasError: boolean;
   pendingLoading: boolean;
   onLogout: () => Promise<void>;
-  onToggleSidebar: () => void;
 }
 
 const HeaderMobile = ({
@@ -25,20 +23,10 @@ const HeaderMobile = ({
   pendingHasError,
   pendingLoading,
   onLogout,
-  onToggleSidebar,
 }: HeaderMobileProps) => {
   return (
     <div className="flex h-16 items-center gap-2 px-3 sm:px-4">
-      <Button
-        type="button"
-        variant="ghost"
-        size="icon"
-        onClick={onToggleSidebar}
-        aria-label="Abrir menu lateral"
-        className="h-10 w-10 shrink-0 text-[#0F172A] hover:bg-[#F1F5F9]"
-      >
-        <Menu className="h-5 w-5" />
-      </Button>
+      <HeaderNav role={role} variant="mobile" />
       <HeaderBrand variant="mobile" />
       <div className="ml-2 flex min-w-0 flex-1 items-center gap-2">
         <div className="min-w-0">

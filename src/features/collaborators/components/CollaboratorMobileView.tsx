@@ -1,10 +1,9 @@
-import { useCallback, useState } from "react";
+import { useState } from "react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Sheet, SheetContent, SheetHeader, SheetTitle, SheetDescription } from "@/components/ui/sheet";
 import { Skeleton } from "@/components/ui/skeleton";
 import Header from "@/components/Header";
-import Sidebar from "@/components/Sidebar";
 import { CollaboratorHero } from "./CollaboratorHero";
 import { CollaboratorFiltersBar } from "./CollaboratorFiltersBar";
 import { CollaboratorMobileCard } from "./CollaboratorMobileCard";
@@ -75,13 +74,10 @@ export const CollaboratorMobileView = ({
 
   const showNoResults = !isLoading && filteredCollaborators.length === 0 && records.length > 0;
   const showNoData = !isLoading && records.length === 0 && !isError;
-  const [sidebarOpen, setSidebarOpen] = useState(false);
-  const handleToggleSidebar = useCallback(() => setSidebarOpen((prev) => !prev), []);
 
   return (
     <>
-    <Sidebar isOpen={sidebarOpen} toggleSidebar={handleToggleSidebar} />
-    <Header toggleSidebar={handleToggleSidebar} />
+    <Header />
     <div className="min-h-screen bg-[#F8FAFC] pb-24 pt-16">
       <CollaboratorHero
         variant="mobile"

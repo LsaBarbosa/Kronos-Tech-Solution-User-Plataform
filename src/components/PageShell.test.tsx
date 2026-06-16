@@ -8,10 +8,6 @@ vi.mock("@/components/Header", () => ({
   default: () => <div data-testid="header" />,
 }));
 
-vi.mock("@/components/Sidebar", () => ({
-  default: () => <div data-testid="sidebar" />,
-}));
-
 const renderPageShell = (path: string) =>
   render(
     <CheckinProvider>
@@ -20,7 +16,7 @@ const renderPageShell = (path: string) =>
           <Route
             path="*"
             element={
-              <PageShell sidebarOpen={false} toggleSidebar={() => undefined}>
+              <PageShell>
                 <div>Conteudo</div>
               </PageShell>
             }
@@ -31,10 +27,9 @@ const renderPageShell = (path: string) =>
   );
 
 describe("PageShell", () => {
-  it("renderiza a estrutura base com sidebar, header e conteúdo", () => {
+  it("renderiza a estrutura base com header e conteúdo", () => {
     renderPageShell("/lista-colaboradores");
 
-    expect(screen.getByTestId("sidebar")).toBeInTheDocument();
     expect(screen.getByTestId("header")).toBeInTheDocument();
     expect(screen.getByText("Conteudo")).toBeInTheDocument();
   });

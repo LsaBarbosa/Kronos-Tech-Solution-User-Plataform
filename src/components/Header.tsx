@@ -9,10 +9,10 @@ import { useAuth } from "@/context/AuthContext";
 import { headerStyles } from "@/utils/layout-colors";
 
 interface HeaderProps {
-  toggleSidebar: () => void;
+  toggleSidebar?: () => void;
 }
 
-const Header = ({ toggleSidebar }: HeaderProps) => {
+const Header = (_props: HeaderProps = {}) => {
   const { isDesktop } = useHeaderResponsiveMode();
   const { status, user, role, logout } = useAuth();
 
@@ -36,7 +36,6 @@ const Header = ({ toggleSidebar }: HeaderProps) => {
     pendingHasError: hasError,
     pendingLoading: isLoading,
     onLogout: handleLogout,
-    onToggleSidebar: toggleSidebar,
   };
 
   return (

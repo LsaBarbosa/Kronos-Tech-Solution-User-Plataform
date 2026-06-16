@@ -1,8 +1,6 @@
-import { useCallback, useState } from "react";
 import { Card, CardContent } from "@/components/ui/card";
 import { Loader2 } from "lucide-react";
 import Header from "@/components/Header";
-import Sidebar from "@/components/Sidebar";
 import { useUsuarioProfileViewModel } from "@/features/user-profile/hooks/useUsuarioProfileViewModel";
 import { useUsuarioResponsiveMode } from "@/features/user-profile/hooks/useUsuarioResponsiveMode";
 import { usuarioProfileTokens } from "@/features/user-profile/styles/usuario-profile.tokens";
@@ -10,9 +8,6 @@ import UsuarioDesktopView from "./UsuarioDesktopView";
 import UsuarioMobileView from "./UsuarioMobileView";
 
 const UserProfileShell = () => {
-  const [sidebarOpen, setSidebarOpen] = useState(false);
-  const handleToggleSidebar = useCallback(() => setSidebarOpen((prev) => !prev), []);
-
   const {
     profile,
     actions,
@@ -44,8 +39,7 @@ const UserProfileShell = () => {
 
   return (
     <>
-      <Sidebar isOpen={sidebarOpen} toggleSidebar={handleToggleSidebar} />
-      <Header toggleSidebar={handleToggleSidebar} />
+      <Header />
       <div
         className="min-h-screen pt-16"
         style={{ background: usuarioProfileTokens.gradients.veil }}

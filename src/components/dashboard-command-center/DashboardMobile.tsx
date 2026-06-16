@@ -1,5 +1,5 @@
 import { useCallback } from "react";
-import { AlertTriangle, Briefcase, Clock, FileUp, MessageSquareWarning, Shield, User2 } from "lucide-react";
+import { BarChart3, Briefcase, FileUp, MessageSquareWarning, Shield, TimerReset } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { CheckinDashboardCard } from "@/components/checkin/CheckinDashboardCard";
 import DashboardHero from "./DashboardHero";
@@ -23,20 +23,10 @@ interface DashboardMobileProps {
 }
 
 const DashboardMobile = ({ data, actions }: DashboardMobileProps) => {
-  const handleScrollToPending = useCallback(() => {
-    const target = document.getElementById(PENDING_PANEL_ID);
-    target?.scrollIntoView({ behavior: "smooth", block: "start" });
-  }, []);
-
   const handleScrollToNotices = useCallback(() => {
     const target = document.getElementById(NOTICES_ID);
     target?.scrollIntoView({ behavior: "smooth", block: "start" });
   }, []);
-
-  const pendingCountBadge =
-    data.hasApprovalPermission && data.totalPendingCount > 0
-      ? `${data.totalPendingCount}`
-      : undefined;
 
   return (
     <div className="mx-auto w-full max-w-3xl space-y-4 pb-24">
@@ -64,58 +54,31 @@ const DashboardMobile = ({ data, actions }: DashboardMobileProps) => {
 
       <div className="space-y-3">
         <DashboardMobileActionCard
-          icon={Clock}
-          label="Ponto"
-          title="Registrar ponto"
-          description="Check-in, espelho de ponto e relatório."
+          icon={FileUp}
+          label="Documentos"
+          title="Enviar arquivo"
+          description="Envie um documento para um colaborador."
           toneClass="bg-[#EFF6FF]"
           textClass="text-[#1D4ED8]"
-          onClick={actions.goToEspelhoPonto}
+          onClick={actions.goToEnviarDocumentoColaborador}
         />
         <DashboardMobileActionCard
-          icon={AlertTriangle}
-          label={data.hasApprovalPermission ? "Pendências" : "Acesso rápido"}
-          title={data.hasApprovalPermission ? "Pendências operacionais" : "Documentos e solicitações"}
-          description={
-            data.hasApprovalPermission
-              ? `Ponto, férias e abonos · ${data.totalPendingCount} pendente(s)`
-              : "Acesse seus documentos, férias e abonos"
-          }
-          badge={pendingCountBadge}
-          toneClass={
-            data.hasApprovalPermission && data.totalPendingCount > 0
-              ? "bg-[#FEE2E2]"
-              : "bg-[#DCFCE7]"
-          }
-          textClass={
-            data.hasApprovalPermission && data.totalPendingCount > 0
-              ? "text-[#B91C1C]"
-              : "text-[#15803D]"
-          }
-          onClick={handleScrollToPending}
+          icon={BarChart3}
+          label="Relatório"
+          title="Abrir relatório"
+          description="Acesse o relatório detalhado de horas."
+          toneClass="bg-[#EFF6FF]"
+          textClass="text-[#1D4ED8]"
+          onClick={actions.goToRelatorio}
         />
         <DashboardMobileActionCard
-          icon={MessageSquareWarning}
-          label="Avisos"
-          title="Comunicação interna"
-          description={
-            data.newWarnings.length > 0
-              ? `${data.newWarnings.length} novo(s) aviso(s)`
-              : "Nenhuma mensagem nova"
-          }
-          badge={data.newWarnings.length > 0 ? `${data.newWarnings.length}` : undefined}
-          toneClass={data.newWarnings.length > 0 ? "bg-[#FEF3C7]" : "bg-[#EFF6FF]"}
-          textClass={data.newWarnings.length > 0 ? "text-[#92400E]" : "text-[#1D4ED8]"}
-          onClick={() => void data.handleWarningClick()}
-        />
-        <DashboardMobileActionCard
-          icon={User2}
-          label="Perfil"
-          title="Meu perfil"
-          description={data.userData?.companyName || "Empresa não informada"}
+          icon={TimerReset}
+          label="Solicitar"
+          title="Solicitar abono"
+          description="Registre um esquecimento ou ajuste de ponto."
           toneClass="bg-[#EDE9FE]"
           textClass="text-[#5B21B6]"
-          onClick={actions.goToPerfil}
+          onClick={actions.goToSolicitarAbono}
         />
         {data.isCto ? (
           <DashboardMobileActionCard
