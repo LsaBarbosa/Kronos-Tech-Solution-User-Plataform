@@ -44,8 +44,15 @@ export const ReportReferenceStatusCard = ({
       </CardHeader>
 
       <CardContent className="space-y-5 p-4">
-        <div className={cn("grid gap-4", compact ? "grid-cols-1" : "grid-cols-1 xl:grid-cols-[180px_minmax(0,1fr)]")}>
-          <div className="space-y-2">
+        <div
+          className={cn(
+            "grid gap-4",
+            compact
+              ? "grid-cols-1"
+              : "grid-cols-1 xl:grid-cols-[180px_minmax(0,1fr)]"
+          )}
+        >
+          <div className="min-w-0 space-y-2">
             <Label htmlFor="reference-time" className="text-sm font-semibold text-[#102A43]">
               Carga horária
             </Label>
@@ -55,7 +62,7 @@ export const ReportReferenceStatusCard = ({
               value={referenceTime}
               onChange={(event) => onReferenceTimeChange(event.target.value)}
               className={cn(
-                "h-11 rounded-2xl border-[#D8E2EC] bg-[#F5F8FB] text-[#102A43] focus:border-[#1F4E5F] focus:ring-[#1F4E5F]/20",
+                "h-11 w-full min-w-0 max-w-full rounded-2xl border-[#D8E2EC] bg-[#F5F8FB] px-3 text-sm text-[#102A43] focus:border-[#1F4E5F] focus:ring-[#1F4E5F]/20",
                 !isValid && referenceTime ? "border-[#D64545]" : ""
               )}
             />
@@ -64,38 +71,38 @@ export const ReportReferenceStatusCard = ({
             </p>
           </div>
 
-          <div className="space-y-2">
+          <div className="min-w-0 space-y-2">
             <Label className="text-sm font-semibold text-[#102A43]">
               Situação do registro
             </Label>
-            <div className="grid grid-cols-2 gap-2">
+            <div className="grid min-w-0 grid-cols-2 gap-2">
               <Button
                 type="button"
                 variant="outline"
                 onClick={() => onReportActiveChange(true)}
                 className={cn(
-                  "h-11 rounded-2xl border px-3 text-sm font-semibold",
+                  "h-11 min-w-0 max-w-full justify-center gap-1.5 rounded-2xl border px-2 text-xs font-semibold sm:gap-2 sm:px-3 sm:text-sm",
                   reportActive
                     ? "border-[#1C8C7C] bg-[#E6FFFB] text-[#166E64]"
                     : "border-[#D8E2EC] bg-white text-[#627D98] hover:bg-[#F5F8FB]"
                 )}
               >
-                <CheckCircle2 className="mr-2 h-4 w-4" />
-                Aprovado
+                <CheckCircle2 className="h-3.5 w-3.5 shrink-0 sm:h-4 sm:w-4" />
+                <span className="truncate">Aprovado</span>
               </Button>
               <Button
                 type="button"
                 variant="outline"
                 onClick={() => onReportActiveChange(false)}
                 className={cn(
-                  "h-11 rounded-2xl border px-3 text-sm font-semibold",
+                  "h-11 min-w-0 max-w-full justify-center gap-1.5 rounded-2xl border px-2 text-xs font-semibold sm:gap-2 sm:px-3 sm:text-sm",
                   !reportActive
                     ? "border-[#D64545] bg-[#FFF1F1] text-[#B42318]"
                     : "border-[#D8E2EC] bg-white text-[#627D98] hover:bg-[#F5F8FB]"
                 )}
               >
-                <CircleAlert className="mr-2 h-4 w-4" />
-                Reprovado
+                <CircleAlert className="h-3.5 w-3.5 shrink-0 sm:h-4 sm:w-4" />
+                <span className="truncate">Reprovado</span>
               </Button>
             </div>
           </div>

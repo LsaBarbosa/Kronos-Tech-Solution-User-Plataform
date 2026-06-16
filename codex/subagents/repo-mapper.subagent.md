@@ -1,17 +1,25 @@
-# Subagent — Repo Mapper
+# Subagent — repo-mapper
 
 ## Objetivo
-Mapear a implementação atual da rota `/lgpd/admin/requests/:requestId`.
+Mapear estrutura, branch e pontos de entrada.
 
-## Tarefas
-- Confirmar branch `feature/lgpd-compliance-new-ui`.
-- Abrir `src/App.tsx`.
-- Confirmar que `lgpdAdminRequestDetails` usa `renderProtectedRoleRoute`.
-- Abrir `src/config/app-routes.ts`.
-- Confirmar `allowedRoles: ["CTO", "MANAGER"]`.
-- Localizar `AdminLgpdRequestDetails.tsx`.
-- Mapear dependências diretas do componente.
-- Registrar arquivos que serão alterados.
+## Ler
 
-## Saída esperada
-Lista de arquivos-alvo e arquivos de apoio.
+```text
+package.json
+src/pages/RelatorioDetalhado.tsx
+src/hooks/useDetailedReportBuilder.ts
+src/components/relatorio-detalhado/**/*
+src/utils/report-export.ts
+src/utils/report-utils.tsx
+src/service/records.service.ts
+src/config/app-routes.ts
+src/App.tsx
+```
+
+## Produzir
+
+- Lista de arquivos que serão alterados.
+- Lista de arquivos que serão criados.
+- Confirmação de rota `/relatorio-detalhado`.
+- Confirmação de chamadas PDF/CSV na UI desktop e mobile.
