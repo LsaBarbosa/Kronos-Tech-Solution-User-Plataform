@@ -11,7 +11,7 @@ import { formatPhone, getToneClass } from "../utils/collaborator-formatters";
 type CollaboratorMobileCardProps = {
   record: CollaboratorRecord;
   selected: boolean;
-  onSelect: (record: CollaboratorRecord) => void;
+  onSelect: (employeeId: string) => void;
   onOpenDetails: (record: CollaboratorRecord) => void;
   onEdit: (record: CollaboratorRecord) => void;
   onRequestToggle: (record: CollaboratorRecord) => void;
@@ -37,7 +37,7 @@ export const CollaboratorMobileCard = ({
 }: CollaboratorMobileCardProps) => {
   return (
     <Card
-      onClick={() => onSelect(record)}
+      onClick={() => onSelect(record.employeeId)}
       className={cn(
         "rounded-[24px] border border-[#E2E8F0] bg-white p-4 shadow-[0_12px_28px_rgba(15,23,42,0.06)] transition-all",
         selected && "border-[#2563EB] ring-2 ring-[#2563EB]/12"
