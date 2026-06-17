@@ -7,7 +7,8 @@ export type DocumentType =
   | "EMPLOYEE_DOCUMENTS"
   | "POINT_RECORD_RECEIPT"
   | "BIOMETRIC_CONSENT_TERM"
-  | "SERVICE_CONTRACT_TERMS";
+  | "SERVICE_CONTRACT_TERMS"
+  | "POINT_MIRROR_SIGNATURE";
 
 export interface Document {
   id: string;
@@ -44,6 +45,7 @@ export const DOCUMENT_TYPE_OPTIONS: Array<{ value: DocumentType; label: string }
   { value: "POINT_RECORD_RECEIPT", label: "Comprovante de ponto" },
   { value: "BIOMETRIC_CONSENT_TERM", label: "Termo de consentimento biométrico" },
   { value: "SERVICE_CONTRACT_TERMS", label: "Termos do contrato de serviço" },
+  { value: "POINT_MIRROR_SIGNATURE", label: "Espelho de ponto assinado" },
 ];
 
 const ALLOWED_FILE_MIME_TYPES = [

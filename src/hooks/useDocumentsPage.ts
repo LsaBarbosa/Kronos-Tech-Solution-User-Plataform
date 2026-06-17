@@ -88,6 +88,7 @@ export const useDocumentsPage = () => {
       POINT_RECORD_RECEIPT: "Comprovante de Ponto",
       BIOMETRIC_CONSENT_TERM: "Termo de Consentimento Biométrico",
       SERVICE_CONTRACT_TERMS: "Termo de Contrato de Serviço",
+      POINT_MIRROR_SIGNATURE: "Espelho de Ponto Assinado",
     };
 
     return labels[type];
