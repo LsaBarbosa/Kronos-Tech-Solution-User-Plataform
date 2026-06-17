@@ -6,6 +6,7 @@ import {
   Calculator,
   ChevronLeft,
   ClipboardCheck,
+  FileSignature,
   FileText,
   Scale,
   Shield,
@@ -40,6 +41,7 @@ type AdminGroupKey =
   | "timesheet"
   | "vacation"
   | "timeOff"
+  | "contracts"
   | "audit"
   | "lgpd";
 
@@ -121,6 +123,21 @@ const buildGroups = (): AdminGroupConfig[] => [
         route: APP_ROUTE_META.aprovacoesAbono,
         icon: Activity,
         description: "Aprove ou rejeite abonos e ajustes de ponto enviados pela equipe.",
+      },
+    ],
+  },
+  {
+    key: "contracts",
+    title: "Contratos",
+    subtitle: "Envio e acompanhamento de assinaturas",
+    icon: FileSignature,
+    tone: "from-[#7C3AED] to-[#A78BFA]",
+    accent: "bg-[#EDE9FE] text-[#5B21B6]",
+    routes: [
+      {
+        route: APP_ROUTE_META.contratosAdmin,
+        icon: FileSignature,
+        description: "Acompanhe contratos enviados, status de assinatura e envie novos termos.",
       },
     ],
   },
