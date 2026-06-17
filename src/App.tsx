@@ -24,6 +24,9 @@ const AtualizarEmpresa = lazy(() => import("./pages/AtualizarEmpresa"));
 const RelatorioDetalhado = lazy(() => import("./pages/RelatorioDetalhado"));
 const EspelhoPonto = lazy(() => import("./pages/EspelhoPonto"));
 const AssinaturaPonto = lazy(() => import("./pages/AssinaturaPonto"));
+const AssinaturaContrato = lazy(() => import("./pages/AssinaturaContrato"));
+const ContratosAdmin = lazy(() => import("./pages/ContratosAdmin"));
+const EnviarContrato = lazy(() => import("./pages/EnviarContrato"));
 const AuditoriaFiscal = lazy(() => import("./pages/AuditoriaFiscal"));
 const Documentos = lazy(() => import("./pages/Documentos"));
 const EnviarDocumentos = lazy(() => import("./pages/EnviarDocumentos"));
@@ -117,6 +120,7 @@ const App = () => (
                     <Route path={APP_PATHS.relatorioDetalhado} element={<RelatorioDetalhado />} />
                     <Route path={APP_PATHS.espelhoPonto} element={<EspelhoPonto />} />
                     <Route path={APP_PATHS.assinaturaPonto} element={<AssinaturaPonto />} />
+                    <Route path={APP_PATHS.assinaturaContrato} element={<AssinaturaContrato />} />
                     <Route path={APP_PATHS.documentos} element={<Documentos />} />
                     <Route path={APP_PATHS.meusDocumentos} element={<Documentos />} />
                     <Route path={APP_PATHS.enviarDocumentos} element={<EnviarDocumentos />} />
@@ -140,6 +144,8 @@ const App = () => (
                     {renderProtectedRoleRoute({ routeKey: "statusDoRegistro", element: <StatusRegistro /> })}
                     {renderProtectedRoleRoute({ routeKey: "ferias", element: <VacationApprovals /> })}
                     {renderProtectedRoleRoute({ routeKey: "aprovacoesAbono", element: <ManualRegisterApprovals /> })}
+                    {renderProtectedRoleRoute({ routeKey: "contratosAdmin", element: <ContratosAdmin /> })}
+                    {renderProtectedRoleRoute({ routeKey: "contratosEnviar", element: <EnviarContrato /> })}
                     {renderProtectedRoleRoute({ routeKey: "lgpdAdminRequests", element: <AdminLgpdRequests /> })}
                     {renderProtectedRoleRoute({ routeKey: "lgpdAdminRequestDetails", element: <AdminLgpdRequestDetails /> })}
                     {renderProtectedRoleRoute({ routeKey: "lgpdAdminInventory", element: <AdminInventory /> })}

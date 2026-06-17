@@ -25,13 +25,22 @@ export const fetchCsrfToken = async (): Promise<CsrfTokenResponse> => {
     return csrfFetchPromise;
   }
 
-  // Start a new fetch
-  csrfFetchPromise = api.get<CsrfTokenResponse>("/auth/csrf").then((response) => {
-    const token = response.data;
-    cachedCsrfToken = token;
-    csrfFetchPromise = null;
-    return token;
-  });
+  // Start a new fetch.
+  // IMPORTANTE: usar `.finally` para LIMPAR a promise tanto em sucesso quanto em
+  // falha. Sem isso, uma falha (ex.: backend offline momentâneo durante logout)
+  // congela a promise rejeitada para sempre — toda chamada subsequente reusaria
+  // a mesma rejeição e o interceptor de request silenciaria o erro, fazendo POSTs
+  // saírem sem o header X-CSRF-TOKEN e sendo recusados pelo backend com 403.
+  csrfFetchPromise = api
+    .get<CsrfTokenResponse>("/auth/csrf")
+    .then((response) => {
+      const token = response.data;
+      cachedCsrfToken = token;
+      return token;
+    })
+    .finally(() => {
+      csrfFetchPromise = null;
+    });
 
   return csrfFetchPromise;
 };

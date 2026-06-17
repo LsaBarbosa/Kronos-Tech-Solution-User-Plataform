@@ -38,6 +38,9 @@ export const APP_PATHS = {
   relatorioDetalhado: "/relatorio-detalhado",
   espelhoPonto: "/espelho-ponto",
   assinaturaPonto: "/assinatura-ponto",
+  assinaturaContrato: "/assinatura-contrato",
+  contratosAdmin: "/contratos/admin",
+  contratosEnviar: "/contratos/enviar",
   usuario: "/usuario",
   empresa: "/empresa",
   empresaCriar: "/empresa/criar",
@@ -90,6 +93,22 @@ export const APP_ROUTE_META = {
   }),
   assinaturaPonto: defineRoute(APP_PATHS.assinaturaPonto, "Assinatura do Ponto", {
     breadcrumbs: [{ label: "Início", path: APP_PATHS.dashboard }, { label: "Assinatura do Ponto", path: APP_PATHS.assinaturaPonto }],
+  }),
+  assinaturaContrato: defineRoute(APP_PATHS.assinaturaContrato, "Assinatura de Contratos", {
+    breadcrumbs: [{ label: "Início", path: APP_PATHS.dashboard }, { label: "Assinatura de Contratos", path: APP_PATHS.assinaturaContrato }],
+  }),
+  contratosAdmin: defineRoute(APP_PATHS.contratosAdmin, "Contratos", {
+    allowedRoles: ["MANAGER", "CTO"],
+    breadcrumbs: [{ label: "Início", path: APP_PATHS.dashboard }, { label: "Contratos", path: APP_PATHS.contratosAdmin }],
+  }),
+  contratosEnviar: defineRoute(APP_PATHS.contratosEnviar, "Enviar Contrato", {
+    allowedRoles: ["MANAGER", "CTO"],
+    showInMenu: false,
+    breadcrumbs: [
+      { label: "Início", path: APP_PATHS.dashboard },
+      { label: "Contratos", path: APP_PATHS.contratosAdmin },
+      { label: "Enviar Contrato", path: APP_PATHS.contratosEnviar },
+    ],
   }),
   usuario: defineRoute(APP_PATHS.usuario, "Usuário", {
     breadcrumbs: [{ label: "Início", path: APP_PATHS.dashboard }, { label: "Usuário", path: APP_PATHS.usuario }],
@@ -285,6 +304,7 @@ export const ADMIN_MENU_GROUPS = {
   timesheet: [APP_ROUTE_META.apuracaoHoras, APP_ROUTE_META.statusDoRegistro],
   vacation: [APP_ROUTE_META.ferias],
   timeOff: [APP_ROUTE_META.aprovacoesAbono],
+  contracts: [APP_ROUTE_META.contratosAdmin],
   audit: [APP_ROUTE_META.auditoria],
   lgpd: [APP_ROUTE_META.lgpdAdminRequests, APP_ROUTE_META.lgpdAdminInventory],
 } as const;

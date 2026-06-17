@@ -8,6 +8,7 @@ export const API_ROUTES = {
   LGPD: "lgpd",
   MESSAGES: "messages",
   RECORDS: "records",
+  SERVICE_CONTRACTS: "service-contracts",
   TERMS: "terms",
   USERS: "users",
 } as const;
@@ -40,6 +41,16 @@ export const DOCUMENT_PATHS = {
   UPLOAD: "",
   DOWNLOAD: (documentId: string) => documentId,
   DELETE: (documentId: string) => documentId,
+} as const;
+
+export const SERVICE_CONTRACT_PATHS = {
+  ADMIN: "admin",
+  ADMIN_DETAIL: (contractId: string) => `admin/${contractId}`,
+  ME_PENDING: "me/pending",
+  PREVIEW: (contractId: string) => `${contractId}/preview`,
+  SIGN: (contractId: string) => `${contractId}/sign`,
+  SIGNATURE_DOCUMENT: (signatureId: string) => `signatures/${signatureId}/document`,
+  ADMIN_SIGNATURES: "admin/signatures",
 } as const;
 
 export const TIMESHEET_SIGNATURE_PATHS = {

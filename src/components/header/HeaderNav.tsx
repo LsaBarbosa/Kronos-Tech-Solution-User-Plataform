@@ -96,6 +96,7 @@ const buildEntries = (role: string | null | undefined): NavEntry[] => {
   const auditItems = ADMIN_MENU_GROUPS.audit.filter((route) =>
     canAccessRoute(role, route)
   );
+  const contractItems = ADMIN_MENU_GROUPS.contracts.filter((route) => canAccessRoute(role, route));
   const lgpdItems = ADMIN_MENU_GROUPS.lgpd.filter((route) => canAccessRoute(role, route));
 
   const adminSections: NavGroup["sections"] = [];
@@ -134,6 +135,13 @@ const buildEntries = (role: string | null | undefined): NavEntry[] => {
     });
   }
 
+  if (contractItems.length) {
+    adminSections.push({
+      title: "Contratos",
+      items: [leaf(APP_ROUTE_META.contratosAdmin.label, APP_PATHS.contratosAdmin, FileSignature)],
+    });
+  }
+
   if (auditItems.length) {
     adminSections.push({
       title: "Auditoria",
@@ -153,6 +161,7 @@ const buildEntries = (role: string | null | undefined): NavEntry[] => {
     leaf(APP_ROUTE_META.relatorioDetalhado.label, APP_PATHS.relatorioDetalhado, BarChart3),
     leaf(APP_ROUTE_META.espelhoPonto.label, APP_PATHS.espelhoPonto, CalendarRange),
     leaf(APP_ROUTE_META.assinaturaPonto.label, APP_PATHS.assinaturaPonto, FileSignature),
+    leaf(APP_ROUTE_META.assinaturaContrato.label, APP_PATHS.assinaturaContrato, FileSignature),
     leaf(APP_ROUTE_META.avisos.label, APP_PATHS.avisos, BellMinus),
     {
       kind: "group" as const,
