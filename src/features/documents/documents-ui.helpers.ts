@@ -152,6 +152,14 @@ export const DOCUMENT_TYPE_OPTIONS: DocumentTypeOption[] = [
     icon: FileSignature,
     tone: "from-[#7C3AED] to-[#2563EB]",
   },
+  {
+    value: "POINT_MIRROR_SIGNATURE",
+    label: "Espelho de Ponto Assinado",
+    shortLabel: "Espelho Assinado",
+    description: "Espelhos de ponto mensais assinados eletronicamente.",
+    icon: FileSignature,
+    tone: "from-[#7C3AED] to-[#A78BFA]",
+  },
 ];
 
 export const findDocumentTypeOption = (
