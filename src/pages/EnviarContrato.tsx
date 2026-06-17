@@ -30,7 +30,7 @@ const EnviarContrato = () => {
     setIsLoadingEmployees(true);
     try {
       const list = await listEmployees(true);
-      setEmployees(list);
+      setEmployees(Array.isArray(list) ? list : []);
     } catch (error) {
       toast({
         variant: "destructive",

@@ -70,11 +70,12 @@ export const useServiceContractSignatureViewModel = (): ServiceContractSignature
     setIsLoading(true);
     try {
       const data = await ServiceContractSignatureService.getPendingContracts();
-      setPendingContracts(data.contracts);
+      const contracts = Array.isArray(data?.contracts) ? data.contracts : [];
+      setPendingContracts(contracts);
       // mantém seleção apenas se ainda estiver pendente
       setSelectedContractState((current) =>
-        current && data.contracts.some((c) => c.contractId === current.contractId)
-          ? data.contracts.find((c) => c.contractId === current.contractId) ?? null
+        current && contracts.some((c) => c.contractId === current.contractId)
+          ? contracts.find((c) => c.contractId === current.contractId) ?? null
           : null
       );
       setHasPreviewed(false);

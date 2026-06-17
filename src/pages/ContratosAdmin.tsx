@@ -38,7 +38,10 @@ const ContratosAdmin = () => {
         page: 0,
         size: 50,
       });
-      setItems(page.items);
+      // Defensivo: backend deve devolver `items: [...]`, mas se vier null/undefined
+      // por qualquer razão (response normalizado por interceptor, body parcial,
+      // schema antigo) caímos para [] em vez de quebrar o render com items.length.
+      setItems(Array.isArray(page?.items) ? page.items : []);
     } catch (error) {
       toast({
         variant: "destructive",
