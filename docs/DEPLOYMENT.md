@@ -1,159 +1,119 @@
-# 🚀 Guia de Deployment - Kronos User Platform
+# Deployment na Hostinger
 
-## Configuração de Variáveis de Ambiente
+## Arquitetura Alvo
 
-### Em Desenvolvimento (`.env`)
-```env
-VITE_API_BASE_URL=http://localhost:8080
-VITE_OBSERVABILITY_ENABLED=false
-```
+O ecossistema Kronos está configurado para operar com separação de responsabilidades:
 
-### Em Produção (`.env.production`)
+- front-end: `https://app.kronossolutions.tech`
+- API: `https://api.kronossolutions.tech`
 
-⚠️ **IMPORTANTE:** Você DEVE definir `VITE_API_BASE_URL` com a URL correta do seu backend em produção.
+O front-end deve ser publicado como site estático.
+A API deve permanecer atrás do proxy reverso da Hostinger apontando para o Spring Boot.
 
-#### Opções de Configuração:
+## Regra Crítica
 
-**Opção 1: Usar `.env.production` (Recomendado)**
+Se a raiz `/` ou uma rota SPA como `/dashboard` cair no back-end, o usuário verá erro `404 No static resource`.
 
-```env
-VITE_API_BASE_URL=https://seu-backend-url.com
-VITE_OBSERVABILITY_ENABLED=true
-VITE_OBSERVABILITY_ENDPOINT=https://seu-observability-endpoint.com
-```
+Para evitar isso, a publicação correta precisa garantir:
 
-**Opção 2: Passar via Comando de Build**
+1. `app.kronossolutions.tech` servindo os arquivos do `dist/`
+2. fallback SPA ativo para `index.html`
+3. `api.kronossolutions.tech` apontando para o back-end
 
-```bash
-VITE_API_BASE_URL=https://seu-backend-url.com npm run build
-```
+## Build de Produção
 
-**Opção 3: Variáveis de Ambiente do Sistema (CI/CD)**
-
-Defina a variável de ambiente no seu pipeline CI/CD:
-
-```yaml
-# GitHub Actions
-- name: Build
-  env:
-    VITE_API_BASE_URL: https://seu-backend-url.com
-  run: npm run build
-```
-
-```yaml
-# GitLab CI
-build:
-  variables:
-    VITE_API_BASE_URL: "https://seu-backend-url.com"
-  script:
-    - npm run build
-```
-
----
-
-## Como Funciona
-
-### Código em `src/config/api.ts`
-
-```typescript
-const DEFAULT_LOCAL_API_BASE_URL = "http://localhost:8080";
-
-export const API_BASE_URL =
-  import.meta.env.VITE_API_BASE_URL?.trim() || DEFAULT_LOCAL_API_BASE_URL;
-```
-
-**Ordem de Precedência:**
-1. ✅ Se `VITE_API_BASE_URL` está definida → usa ela
-2. ❌ Se não está definida → usa o fallback `http://localhost:8080`
-
-### ⚠️ Problema Comum em Produção
-
-Se você faz deploy em produção **SEM definir `VITE_API_BASE_URL`**, o front-end tentará chamar `http://localhost:8080`, que resulta em:
-
-- ❌ Requisições CORS falhando
-- ❌ Aplicação não consegue se conectar ao backend
-- ❌ Usuários veem erros de conexão
-
-### ✅ Solução
-
-**SEMPRE** defina `VITE_API_BASE_URL` antes de fazer build para produção:
+Use a API real no build:
 
 ```bash
-# ❌ ERRADO (usará localhost como fallback)
-npm run build
-
-# ✅ CORRETO (usa a URL do backend em produção)
-VITE_API_BASE_URL=https://seu-backend-url.com npm run build
+VITE_API_BASE_URL=https://api.kronossolutions.tech npm run build
 ```
 
----
+Opcionalmente, crie um arquivo local não versionado `.env.production` a partir de `.env.production.example`.
 
-## Exemplos de URLs de Backend
+## Artefatos de Publicação
 
-| Ambiente | URL Exemplo |
-|----------|------------|
-| Local | `http://localhost:8080` |
-| Desenvolvimento | `http://dev-api.kronos.local` |
-| Staging | `https://staging-api.kronos.com` |
-| Produção Render | `https://kronos-api-production.render.com` |
-| Produção Custom | `https://api.kronossolutions.com` |
+Após o build, publique o conteúdo de `dist/` no domínio do app.
 
----
+Arquivos críticos:
 
-## Validação
+- `dist/index.html`
+- `dist/assets/*`
+- `dist/.htaccess`
 
-Para verificar qual URL está sendo usada, abra o DevTools do navegador e execute:
+O arquivo `.htaccess` já contém o fallback SPA:
 
-```javascript
-// Console do navegador
-console.log(window.location.origin); // URL do front-end
-fetch('/').then(r => console.log(r.url)); // Verificará o baseURL
+- arquivos reais são servidos normalmente;
+- qualquer rota inexistente é redirecionada para `index.html`.
+
+## Hostinger com Apache ou LiteSpeed
+
+Se `app.kronossolutions.tech` estiver servindo arquivos estáticos diretamente:
+
+1. suba o conteúdo de `dist/` para o diretório público do domínio;
+2. confirme que `dist/.htaccess` foi publicado;
+3. teste:
+   - `/`
+   - `/dashboard`
+   - `/avisos`
+   - `/usuario`
+
+Se essas rotas abrirem apenas após navegação interna, mas falharem em refresh, o `.htaccess` não foi publicado ou o `mod_rewrite` não está ativo.
+
+## Hostinger com Nginx em Frente
+
+Se a Hostinger estiver usando Nginx antes do Apache/LiteSpeed, o domínio do app precisa preservar o fallback para SPA.
+
+Padrão esperado:
+
+```nginx
+location / {
+    try_files $uri $uri/ /index.html;
+}
 ```
 
-Ou inspecione o arquivo HTML buildado:
+Se o Nginx estiver encaminhando `/` para o Spring Boot, o front não está sendo servido pelo lugar correto.
 
-```bash
-# Procure pelas requisições de API nos seus testes/staging
-grep -r "localhost" dist/ && echo "⚠️ ALERTA: localhost encontrado em produção!" || echo "✅ Nenhuma referência a localhost"
-```
+## Comportamento Atual do Back-end
 
----
+O back-end agora redireciona acessos HTML indevidos para o domínio do app usando `frontend.base-url-record`.
 
-## Checklist de Deployment
+Isso reduz erros como:
 
-- [ ] Variável `VITE_API_BASE_URL` definida corretamente
-- [ ] Backend está acessível na URL definida
-- [ ] CORS está configurado corretamente no backend
-- [ ] Certificado SSL é válido (se HTTPS)
-- [ ] Firewall permite requisições HTTPS
-- [ ] Build foi feito COM a variável de ambiente (não apenas no código)
+- `No static resource .`
+- `No static resource dashboard.`
 
----
+Mas esse redirect é proteção adicional, não substitui a publicação correta do front.
 
-## Troubleshooting
+## Checklist de Produção
 
-### "NetworkError: A network error occurred."
+- `VITE_API_BASE_URL` apontando para `https://api.kronossolutions.tech`
+- `dist/` publicado em `app.kronossolutions.tech`
+- `.htaccess` presente no diretório publicado
+- API publicada em `api.kronossolutions.tech`
+- CORS no back-end permitindo `https://app.kronossolutions.tech`
+- refresh em `/dashboard` funcionando
+- login, logout e chamadas autenticadas funcionando
 
-❌ **Causa:** `VITE_API_BASE_URL` não foi definida ou está errada
+## Diagnóstico Rápido
 
-✅ **Solução:** Reconstruir com `VITE_API_BASE_URL=<URL_CORRETA> npm run build`
+### Se `https://app.kronossolutions.tech/dashboard` retorna JSON 404 do Spring
 
-### "CORS error: No 'Access-Control-Allow-Origin' header"
+Causa provável:
 
-❌ **Causa:** Backend não está com CORS configurado para o domínio do front-end
+- o domínio do app está apontando para o back-end, não para os arquivos estáticos.
 
-✅ **Solução:** Configurar CORS no backend (verificar `SecurityConfig.java`)
+Correção:
 
-### Build local funciona, mas produção não funciona
+- ajustar a configuração da Hostinger para servir `dist/` no domínio do app;
+- manter a API no subdomínio `api`.
 
-❌ **Causa:** Variável não foi setada durante o build de produção
+### Se `https://app.kronossolutions.tech/dashboard` retorna 404 HTML do servidor
 
-✅ **Solução:** Usar `.env.production` ou passar variável no comando de build
+Causa provável:
 
----
+- falta de fallback SPA.
 
-## Referências
+Correção:
 
-- [Vite: Environment Variables](https://vitejs.dev/guide/env-and-mode.html)
-- [Backend Kronos](../Kronos-Tech-Solutions-KTS/README.md)
-- [API Configuration](../src/config/api.ts)
+- garantir publicação de `.htaccess`;
+- se houver Nginx antes, aplicar `try_files`.

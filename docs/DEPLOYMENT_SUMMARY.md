@@ -1,239 +1,42 @@
-# 📊 Resumo Executivo - Deployment Kronos User Platform
+# Resumo de Deploy na Hostinger
 
-**Data:** Maio 2026  
-**Status:** ✅ PRONTO PARA PRODUÇÃO  
-**Ambiente:** Render  
+## Topologia Correta
 
----
+- `app.kronossolutions.tech`: front-end estático gerado pelo Vite
+- `api.kronossolutions.tech`: API Spring Boot atrás do proxy da Hostinger
 
-## 🎯 Objetivo Alcançado
+## Resultado Esperado
 
-Front-end do Kronos configurado para production com:
-- ✅ URL correta do backend no Render
-- ✅ Variáveis de ambiente seguras
-- ✅ Tests passando (205/205)
-- ✅ Build otimizado (~10s)
-- ✅ Compatibilidade front-back validada
+- refresh em `/dashboard` deve abrir o app normalmente;
+- chamadas HTTP do front devem sair para `https://api.kronossolutions.tech`;
+- o domínio da API não deve ser usado para servir a SPA.
 
----
+## Artefatos Importantes
 
-## 📋 Checklist Completo
+- `public/.htaccess`
+- `dist/.htaccess`
+- `deploy/hostinger-nginx.conf` no back-end
 
-### Testes e Build
-- [x] `npm run test:coverage` — 205/205 testes passando
-- [x] `npm run build` — Build bem-sucedido (10.18s)
-- [x] `npm run lint` — Sem erros (1 warning pré-existente)
-- [x] Coverage — Thresholds atendidos (40/30/33/40%)
+## Erros que essa configuração evita
 
-### Configuração
-- [x] `.env.production` — Setado com URL do Render
-- [x] `.env.example` — Template para novos devs
-- [x] `.gitignore` — Ignora .env locais corretamente
-- [x] Variáveis de ambiente — Seguras e não hardcoded
+- `{"detail":"No static resource dashboard.","instance":"/dashboard"}`
+- `{"detail":"No static resource .","instance":"/"}`
 
-### Compatibilidade
-- [x] Backend endpoint `/auth/logout` — Restaurado
-- [x] MSW handler para logout — Adicionado
-- [x] API routes — Todas validadas (40+ endpoints)
-- [x] CORS — Configurado no backend
+## Interpretação do Erro
 
-### Documentação
-- [x] `docs/RENDER_DEPLOYMENT.md` — Guia Render específico
-- [x] `docs/DEPLOYMENT.md` — Guia geral de deployment
-- [x] `docs/ENV_CONFIGURATION.md` — Política de .env
-- [x] `scripts/build-production.sh` — Script automatizado
+Se esse erro aparece, significa que a rota chegou ao Spring Boot em vez de ser resolvida pelo front estático.
 
----
+Isso normalmente indica uma destas causas:
 
-## 🔧 Configuração Final
+1. o domínio do app está apontando para o back-end;
+2. o `dist/` não foi publicado no domínio correto;
+3. o fallback SPA não está ativo;
+4. o build de produção foi feito com `VITE_API_BASE_URL` incorreto.
 
-### Backend (Render)
-```
-https://kronos-solutions-service.onrender.com
-```
+## Ação Operacional
 
-### Frontend (Render - A ser deployado)
-```
-https://seu-site-name.onrender.com
-```
-
-### Variáveis Críticas
-```env
-VITE_API_BASE_URL=https://kronos-solutions-service.onrender.com
-VITE_OBSERVABILITY_ENABLED=true
-```
-
----
-
-## 📈 Métricas
-
-| Métrica | Resultado |
-|---------|-----------|
-| Testes | 205/205 ✅ |
-| Coverage | 43.91% (threshold: 40%) ✅ |
-| Build Time | 10.18s ✅ |
-| Bundle Size | 343.7 KB (gzip: 115.3 KB) ✅ |
-| Lint Issues | 0 errors, 1 warning ✅ |
-
----
-
-## 🚀 Como Fazer Deploy
-
-### Opção 1: Via Render Dashboard (Recomendado)
-
-1. Acesse https://render.com
-2. "New +" → "Static Site"
-3. Conecte repositório
-4. Configure:
-   - **Build:** `npm install && npm run build`
-   - **Publish:** `dist`
-5. Deploy automático ao fazer push
-
-### Opção 2: Script Local
-
-```bash
-./scripts/build-production.sh
-# Valida tudo e faz build
-```
-
-### Opção 3: Manual
-
-```bash
-VITE_API_BASE_URL=https://kronos-solutions-service.onrender.com npm run build
-```
-
----
-
-## ✅ Validação Pós-Deploy
-
-Após fazer deploy no Render:
-
-```bash
-# 1. Verificar URL
-curl https://seu-site.onrender.com
-
-# 2. Testar API
-DevTools → Network → verifique se requisições vão para:
-https://kronos-solutions-service.onrender.com
-
-# 3. Validar funcionalidades
-- Login ✓
-- Logout ✓
-- Upload de documentos ✓
-- Requisições à API ✓
-```
-
----
-
-## 📁 Arquivos Modificados/Criados
-
-```
-Criados:
-  + docs/RENDER_DEPLOYMENT.md       (guia Render)
-  + docs/DEPLOYMENT.md              (guia geral)
-  + docs/ENV_CONFIGURATION.md       (política .env)
-  + docs/DEPLOYMENT_SUMMARY.md      (este arquivo)
-  + scripts/build-production.sh     (script automatizado)
-  + .env.production                 (template produção)
-
-Modificados:
-  ~ src/context/AuthContext.tsx     (restaurado logout HTTP)
-  ~ src/test/msw/handlers/auth.handlers.ts (adicionado handler logout)
-  ~ .gitignore                      (regras .env)
-
-Mantidos:
-  ✓ Todos os testes
-  ✓ Compatibilidade
-  ✓ Funcionalidades
-```
-
----
-
-## 🔐 Segurança
-
-- ✅ Nenhuma senha no git
-- ✅ `.env` local nunca é commitado
-- ✅ `.env.production` é apenas template
-- ✅ Senhas gerenciadas pelo Render Dashboard
-- ✅ HTTPS em produção
-- ✅ CORS validado
-
----
-
-## 🎓 Guias Importantes
-
-| Documento | Para Quem | Quando Ler |
-|-----------|-----------|-----------|
-| `RENDER_DEPLOYMENT.md` | DevOps/Deploy | Antes de fazer deploy |
-| `DEPLOYMENT.md` | Qualquer dev | Configurar produção |
-| `ENV_CONFIGURATION.md` | Todos os devs | Setup inicial |
-| `scripts/build-production.sh` | CI/CD | Automação de build |
-
----
-
-## 🆘 Troubleshooting
-
-### "CORS Error"
-→ Verificar `SecurityConfig.java` no backend
-
-### "NetworkError localhost:8080"
-→ `VITE_API_BASE_URL` não foi setada no build
-
-### "Service unavailable"
-→ Backend Render pode estar em sleep (upgrade plano)
-
----
-
-## 🎯 Próximos Passos
-
-1. **Imediato:**
-   ```bash
-   git add .
-   git commit -m "chore: configure production deployment"
-   git push origin main
-   ```
-
-2. **Curto Prazo:**
-   - Criar serviço Frontend no Render
-   - Configurar variáveis de ambiente
-   - Fazer primeiro deploy
-
-3. **Médio Prazo:**
-   - Monitorar logs em produção
-   - Validar performance
-   - Otimizar se necessário
-
-4. **Longo Prazo:**
-   - Implementar CI/CD pipeline completo
-   - Adicionar monitoring e alertas
-   - Planejar escalabilidade
-
----
-
-## 📞 Suporte
-
-Documentação completa em:
-- `docs/RENDER_DEPLOYMENT.md` — Render específico
-- `docs/DEPLOYMENT.md` — Geral
-- `docs/ENV_CONFIGURATION.md` — Variáveis de ambiente
-
-Scripts:
-- `scripts/build-production.sh` — Build automatizado
-
----
-
-## ✨ Conclusão
-
-Frontend do Kronos está **100% pronto para produção** no Render com:
-- ✅ Configuração correta
-- ✅ Segurança máxima
-- ✅ Documentação completa
-- ✅ Automação implementada
-- ✅ Tudo testado e validado
-
-**Status:** 🟢 **GO FOR LAUNCH**
-
----
-
-*Documento criado em Maio 13, 2026*  
-*Última atualização: Projeto concluído e validado*
+1. publicar `dist/` em `app.kronossolutions.tech`
+2. manter `api.kronossolutions.tech` apontando para o back-end
+3. validar `.htaccess` no diretório publicado
+4. validar `VITE_API_BASE_URL=https://api.kronossolutions.tech`
+5. testar refresh direto em `/dashboard`
