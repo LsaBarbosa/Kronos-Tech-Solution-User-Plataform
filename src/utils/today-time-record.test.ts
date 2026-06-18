@@ -4,6 +4,7 @@ import {
   getTodayActionTypeLabel,
   getTodayNextActionLabel,
   getTodayPendingCount,
+  getTodayPrimaryActionDescriptor,
   getTodaySequenceSummary,
   getTodayStatusLabel,
   getTodayWorkedTimeLabel,
@@ -53,6 +54,41 @@ describe("today-time-record utils", () => {
 
   it("calcula o tempo trabalhado a partir da timeline", () => {
     expect(getTodayWorkedTimeLabel(baseStatus)).toBe("04h01");
+  });
+
+  it("permite nova entrada quando a sequencia valida termina em saida", () => {
+    const completedStatus: TodayTimeRecordStatusResponse = {
+      ...baseStatus,
+      status: "COMPLETED",
+      nextAction: "VIEW_REPORT",
+      lastRecordType: "CHECK_OUT",
+      records: [
+        {
+          id: 1,
+          actionType: "CHECK_IN",
+          recordedAt: "2026-06-18T08:00:00-03:00",
+          status: "CREATED",
+          source: "BIOMETRIC",
+        },
+        {
+          id: 2,
+          actionType: "CHECK_OUT",
+          recordedAt: "2026-06-18T12:01:00-03:00",
+          status: "CREATED",
+          source: "BIOMETRIC",
+        },
+      ],
+    };
+
+    expect(getTodaySequenceSummary(completedStatus)).toMatchObject({
+      label: "Valida",
+      description: "",
+    });
+
+    expect(getTodayPrimaryActionDescriptor(completedStatus)).toEqual({
+      enabled: true,
+      label: "Registrar entrada",
+    });
   });
 
   it("formata horario de marcacao com fallback", () => {

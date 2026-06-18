@@ -15,6 +15,7 @@ import {
   getTodayLastRecordTypeLabel,
   getTodayNextActionLabel,
   getTodayPendingCount,
+  getTodayPrimaryActionDescriptor,
   getTodayRecordSourceLabel,
   getTodaySecondaryActionLabel,
   getTodaySequenceSummary,
@@ -23,7 +24,6 @@ import {
   getTodayStatusTone,
   getTodayTimezoneLabel,
   getTodayWorkedTimeLabel,
-  isTodayPrimaryActionAvailable,
 } from "@/utils/today-time-record";
 
 interface DashboardTodayPanelProps {
@@ -62,10 +62,16 @@ const SummaryStat = ({
   description: string;
   toneClassName: string;
 }) => (
-  <div className="rounded-2xl border border-[#E2E8F0] bg-white px-4 py-4 shadow-sm">
-    <p className="text-[11px] font-semibold uppercase tracking-[0.22em] text-[#94A3B8]">{label}</p>
-    <p className={cn("mt-2 text-2xl font-semibold", toneClassName)}>{value}</p>
-    <p className="mt-1 text-xs leading-5 text-[#64748B]">{description}</p>
+  <div className="min-w-0 overflow-hidden rounded-2xl border border-[#E2E8F0] bg-white px-4 py-4 shadow-sm">
+    <p className="break-words text-[11px] font-semibold uppercase tracking-[0.22em] text-[#94A3B8]">
+      {label}
+    </p>
+    <p className={cn("mt-2 break-words text-xl font-semibold leading-tight sm:text-2xl", toneClassName)}>
+      {value}
+    </p>
+    {description ? (
+      <p className="mt-1 break-words text-xs leading-5 text-[#64748B]">{description}</p>
+    ) : null}
   </div>
 );
 
@@ -83,7 +89,7 @@ const TimelineItem = ({
   const statusTone = getTodayStatusTone(status);
 
   return (
-    <div className="flex items-start justify-between gap-3 rounded-2xl border border-[#E2E8F0] bg-white px-4 py-3 shadow-sm">
+    <div className="flex min-w-0 items-start justify-between gap-3 rounded-2xl border border-[#E2E8F0] bg-white px-4 py-3 shadow-sm">
       <div className="flex min-w-0 items-start gap-3">
         <span
           aria-hidden="true"
@@ -152,8 +158,8 @@ const DashboardTodayPanel = ({
   const statusTone = getTodayStatusTone(todayStatus.status);
   const sequenceSummary = getTodaySequenceSummary(todayStatus);
   const pendingCount = getTodayPendingCount(todayStatus);
-  const primaryActionEnabled = isTodayPrimaryActionAvailable(todayStatus.nextAction);
-  const primaryActionLabel = getTodayNextActionLabel(todayStatus.nextAction);
+  const primaryAction = getTodayPrimaryActionDescriptor(todayStatus);
+  const primaryActionLabel = primaryAction.label;
   const secondaryActionLabel = getTodaySecondaryActionLabel(todayStatus);
   const secondaryAction =
     secondaryActionLabel === "Abrir relatorio" ? onOpenReport : onOpenMirror;
@@ -226,7 +232,7 @@ const DashboardTodayPanel = ({
               </span>
               <div className="min-w-0 flex-1">
                 <p className="text-sm text-[#64748B]">Status atual</p>
-                <p className={cn("text-3xl font-semibold", statusTone.textClassName)}>
+                <p className={cn("break-words text-3xl font-semibold", statusTone.textClassName)}>
                   {getTodayStatusLabel(todayStatus.status)}
                 </p>
                 <p className="mt-2 text-sm text-[#475569]">
@@ -241,10 +247,10 @@ const DashboardTodayPanel = ({
               type="button"
               className="mt-4 h-11 w-full gap-2 rounded-full bg-[#2563EB] text-white hover:bg-[#1D4ED8]"
               onClick={openCheckin}
-              disabled={!primaryActionEnabled}
+              disabled={!primaryAction.enabled}
             >
               <Fingerprint className="h-4 w-4" />
-              {primaryActionEnabled ? primaryActionLabel : "Jornada concluida"}
+              {primaryActionLabel}
             </Button>
           </div>
 
@@ -258,7 +264,7 @@ const DashboardTodayPanel = ({
 
           <section className="rounded-[28px] border border-[#E2E8F0] bg-white px-4 py-5 shadow-sm">
             <h3 className="text-2xl font-semibold text-[#0F172A]">Resumo rapido</h3>
-            <div className="mt-4 grid grid-cols-3 gap-3">
+            <div className="mt-4 grid grid-cols-1 gap-3 sm:grid-cols-3">
               <SummaryStat
                 label="Horas"
                 value={getTodayWorkedTimeLabel(todayStatus)}
@@ -290,7 +296,7 @@ const DashboardTodayPanel = ({
           <section className="rounded-[28px] border border-[#E2E8F0] bg-white px-4 py-5 shadow-sm">
             <p className="text-sm font-semibold uppercase tracking-[0.18em] text-[#94A3B8]">Acao principal</p>
             <p className="mt-2 text-sm text-[#475569]">
-              A proxima acao vem diretamente do status do dia.
+              A proxima acao considera o status do dia e a sequencia atual das marcacoes.
             </p>
             <div className="mt-4 grid grid-cols-2 gap-3">
               <Button type="button" variant="outline" className="rounded-full" onClick={secondaryAction}>
@@ -300,9 +306,9 @@ const DashboardTodayPanel = ({
                 type="button"
                 className="rounded-full bg-[#2563EB] text-white hover:bg-[#1D4ED8]"
                 onClick={openCheckin}
-                disabled={!primaryActionEnabled}
+                disabled={!primaryAction.enabled}
               >
-                Registrar ponto
+                {primaryActionLabel}
               </Button>
             </div>
           </section>
@@ -387,11 +393,11 @@ const DashboardTodayPanel = ({
                 <Button
                   type="button"
                   onClick={openCheckin}
-                  disabled={!primaryActionEnabled}
+                  disabled={!primaryAction.enabled}
                   className="h-11 gap-2 bg-[#2563EB] text-white hover:bg-[#1D4ED8]"
                 >
                   <Fingerprint className="h-4 w-4" />
-                  {primaryActionEnabled ? primaryActionLabel : "Jornada concluida"}
+                  {primaryActionLabel}
                 </Button>
                 <Button type="button" variant="outline" className="h-11 gap-2" onClick={secondaryAction}>
                   <TimerReset className="h-4 w-4" />

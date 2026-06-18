@@ -16,6 +16,16 @@ type SequenceSummary = {
   tone: Tone;
 };
 
+type SequenceAnalysis = {
+  isValid: boolean;
+  balance: number;
+};
+
+type PrimaryActionDescriptor = {
+  enabled: boolean;
+  label: string;
+};
+
 const CHECKIN_CODES = new Set(["CHECK_IN", "CHECKIN", "CHECKIN_AFTER_BREAK", "CHECKIN_ON_DAY_OFF"]);
 const CHECKOUT_CODES = new Set(["CHECK_OUT", "CHECKOUT"]);
 const PENDING_CODES = new Set([
@@ -139,6 +149,60 @@ const formatDateWithOptions = (
   return new Intl.DateTimeFormat("pt-BR", options).format(parsed);
 };
 
+const analyzeTodaySequence = (
+  todayStatus: TodayTimeRecordStatusResponse | null
+): SequenceAnalysis => {
+  if (!todayStatus?.records.length) {
+    return {
+      isValid: true,
+      balance: 0,
+    };
+  }
+
+  let balance = 0;
+  let lastAction = "";
+
+  for (const record of todayStatus.records) {
+    const action = asTimelineAction(record.actionType);
+
+    if (action === "OTHER") {
+      return {
+        isValid: false,
+        balance,
+      };
+    }
+
+    if (!lastAction && action !== "IN") {
+      return {
+        isValid: false,
+        balance,
+      };
+    }
+
+    if (lastAction === action) {
+      return {
+        isValid: false,
+        balance,
+      };
+    }
+
+    balance += action === "IN" ? 1 : -1;
+    if (balance < 0 || balance > 1) {
+      return {
+        isValid: false,
+        balance,
+      };
+    }
+
+    lastAction = action;
+  }
+
+  return {
+    isValid: true,
+    balance,
+  };
+};
+
 export const formatTodayHeadlineDate = (value?: string | null) =>
   formatDateWithOptions(value, {
     weekday: "long",
@@ -235,6 +299,8 @@ export const getTodayNextActionLabel = (nextAction?: string | null) => {
   switch (normalizeCode(nextAction)) {
     case "CHECK_IN":
     case "CHECKIN":
+    case "CHECKIN_AFTER_BREAK":
+    case "CHECKIN_ON_DAY_OFF":
       return "Registrar entrada";
     case "CHECK_OUT":
     case "CHECKOUT":
@@ -250,9 +316,43 @@ export const getTodayNextActionLabel = (nextAction?: string | null) => {
   }
 };
 
-export const isTodayPrimaryActionAvailable = (nextAction?: string | null) => {
-  const normalized = normalizeCode(nextAction);
-  return CHECKIN_CODES.has(normalized) || CHECKOUT_CODES.has(normalized);
+export const getTodayPrimaryActionDescriptor = (
+  todayStatus: TodayTimeRecordStatusResponse | null
+): PrimaryActionDescriptor => {
+  if (!todayStatus) {
+    return {
+      enabled: false,
+      label: "Registrar ponto",
+    };
+  }
+
+  if (normalizeCode(todayStatus.status) === "TERMS_REQUIRED") {
+    return {
+      enabled: false,
+      label: getTodayNextActionLabel(todayStatus.nextAction),
+    };
+  }
+
+  const normalizedNextAction = normalizeCode(todayStatus.nextAction);
+  if (CHECKIN_CODES.has(normalizedNextAction) || CHECKOUT_CODES.has(normalizedNextAction)) {
+    return {
+      enabled: true,
+      label: getTodayNextActionLabel(todayStatus.nextAction),
+    };
+  }
+
+  const sequence = analyzeTodaySequence(todayStatus);
+  if (!sequence.isValid) {
+    return {
+      enabled: false,
+      label: getTodayNextActionLabel(todayStatus.nextAction),
+    };
+  }
+
+  return {
+    enabled: true,
+    label: sequence.balance === 1 ? "Registrar saida" : "Registrar entrada",
+  };
 };
 
 export const getTodayActionTypeLabel = (actionType?: string | null) => {
@@ -366,38 +466,9 @@ export const getTodaySequenceSummary = (
     };
   }
 
-  let balance = 0;
-  let lastAction = "";
-  let invalid = false;
+  const sequence = analyzeTodaySequence(todayStatus);
 
-  for (const record of todayStatus.records) {
-    const action = asTimelineAction(record.actionType);
-
-    if (action === "OTHER") {
-      invalid = true;
-      break;
-    }
-
-    if (!lastAction && action !== "IN") {
-      invalid = true;
-      break;
-    }
-
-    if (lastAction === action) {
-      invalid = true;
-      break;
-    }
-
-    balance += action === "IN" ? 1 : -1;
-    if (balance < 0 || balance > 1) {
-      invalid = true;
-      break;
-    }
-
-    lastAction = action;
-  }
-
-  if (invalid) {
+  if (!sequence.isValid) {
     return {
       label: "Inconsistente",
       description: "A sequencia do dia precisa de revisao antes da proxima marcacao.",
@@ -414,7 +485,7 @@ export const getTodaySequenceSummary = (
     };
   }
 
-  if (balance === 1) {
+  if (sequence.balance === 1) {
     return {
       label: "Em aberto",
       description: "A jornada esta consistente e ainda aguarda a proxima saida.",
@@ -423,8 +494,8 @@ export const getTodaySequenceSummary = (
   }
 
   return {
-    label: "OK",
-    description: "Sequencia validada sem inconsistencias aparentes.",
+    label: "Valida",
+    description: "",
     tone: toneSuccess,
   };
 };

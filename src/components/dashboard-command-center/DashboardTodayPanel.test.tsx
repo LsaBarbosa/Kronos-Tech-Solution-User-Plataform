@@ -155,4 +155,51 @@ describe("DashboardTodayPanel", () => {
     fireEvent.click(screen.getByRole("button", { name: /Registrar saida/i }));
     expect(openCheckinMock).toHaveBeenCalledTimes(1);
   });
+
+  it("mantem o CTA de check-in disponivel apos duas marcacoes validas", () => {
+    mockUseTodayTimeRecordStatus.mockReturnValue({
+      todayStatus: {
+        ...baseStatus,
+        status: "COMPLETED",
+        nextAction: "VIEW_REPORT",
+        lastRecordType: "CHECK_OUT",
+        records: [
+          {
+            id: 1,
+            actionType: "CHECK_IN",
+            recordedAt: "2026-06-18T08:02:00-03:00",
+            status: "CREATED",
+            source: "BIOMETRIC",
+          },
+          {
+            id: 2,
+            actionType: "CHECK_OUT",
+            recordedAt: "2026-06-18T12:01:00-03:00",
+            status: "CREATED",
+            source: "BIOMETRIC",
+          },
+        ],
+      },
+      isLoadingToday: false,
+      todayError: null,
+      refreshToday: refreshTodayMock,
+    });
+
+    render(
+      <DashboardTodayPanel
+        variant="mobile"
+        onOpenMirror={vi.fn()}
+        onOpenReport={vi.fn()}
+      />
+    );
+
+    const actionButtons = screen.getAllByRole("button", { name: /Registrar entrada/i });
+    expect(actionButtons).toHaveLength(2);
+    expect(actionButtons[0]).toBeEnabled();
+    expect(actionButtons[1]).toBeEnabled();
+
+    fireEvent.click(actionButtons[0]);
+    fireEvent.click(actionButtons[1]);
+    expect(openCheckinMock).toHaveBeenCalledTimes(2);
+  });
 });
