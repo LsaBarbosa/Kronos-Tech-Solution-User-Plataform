@@ -13,7 +13,7 @@ interface HeaderProps {
 }
 
 const Header = (_props: HeaderProps = {}) => {
-  const { isDesktop } = useHeaderResponsiveMode();
+  const { isDesktop, isCompact } = useHeaderResponsiveMode();
   const { status, user, role, logout } = useAuth();
 
   const fullName = user?.profile?.fullName ?? null;
@@ -40,7 +40,11 @@ const Header = (_props: HeaderProps = {}) => {
 
   return (
     <header className={headerStyles.container}>
-      {isDesktop ? <HeaderDesktop {...sharedProps} /> : <HeaderMobile {...sharedProps} />}
+      {isDesktop || isCompact ? (
+        <HeaderDesktop {...sharedProps} navVariant={isCompact ? "mobile" : "desktop"} />
+      ) : (
+        <HeaderMobile {...sharedProps} />
+      )}
     </header>
   );
 };

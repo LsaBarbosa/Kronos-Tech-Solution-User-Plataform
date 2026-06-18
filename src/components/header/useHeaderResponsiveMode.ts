@@ -1,31 +1,73 @@
 import { useEffect, useState } from "react";
 
-const DESKTOP_MEDIA_QUERY = "(min-width: 1024px)";
+const DESKTOP_MEDIA_QUERY = "(min-width: 1570px)";
+const MOBILE_MEDIA_QUERY = "(max-width: 1023px)";
 
-const getInitialMode = (): "desktop" | "mobile" => {
+const getInitialMode = (): "desktop" | "compact" | "mobile" => {
   if (typeof window === "undefined" || typeof window.matchMedia !== "function") {
     return "desktop";
   }
-  return window.matchMedia(DESKTOP_MEDIA_QUERY).matches ? "desktop" : "mobile";
+  if (window.matchMedia(DESKTOP_MEDIA_QUERY).matches) {
+    return "desktop";
+  }
+
+  if (window.matchMedia(MOBILE_MEDIA_QUERY).matches) {
+    return "mobile";
+  }
+
+  return "compact";
 };
 
 export const useHeaderResponsiveMode = () => {
-  const [mode, setMode] = useState<"desktop" | "mobile">(getInitialMode);
+  const [mode, setMode] = useState<"desktop" | "compact" | "mobile">(getInitialMode);
 
   useEffect(() => {
     if (typeof window === "undefined" || typeof window.matchMedia !== "function") {
       return;
     }
-    const mql = window.matchMedia(DESKTOP_MEDIA_QUERY);
-    const update = () => setMode(mql.matches ? "desktop" : "mobile");
+
+    const desktopMql = window.matchMedia(DESKTOP_MEDIA_QUERY);
+    const mobileMql = window.matchMedia(MOBILE_MEDIA_QUERY);
+    const update = () => {
+      if (desktopMql.matches) {
+        setMode("desktop");
+        return;
+      }
+
+      if (mobileMql.matches) {
+        setMode("mobile");
+        return;
+      }
+
+      setMode("compact");
+    };
+
     update();
-    if (typeof mql.addEventListener === "function") {
-      mql.addEventListener("change", update);
-      return () => mql.removeEventListener("change", update);
+
+    if (
+      typeof desktopMql.addEventListener === "function" &&
+      typeof mobileMql.addEventListener === "function"
+    ) {
+      desktopMql.addEventListener("change", update);
+      mobileMql.addEventListener("change", update);
+      return () => {
+        desktopMql.removeEventListener("change", update);
+        mobileMql.removeEventListener("change", update);
+      };
     }
-    mql.addListener(update);
-    return () => mql.removeListener(update);
+
+    desktopMql.addListener(update);
+    mobileMql.addListener(update);
+    return () => {
+      desktopMql.removeListener(update);
+      mobileMql.removeListener(update);
+    };
   }, []);
 
-  return { mode, isDesktop: mode === "desktop", isMobile: mode === "mobile" };
+  return {
+    mode,
+    isDesktop: mode === "desktop",
+    isCompact: mode === "compact",
+    isMobile: mode === "mobile",
+  };
 };

@@ -11,6 +11,7 @@ interface HeaderDesktopProps {
   pendingHasError: boolean;
   pendingLoading: boolean;
   onLogout: () => Promise<void>;
+  navVariant?: "desktop" | "mobile";
 }
 
 const HeaderDesktop = ({
@@ -21,6 +22,7 @@ const HeaderDesktop = ({
   pendingHasError,
   pendingLoading,
   onLogout,
+  navVariant = "desktop",
 }: HeaderDesktopProps) => {
   return (
     <div className="mx-auto flex h-16 max-w-[1600px] items-center gap-4 px-4 sm:px-6">
@@ -28,8 +30,14 @@ const HeaderDesktop = ({
         <HeaderBrand variant="desktop" />
       </div>
 
-      <div className="flex min-w-0 flex-1 justify-center">
-        <HeaderNav role={role} variant="desktop" />
+      <div
+        className={
+          navVariant === "desktop"
+            ? "flex min-w-0 flex-1 justify-center"
+            : "ml-2 flex min-w-0 flex-1 justify-start"
+        }
+      >
+        <HeaderNav role={role} variant={navVariant} />
       </div>
 
       <div className="flex items-center justify-end gap-2 sm:gap-3">
