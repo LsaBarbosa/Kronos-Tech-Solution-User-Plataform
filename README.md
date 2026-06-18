@@ -1,86 +1,66 @@
-# Kronos — Pacote Codex CLI para `/relatorio-detalhado`
-
-Este pacote orienta o Codex CLI na refatoração da tela de **relatório detalhado de ponto** da rota `/relatorio-detalhado` no front-end `Kronos-Tech-Solution-User-Plataform`, branch `feature/lgpd-compliance-new-ui`.
+# Kronos — Pacote Codex CLI para Dashboard Today
 
 ## Objetivo
 
-Transformar a rota `/relatorio-detalhado` em uma **central de solicitação e geração de relatório de ponto**, com experiência diferente para desktop e mobile:
-
-- **Desktop:** construtor avançado de relatório em duas colunas, com filtros, governança por ROLE, prévia e área de resultados.
-- **Mobile:** fluxo guiado em etapas, com escopo atual, datas, referência/status, explicação por ROLE e CTA fixo inferior.
-
-## Referências obrigatórias
-
-Use estes arquivos antes de implementar:
-
-```text
-references/docs/kronos_relatorio_detalhado_diretriz_visual.md
-references/mockups/kronos_relatorio_detalhado_desktop.png
-references/mockups/kronos_relatorio_detalhado_mobile.png
-```
-
-## Repositórios e branches
-
-```text
-Back-end:  LsaBarbosa/Kronos-Tech-Solutions-KTS            branch PROD_HOSTINGER_V2
-Front-end: LsaBarbosa/Kronos-Tech-Solution-User-Plataform  branch feature/lgpd-compliance-new-ui
-Docs:      LsaBarbosa/kronos-business                      branch main
-```
-
-## Contrato HTTP que não deve ser alterado
-
-A tela deve continuar usando o contrato já existente:
+Implementar, no front-end `Kronos-Tech-Solution-User-Plataform` branch `feature/lgpd-compliance-new-ui`, a evolução da dashboard para priorizar os dados do endpoint:
 
 ```http
-POST /records/report?employeeId={uuid opcional}
+GET /records/me/today
 ```
 
-Body:
+A implementação deve adicionar uma área operacional de ponto do dia na dashboard existente, sem recriar a página inteira.
 
-```json
-{
-  "reference": "08:00",
-  "active": true,
-  "dates": ["13-06-2026", "14-06-2026"],
-  "statuses": ["CREATED", "ABSENCE"]
-}
-```
+## Alvo técnico
 
-Regras:
+- Rota: `/dashboard`
+- Página atual: `src/pages/Dashboard.tsx`
+- Service provável: `src/service/records.service.ts`
+- Componentes atuais:
+  - `src/components/dashboard-command-center/DashboardDesktop.tsx`
+  - `src/components/dashboard-command-center/DashboardMobile.tsx`
+  - `src/components/checkin/CheckinDashboardCard.tsx`
 
-- `reference` deve ser `HH:mm`.
-- `dates` deve ter pelo menos uma data.
-- `employeeId` só deve ser enviado quando houver colaborador selecionado/permitido.
-- Para `PARTNER`, o colaborador fica bloqueado na sessão.
-- Para `MANAGER`, usar colaboradores do tenant/equipe.
-- Para `CTO`, comunicar escopo administrativo ampliado e preservar capacidade de seleção quando disponível no produto.
+## Diretrizes
 
-## Arquivos de orientação
+- Não recriar toda a dashboard.
+- Inserir o novo elemento de modo eficaz e orientado a UX/UI.
+- Desktop e mobile devem ser experiências diferentes.
+- Mobile deve responder rapidamente: “o que faço agora?”.
+- Desktop deve mostrar contexto, timeline e metadados com maior densidade.
+- O CTA principal deve ser controlado por `nextAction`.
+- O fluxo de registro de ponto deve continuar usando o fluxo atual de check-in/biometria/geolocalização.
+- Não inventar dados que o back-end não fornece.
+
+## Arquivos do pacote
 
 ```text
-codex/skills/kronos-relatorio-detalhado-ui.skill.md
-codex/agents/kronos-relatorio-detalhado-ui.agent.md
-codex/subagents/repo-mapper.subagent.md
-codex/subagents/report-domain.subagent.md
-codex/subagents/ui-architecture.subagent.md
-codex/subagents/api-contract.subagent.md
-codex/subagents/qa-a11y.subagent.md
-codex/subagents/legacy-cleaner.subagent.md
-codex/rules/kronos-relatorio-detalhado-ui.rules.md
-docs/flag-redis-adherence.md
-docs/api-contract-map.md
-plano-acao-relatorio-detalhado-ui.md
-prompt-codex-relatorio-detalhado-ui.md
-checklist-validacao-relatorio-detalhado-ui.md
+codex/
+  skills/
+  agents/
+  rules/
+  subagents/
+references/
+  docs/
+  mockups/
+  project-context/
+plano-acao-dashboard-today-ui.md
+prompt-codex-dashboard-today-ui.md
+checklist-validacao-dashboard-today-ui.md
 ```
 
-## Resultado esperado
+## Execução recomendada
 
-Ao final, a rota `/relatorio-detalhado` deve:
+1. Copiar este pacote para a raiz do workspace local.
+2. Abrir o front-end na branch correta.
+3. Colar o conteúdo de `prompt-codex-dashboard-today-ui.md` no Codex CLI.
+4. Validar com:
+   - `npm run lint`
+   - `npx tsc --noEmit`
+   - `npm run build`
+   - `npx vitest run`
+5. Testar visualmente mobile e desktop.
 
-- preservar os dados e ações existentes;
-- remover visual legado da tela, mantendo apenas a nova implementação;
-- ter UX distinta em desktop e mobile;
-- respeitar permissões por ROLE;
-- mostrar exportação apenas após resultado;
-- manter acessibilidade, feedbacks de erro e estados de loading.
+## Referências de aderência existentes no repositório
+
+- `docs/flag-redis-adherence.md`
+- `docs/api-contract-map.md`

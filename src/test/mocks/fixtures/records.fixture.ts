@@ -1,4 +1,29 @@
 export const recordsFixture = {
+  todayStatus: {
+    date: "18-06-2026",
+    status: "READY_TO_CHECKOUT",
+    nextAction: "CHECK_OUT",
+    lastRecordAt: "2026-06-18T12:01:00-03:00",
+    lastRecordType: "CHECK_OUT",
+    records: [
+      {
+        id: 1,
+        actionType: "CHECK_IN",
+        recordedAt: "2026-06-18T08:02:00-03:00",
+        status: "CREATED",
+        source: "BIOMETRIC",
+      },
+      {
+        id: 1,
+        actionType: "CHECK_OUT",
+        recordedAt: "2026-06-18T12:01:00-03:00",
+        status: "CREATED",
+        source: "BIOMETRIC",
+      },
+    ],
+    source: "PERSISTED",
+    timezone: "America/Sao_Paulo",
+  },
   pendingApprovals: {
     approvals: [],
     totalPages: 1,

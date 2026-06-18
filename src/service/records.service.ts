@@ -1,7 +1,12 @@
 import { api } from "@/config/api";
-import { API_ROUTES, buildRoute } from "@/config/api-routes";
+import { API_ROUTES, buildRoute, RECORD_PATHS } from "@/config/api-routes";
 import { getEmployee } from "@/service/employee.service";
-import { extractArray, extractObject } from "@/service/helpers/response-normalizer.helper";
+import {
+  extractArray,
+  extractObject,
+  safeNumber,
+  safeString,
+} from "@/service/helpers/response-normalizer.helper";
 import { PAGINATION_DEFAULTS } from "@/constants/pagination";
 import type { DetailedReportItem, Employee } from "@/utils/report-utils";
 import type {
@@ -25,6 +30,10 @@ import {
 } from "@/types/vacation";
 import type { UserSearchListItem, UserSearchListResponse } from "@/types/user";
 import type { CheckinRequest, CheckinResult } from "@/types/checkin.types";
+import type {
+  TodayTimeRecordItemResponse,
+  TodayTimeRecordStatusResponse,
+} from "@/types/today-time-record";
 import { ensureBackendDatePattern } from "@/utils/date-format";
 
 const RECORDS_BASE_URL = `/${API_ROUTES.RECORDS}`;
@@ -50,6 +59,40 @@ export interface TimeRecordUpdatePayload {
 }
 
 const REPORT_REFERENCE_REGEX = /^([01]\d|2[0-3]):[0-5]\d$/;
+
+const normalizeTodayTimeRecordItem = (payload: unknown): TodayTimeRecordItemResponse => {
+  const item = extractObject<Partial<TodayTimeRecordItemResponse>>(payload);
+
+  return {
+    id: safeNumber(item.id, 0),
+    actionType: safeString(item.actionType, "UNKNOWN"),
+    recordedAt: safeString(item.recordedAt),
+    status: safeString(item.status, "UNKNOWN"),
+    source: safeString(item.source, "UNKNOWN"),
+  };
+};
+
+const normalizeTodayTimeRecordStatus = (payload: unknown): TodayTimeRecordStatusResponse => {
+  const data = extractObject<Partial<TodayTimeRecordStatusResponse>>(payload);
+  const recordsSource = Array.isArray(data.records)
+    ? data.records
+    : extractArray<unknown>(payload, ["records"]);
+
+  return {
+    date: safeString(data.date),
+    status: safeString(data.status, "UNKNOWN"),
+    nextAction: safeString(data.nextAction, "NONE"),
+    lastRecordAt:
+      typeof data.lastRecordAt === "string" && data.lastRecordAt.trim() ? data.lastRecordAt : null,
+    lastRecordType:
+      typeof data.lastRecordType === "string" && data.lastRecordType.trim()
+        ? data.lastRecordType
+        : null,
+    records: recordsSource.map(normalizeTodayTimeRecordItem),
+    source: safeString(data.source, "UNKNOWN"),
+    timezone: safeString(data.timezone),
+  };
+};
 
 const validateReportParams = (params: DetailedReportQueryParams) => {
   if (!REPORT_REFERENCE_REGEX.test(params.reference)) {
@@ -111,6 +154,11 @@ export const fetchPendingApprovals = async (
   );
 
   return extractObject<TimeRecordApprovalPageResponse>(response.data) as TimeRecordApprovalPageResponse;
+};
+
+export const fetchTodayTimeRecordStatus = async (): Promise<TodayTimeRecordStatusResponse> => {
+  const response = await api.get<unknown>(`${RECORDS_BASE_URL}/${RECORD_PATHS.ME_TODAY}`);
+  return normalizeTodayTimeRecordStatus(response.data);
 };
 
 export const fetchDetailedReport = async (

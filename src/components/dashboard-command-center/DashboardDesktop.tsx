@@ -1,11 +1,10 @@
 import { useCallback } from "react";
 import { Card, CardContent } from "@/components/ui/card";
-import { CheckinDashboardCard } from "@/components/checkin/CheckinDashboardCard";
 import DashboardHero from "./DashboardHero";
 import DashboardMetricStrip from "./DashboardMetricStrip";
 import DashboardProfilePanel from "./DashboardProfilePanel";
-import DashboardNoticeList from "./DashboardNoticeList";
 import DashboardPendingPanel from "./DashboardPendingPanel";
+import DashboardTodayPanel from "./DashboardTodayPanel";
 import type {
   DashboardCommandCenterActions,
   DashboardCommandCenterData,
@@ -69,38 +68,35 @@ const DashboardDesktop = ({ data, actions }: DashboardDesktopProps) => {
 
       <div className="grid grid-cols-1 gap-6 lg:grid-cols-3">
         <div className="lg:col-span-2">
-          <CheckinDashboardCard />
+          <DashboardTodayPanel
+            variant="desktop"
+            onOpenMirror={actions.goToEspelhoPonto}
+            onOpenReport={actions.goToRelatorio}
+          />
         </div>
         <DashboardProfilePanel
           variant="desktop"
           data={data}
           onOpenProfile={actions.goToPerfil}
           onOpenEmpresa={data.isCto ? actions.goToEmpresa : undefined}
+          warnings={data.newWarnings}
+          onOpenWarnings={() => void data.handleWarningClick()}
+          onCreateWarning={actions.goToCriarAviso}
+          noticesId={NOTICES_ID}
         />
       </div>
 
-
-      <div className="grid grid-cols-1 gap-6 lg:grid-cols-2">
-        <div id={NOTICES_ID} className="scroll-mt-28">
-          <DashboardNoticeList
-            warnings={data.newWarnings}
-            isManager={data.isManager}
-            onOpenWarnings={() => void data.handleWarningClick()}
-            onCreateWarning={actions.goToCriarAviso}
-          />
-        </div>
-        <div id={PENDING_PANEL_ID} className="scroll-mt-28">
-          <DashboardPendingPanel
-            data={data}
-            onApprovalClick={actions.goToApuracaoHoras}
-            onVacationApprovalClick={actions.goToFerias}
-            onTimeOffApprovalClick={actions.goToAprovacoesAbono}
-            onMeusDocumentos={actions.goToMeusDocumentos}
-            onEnviarDocumento={actions.goToEnviarDocumentoColaborador}
-            onSolicitarFerias={actions.goToSolicitarFerias}
-            onSolicitarAbono={actions.goToSolicitarAbono}
-          />
-        </div>
+      <div id={PENDING_PANEL_ID} className="scroll-mt-28">
+        <DashboardPendingPanel
+          data={data}
+          onApprovalClick={actions.goToApuracaoHoras}
+          onVacationApprovalClick={actions.goToFerias}
+          onTimeOffApprovalClick={actions.goToAprovacoesAbono}
+          onMeusDocumentos={actions.goToMeusDocumentos}
+          onEnviarDocumento={actions.goToEnviarDocumentoColaborador}
+          onSolicitarFerias={actions.goToSolicitarFerias}
+          onSolicitarAbono={actions.goToSolicitarAbono}
+        />
       </div>
     </div>
   );

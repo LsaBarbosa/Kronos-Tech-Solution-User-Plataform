@@ -10,6 +10,7 @@ import {
   fetchDetailedReport,
   fetchManagerOptions,
   fetchPendingApprovals,
+  fetchTodayTimeRecordStatus,
   fetchPendingVacationCount,
   fetchVacationRequests,
   fetchReportEmployees,
@@ -25,6 +26,50 @@ import {
 } from "./records.service";
 
 describe("records.service", () => {
+  it("busca o status operacional de hoje por /records/me/today", async () => {
+    server.use(
+      http.get("*/records/me/today", () =>
+        HttpResponse.json({
+          date: "18-06-2026",
+          status: "READY_TO_CHECKOUT",
+          nextAction: "CHECK_OUT",
+          lastRecordAt: "2026-06-18T12:01:00-03:00",
+          lastRecordType: "CHECK_OUT",
+          records: [
+            {
+              id: 11,
+              actionType: "CHECK_IN",
+              recordedAt: "2026-06-18T08:02:00-03:00",
+              status: "CREATED",
+              source: "BIOMETRIC",
+            },
+          ],
+          source: "PERSISTED",
+          timezone: "America/Sao_Paulo",
+        })
+      )
+    );
+
+    await expect(fetchTodayTimeRecordStatus()).resolves.toEqual({
+      date: "18-06-2026",
+      status: "READY_TO_CHECKOUT",
+      nextAction: "CHECK_OUT",
+      lastRecordAt: "2026-06-18T12:01:00-03:00",
+      lastRecordType: "CHECK_OUT",
+      records: [
+        {
+          id: 11,
+          actionType: "CHECK_IN",
+          recordedAt: "2026-06-18T08:02:00-03:00",
+          status: "CREATED",
+          source: "BIOMETRIC",
+        },
+      ],
+      source: "PERSISTED",
+      timezone: "America/Sao_Paulo",
+    });
+  });
+
   it("lista aprovacoes pendentes com paginação", async () => {
     server.use(
       http.get("*/records/pending-approvals", () =>

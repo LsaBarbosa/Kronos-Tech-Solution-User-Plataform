@@ -1,7 +1,6 @@
 import { useCallback } from "react";
 import { BarChart3, Briefcase, FileUp, MessageSquareWarning, Shield, TimerReset } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
-import { CheckinDashboardCard } from "@/components/checkin/CheckinDashboardCard";
 import DashboardHero from "./DashboardHero";
 import DashboardMetricStrip from "./DashboardMetricStrip";
 import DashboardProfilePanel from "./DashboardProfilePanel";
@@ -9,6 +8,7 @@ import DashboardNoticeList from "./DashboardNoticeList";
 import DashboardPendingPanel from "./DashboardPendingPanel";
 import DashboardMobileActionCard from "./DashboardMobileActionCard";
 import DashboardMobileBottomNav from "./DashboardMobileBottomNav";
+import DashboardTodayPanel from "./DashboardTodayPanel";
 import type {
   DashboardCommandCenterActions,
   DashboardCommandCenterData,
@@ -50,7 +50,11 @@ const DashboardMobile = ({ data, actions }: DashboardMobileProps) => {
         onEmpresaClick={actions.goToEmpresa}
       />
 
-      <CheckinDashboardCard />
+      <DashboardTodayPanel
+        variant="mobile"
+        onOpenMirror={actions.goToEspelhoPonto}
+        onOpenReport={actions.goToRelatorio}
+      />
 
       <div className="space-y-3">
         <DashboardMobileActionCard

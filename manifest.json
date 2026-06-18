@@ -1,0 +1,15 @@
+{
+  "package": "kronos_codex_dashboard_today_ui",
+  "target": {
+    "frontend_repository": "LsaBarbosa/Kronos-Tech-Solution-User-Plataform",
+    "frontend_branch": "feature/lgpd-compliance-new-ui",
+    "backend_repository": "LsaBarbosa/Kronos-Tech-Solutions-KTS",
+    "backend_branch": "prod-redis",
+    "documentation_repository": "LsaBarbosa/kronos-business",
+    "documentation_branch": "main",
+    "route": "/dashboard",
+    "backend_endpoint": "GET /records/me/today"
+  },
+  "mode": "implementacao-incremental-orientada-por-ux-ui",
+  "note": "Somente o mockup mobile foi anexado. Para desktop, usar a diretriz visual e a estrutura atual da dashboard como base."
+}

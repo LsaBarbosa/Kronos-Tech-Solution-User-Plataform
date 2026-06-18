@@ -4,6 +4,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { cn } from "@/lib/utils";
 import { formatPhone, formatSalary, getFirstName, getSecondName } from "@/utils/dashboard-utils";
+import type { WarningMessage } from "@/types/dashboard";
 import type { DashboardCommandCenterData } from "./dashboard-command-center.types";
 
 interface DashboardProfilePanelProps {
@@ -11,6 +12,10 @@ interface DashboardProfilePanelProps {
   data: DashboardCommandCenterData;
   onOpenProfile: () => void;
   onOpenEmpresa?: () => void;
+  warnings?: WarningMessage[];
+  onOpenWarnings?: () => void;
+  onCreateWarning?: () => void;
+  noticesId?: string;
 }
 
 const DashboardProfilePanel = ({
@@ -18,10 +23,38 @@ const DashboardProfilePanel = ({
   data,
   onOpenProfile,
   onOpenEmpresa,
+  warnings = [],
+  onOpenWarnings,
+  onCreateWarning,
+  noticesId,
 }: DashboardProfilePanelProps) => {
   const firstName = getFirstName(data.userData?.fullName);
   const secondName = data.userData?.fullName ? getSecondName(data.userData.fullName) : "";
   const showCtoActions = data.isCto && onOpenEmpresa;
+  const showDesktopNotices = variant === "desktop" && Boolean(onOpenWarnings);
+
+  const formatWarningDate = (value?: string) => {
+    if (!value) return "Data indisponivel";
+    const parsedDate = new Date(value);
+    if (Number.isNaN(parsedDate.getTime())) return "Data indisponivel";
+    return new Intl.DateTimeFormat("pt-BR", {
+      day: "2-digit",
+      month: "short",
+      hour: "2-digit",
+      minute: "2-digit",
+    }).format(parsedDate);
+  };
+
+  const getPriorityTone = (priority?: string) => {
+    const normalized = priority?.toUpperCase();
+    if (normalized === "CRITICAL" || normalized === "HIGH") {
+      return "border-[#FECACA] bg-[#FEE2E2] text-[#B91C1C]";
+    }
+    if (normalized === "ALERT" || normalized === "WARNING") {
+      return "border-[#FCD34D] bg-[#FEF3C7] text-[#92400E]";
+    }
+    return "border-[#BFDBFE] bg-[#EFF6FF] text-[#1D4ED8]";
+  };
 
   return (
     <Card
@@ -131,9 +164,93 @@ const DashboardProfilePanel = ({
         )}
 
         {variant === "mobile" ? null : (
-          <p className="text-[11px] text-[#94A3B8]">
-            Toque/click no card para abrir a tela completa do perfil.
-          </p>
+          <>
+            <p className="text-[11px] text-[#94A3B8]">
+              Toque/click no card para abrir a tela completa do perfil.
+            </p>
+
+            {showDesktopNotices ? (
+              <>
+                <Separator />
+                <div id={noticesId} className="scroll-mt-28 space-y-3">
+                  <div className="flex items-start justify-between gap-3">
+                    <div>
+                      <p className="text-xs font-semibold uppercase tracking-[0.22em] text-[#94A3B8]">
+                        Avisos e mensagens
+                      </p>
+                      <h3 className="mt-1 text-base font-semibold text-[#0F172A]">
+                        Comunicacao interna
+                      </h3>
+                    </div>
+                    <div className="flex gap-2">
+                      {data.isManager && onCreateWarning ? (
+                        <Button
+                          type="button"
+                          variant="outline"
+                          size="sm"
+                          className="h-8 border-[#BFDBFE] bg-white text-[#1D4ED8] hover:bg-[#EFF6FF]"
+                          onClick={(event) => {
+                            event.stopPropagation();
+                            onCreateWarning();
+                          }}
+                        >
+                          Criar
+                        </Button>
+                      ) : null}
+                      <Button
+                        type="button"
+                        size="sm"
+                        className="h-8 bg-[#2563EB] text-white hover:bg-[#1D4ED8]"
+                        onClick={(event) => {
+                          event.stopPropagation();
+                          onOpenWarnings?.();
+                        }}
+                      >
+                        Ver todos
+                      </Button>
+                    </div>
+                  </div>
+
+                  {warnings.length === 0 ? (
+                    <div className="rounded-2xl border border-dashed border-[#E2E8F0] bg-[#F8FAFC] px-4 py-4 text-sm text-[#64748B]">
+                      Nenhum aviso novo no momento.
+                    </div>
+                  ) : (
+                    <div className="space-y-2">
+                      {warnings.slice(0, 3).map((warning) => (
+                        <button
+                          key={warning.messageId}
+                          type="button"
+                          className="flex w-full items-start justify-between gap-3 rounded-2xl border border-[#E2E8F0] bg-white px-3 py-3 text-left shadow-sm transition hover:border-[#2563EB] hover:shadow-md"
+                          onClick={(event) => {
+                            event.stopPropagation();
+                            onOpenWarnings?.();
+                          }}
+                        >
+                          <div className="min-w-0">
+                            <p className="line-clamp-1 text-sm font-semibold text-[#0F172A]">
+                              {warning.title || "Aviso"}
+                            </p>
+                            <p className="mt-0.5 text-xs text-[#64748B]">
+                              {formatWarningDate(warning.createdAt)}
+                            </p>
+                          </div>
+                          <span
+                            className={cn(
+                              "inline-flex shrink-0 items-center rounded-full border px-2 py-0.5 text-[11px] font-semibold",
+                              getPriorityTone(warning.priority)
+                            )}
+                          >
+                            {warning.priority || "INFO"}
+                          </span>
+                        </button>
+                      ))}
+                    </div>
+                  )}
+                </div>
+              </>
+            ) : null}
+          </>
         )}
       </CardContent>
     </Card>

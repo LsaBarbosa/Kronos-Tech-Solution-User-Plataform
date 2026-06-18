@@ -63,6 +63,7 @@ export const TIMESHEET_SIGNATURE_PATHS = {
 
 export const RECORD_PATHS = {
   CHECKIN: "checkin",
+  ME_TODAY: "me/today",
   PENDING_APPROVALS: "pending-approvals",
   REPORT: "report",
   APPROVE: (timeRecordId: number | string) => `approve/${timeRecordId}`,

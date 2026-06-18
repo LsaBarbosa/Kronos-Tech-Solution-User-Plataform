@@ -2,6 +2,7 @@ import { HttpResponse, http } from "msw";
 import { recordsFixture } from "../../mocks/fixtures/records.fixture";
 
 export const recordsHandlers = [
+  http.get("*/records/me/today", () => HttpResponse.json(recordsFixture.todayStatus)),
   http.post("*/records/report", () => HttpResponse.json(recordsFixture.detailedReport)),
   http.get("*/records/pending-approvals", () => HttpResponse.json(recordsFixture.pendingApprovals)),
   http.patch("*/records/approve/:timeRecordId", () => new HttpResponse(null, { status: 204 })),

@@ -60,7 +60,7 @@ const fillStepOne = async (user: ReturnType<typeof userEvent.setup>) => {
   await user.type(screen.getByLabelText("Nome completo"), "Maria Silva");
   await user.type(screen.getByLabelText("CPF"), "12345678901");
   await user.type(screen.getByLabelText("Cargo"), "Analista");
-  await user.type(screen.getByLabelText("Email"), "maria@exemplo.com");
+  await user.type(screen.getByLabelText(/E-mail|Email/i), "maria@exemplo.com");
   await user.type(screen.getByLabelText("Telefone"), "11999999999");
   await user.type(screen.getByLabelText("Salário"), "4200");
   await user.type(screen.getByLabelText("CEP"), "01001000");
@@ -108,7 +108,7 @@ describe("CriarColaborador", () => {
       );
     });
 
-    await user.type(screen.getByLabelText("Username"), "maria.silva");
+    await user.type(screen.getByLabelText(/Nome de usu[aá]rio|Username/i), "maria.silva");
     await user.click(screen.getAllByRole("button", { name: "Validar" })[1]);
 
     await waitFor(() => {
