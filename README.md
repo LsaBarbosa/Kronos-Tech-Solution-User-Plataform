@@ -91,7 +91,7 @@ npm install
 npm run dev
 ```
 
-Por padrão, a aplicação depende da API Kronos exposta em `VITE_API_BASE_URL`.
+Em produção, a aplicação pode consumir a API pelo mesmo domínio da SPA. Se `VITE_API_BASE_URL` não for definida no build, o front usa `window.location.origin`.
 
 ## Qualidade e Validação
 

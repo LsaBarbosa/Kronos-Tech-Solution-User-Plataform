@@ -14,8 +14,21 @@ const DEFAULT_LOCAL_API_BASE_URL = ["http://localhost", "8080"].join(":");
 
 const normalizedApiUrl = (url: string): string => url.replace(/\/+$/, "");
 
+const resolveApiBaseUrl = (): string => {
+  const configuredUrl = import.meta.env.VITE_API_BASE_URL?.trim();
+  if (configuredUrl) {
+    return configuredUrl;
+  }
+
+  if (import.meta.env.PROD && typeof window !== "undefined" && window.location.origin) {
+    return window.location.origin;
+  }
+
+  return DEFAULT_LOCAL_API_BASE_URL;
+};
+
 export const API_BASE_URL = normalizedApiUrl(
-  import.meta.env.VITE_API_BASE_URL?.trim() || DEFAULT_LOCAL_API_BASE_URL
+  resolveApiBaseUrl()
 );
 
 export const apiUrl = (path: string): string => {

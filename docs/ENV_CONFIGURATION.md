@@ -1,53 +1,37 @@
 # Configuração de Ambiente
 
-## Arquivos Versionados
+## Produção
 
-Devem permanecer no repositório apenas arquivos de exemplo:
-
-- `.env.example`
-- `.env.production.example`
-
-## Arquivos Não Versionados
-
-Não devem ser commitados:
-
-- `.env`
-- `.env.local`
-- `.env.production`
-- `.env.*.local`
-
-## Produção na Hostinger
-
-O build do front precisa apontar para a API pública:
+Exemplo mínimo para Hostinger em domínio único:
 
 ```env
-VITE_API_BASE_URL=https://api.kronossolutions.tech
+VITE_API_BASE_URL=https://kronostechsolutions.com
 VITE_BIOMETRIC_LIVENESS_REQUIRED=false
 VITE_OBSERVABILITY_ENABLED=true
 VITE_OBSERVABILITY_ENDPOINT=
 VITE_GOOGLE_MAPS_API_KEY=
 ```
 
-## Regra Importante
+## Observação importante
 
-Se `VITE_API_BASE_URL` não for definido corretamente no build de produção:
+O front agora resolve a API assim:
 
-- o front pode continuar apontando para `localhost`;
-- ou pode apontar para o domínio errado;
-- isso quebra login, sessão, CSRF e carregamento da dashboard.
+1. usa `VITE_API_BASE_URL` se estiver definida;
+2. em produção, usa `window.location.origin` se a variável estiver ausente;
+3. em desenvolvimento, usa `http://localhost:8080`.
 
-## Build Correto
+Isso significa que o build continua funcional no cenário real em que SPA e API compartilham `https://kronostechsolutions.com`.
 
-```bash
-VITE_API_BASE_URL=https://api.kronossolutions.tech npm run build
-```
+## Quando a configuração está errada
 
-## Validação
+Sinais típicos:
 
-Após o build, valide o conteúdo final:
+- refresh em `/dashboard` cai no Spring;
+- chamadas XHR saem para domínio incorreto;
+- autenticação falha por origem diferente da configurada no back-end.
 
-```bash
-grep -r "localhost:8080" dist/ && echo "ERRO" || echo "OK"
-```
+## Boas práticas
 
-Se houver referência a `localhost`, o build de produção foi gerado incorretamente.
+- manter `VITE_API_BASE_URL` explícita no build de produção;
+- alinhar CORS e domínio de cookie do back-end com `kronostechsolutions.com`;
+- não usar domínio legado ou subdomínio inexistente no pipeline.

@@ -1,42 +1,34 @@
-# Resumo de Deploy na Hostinger
+# Resumo Operacional de Deploy
 
-## Topologia Correta
+## Cenário correto
 
-- `app.kronossolutions.tech`: front-end estático gerado pelo Vite
-- `api.kronossolutions.tech`: API Spring Boot atrás do proxy da Hostinger
+- domínio público: `https://kronostechsolutions.com`
+- SPA: `/`, `/dashboard`, `/avisos`, `/usuario`
+- API: `/auth/*`, `/records/*`, `/dashboard/summary`, `/lgpd/*`, `/admin/retention/*`, `/public/privacy/*`
 
-## Resultado Esperado
+## Sintoma observado
 
-- refresh em `/dashboard` deve abrir o app normalmente;
-- chamadas HTTP do front devem sair para `https://api.kronossolutions.tech`;
-- o domínio da API não deve ser usado para servir a SPA.
+Quando a infraestrutura está errada, rotas como `/` ou `/dashboard` chegam ao Spring Boot e geram:
 
-## Artefatos Importantes
+- `404 No static resource .`
+- `404 No static resource dashboard.`
+- `401` JSON do back-end
 
-- `public/.htaccess`
-- `dist/.htaccess`
-- `deploy/hostinger-nginx.conf` no back-end
+## Causa
 
-## Erros que essa configuração evita
+O proxy do domínio principal está tratando rotas da SPA como se fossem API.
 
-- `{"detail":"No static resource dashboard.","instance":"/dashboard"}`
-- `{"detail":"No static resource .","instance":"/"}`
+## Correção
 
-## Interpretação do Erro
+1. servir `dist/` no domínio `kronostechsolutions.com`
+2. manter fallback SPA para `index.html`
+3. encaminhar ao Spring apenas os caminhos de API
+4. usar `VITE_API_BASE_URL=https://kronostechsolutions.com` ou fallback same-origin
 
-Se esse erro aparece, significa que a rota chegou ao Spring Boot em vez de ser resolvida pelo front estático.
+## Evidência da montagem real
 
-Isso normalmente indica uma destas causas:
+- `GET /` deve retornar HTML
+- `GET /dashboard` deve retornar HTML
+- `GET /records/pending-approvals` deve continuar no back-end
 
-1. o domínio do app está apontando para o back-end;
-2. o `dist/` não foi publicado no domínio correto;
-3. o fallback SPA não está ativo;
-4. o build de produção foi feito com `VITE_API_BASE_URL` incorreto.
-
-## Ação Operacional
-
-1. publicar `dist/` em `app.kronossolutions.tech`
-2. manter `api.kronossolutions.tech` apontando para o back-end
-3. validar `.htaccess` no diretório publicado
-4. validar `VITE_API_BASE_URL=https://api.kronossolutions.tech`
-5. testar refresh direto em `/dashboard`
+Se `/dashboard` responder com JSON do Spring, o problema permanece na camada de proxy/vhost.

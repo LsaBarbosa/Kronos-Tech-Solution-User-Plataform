@@ -1,119 +1,102 @@
-# Deployment na Hostinger
+# Deploy na Hostinger
 
-## Arquitetura Alvo
+## Topologia real
 
-O ecossistema Kronos está configurado para operar com separação de responsabilidades:
+Produção usa domínio único:
 
-- front-end: `https://app.kronossolutions.tech`
-- API: `https://api.kronossolutions.tech`
+- aplicação web: `https://kronostechsolutions.com`
+- SPA pública/autenticada: `/`, `/dashboard`, `/avisos`, `/usuario`, etc.
+- API no mesmo host: `/auth/*`, `/records/*`, `/dashboard/summary`, `/lgpd/*` e demais rotas HTTP do Spring
 
-O front-end deve ser publicado como site estático.
-A API deve permanecer atrás do proxy reverso da Hostinger apontando para o Spring Boot.
+O erro abaixo significa que uma rota da SPA caiu no back-end:
 
-## Regra Crítica
-
-Se a raiz `/` ou uma rota SPA como `/dashboard` cair no back-end, o usuário verá erro `404 No static resource`.
-
-Para evitar isso, a publicação correta precisa garantir:
-
-1. `app.kronossolutions.tech` servindo os arquivos do `dist/`
-2. fallback SPA ativo para `index.html`
-3. `api.kronossolutions.tech` apontando para o back-end
-
-## Build de Produção
-
-Use a API real no build:
-
-```bash
-VITE_API_BASE_URL=https://api.kronossolutions.tech npm run build
+```json
+{"type":"about:blank","title":"Not Found","status":404,"detail":"No static resource dashboard.","instance":"/dashboard"}
 ```
 
-Opcionalmente, crie um arquivo local não versionado `.env.production` a partir de `.env.production.example`.
+Ou, em alguns cenários, a rota cai no filtro de segurança e retorna `401`.
 
-## Artefatos de Publicação
+## Regra de roteamento
 
-Após o build, publique o conteúdo de `dist/` no domínio do app.
+O servidor precisa separar:
 
-Arquivos críticos:
+1. rotas de API, que devem ir para o Spring Boot;
+2. rotas da SPA, que devem resolver para `index.html`.
+
+Exemplos corretos:
+
+- `GET /records/pending-approvals` -> back-end
+- `GET /dashboard/summary` -> back-end
+- `GET /dashboard` -> front-end SPA
+- `GET /avisos` -> front-end SPA
+
+## Build de produção
+
+Preferencialmente:
+
+```bash
+VITE_API_BASE_URL=https://kronostechsolutions.com npm run build
+```
+
+Se `VITE_API_BASE_URL` não for definido, o front agora usa `window.location.origin` em produção. Isso atende o cenário de domínio único.
+
+## Publicação dos artefatos
+
+Publique o conteúdo de `dist/` no diretório público do domínio e preserve:
 
 - `dist/index.html`
 - `dist/assets/*`
 - `dist/.htaccess`
 
-O arquivo `.htaccess` já contém o fallback SPA:
+Em Apache/LiteSpeed, o `.htaccess` cobre o fallback SPA:
 
-- arquivos reais são servidos normalmente;
-- qualquer rota inexistente é redirecionada para `index.html`.
+```apache
+<IfModule mod_rewrite.c>
+  RewriteEngine On
+  RewriteBase /
 
-## Hostinger com Apache ou LiteSpeed
+  RewriteRule ^index\.html$ - [L]
+  RewriteCond %{REQUEST_FILENAME} -f [OR]
+  RewriteCond %{REQUEST_FILENAME} -d
+  RewriteRule . - [L]
 
-Se `app.kronossolutions.tech` estiver servindo arquivos estáticos diretamente:
+  RewriteRule . /index.html [L]
+</IfModule>
+```
 
-1. suba o conteúdo de `dist/` para o diretório público do domínio;
-2. confirme que `dist/.htaccess` foi publicado;
-3. teste:
-   - `/`
-   - `/dashboard`
-   - `/avisos`
-   - `/usuario`
+## Nginx na frente do domínio
 
-Se essas rotas abrirem apenas após navegação interna, mas falharem em refresh, o `.htaccess` não foi publicado ou o `mod_rewrite` não está ativo.
-
-## Hostinger com Nginx em Frente
-
-Se a Hostinger estiver usando Nginx antes do Apache/LiteSpeed, o domínio do app precisa preservar o fallback para SPA.
-
-Padrão esperado:
+Se a Hostinger estiver usando Nginx reverso no domínio principal, a regra precisa ser parecida com:
 
 ```nginx
+location ~ ^/(auth|records|employee|companies|documents|messages|users|lgpd|geolocation|terms|legal|service-contracts|security-incidents)(/|$) {
+    proxy_pass http://127.0.0.1:8080;
+}
+
+location = /dashboard/summary {
+    proxy_pass http://127.0.0.1:8080;
+}
+
+location ~ ^/admin/(platform/health|retention(/.*)?)$ {
+    proxy_pass http://127.0.0.1:8080;
+}
+
+location ~ ^/public/privacy/(processing-catalog|policy|biometric-term)$ {
+    proxy_pass http://127.0.0.1:8080;
+}
+
 location / {
     try_files $uri $uri/ /index.html;
 }
 ```
 
-Se o Nginx estiver encaminhando `/` para o Spring Boot, o front não está sendo servido pelo lugar correto.
+Sem essa separação, `/dashboard` e `/` podem cair no Spring em vez de abrir a SPA.
 
-## Comportamento Atual do Back-end
+## Checklist de validação
 
-O back-end agora redireciona acessos HTML indevidos para o domínio do app usando `frontend.base-url-record`.
-
-Isso reduz erros como:
-
-- `No static resource .`
-- `No static resource dashboard.`
-
-Mas esse redirect é proteção adicional, não substitui a publicação correta do front.
-
-## Checklist de Produção
-
-- `VITE_API_BASE_URL` apontando para `https://api.kronossolutions.tech`
-- `dist/` publicado em `app.kronossolutions.tech`
-- `.htaccess` presente no diretório publicado
-- API publicada em `api.kronossolutions.tech`
-- CORS no back-end permitindo `https://app.kronossolutions.tech`
-- refresh em `/dashboard` funcionando
-- login, logout e chamadas autenticadas funcionando
-
-## Diagnóstico Rápido
-
-### Se `https://app.kronossolutions.tech/dashboard` retorna JSON 404 do Spring
-
-Causa provável:
-
-- o domínio do app está apontando para o back-end, não para os arquivos estáticos.
-
-Correção:
-
-- ajustar a configuração da Hostinger para servir `dist/` no domínio do app;
-- manter a API no subdomínio `api`.
-
-### Se `https://app.kronossolutions.tech/dashboard` retorna 404 HTML do servidor
-
-Causa provável:
-
-- falta de fallback SPA.
-
-Correção:
-
-- garantir publicação de `.htaccess`;
-- se houver Nginx antes, aplicar `try_files`.
+- `https://kronostechsolutions.com/` retorna HTML
+- `https://kronostechsolutions.com/dashboard` retorna HTML, não JSON do Spring
+- `https://kronostechsolutions.com/records/pending-approvals` continua respondendo pelo back-end
+- `dist/.htaccess` foi publicado
+- o proxy do domínio não envia `/dashboard` para o upstream Java
+- `VITE_API_BASE_URL` aponta para `https://kronostechsolutions.com` ou não é definido
