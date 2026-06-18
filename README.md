@@ -1,66 +1,151 @@
-# Kronos — Pacote Codex CLI para Dashboard Today
+# Kronos User Platform
 
-## Objetivo
+Front-end corporativo da plataforma Kronos para operações de jornada, documentos, aprovações, privacidade e experiência autenticada do usuário.
 
-Implementar, no front-end `Kronos-Tech-Solution-User-Plataform` branch `feature/lgpd-compliance-new-ui`, a evolução da dashboard para priorizar os dados do endpoint:
+## Visão Geral
 
-```http
-GET /records/me/today
-```
+Este repositório concentra a aplicação web usada pelos públicos operacionais e administrativos da plataforma Kronos. A interface foi construída para suportar rotinas críticas de RH, ponto, documentos e conformidade sem duplicar regras de negócio que pertencem ao back-end.
 
-A implementação deve adicionar uma área operacional de ponto do dia na dashboard existente, sem recriar a página inteira.
+O front-end consome contratos HTTP do ecossistema Kronos, preserva autenticação baseada em sessão/cookie e organiza a experiência em módulos responsivos para desktop e mobile.
 
-## Alvo técnico
+## Responsabilidades do Repositório
 
-- Rota: `/dashboard`
-- Página atual: `src/pages/Dashboard.tsx`
-- Service provável: `src/service/records.service.ts`
-- Componentes atuais:
-  - `src/components/dashboard-command-center/DashboardDesktop.tsx`
-  - `src/components/dashboard-command-center/DashboardMobile.tsx`
-  - `src/components/checkin/CheckinDashboardCard.tsx`
+- autenticação, sessão e navegação protegida;
+- dashboard operacional;
+- registro e acompanhamento de ponto;
+- espelho de ponto e relatórios;
+- avisos, pendências e atalhos operacionais;
+- gestão de documentos e assinaturas;
+- fluxos de férias, abonos e aprovações;
+- centro de privacidade e fluxos LGPD;
+- integração visual com contratos publicados pelo back-end.
 
-## Diretrizes
+## Stack Principal
 
-- Não recriar toda a dashboard.
-- Inserir o novo elemento de modo eficaz e orientado a UX/UI.
-- Desktop e mobile devem ser experiências diferentes.
-- Mobile deve responder rapidamente: “o que faço agora?”.
-- Desktop deve mostrar contexto, timeline e metadados com maior densidade.
-- O CTA principal deve ser controlado por `nextAction`.
-- O fluxo de registro de ponto deve continuar usando o fluxo atual de check-in/biometria/geolocalização.
-- Não inventar dados que o back-end não fornece.
+| Camada | Tecnologia |
+|---|---|
+| Framework | React 18 |
+| Build | Vite |
+| Linguagem | TypeScript |
+| Roteamento | React Router DOM |
+| HTTP | Axios |
+| Estado assíncrono | TanStack React Query |
+| Formulários | React Hook Form + Zod |
+| UI base | Tailwind CSS + Radix UI + componentes compartilhados |
+| Gráficos | Recharts |
+| Testes unitários | Vitest + Testing Library + MSW |
+| Testes E2E | Playwright |
 
-## Arquivos do pacote
+## Arquitetura da Aplicação
+
+O código está organizado para separar shell, páginas, componentes compartilhados, features e integrações HTTP:
 
 ```text
-codex/
-  skills/
-  agents/
-  rules/
-  subagents/
-references/
-  docs/
-  mockups/
-  project-context/
-plano-acao-dashboard-today-ui.md
-prompt-codex-dashboard-today-ui.md
-checklist-validacao-dashboard-today-ui.md
+src/
+  components/   componentes reutilizáveis e blocos de interface
+  config/       rotas, navegação e configuração de cliente
+  context/      sessão, check-in e providers globais
+  features/     módulos de negócio orientados por domínio
+  hooks/        hooks de composição e acesso a dados
+  pages/        páginas roteadas
+  service/      consumo de API e normalização de payloads
+  test/         setup e utilitários de teste
+  types/        contratos tipados do front-end
+  utils/        helpers de apoio
 ```
 
-## Execução recomendada
+## Integração com o Ecossistema Kronos
 
-1. Copiar este pacote para a raiz do workspace local.
-2. Abrir o front-end na branch correta.
-3. Colar o conteúdo de `prompt-codex-dashboard-today-ui.md` no Codex CLI.
-4. Validar com:
-   - `npm run lint`
-   - `npx tsc --noEmit`
-   - `npm run build`
-   - `npx vitest run`
-5. Testar visualmente mobile e desktop.
+Este repositório depende de dois pares principais:
 
-## Referências de aderência existentes no repositório
+- `Kronos-Tech-Solutions-KTS`: API principal, autenticação, regras de negócio, persistência e integrações externas;
+- `kronos-business`: documentação funcional, arquitetura e contratos de referência.
 
-- `docs/flag-redis-adherence.md`
-- `docs/api-contract-map.md`
+O front-end não deve inventar endpoints, DTOs ou regras que não existam nesses repositórios de origem.
+
+## Execução Local
+
+### Pré-requisitos
+
+- Node.js instalado em versão LTS compatível com Vite;
+- npm disponível no ambiente;
+- back-end Kronos acessível localmente ou em ambiente de homologação;
+- arquivo de ambiente configurado a partir de `.env.example`.
+
+### Variáveis de ambiente
+
+Base disponível em [`.env.example`](/home/kronos/Documentos/Codigin/kronos/Kronos-Tech-Solution-User-Plataform/.env.example).
+
+Principais chaves:
+
+- `VITE_API_BASE_URL`
+- `VITE_BIOMETRIC_LIVENESS_REQUIRED`
+- `VITE_OBSERVABILITY_ENABLED`
+- `VITE_OBSERVABILITY_ENDPOINT`
+- `VITE_GOOGLE_MAPS_API_KEY`
+
+### Subida do projeto
+
+```bash
+npm install
+npm run dev
+```
+
+Por padrão, a aplicação depende da API Kronos exposta em `VITE_API_BASE_URL`.
+
+## Qualidade e Validação
+
+Comandos principais:
+
+```bash
+npm run lint
+npm run test
+npm run build
+npm run test:e2e
+```
+
+Comandos auxiliares:
+
+```bash
+npm run test:coverage
+npm run test:watch
+npm run generate:api-types
+npm run analyze
+npm run preview
+```
+
+## Convenções Operacionais
+
+- a fonte de verdade de rotas e navegação deve permanecer centralizada na configuração da aplicação;
+- contratos devem ser normalizados na camada `service`, não dispersos em componentes;
+- estado de carregamento, vazio e erro deve ser explícito;
+- dados sensíveis não devem ser expostos em logs, mocks persistentes ou mensagens de erro;
+- alterações visuais devem preservar responsividade e o padrão UX do shell existente.
+
+## Documentação Relacionada
+
+Materiais complementares do próprio repositório:
+
+- `docs/openapi/`
+- `docs/contracts/`
+- `docs/architecture/`
+- `docs/security/`
+- `docs/testing/`
+- `docs/deploy/`
+
+## Fluxo de Colaboração
+
+1. alinhar a mudança com o contrato da API e com a documentação de negócio;
+2. implementar preservando serviços, rotas e guards existentes;
+3. validar lint, testes e build;
+4. revisar impacto em desktop e mobile;
+5. registrar ajustes relevantes na documentação quando necessário.
+
+## Repositórios Relacionados
+
+- Back-end: `../Kronos-Tech-Solutions-KTS`
+- Documentação: `../kronos-business`
+
+## Licença e Uso
+
+Uso interno do ecossistema Kronos. Distribuição, publicação externa ou reaproveitamento fora do contexto autorizado do projeto deve seguir a governança da organização.
