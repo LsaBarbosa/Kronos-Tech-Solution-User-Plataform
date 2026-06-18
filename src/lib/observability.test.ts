@@ -1,76 +1,69 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
-import { captureError, sanitizeObservabilityContext } from "./observability";
 
 describe("observability", () => {
   afterEach(() => {
     vi.unstubAllEnvs();
     vi.unstubAllGlobals();
+    vi.resetModules();
   });
 
-  it("remove dados sensiveis do contexto", () => {
+  it("mantem apenas chaves permitidas e redacta campos sensiveis", async () => {
+    const { sanitizeObservabilityContext } = await import("./observability");
     expect(
       sanitizeObservabilityContext({
-        operation: "download",
+        domain: "api",
+        operation: "http_failure",
+        status: 503,
         token: "abc",
-        nested: {
-          email: "user@kronos.com",
-          status: 503,
-        },
+        email: "user@kronos.com",
+        ignored: "value",
       })
     ).toEqual({
-      operation: "download",
+      domain: "api",
+      operation: "http_failure",
+      status: 503,
       token: "[REDACTED]",
-      nested: {
-        email: "[REDACTED]",
-        status: 503,
+      email: "[REDACTED]",
+    });
+  });
+
+  it("envia payload sanitizado quando observabilidade esta habilitada", async () => {
+    vi.stubEnv("VITE_OBSERVABILITY_ENABLED", "true");
+    vi.stubEnv("VITE_OBSERVABILITY_ENDPOINT", "https://obs.kronos.test/observability/frontend/events");
+    const fetchMock = vi.fn().mockResolvedValue(new Response(null, { status: 202 }));
+    vi.stubGlobal("fetch", fetchMock);
+    vi.stubGlobal("navigator", {});
+    vi.stubGlobal("window", {
+      location: {
+        pathname: "/dashboard",
+        search: "",
+        hash: "",
       },
     });
-  });
-
-  it("redacta faceImageBase64 do contexto", () => {
-    const base64Image = "iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==";
-    expect(
-      sanitizeObservabilityContext({
-        operation: "biometric-login",
-        faceImageBase64: base64Image,
-        status: 401,
-      })
-    ).toEqual({
-      operation: "biometric-login",
-      faceImageBase64: "[REDACTED]",
-      status: 401,
+    vi.stubGlobal("crypto", {
+      randomUUID: () => "corr-id-123",
     });
-  });
 
-  it("redacta chaves contendo 'base64' no contexto", () => {
-    expect(
-      sanitizeObservabilityContext({
-        operation: "enrollment",
-        imageBase64Data: "someverylong" + "a".repeat(200),
-        payloadBase64: "anotherlongstring" + "b".repeat(200),
-      })
-    ).toEqual({
-      operation: "enrollment",
-      imageBase64Data: "[REDACTED]",
-      payloadBase64: "[REDACTED]",
-    });
-  });
-
-  it("envia evento apenas quando observabilidade esta habilitada e endpoint existe", () => {
-    vi.stubEnv("VITE_OBSERVABILITY_ENABLED", "true");
-    vi.stubEnv("VITE_OBSERVABILITY_ENDPOINT", "https://obs.kronos.test/events");
-    const sendBeacon = vi.fn();
-    vi.stubGlobal("navigator", { sendBeacon });
+    const { captureError } = await import("./observability");
 
     captureError(new Error("Falha controlada"), {
       domain: "api",
-      token: "segredo",
+      operation: "http_failure",
       status: 503,
+      token: "segredo",
     });
 
-    expect(sendBeacon).toHaveBeenCalledTimes(1);
-    const [endpoint, blob] = sendBeacon.mock.calls[0];
-    expect(endpoint).toBe("https://obs.kronos.test/events");
-    expect(blob).toBeInstanceOf(Blob);
+    expect(fetchMock).toHaveBeenCalledTimes(1);
+    const [endpoint, requestInit] = fetchMock.mock.calls[0] as [string, RequestInit];
+    expect(endpoint).toBe("https://obs.kronos.test/observability/frontend/events");
+    const payload = JSON.parse(String(requestInit.body));
+    expect(payload).toMatchObject({
+      eventType: "http_failure",
+      category: "api",
+      result: "failure",
+      route: "/dashboard",
+      correlationId: "corr-id-123",
+    });
+    expect(payload.message).toContain("Falha controlada");
   });
 });

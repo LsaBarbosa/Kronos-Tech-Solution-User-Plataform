@@ -1,6 +1,10 @@
 import axios, { type AxiosRequestConfig } from "axios";
 import { normalizeServiceError } from "@/service/helpers/service-error.helper";
 import { captureError } from "@/lib/observability";
+import {
+  createCorrelationId as createObservabilityCorrelationId,
+  setCurrentCorrelationId,
+} from "@/observability/correlation-id";
 import { fetchCsrfToken, invalidateCsrfToken } from "@/service/csrf.service";
 
 // Extend Axios config to include CSRF retry flag
@@ -99,15 +103,7 @@ const isFormDataPayload = (value: unknown): value is FormData => {
   return typeof candidate.append === "function" && typeof candidate.get === "function";
 };
 
-export const createCorrelationId = () => {
-  const cryptoRandomUUID = globalThis.crypto?.randomUUID?.bind(globalThis.crypto);
-
-  if (cryptoRandomUUID) {
-    return cryptoRandomUUID();
-  }
-
-  return `kronos-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 10)}`;
-};
+export const createCorrelationId = () => createObservabilityCorrelationId();
 
 const getErrorCode = (data: unknown): string | undefined => {
   if (!data || typeof data !== "object") {
@@ -143,21 +139,42 @@ const ensureCorrelationIdHeader = (headers: unknown) => {
   };
 
   const currentValue =
-    (typeof typedHeaders.get === "function" ? typedHeaders.get("X-Correlation-Id") : undefined) ??
+    (typeof typedHeaders.get === "function" ? typedHeaders.get("X-Correlation-ID") : undefined) ??
+    typedHeaders["X-Correlation-ID"] ??
     typedHeaders["X-Correlation-Id"] ??
     typedHeaders["x-correlation-id"];
 
   if (currentValue) {
+    setCurrentCorrelationId(String(currentValue));
     return;
   }
 
   const correlationId = createCorrelationId();
   if (typeof typedHeaders.set === "function") {
-    typedHeaders.set("X-Correlation-Id", correlationId);
+    typedHeaders.set("X-Correlation-ID", correlationId);
     return;
   }
 
-  typedHeaders["X-Correlation-Id"] = correlationId;
+  typedHeaders["X-Correlation-ID"] = correlationId;
+};
+
+const syncCorrelationIdFromHeaders = (headers: unknown) => {
+  if (!headers || typeof headers !== "object") {
+    return;
+  }
+
+  const typedHeaders = headers as Record<string, unknown> & {
+    get?: (name: string) => unknown;
+  };
+
+  const correlationId =
+    (typeof typedHeaders.get === "function" ? typedHeaders.get("X-Correlation-ID") : undefined) ??
+    typedHeaders["x-correlation-id"] ??
+    typedHeaders["X-Correlation-ID"];
+
+  if (typeof correlationId === "string" && correlationId.trim()) {
+    setCurrentCorrelationId(correlationId);
+  }
 };
 
 type SessionExpiredCallback = (reason: "expired" | "revoked" | "biometric_consent_revoked") => void;
@@ -248,6 +265,7 @@ api.interceptors.request.use(
 // Interceptor de Resposta (Para pegar o erro 403 dos Termos e CSRF)
 api.interceptors.response.use(
   (response) => {
+    syncCorrelationIdFromHeaders(response.headers);
     // Guarantee that status 204/205 don't try to parse JSON
     if (response.status === 204 || response.status === 205) {
       response.data = null;
@@ -255,6 +273,7 @@ api.interceptors.response.use(
     return response;
   },
   async (error) => {
+    syncCorrelationIdFromHeaders(error.response?.headers);
     if (error.response) {
       const { status } = error.response;
       // Quando o request pediu blob mas o backend respondeu erro (JSON), o axios entrega
@@ -367,6 +386,9 @@ publicApi.interceptors.request.use(
 );
 
 publicApi.interceptors.response.use(
-  (response) => response,
+  (response) => {
+    syncCorrelationIdFromHeaders(response.headers);
+    return response;
+  },
   (error) => rejectApiError(error)
 );
