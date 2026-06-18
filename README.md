@@ -132,6 +132,8 @@ Materiais complementares do próprio repositório:
 - `docs/security/`
 - `docs/testing/`
 - `docs/deploy/`
+- `docs/flag-redis-adherence.md`
+- `docs/api-contract-map.md`
 
 ## Fluxo de Colaboração
 
