@@ -23,10 +23,15 @@ const HeaderMobile = ({
   onLogout,
 }: HeaderMobileProps) => {
   return (
-    <div className="flex h-16 items-center gap-2 px-3 sm:px-4">
-      <HeaderNav role={role} variant="mobile" />
-      <HeaderBrand variant="mobile" />
-      <div className="ml-2 flex min-w-0 flex-1" />
+    <div className="relative flex h-16 items-center justify-between gap-2 px-3 sm:px-4">
+      <div className="relative z-10 shrink-0">
+        <HeaderNav role={role} variant="mobile" />
+      </div>
+      <div className="pointer-events-none absolute inset-x-0 flex justify-center">
+        <div className="pointer-events-auto">
+          <HeaderBrand variant="mobile" />
+        </div>
+      </div>
       <div className="flex shrink-0 items-center gap-1.5">
         <HeaderNotifications
           pendingCount={pendingCount}
