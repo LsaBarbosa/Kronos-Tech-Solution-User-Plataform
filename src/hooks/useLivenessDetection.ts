@@ -1,4 +1,5 @@
 import { useState, useCallback } from "react";
+import { safeLogger } from "@/utils/security/safeLogger";
 
 interface UseLivenessDetectionReturn {
   isDetecting: boolean;
@@ -50,7 +51,7 @@ export const useLivenessDetection = (): UseLivenessDetectionReturn => {
     } catch (err) {
       const errorMessage = err instanceof Error ? err.message : "Erro ao validar imagem";
       setError(errorMessage);
-      console.error("Image validation error:", err);
+      safeLogger.error("Image validation error:", err);
       return false;
     } finally {
       setIsDetecting(false);

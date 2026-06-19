@@ -11,6 +11,7 @@ import {
   createManager,
   createUser,
 } from "@/service/collaborator-management.service";
+import { safeLogger } from "@/utils/security/safeLogger";
 
 const scheduleTypes = [
   { value: "TRADITIONAL_5X2", label: "Tradicional 5x2 (Seg-Sex)" },
@@ -143,7 +144,7 @@ export const useCreateManager = () => {
         name: company.name,
       })));
     } catch (error) {
-      console.error("Erro ao buscar empresas:", error);
+      safeLogger.error("Erro ao buscar empresas:", error);
       toast({ title: "Erro", description: "Não foi possível carregar a lista de empresas.", variant: "destructive" });
     } finally {
       setIsFetchingCompanies(false);
@@ -181,7 +182,7 @@ export const useCreateManager = () => {
         setCpfAvailability("available");
       }
     } catch (error) {
-      console.error("Erro na comunicação com a API:", error);
+      safeLogger.error("Erro na comunicação com a API:", error);
       toast({ title: "Erro de rede", description: "Falha ao conectar com o servidor.", variant: "destructive" });
       setCpfAvailability(null);
     } finally {
@@ -226,7 +227,7 @@ export const useCreateManager = () => {
         setUsernameAvailability("available");
       }
     } catch (error) {
-      console.error("Erro na comunicação com a API:", error);
+      safeLogger.error("Erro na comunicação com a API:", error);
       toast({ title: "Erro de rede", description: "Falha ao conectar com o servidor.", variant: "destructive" });
       setUsernameAvailability(null);
     } finally {
@@ -285,7 +286,7 @@ export const useCreateManager = () => {
         description: `O registro de ${data.nomeCompleto} foi salvo. Prossiga para as credenciais de usuário.`,
       });
     } catch (error) {
-      console.error("Erro no Passo 1 (Colaborador):", error);
+      safeLogger.error("Erro no Passo 1 (Colaborador):", error);
       toast({
         title: "Erro ao cadastrar colaborador",
         description: (error instanceof Error) ? error.message : "Tente novamente mais tarde.",
@@ -350,7 +351,7 @@ export const useCreateManager = () => {
       setCpfAvailability(null);
       navigate("/empresa");
     } catch (error) {
-      console.error("Erro no Passo 2 (Usuário):", error);
+      safeLogger.error("Erro no Passo 2 (Usuário):", error);
       toast({
         title: "Erro ao criar usuário",
         description: (error instanceof Error) ? error.message : "Tente novamente mais tarde.",

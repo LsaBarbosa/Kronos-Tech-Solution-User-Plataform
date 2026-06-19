@@ -10,6 +10,7 @@ import type { ResetPasswordFormType, ResetPasswordPayload } from "@/types/auth";
 import { resetPasswordSchema } from "@/types/auth";
 import { resetPassword } from "@/service/auth.service";
 import { getServiceErrorMessage } from "@/service/helpers/service-error.helper";
+import { safeLogger } from "@/utils/security/safeLogger";
 
 interface UseResetPasswordReturn {
     form: UseFormReturn<ResetPasswordFormType>;
@@ -76,7 +77,7 @@ export const useResetPassword = (): UseResetPasswordReturn => {
             setTimeout(() => navigate("/login"), 3000);
 
         } catch (error: unknown) {
-            console.error("Erro ao redefinir senha:", error);
+            safeLogger.error("Erro ao redefinir senha:", error);
             toast({
                 title: "Erro na Redefinição",
                 description: getServiceErrorMessage(

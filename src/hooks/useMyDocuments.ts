@@ -10,6 +10,7 @@ import {
     fetchUserDocuments,
 } from "@/service/document.service";
 import { isAuthServiceError, normalizeServiceError } from "@/service/helpers/service-error.helper";
+import { safeLogger } from "@/utils/security/safeLogger";
 
 const DEFAULT_MY_DOCUMENTS_TYPE: DocumentType = "EMPLOYEE_DOCUMENTS";
 
@@ -73,7 +74,7 @@ export const useMyDocuments = (): UseMyDocumentsReturn => {
             toast({ title: "Sucesso", description: `Documento "${documentName}" excluído.` });
         } catch (err) {
             const normalized = normalizeServiceError(err);
-            console.error("Erro ao deletar:", normalized);
+            safeLogger.error("Erro ao deletar:", normalized);
             toast({ title: "Erro", description: normalized.message || "Falha ao excluir o documento.", variant: "destructive" });
             if (isAuthServiceError(normalized)) navigate("/login");
         } finally {

@@ -9,6 +9,7 @@ import { enrollBiometricByManager } from "@/service/employee.service";
 import { useLivenessDetection } from "@/hooks/useLivenessDetection";
 import { isBiometricLivenessRequired } from "@/config/biometric";
 import { normalizeServiceError } from "@/service/helpers/service-error.helper";
+import { safeLogger } from "@/utils/security/safeLogger";
 
 interface ManagerBiometricEnrollmentModalProps {
   open: boolean;
@@ -71,7 +72,7 @@ const ManagerBiometricEnrollmentModal = ({
           });
         }
       } catch (error) {
-        console.error("Erro ao processar imagem:", error);
+        safeLogger.error("Erro ao processar imagem:", error);
         setLivenessPassed(false);
         toast({
           title: "Erro ao processar imagem",

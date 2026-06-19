@@ -3,6 +3,7 @@ import { Button } from '@/components/ui/button';
 import { useCheckin } from '@/hooks/useCheckin';
 import { captureFrameFromVideo, stopCameraStream } from '@/utils/camera.util';
 import { useEffect, useRef, useState } from 'react';
+import { safeLogger } from "@/utils/security/safeLogger";
 
 interface CheckinCameraStepProps {
   cameraStreamRef: React.MutableRefObject<MediaStream | null>;
@@ -27,7 +28,7 @@ export const CheckinCameraStep = ({ cameraStreamRef }: CheckinCameraStepProps) =
           cameraStreamRef.current = stream;
           if (videoRef.current) {
             videoRef.current.srcObject = stream;
-            videoRef.current.play().catch((e) => console.error('Erro ao reproduzir vídeo:', e));
+            videoRef.current.play().catch((e) => safeLogger.error('Erro ao reproduzir vídeo:', e));
           }
         })
         .catch(() => {
@@ -56,7 +57,7 @@ export const CheckinCameraStep = ({ cameraStreamRef }: CheckinCameraStepProps) =
 
       captureFace(dataUrl);
     } catch (error) {
-      console.error('Erro ao capturar imagem:', error);
+      safeLogger.error('Erro ao capturar imagem:', error);
     }
   };
 
@@ -66,7 +67,7 @@ export const CheckinCameraStep = ({ cameraStreamRef }: CheckinCameraStepProps) =
         cameraStreamRef.current = stream;
         if (videoRef.current) {
           videoRef.current.srcObject = stream;
-          videoRef.current.play().catch((e) => console.error('Erro ao reproduzir vídeo:', e));
+          videoRef.current.play().catch((e) => safeLogger.error('Erro ao reproduzir vídeo:', e));
         }
       })
       .catch(() => {

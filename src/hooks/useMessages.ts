@@ -7,6 +7,7 @@ import type { Message } from "@/types/message";
 import { fetchMessages, deleteMessage } from "@/service/message.service";
 import { getServiceErrorMessage, isAuthServiceError } from "@/service/helpers/service-error.helper";
 import { queryKeys } from "@/lib/query-keys";
+import { safeLogger } from "@/utils/security/safeLogger";
 
 type UserRole = "MANAGER" | "PARTNER" | "CTO" | "";
 
@@ -73,7 +74,7 @@ export const useMessages = (): UseMessagesReturn => {
       });
     },
     onError: (err) => {
-      console.error("Erro ao deletar mensagem:", err);
+      safeLogger.error("Erro ao deletar mensagem:", err);
       toast({
         title: "Erro ao deletar mensagem",
         description: getServiceErrorMessage(err, "Falha ao deletar a mensagem."),

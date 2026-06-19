@@ -20,6 +20,7 @@ import {
   downloadDetailedReportCsv,
   type ReportExportPayload,
 } from "@/features/detailed-report-export";
+import { safeLogger } from "@/utils/security/safeLogger";
 
 export type EmployeeScope = "active" | "inactive";
 
@@ -162,7 +163,7 @@ export const useDetailedReportBuilder = (): DetailedReportBuilderViewModel => {
         }))
       );
     } catch (error) {
-      console.error("Erro ao carregar aprovadores:", error);
+      safeLogger.error("Erro ao carregar aprovadores:", error);
       const message = error instanceof Error ? error.message : "Não foi possível carregar os aprovadores.";
       toast({ title: "Erro", description: message, variant: "destructive" });
     }
@@ -189,7 +190,7 @@ export const useDetailedReportBuilder = (): DetailedReportBuilderViewModel => {
       const list = await fetchReportEmployees(employeeScope === "active");
       setEmployees(list);
     } catch (error) {
-      console.error("Erro ao carregar colaboradores:", error);
+      safeLogger.error("Erro ao carregar colaboradores:", error);
       const message = error instanceof Error ? error.message : "Não foi possível carregar os colaboradores.";
       toast({ title: "Erro", description: message, variant: "destructive" });
     } finally {
@@ -365,7 +366,7 @@ export const useDetailedReportBuilder = (): DetailedReportBuilderViewModel => {
       toast({ title: "PDF gerado", description: "Relatório detalhado baixado em PDF." });
     } catch (error) {
       const message = error instanceof Error ? error.message : "Falha ao gerar o PDF.";
-      console.error("Erro ao gerar PDF:", error);
+      safeLogger.error("Erro ao gerar PDF:", error);
       toast({ title: "Erro", description: message, variant: "destructive" });
     }
   }, [buildExportPayload, toast]);
@@ -381,7 +382,7 @@ export const useDetailedReportBuilder = (): DetailedReportBuilderViewModel => {
       toast({ title: "CSV gerado", description: "Relatório detalhado baixado em CSV." });
     } catch (error) {
       const message = error instanceof Error ? error.message : "Falha ao gerar o CSV.";
-      console.error("Erro ao gerar CSV:", error);
+      safeLogger.error("Erro ao gerar CSV:", error);
       toast({ title: "Erro", description: message, variant: "destructive" });
     }
   }, [buildExportPayload, toast]);
@@ -446,7 +447,7 @@ export const useDetailedReportBuilder = (): DetailedReportBuilderViewModel => {
         await executeReportAfterSave();
       } catch (error) {
         const message = error instanceof Error ? error.message : "Ocorreu um erro ao salvar o ajuste.";
-        console.error("Erro ao salvar:", error);
+        safeLogger.error("Erro ao salvar:", error);
         toast({ title: "Erro", description: message, variant: "destructive" });
       } finally {
         setIsSavingRecord(false);

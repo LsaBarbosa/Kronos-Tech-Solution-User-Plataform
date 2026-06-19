@@ -5,6 +5,7 @@ import type { TimeOffQueryParams, TimeRecordPageResponse } from "@/types/recordA
 import { useToast } from "@/hooks/use-toast";
 import { getAdministrativeErrorMessage } from "@/service/helpers/admin-error-message.helper";
 import { queryKeys } from "@/lib/query-keys";
+import { safeLogger } from "@/utils/security/safeLogger";
 
 export interface UseTimeOffApprovalsReturn {
   approvalsData: TimeRecordPageResponse | null;
@@ -70,7 +71,7 @@ export const useTimeOffApprovals = (): UseTimeOffApprovalsReturn => {
       await queryClient.invalidateQueries({ queryKey: queryKeys.timeOffApprovals });
     },
     onError: (error, variables) => {
-      console.error(`Erro ao ${variables.action} abono:`, error);
+      safeLogger.error(`Erro ao ${variables.action} abono:`, error);
       toast({
         title: "Erro",
         description: `Não foi possível ${variables.action} o abono. Detalhes: ${getAdministrativeErrorMessage(

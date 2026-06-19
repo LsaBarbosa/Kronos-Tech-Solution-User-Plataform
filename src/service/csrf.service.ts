@@ -1,4 +1,5 @@
 import { api } from "@/config/api";
+import { safeLogger } from "@/utils/security/safeLogger";
 
 export interface CsrfTokenResponse {
   headerName: string;
@@ -70,6 +71,6 @@ export const preloadCsrfToken = async (): Promise<void> => {
     await fetchCsrfToken();
   } catch (error) {
     // Silently fail - the token will be fetched on demand if needed
-    console.warn("CSRF token preload failed (will retry on demand):", error);
+    safeLogger.warn("CSRF token preload failed (will retry on demand):", error);
   }
 };

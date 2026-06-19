@@ -9,6 +9,7 @@ import type { ForgotPasswordFormType} from "@/types/auth";
 import { forgotPasswordSchema, cleanCPF } from "@/types/auth";
 import { recoverPasswordRequest } from "@/service/auth.service";
 import { getServiceErrorMessage } from "@/service/helpers/service-error.helper";
+import { safeLogger } from "@/utils/security/safeLogger";
 
 interface UseForgotPasswordReturn {
     form: UseFormReturn<ForgotPasswordFormType>;
@@ -54,7 +55,7 @@ export const useForgotPassword = (): UseForgotPasswordReturn => {
             });
 
         } catch (error: unknown) {
-            console.error("Erro na recuperação de senha:", error);
+            safeLogger.error("Erro na recuperação de senha:", error);
             toast({
                 title: "Erro na Solicitação",
                 description: getServiceErrorMessage(

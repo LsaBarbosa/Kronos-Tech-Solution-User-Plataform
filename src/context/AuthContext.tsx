@@ -15,6 +15,7 @@ import { loadSessionProfile } from "@/service/session-profile.service";
 import { checkTermsStatus } from "@/service/terms.service";
 import type { BiometricConsentStatus } from "@/types/legal";
 import type { UserAccountData, UserData } from "@/types/user";
+import { safeLogger } from "@/utils/security/safeLogger";
 
 export type AuthStatus = "checking" | "authenticated" | "unauthenticated";
 
@@ -64,7 +65,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         setUser({ ...user, biometricConsent: consentStatus });
       }
     } catch (error) {
-      console.error("Failed to refresh biometric consent status:", error);
+      safeLogger.error("Failed to refresh biometric consent status:", error);
     }
   }, [user]);
 
@@ -85,7 +86,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
         const consentStatus = await checkTermsStatus();
         setBiometricConsent(consentStatus);
       } catch (error) {
-        console.error("Failed to load biometric consent status:", error);
+        safeLogger.error("Failed to load biometric consent status:", error);
       }
     } catch (error) {
       const serviceError = normalizeServiceError(error);
@@ -97,7 +98,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
           const consentStatus = await checkTermsStatus();
           setBiometricConsent(consentStatus);
         } catch (error) {
-          console.error("Failed to load biometric consent status:", error);
+          safeLogger.error("Failed to load biometric consent status:", error);
         }
         return;
       }
@@ -124,7 +125,7 @@ export const AuthProvider = ({ children }: { children: ReactNode }) => {
       }
       invalidateCsrfToken();
     } catch (error) {
-      console.warn("Erro ao fazer logout:", error);
+      safeLogger.warn("Erro ao fazer logout:", error);
       invalidateCsrfToken();
     } finally {
       clearSession();

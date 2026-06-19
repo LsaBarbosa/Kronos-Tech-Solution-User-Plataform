@@ -4,13 +4,14 @@ import { Home } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { APP_PATHS } from "@/config/app-routes";
+import { safeLogger } from "@/utils/security/safeLogger";
 
 const NotFound = () => {
   const location = useLocation();
   const navigate = useNavigate();
 
   useEffect(() => {
-    console.error(
+    safeLogger.error(
       "404 Error: User attempted to access non-existent route:",
       location.pathname
     );

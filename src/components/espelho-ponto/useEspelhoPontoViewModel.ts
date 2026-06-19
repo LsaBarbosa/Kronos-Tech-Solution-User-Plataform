@@ -9,6 +9,7 @@ import { getServiceErrorMessage } from "@/service/helpers/service-error.helper";
 import { getAdministrativeErrorMessage } from "@/service/helpers/admin-error-message.helper";
 import { dateToBackendDatePattern } from "@/utils/date-format";
 import type { Employee } from "@/utils/report-utils";
+import { safeLogger } from "@/utils/security/safeLogger";
 
 export interface EspelhoPontoViewModel {
   date: Date | undefined;
@@ -53,7 +54,7 @@ export const useEspelhoPontoViewModel = (): EspelhoPontoViewModel => {
           setEmployees(data);
         }
       } catch (error) {
-        console.error("Erro ao carregar colaboradores para o espelho de ponto:", error);
+        safeLogger.error("Erro ao carregar colaboradores para o espelho de ponto:", error);
         toast({
           variant: "destructive",
           title: "Erro",

@@ -23,6 +23,7 @@ import { loginWithFace } from "@/service/auth.service";
 import { useAuth } from "@/context/AuthContext";
 import { getServiceErrorMessage } from "@/service/helpers/service-error.helper";
 import { isBiometricLivenessRequired } from "@/config/biometric";
+import { safeLogger } from "@/utils/security/safeLogger";
 
 interface FaceLoginModalProps {
     isOpen: boolean;
@@ -90,12 +91,12 @@ const FaceLoginModal = ({ isOpen, onOpenChange }: FaceLoginModalProps) => {
             videoRef.current.srcObject = stream;
             videoRef.current.onloadedmetadata = () => {
                 setIsStreamReady(true);
-                videoRef.current?.play().catch((e) => console.error("Erro ao reproduzir vídeo:", e));
+                videoRef.current?.play().catch((e) => safeLogger.error("Erro ao reproduzir vídeo:", e));
             };
         } catch (error: unknown) {
             const errorName = error instanceof DOMException || error instanceof Error ? error.name : "";
             if (errorName !== "AbortError") {
-                console.error("Erro ao acessar a webcam:", error);
+                safeLogger.error("Erro ao acessar a webcam:", error);
                 toast.error("Erro ao acessar a webcam. Verifique as permissões.");
             }
             setIsCapturing(false);

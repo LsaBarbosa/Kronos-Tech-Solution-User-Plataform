@@ -17,6 +17,7 @@ import {
     formatCNPJ
 } from "@/service/company.service";
 import { isAuthServiceError, normalizeServiceError } from "@/service/helpers/service-error.helper";
+import { safeLogger } from "@/utils/security/safeLogger";
 
 // --- SCHEMAS DE VALIDAÇÃO ---
 const formSchema = z.object({
@@ -97,7 +98,7 @@ export const useUpdateCompanyForm = (): UseUpdateCompanyFormReturn => {
             setCompanies(data);
         } catch (error) {
             const normalized = normalizeServiceError(error);
-            console.error("Erro ao buscar empresas:", normalized);
+            safeLogger.error("Erro ao buscar empresas:", normalized);
             if (isAuthServiceError(normalized)) navigate("/login");
             
             toast({ 
@@ -137,7 +138,7 @@ export const useUpdateCompanyForm = (): UseUpdateCompanyFormReturn => {
             toast({ title: "Dados carregados", description: `Detalhes de ${data.name} preenchidos no formulário.` });
         } catch (error) {
             const normalized = normalizeServiceError(error);
-            console.error("Erro ao buscar detalhes da empresa:", normalized);
+            safeLogger.error("Erro ao buscar detalhes da empresa:", normalized);
             toast({ 
                 title: "Erro", 
                 description: normalized.message || "Não foi possível carregar os detalhes da empresa.", 
@@ -224,7 +225,7 @@ export const useUpdateCompanyForm = (): UseUpdateCompanyFormReturn => {
 
         } catch (error) {
             const normalized = normalizeServiceError(error);
-            console.error("Erro no processo de atualização:", normalized);
+            safeLogger.error("Erro no processo de atualização:", normalized);
             toast({
                 title: "Erro ao atualizar empresa",
                 description: normalized.message || "Tente novamente mais tarde.",

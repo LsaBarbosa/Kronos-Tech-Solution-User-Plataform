@@ -39,11 +39,13 @@ export default defineConfig(({ mode }) => ({
   build: {
     rollupOptions: {
       output: {
-        manualChunks: {
-          'vendor-pdf': ['jspdf', 'jspdf-autotable', 'html2canvas'],
-          'vendor-react': ['react', 'react-dom', 'react-router-dom'],
-          'vendor-query': ['@tanstack/react-query'],
-          'vendor-forms': ['react-hook-form', '@hookform/resolvers', 'zod'],
+        manualChunks: (id) => {
+          if (!id.includes("node_modules")) return undefined;
+          if (id.includes("jspdf") || id.includes("jspdf-autotable") || id.includes("html2canvas")) return "vendor-pdf";
+          if (id.includes("react-hook-form") || id.includes("@hookform/resolvers") || id.includes("zod")) return "vendor-forms";
+          if (id.includes("@tanstack/react-query")) return "vendor-query";
+          if (id.includes("react-router-dom") || id.includes("react-dom") || id.includes("react")) return "vendor-react";
+          return undefined;
         },
       },
     },

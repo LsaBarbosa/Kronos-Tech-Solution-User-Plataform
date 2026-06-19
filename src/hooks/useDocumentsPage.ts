@@ -9,6 +9,7 @@ import {
 } from "@/service/document.service";
 import { getAdministrativeErrorMessage } from "@/service/helpers/admin-error-message.helper";
 import type { DocumentType } from "@/types/document";
+import { safeLogger } from "@/utils/security/safeLogger";
 
 export interface DocumentItem {
   id: string;
@@ -69,7 +70,7 @@ export const useDocumentsPage = () => {
         );
         setSelectedEmployeeId("");
       } catch (error) {
-        console.error("Erro ao buscar funcionários:", error);
+        safeLogger.error("Erro ao buscar funcionários:", error);
         showErrorToast("Erro", "Erro ao buscar a lista de funcionários. Tente novamente.");
       } finally {
         setIsFetchingEmployees(false);
@@ -118,7 +119,7 @@ export const useDocumentsPage = () => {
         `${data.length} documento(s) encontrado(s) - ${getDocumentTypeLabel(documentType)}`
       );
     } catch (error) {
-      console.error("Erro ao buscar documentos:", error);
+      safeLogger.error("Erro ao buscar documentos:", error);
       showErrorToast("Erro", getAdministrativeErrorMessage(error, "document"));
       setDocuments([]);
     } finally {
@@ -188,7 +189,7 @@ export const useDocumentsPage = () => {
       showSuccessToast("Documento excluído", `Documento "${target.name}" excluído com sucesso!`);
       setDocumentPendingDelete(null);
     } catch (error) {
-      console.error("Erro ao excluir documento:", error);
+      safeLogger.error("Erro ao excluir documento:", error);
       showErrorToast("Erro", getAdministrativeErrorMessage(error, "document"));
     } finally {
       setIsDeletingDocument(false);
@@ -200,7 +201,7 @@ export const useDocumentsPage = () => {
       await downloadDocument(document.id, document.name, selectedEmployeeId || undefined);
       showSuccessToast("Download iniciado", `Download de ${document.name} iniciado`);
     } catch (error) {
-      console.error("Erro ao iniciar o download:", error);
+      safeLogger.error("Erro ao iniciar o download:", error);
       showErrorToast("Erro", getAdministrativeErrorMessage(error, "document"));
     }
   }, [selectedEmployeeId]);
@@ -215,7 +216,7 @@ export const useDocumentsPage = () => {
       }
       return formattedDate.toLocaleDateString("pt-BR");
     } catch (error) {
-      console.error("Erro ao formatar data:", error);
+      safeLogger.error("Erro ao formatar data:", error);
       return dateString;
     }
   }, []);

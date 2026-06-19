@@ -21,6 +21,7 @@ import {
   COLLABORATOR_LONG_DAY_OPTIONS,
   COLLABORATOR_SCHEDULE_OPTIONS,
 } from "@/features/collaborators/create/constants";
+import { safeLogger } from "@/utils/security/safeLogger";
 
 const employeeSchema = z.object({
   nomeCompleto: z.string().min(2, "Nome deve ter pelo menos 2 caracteres"),
@@ -158,7 +159,7 @@ export const useCreateCollaborator = () => {
         variant: available ? "default" : "destructive",
       });
     } catch (error) {
-      console.error("Erro na comunicação com a API:", error);
+      safeLogger.error("Erro na comunicação com a API:", error);
       toast({ title: "Erro de rede", description: "Falha ao conectar com o servidor.", variant: "destructive" });
       setCpfAvailability(null);
     } finally {
@@ -204,7 +205,7 @@ export const useCreateCollaborator = () => {
         variant: available ? "default" : "destructive",
       });
     } catch (error) {
-      console.error("Erro na comunicação com a API:", error);
+      safeLogger.error("Erro na comunicação com a API:", error);
       toast({ title: "Erro de rede", description: "Falha ao conectar com o servidor.", variant: "destructive" });
       setUsernameAvailability(null);
     } finally {
@@ -277,7 +278,7 @@ export const useCreateCollaborator = () => {
       });
       return true;
     } catch (error) {
-      console.error("Erro no Passo 1 (Colaborador):", error);
+      safeLogger.error("Erro no Passo 1 (Colaborador):", error);
       toast({
         title: "Erro ao cadastrar colaborador",
         description: error instanceof Error ? error.message : "Tente novamente mais tarde.",
@@ -351,7 +352,7 @@ export const useCreateCollaborator = () => {
       setFileName(undefined);
       return true;
     } catch (error) {
-      console.error("Erro no Passo 2 (Usuário):", error);
+      safeLogger.error("Erro no Passo 2 (Usuário):", error);
       toast({
         title: "Erro ao criar usuário",
         description: error instanceof Error ? error.message : "Tente novamente mais tarde.",

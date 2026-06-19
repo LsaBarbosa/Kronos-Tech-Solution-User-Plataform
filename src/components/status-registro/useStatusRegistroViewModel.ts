@@ -13,6 +13,7 @@ import {
   TARGET_STATUS_VALUES,
   type TargetStatus,
 } from "./status-registro-helpers";
+import { safeLogger } from "@/utils/security/safeLogger";
 
 export type DecisionAction = "save" | "toggle";
 
@@ -115,7 +116,7 @@ export const useStatusRegistroViewModel = (): StatusRegistroViewModel => {
       })
       .catch((error) => {
         if (cancelled) return;
-        console.error("Erro ao buscar funcionários:", error);
+        safeLogger.error("Erro ao buscar funcionários:", error);
         toast({
           title: "Erro",
           description: "Não foi possível carregar os colaboradores.",
@@ -181,7 +182,7 @@ export const useStatusRegistroViewModel = (): StatusRegistroViewModel => {
     } catch (error) {
       const message =
         error instanceof Error ? error.message : "Não foi possível buscar os registros.";
-      console.error("Erro na busca de registros:", error);
+      safeLogger.error("Erro na busca de registros:", error);
       toast({
         title: "Erro",
         description: message,
@@ -293,7 +294,7 @@ export const useStatusRegistroViewModel = (): StatusRegistroViewModel => {
       } catch (error) {
         const message =
           error instanceof Error ? error.message : "Não foi possível atualizar o status.";
-        console.error("Erro ao atualizar status:", error);
+        safeLogger.error("Erro ao atualizar status:", error);
         toast({ title: "Erro", description: message, variant: "destructive" });
       } finally {
         setIsSavingStatus(false);
@@ -317,7 +318,7 @@ export const useStatusRegistroViewModel = (): StatusRegistroViewModel => {
         error instanceof Error
           ? error.message
           : "Não foi possível alterar o estado do registro.";
-      console.error("Erro ao alternar ativação:", error);
+      safeLogger.error("Erro ao alternar ativação:", error);
       toast({ title: "Erro", description: message, variant: "destructive" });
     } finally {
       setIsTogglingActivate(false);

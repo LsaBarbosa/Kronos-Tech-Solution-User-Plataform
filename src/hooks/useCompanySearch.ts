@@ -23,6 +23,7 @@ import {
     toggleCompanyStatus
 } from "@/service/company.service";
 import { isAuthServiceError, normalizeServiceError } from "@/service/helpers/service-error.helper";
+import { safeLogger } from "@/utils/security/safeLogger";
 
 // --- SCHEMAS DE VALIDAÇÃO ---
 const editEmpresaSchema = z.object({
@@ -103,7 +104,7 @@ export const useCompanySearch = (): UseCompanySearchReturn => {
             setEmpresas(data);
         } catch (err: unknown) {
             const normalized = normalizeServiceError(err);
-            console.error("Falha ao buscar empresas:", normalized);
+            safeLogger.error("Falha ao buscar empresas:", normalized);
             setError(normalized.message || "Falha ao carregar as empresas. Tente novamente.");
             if (isAuthServiceError(normalized)) {
                 navigate("/login");
@@ -229,7 +230,7 @@ export const useCompanySearch = (): UseCompanySearchReturn => {
             await fetchCompanies();
         } catch (error: unknown) {
             const normalized = normalizeServiceError(error);
-            console.error("Erro ao atualizar a empresa:", normalized);
+            safeLogger.error("Erro ao atualizar a empresa:", normalized);
             toast({
                 title: "Erro ao atualizar",
                 description: normalized.message,

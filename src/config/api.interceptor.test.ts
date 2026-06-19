@@ -138,6 +138,22 @@ describe("API Interceptor - CSRF Injection", () => {
     expect(csrfFetched).toBe(true);
   });
 
+  it("should require CSRF for authenticated geolocation resolve endpoint", async () => {
+    let csrfFetched = false;
+
+    server.use(
+      http.get("*/auth/csrf", () => {
+        csrfFetched = true;
+        return HttpResponse.json(MOCK_CSRF_RESPONSE);
+      }),
+      http.post("*/geolocation/resolve", () => HttpResponse.json({ latitude: -23.5, longitude: -46.6 }))
+    );
+
+    await api.post("/geolocation/resolve", { postalCode: "01001000", number: "100" });
+
+    expect(csrfFetched).toBe(true);
+  });
+
   it("should send withCredentials for authenticated requests", async () => {
     server.use(
       http.post("*/test/auth-required", () => HttpResponse.json({ success: true }))
@@ -164,20 +180,21 @@ describe("API Interceptor - CSRF Injection", () => {
     expect(capturedRequest?.headers["x-correlation-id"]).toBeDefined();
   });
 
-  it("should handle CSRF fetch failure gracefully", async () => {
+  it("should reject mutation when CSRF fetch fails", async () => {
+    let mutationReached = false;
+
     server.use(
       http.get("*/auth/csrf", () => new HttpResponse(null, { status: 500 })),
-      http.post("*/test/mutation", () => HttpResponse.json({ success: true }))
+      http.post("*/test/mutation", () => {
+        mutationReached = true;
+        return HttpResponse.json({ success: true });
+      })
     );
 
-    // Should not throw even if CSRF fetch fails
-    const consoleErrorSpy = vi.spyOn(console, "error").mockImplementation(() => {});
-
-    try {
-      await api.post("/test/mutation", { data: "test" });
-      expect(consoleErrorSpy).toHaveBeenCalled();
-    } finally {
-      consoleErrorSpy.mockRestore();
-    }
+    await expect(api.post("/test/mutation", { data: "test" })).rejects.toMatchObject({
+      kind: "http",
+      status: 500,
+    });
+    expect(mutationReached).toBe(false);
   });
 });

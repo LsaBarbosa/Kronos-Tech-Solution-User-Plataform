@@ -5,6 +5,7 @@ import { showErrorToast, showSuccessToast } from "@/lib/feedback";
 import { getAdministrativeErrorMessage } from "@/service/helpers/admin-error-message.helper";
 import { buildApprovalViewModel } from "../utils/timeOffApprovalFormatters";
 import type { TimeOffApprovalViewModel, TimeOffDecisionAction } from "../types";
+import { safeLogger } from "@/utils/security/safeLogger";
 
 export interface TimeOffApprovalsViewModel {
   sidebarOpen: boolean;
@@ -139,7 +140,7 @@ export const useTimeOffApprovalViewModel = (): TimeOffApprovalsViewModel => {
         );
         showSuccessToast("Download iniciado", `Evidência de ${request.employeeName} em download.`);
       } catch (error) {
-        console.error("Erro ao iniciar o download:", error);
+        safeLogger.error("Erro ao iniciar o download:", error);
         showErrorToast("Erro no download", getAdministrativeErrorMessage(error, "document"));
       }
     },

@@ -10,6 +10,7 @@ import type { UserData } from "@/types/user";
 import { isAuthServiceError, normalizeServiceError } from "@/service/helpers/service-error.helper";
 import { showErrorToast } from "@/lib/feedback";
 import { APP_PATHS } from "@/config/app-routes";
+import { safeLogger } from "@/utils/security/safeLogger";
 
 interface UseDashboardDataReturn {
     userData: UserData & { role: string } | null; 
@@ -43,7 +44,7 @@ export const useDashboardData = (): UseDashboardDataReturn => {
             const pageResponse: ITimeRecordApprovalPageResponse = await fetchPendingApprovalsCount();
             return { count: pageResponse.totalElements };
         } catch (error) {
-            console.error("Erro ao buscar aprovações:", error);
+            safeLogger.error("Erro ao buscar aprovações:", error);
             return { count: 0 };
         }
     }, []);
@@ -69,7 +70,7 @@ export const useDashboardData = (): UseDashboardDataReturn => {
         } catch (err: unknown) {
             const normalized = normalizeServiceError(err);
 
-            console.error("Erro no Dashboard:", normalized);
+            safeLogger.error("Erro no Dashboard:", normalized);
             if (isAuthServiceError(normalized)) {
                 navigate("/login");
             }

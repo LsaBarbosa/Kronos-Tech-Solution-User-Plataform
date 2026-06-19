@@ -252,8 +252,7 @@ api.interceptors.request.use(
         const headers = config.headers as Record<string, string>;
         headers[csrfToken.headerName] = csrfToken.token;
       } catch (error) {
-        // Log the error but don't fail the request
-        console.error("Failed to fetch CSRF token:", error);
+        throw normalizeServiceError(error);
       }
     }
 
@@ -318,8 +317,7 @@ api.interceptors.response.use(
           // Retry the original request with new CSRF token
           return api(originalRequest);
         } catch (retryError) {
-          console.error("Failed to retry request with fresh CSRF token:", retryError);
-          return rejectApiError(error);
+          return rejectApiError(retryError);
         }
       }
 

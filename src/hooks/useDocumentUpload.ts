@@ -8,6 +8,7 @@ import { fetchEmployeesForSelection, uploadDocument } from "@/service/document.s
 import { isAuthServiceError, normalizeServiceError } from "@/service/helpers/service-error.helper";
 import { getAdministrativeErrorMessage } from "@/service/helpers/admin-error-message.helper";
 import { showErrorToast, showSuccessToast } from "@/lib/feedback";
+import { safeLogger } from "@/utils/security/safeLogger";
 
 const DEFAULT_DOCUMENT_TYPE: DocumentType = "EMPLOYEE_DOCUMENTS";
 
@@ -182,7 +183,7 @@ export const useDocumentUpload = (): UseDocumentUploadReturn => {
                 fileInputRef.current.value = "";
             }
         } catch (err: unknown) {
-            console.error("Erro no upload:", err);
+            safeLogger.error("Erro no upload:", err);
             const normalized = normalizeServiceError(err);
             showErrorToast(
                 "Erro no Envio",

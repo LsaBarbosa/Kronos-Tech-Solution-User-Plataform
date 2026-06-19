@@ -4,6 +4,7 @@ import { useToast } from "@/hooks/use-toast";
 import { fetchEmployeesForSelection, uploadDocument } from "@/service/document.service";
 import { getAdministrativeErrorMessage } from "@/service/helpers/admin-error-message.helper";
 import { ALLOWED_MIME_TYPES, MAX_UPLOAD_SIZE_BYTES, type DocumentType, type EmployeeListItem } from "@/types/document";
+import { safeLogger } from "@/utils/security/safeLogger";
 
 const MAX_COMPRESS_SIZE_MB = 3;
 
@@ -127,7 +128,7 @@ export const useCollaboratorDocumentUpload = () => {
           }))
         );
       } catch (error) {
-        console.error("Erro ao buscar funcionários:", error);
+        safeLogger.error("Erro ao buscar funcionários:", error);
         toast({
           title: "Erro",
           description: "Erro ao buscar a lista de funcionários. Tente novamente.",
@@ -195,7 +196,7 @@ export const useCollaboratorDocumentUpload = () => {
 
         setSelectedFile(finalFile);
       } catch (error) {
-        console.error("Erro ao processar arquivo:", error);
+        safeLogger.error("Erro ao processar arquivo:", error);
         const message = "Não foi possível processar o arquivo selecionado.";
         setFileError(message);
         toast({
@@ -271,7 +272,7 @@ export const useCollaboratorDocumentUpload = () => {
         setSelectedEmployeeId("");
       }
     } catch (error: unknown) {
-      console.error("Erro de upload:", error);
+      safeLogger.error("Erro de upload:", error);
       toast({
         title: "Erro",
         description: getAdministrativeErrorMessage(error, "document"),

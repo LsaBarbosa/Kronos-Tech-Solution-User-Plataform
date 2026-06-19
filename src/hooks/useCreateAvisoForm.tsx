@@ -8,6 +8,7 @@ import { APP_PATHS } from "@/config/app-routes";
 import type { MessagePayload, MessagePriority } from "@/types/message";
 import type { EmployeeListItem } from "@/types/document";
 import { fetchActiveEmployees, postMessage } from "@/service/message.service"
+import { safeLogger } from "@/utils/security/safeLogger";
 
 interface FormState {
     title: string;
@@ -92,7 +93,7 @@ export const useCreateAvisoForm = (): UseCreateAvisoFormReturn => { // 💡 CORR
             setEmployees(data);
         } catch (error: unknown) {
             const message = error instanceof Error ? error.message : "Não foi possível carregar a lista de colaboradores para seleção.";
-            console.error("Erro ao buscar colaboradores:", error);
+            safeLogger.error("Erro ao buscar colaboradores:", error);
             toast({
                 title: "Atenção",
                 description: message,
@@ -188,7 +189,7 @@ export const useCreateAvisoForm = (): UseCreateAvisoFormReturn => { // 💡 CORR
 
         } catch (error: unknown) {
             const message = error instanceof Error ? error.message : "Ocorreu um erro ao postar o aviso.";
-            console.error("Erro ao postar aviso:", error);
+            safeLogger.error("Erro ao postar aviso:", error);
             toast({
                 title: "Erro",
                 description: message,

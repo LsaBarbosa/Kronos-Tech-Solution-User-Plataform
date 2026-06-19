@@ -9,6 +9,7 @@ import { getStatusColor, statusMap } from "@/utils/report-utils";
 import { useToast } from "@/hooks/use-toast";
 import { downloadDocument } from "@/service/document.service";
 import { resolveDocumentId } from "@/utils/document-resolution";
+import { safeLogger } from "@/utils/security/safeLogger";
 import { Button } from "./ui/button";
 import { PaginationComponent } from "./ui/PaginationComponent";
 import {
@@ -129,7 +130,7 @@ export const ResultadosRelatorioDetalhado: React.FC<ResultadosDetalhadoProps> = 
             });
 
         } catch (error) {
-            console.error("Erro ao iniciar o download:", error);
+            safeLogger.error("Erro ao iniciar o download:", error);
             toast({
                 title: "Falha no Download",
                 description: `Erro: ${(error as Error).message}`,
