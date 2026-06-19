@@ -4,17 +4,38 @@ on:
   pull_request:
   push:
     branches:
-      - main
-      - v4/fase4/limpeza
-      - PROD_HOSTINGER
+      - homolog
+      - feature/max-observability-prod-hostinger-v2
 
 jobs:
+  secret-scan:
+    runs-on: ubuntu-latest
+
+    steps:
+      - name: Checkout
+        uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
+
+      - name: Run Gitleaks
+        run: |
+          docker run --rm \
+            -v "${{ github.workspace }}:/repo" \
+            -w /repo \
+            zricethezav/gitleaks:latest detect \
+            --source . \
+            --redact \
+            --exit-code 1 \
+            --log-opts="--all"
+
   validate:
     runs-on: ubuntu-latest
 
     steps:
       - name: Checkout
         uses: actions/checkout@v4
+        with:
+          fetch-depth: 0
 
       - name: Setup Node
         uses: actions/setup-node@v4

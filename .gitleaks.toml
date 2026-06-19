@@ -1,0 +1,6 @@
+title = "Kronos front-end gitleaks allowlist"
+
+[allowlist]
+paths = [
+  '''^e2e/''',
+]
