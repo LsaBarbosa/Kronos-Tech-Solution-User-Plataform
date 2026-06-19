@@ -1,5 +1,3 @@
-import { cn } from "@/lib/utils";
-
 export type CheckinStep = "location" | "camera" | "confirm" | "result" | "error";
 
 interface CheckinStepIndicatorProps {
@@ -22,52 +20,26 @@ const STEP_INDEX: Record<CheckinStep, number> = {
 
 export const CheckinStepIndicator = ({ current }: CheckinStepIndicatorProps) => {
   const currentIndex = STEP_INDEX[current];
-  return (
-    <ol className="flex items-center gap-1.5 sm:gap-2" aria-label="Etapas do registro de ponto">
-      {STEPS.map((step, index) => {
-        const completed = currentIndex > index;
-        const active = currentIndex === index;
-        const dotClass = active
-          ? "bg-[#2563EB] text-white border-[#2563EB]"
-          : completed
-            ? "bg-[#DCFCE7] text-[#15803D] border-[#BBF7D0]"
-            : "bg-white text-[#94A3B8] border-[#E2E8F0]";
-        const lineClass = completed ? "bg-[#BBF7D0]" : "bg-[#E2E8F0]";
+  const currentStep = STEPS.find((step) => step.id === current);
 
-        return (
-          <li
-            key={step.id}
-            className="flex min-w-0 flex-1 items-center gap-1.5 sm:gap-2"
-            aria-current={active ? "step" : undefined}
-          >
-            <span
-              aria-hidden="true"
-              className={cn(
-                "flex h-6 w-6 shrink-0 items-center justify-center rounded-full border text-[10px] font-bold sm:h-7 sm:w-7 sm:text-[11px]",
-                dotClass
-              )}
-            >
-              {index + 1}
-            </span>
-            <span
-              className={cn(
-                "truncate text-[10px] font-semibold uppercase tracking-[0.04em] sm:text-[11px] sm:tracking-[0.06em]",
-                active
-                  ? "text-[#0F172A]"
-                  : completed
-                    ? "text-[#15803D]"
-                    : "text-[#94A3B8]"
-              )}
-            >
-              {step.label}
-            </span>
-            {index < STEPS.length - 1 ? (
-              <span aria-hidden="true" className={cn("ml-0.5 h-px flex-1 sm:ml-1", lineClass)} />
-            ) : null}
-          </li>
-        );
-      })}
-    </ol>
+  if (!currentStep || currentIndex < 0) {
+    return null;
+  }
+
+  return (
+    <div className="flex justify-center" aria-label="Etapa atual do registro de ponto">
+      <div className="inline-flex items-center gap-2 rounded-full border border-[#D8E3F5] bg-white px-3 py-1.5 shadow-sm">
+        <span
+          aria-hidden="true"
+          className="flex h-6 w-6 shrink-0 items-center justify-center rounded-full border border-[#2563EB] bg-[#2563EB] text-[10px] font-bold text-white sm:h-7 sm:w-7 sm:text-[11px]"
+        >
+          {currentIndex + 1}
+        </span>
+        <span className="text-[10px] font-semibold uppercase tracking-[0.08em] text-[#0F172A] sm:text-[11px]">
+          {currentStep.label}
+        </span>
+      </div>
+    </div>
   );
 };
 
