@@ -328,7 +328,7 @@ export const getTodayPrimaryActionDescriptor = (
 
   if (normalizeCode(todayStatus.status) === "TERMS_REQUIRED") {
     return {
-      enabled: false,
+      enabled: true,
       label: getTodayNextActionLabel(todayStatus.nextAction),
     };
   }

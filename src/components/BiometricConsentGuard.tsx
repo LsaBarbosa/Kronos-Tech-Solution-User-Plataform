@@ -69,7 +69,7 @@ export const BiometricConsentGuard: React.FC<BiometricConsentGuardProps> = ({
     }
   }, []);
 
-  const handleTermsScroll = useCallback(() => {
+  const updateScrollCompletion = useCallback(() => {
     const viewport = scrollAreaRef.current?.querySelector(
       "[data-radix-scroll-area-viewport]"
     );
@@ -79,13 +79,16 @@ export const BiometricConsentGuard: React.FC<BiometricConsentGuardProps> = ({
     }
 
     const reachedEnd =
+      viewport.scrollHeight <= viewport.clientHeight + SCROLL_END_TOLERANCE ||
       viewport.scrollTop + viewport.clientHeight >=
       viewport.scrollHeight - SCROLL_END_TOLERANCE;
 
-    if (reachedEnd) {
-      setHasScrolledToEnd(true);
-    }
+    setHasScrolledToEnd(reachedEnd);
   }, []);
+
+  const handleTermsScroll = useCallback(() => {
+    updateScrollCompletion();
+  }, [updateScrollCompletion]);
 
   useEffect(() => {
     void verifyTermsStatus();
@@ -105,11 +108,14 @@ export const BiometricConsentGuard: React.FC<BiometricConsentGuardProps> = ({
     }
 
     viewport.addEventListener("scroll", handleTermsScroll, { passive: true });
+    updateScrollCompletion();
+    const frameId = window.requestAnimationFrame(updateScrollCompletion);
 
     return () => {
+      window.cancelAnimationFrame(frameId);
       viewport.removeEventListener("scroll", handleTermsScroll);
     };
-  }, [handleTermsScroll, status]);
+  }, [handleTermsScroll, status, updateScrollCompletion]);
 
   const handleAcceptTerms = async () => {
     if (!hasScrolledToEnd || !hasConfirmed || isSubmitting || currentTerm === null) {

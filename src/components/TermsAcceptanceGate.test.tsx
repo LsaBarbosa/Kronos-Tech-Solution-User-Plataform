@@ -217,4 +217,49 @@ describe("TermsAcceptanceGate", () => {
     expect(await screen.findByText(/Linha 1 do termo\./i)).toBeInTheDocument();
     expect(screen.getByText(/Versão: 2026.05.21/i)).toBeInTheDocument();
   });
+
+  it("habilita o aceite quando o termo cabe inteiro sem exigir scroll manual", async () => {
+    termsMocks.checkTermsStatus.mockResolvedValue({
+      biometricConsentAccepted: false,
+      acceptedVersion: null,
+      acceptedHash: null,
+      currentVersion: "2026.05.21",
+      currentHash: "current-hash",
+      requiresNewAcceptance: true,
+    });
+
+    renderGate();
+
+    await screen.findByText("Termo de Consentimento Biométrico");
+
+    const viewport = document.querySelector("[data-radix-scroll-area-viewport]");
+    expect(viewport).toBeInstanceOf(HTMLElement);
+
+    Object.defineProperty(viewport, "scrollTop", {
+      configurable: true,
+      value: 0,
+    });
+    Object.defineProperty(viewport, "clientHeight", {
+      configurable: true,
+      value: 320,
+    });
+    Object.defineProperty(viewport, "scrollHeight", {
+      configurable: true,
+      value: 320,
+    });
+
+    fireEvent.scroll(viewport as HTMLElement);
+
+    await userEvent.click(
+      screen.getByRole("checkbox", {
+        name: /Confirmo que li e aceito o termo de consentimento biométrico/i,
+      })
+    );
+
+    await waitFor(() => {
+      expect(
+        screen.getByRole("button", { name: /Confirmar aceite/i })
+      ).toBeEnabled();
+    });
+  });
 });

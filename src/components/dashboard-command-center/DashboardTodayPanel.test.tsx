@@ -202,4 +202,31 @@ describe("DashboardTodayPanel", () => {
     fireEvent.click(actionButtons[1]);
     expect(openCheckinMock).toHaveBeenCalledTimes(2);
   });
+
+  it("mantem o CTA habilitado quando o backend exige aceite do termo biometrico", () => {
+    mockUseTodayTimeRecordStatus.mockReturnValue({
+      todayStatus: {
+        ...baseStatus,
+        status: "TERMS_REQUIRED",
+        nextAction: "ACCEPT_TERMS",
+      },
+      isLoadingToday: false,
+      todayError: null,
+      refreshToday: refreshTodayMock,
+    });
+
+    render(
+      <DashboardTodayPanel
+        variant="desktop"
+        onOpenMirror={vi.fn()}
+        onOpenReport={vi.fn()}
+      />
+    );
+
+    const actionButton = screen.getByRole("button", { name: /Aceitar termo biometrico/i });
+    expect(actionButton).toBeEnabled();
+
+    fireEvent.click(actionButton);
+    expect(openCheckinMock).toHaveBeenCalledTimes(1);
+  });
 });
