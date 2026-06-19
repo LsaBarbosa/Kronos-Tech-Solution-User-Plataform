@@ -139,23 +139,23 @@ const CheckinModalContent = () => {
 
   return (
     <Dialog open={state.isModalOpen} onOpenChange={handleOpenChange}>
-      <DialogContent className="max-w-[480px] gap-0 rounded-2xl border border-[#E2E8F0] bg-white p-0 shadow-[0_18px_50px_rgba(11,18,32,0.18)] sm:max-w-[520px]">
-        <DialogHeader className="space-y-3 border-b border-[#E2E8F0] bg-[#F8FAFC] p-6">
+      <DialogContent className="grid max-h-[calc(100vh-1.5rem)] w-[calc(100vw-1rem)] max-w-[480px] grid-rows-[auto_minmax(0,1fr)] gap-0 overflow-hidden rounded-2xl border border-[#E2E8F0] bg-white p-0 shadow-[0_18px_50px_rgba(11,18,32,0.18)] sm:max-h-[calc(100vh-3rem)] sm:w-full sm:max-w-[520px]">
+        <DialogHeader className="space-y-3 border-b border-[#E2E8F0] bg-[#F8FAFC] px-3 py-4 sm:px-4 sm:py-5 md:p-6">
           <div className="flex items-start gap-3">
             <span
               aria-hidden="true"
-              className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl ${meta.iconTone}`}
+              className={`flex h-9 w-9 shrink-0 items-center justify-center rounded-2xl ${meta.iconTone} sm:h-10 sm:w-10`}
             >
-              <StepIcon className="h-5 w-5" />
+              <StepIcon className="h-4 w-4 sm:h-5 sm:w-5" />
             </span>
             <div className="min-w-0 space-y-1">
-              <p className="text-[11px] font-semibold uppercase tracking-[0.18em] text-[#64748B]">
+              <p className="text-[10px] font-semibold uppercase tracking-[0.14em] text-[#64748B] sm:text-[11px] sm:tracking-[0.18em]">
                 {meta.eyebrow}
               </p>
-              <DialogTitle className="text-lg font-semibold text-[#0F172A]">
+              <DialogTitle className="text-base font-semibold leading-snug text-[#0F172A] sm:text-lg">
                 {meta.title}
               </DialogTitle>
-              <DialogDescription className="text-sm text-[#64748B]">
+              <DialogDescription className="text-xs leading-5 text-[#64748B] sm:text-sm">
                 {meta.description}
               </DialogDescription>
             </div>
@@ -164,7 +164,7 @@ const CheckinModalContent = () => {
           {showStepIndicator ? <CheckinStepIndicator current={step} /> : null}
         </DialogHeader>
 
-        <div className="p-6">{renderContent()}</div>
+        <div className="min-h-0 overflow-y-auto px-3 py-4 sm:px-4 sm:py-5 md:p-6">{renderContent()}</div>
       </DialogContent>
     </Dialog>
   );

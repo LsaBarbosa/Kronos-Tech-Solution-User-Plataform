@@ -21,10 +21,10 @@ const ReviewLine = ({ icon: Icon, iconClass, label, value }: ReviewLineProps) =>
       <Icon className="h-4 w-4" />
     </span>
     <div className="min-w-0 space-y-0.5">
-      <p className="text-[11px] font-semibold uppercase tracking-[0.12em] text-[#64748B]">
+      <p className="text-[10px] font-semibold uppercase tracking-[0.1em] text-[#64748B] sm:text-[11px] sm:tracking-[0.12em]">
         {label}
       </p>
-      <p className="text-sm font-medium text-[#0F172A] break-words">{value}</p>
+      <p className="break-words text-xs font-medium text-[#0F172A] sm:text-sm">{value}</p>
     </div>
   </div>
 );
@@ -74,7 +74,7 @@ export const CheckinConfirmationStep = () => {
       </div>
 
       <Card className="border border-[#FCD34D] bg-[#FEF3C7] p-3">
-        <p className="text-xs leading-5 text-[#92400E]">
+        <p className="text-[11px] leading-5 text-[#92400E] sm:text-xs">
           Ao confirmar, sua marcação será enviada para validação. O resultado aparecerá na próxima
           etapa.
         </p>
@@ -84,7 +84,7 @@ export const CheckinConfirmationStep = () => {
         onClick={handleConfirm}
         disabled={isSubmitting}
         size="lg"
-        className="h-12 w-full gap-2 rounded-2xl bg-[#2563EB] text-sm font-semibold text-white shadow-[0_10px_24px_rgba(37,99,235,0.18)] hover:bg-[#1D4ED8] disabled:opacity-70"
+        className="h-12 w-full gap-2 rounded-2xl bg-[#2563EB] px-3 text-xs font-semibold text-white shadow-[0_10px_24px_rgba(37,99,235,0.18)] hover:bg-[#1D4ED8] disabled:opacity-70 sm:text-sm"
       >
         {isSubmitting ? (
           <>

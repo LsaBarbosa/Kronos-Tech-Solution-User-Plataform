@@ -23,7 +23,7 @@ const STEP_INDEX: Record<CheckinStep, number> = {
 export const CheckinStepIndicator = ({ current }: CheckinStepIndicatorProps) => {
   const currentIndex = STEP_INDEX[current];
   return (
-    <ol className="flex items-center gap-2" aria-label="Etapas do registro de ponto">
+    <ol className="flex items-center gap-1.5 sm:gap-2" aria-label="Etapas do registro de ponto">
       {STEPS.map((step, index) => {
         const completed = currentIndex > index;
         const active = currentIndex === index;
@@ -37,13 +37,13 @@ export const CheckinStepIndicator = ({ current }: CheckinStepIndicatorProps) => 
         return (
           <li
             key={step.id}
-            className="flex flex-1 items-center gap-2"
+            className="flex min-w-0 flex-1 items-center gap-1.5 sm:gap-2"
             aria-current={active ? "step" : undefined}
           >
             <span
               aria-hidden="true"
               className={cn(
-                "flex h-7 w-7 shrink-0 items-center justify-center rounded-full border text-[11px] font-bold",
+                "flex h-6 w-6 shrink-0 items-center justify-center rounded-full border text-[10px] font-bold sm:h-7 sm:w-7 sm:text-[11px]",
                 dotClass
               )}
             >
@@ -51,7 +51,7 @@ export const CheckinStepIndicator = ({ current }: CheckinStepIndicatorProps) => 
             </span>
             <span
               className={cn(
-                "truncate text-[11px] font-semibold uppercase tracking-[0.06em]",
+                "truncate text-[10px] font-semibold uppercase tracking-[0.04em] sm:text-[11px] sm:tracking-[0.06em]",
                 active
                   ? "text-[#0F172A]"
                   : completed
@@ -62,7 +62,7 @@ export const CheckinStepIndicator = ({ current }: CheckinStepIndicatorProps) => 
               {step.label}
             </span>
             {index < STEPS.length - 1 ? (
-              <span aria-hidden="true" className={cn("ml-1 h-px flex-1", lineClass)} />
+              <span aria-hidden="true" className={cn("ml-0.5 h-px flex-1 sm:ml-1", lineClass)} />
             ) : null}
           </li>
         );

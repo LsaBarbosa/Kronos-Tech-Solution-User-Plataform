@@ -49,7 +49,7 @@ export const CheckinErrorAlert = () => {
 
   return (
     <div className="space-y-4">
-      <Card className="border border-[#FECACA] bg-[#FEE2E2] p-5">
+      <Card className="border border-[#FECACA] bg-[#FEE2E2] p-4 sm:p-5">
         <div className="flex items-start gap-3">
           <span
             aria-hidden="true"
@@ -58,10 +58,10 @@ export const CheckinErrorAlert = () => {
             <AlertOctagon className="h-5 w-5" />
           </span>
           <div className="min-w-0 space-y-1">
-            <p className="text-sm font-semibold text-[#7F1D1D]">{getErrorTitle(error.code)}</p>
-            <p className="text-xs leading-5 text-[#B91C1C]">{error.message}</p>
+            <p className="text-sm font-semibold leading-5 text-[#7F1D1D]">{getErrorTitle(error.code)}</p>
+            <p className="break-words text-[11px] leading-5 text-[#B91C1C] sm:text-xs">{error.message}</p>
             {shouldShowSettings ? (
-              <p className="text-[11px] leading-5 text-[#B91C1C]/85">
+              <p className="text-[10px] leading-5 text-[#B91C1C]/85 sm:text-[11px]">
                 Abra as configurações do navegador para autorizar a permissão e tente novamente.
               </p>
             ) : null}
@@ -69,18 +69,18 @@ export const CheckinErrorAlert = () => {
         </div>
       </Card>
 
-      <div className="flex gap-2">
+      <div className="flex flex-col gap-2 min-[426px]:flex-row">
         <Button
           onClick={closeCheckin}
           variant="outline"
-          className="h-11 flex-1 gap-2 rounded-2xl border-[#E2E8F0] text-sm font-semibold text-[#0F172A] hover:bg-[#F1F5F9]"
+          className="h-11 w-full gap-2 rounded-2xl border-[#E2E8F0] px-3 text-xs font-semibold text-[#0F172A] hover:bg-[#F1F5F9] min-[426px]:flex-1 sm:text-sm"
         >
           <X className="h-4 w-4" />
           Cancelar
         </Button>
         <Button
           onClick={handleRetry}
-          className="h-11 flex-1 gap-2 rounded-2xl bg-[#2563EB] text-sm font-semibold text-white shadow-[0_10px_24px_rgba(37,99,235,0.18)] hover:bg-[#1D4ED8]"
+          className="h-11 w-full gap-2 rounded-2xl bg-[#2563EB] px-3 text-xs font-semibold text-white shadow-[0_10px_24px_rgba(37,99,235,0.18)] hover:bg-[#1D4ED8] min-[426px]:flex-1 sm:text-sm"
         >
           <RotateCcw className="h-4 w-4" />
           Tentar novamente

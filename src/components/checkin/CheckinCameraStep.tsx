@@ -133,11 +133,11 @@ export const CheckinCameraStep = ({ cameraStreamRef }: CheckinCameraStepProps) =
         </div>
       </div>
 
-      <div className="rounded-2xl border border-[#E2E8F0] bg-[#F8FAFC] p-4">
-        <p className="mb-2 text-[11px] font-semibold uppercase tracking-[0.18em] text-[#64748B]">
+      <div className="rounded-2xl border border-[#E2E8F0] bg-[#F8FAFC] p-3 sm:p-4">
+        <p className="mb-2 text-[10px] font-semibold uppercase tracking-[0.14em] text-[#64748B] sm:text-[11px] sm:tracking-[0.18em]">
           Boas práticas
         </p>
-        <ul className="space-y-1.5 text-xs leading-5 text-[#334155]">
+        <ul className="space-y-1.5 text-[11px] leading-5 text-[#334155] sm:text-xs">
           {TIPS.map((tip) => (
             <li key={tip} className="flex items-start gap-2">
               <span aria-hidden="true" className="mt-1.5 h-1.5 w-1.5 shrink-0 rounded-full bg-[#2563EB]" />
@@ -147,14 +147,14 @@ export const CheckinCameraStep = ({ cameraStreamRef }: CheckinCameraStepProps) =
         </ul>
       </div>
 
-      <div className="flex gap-2">
+      <div className="flex flex-col gap-2 min-[426px]:flex-row">
         {imageSrc ? (
           <>
             <Button
               onClick={handleRetake}
               variant="outline"
               disabled={isCapturing}
-              className="h-11 flex-1 gap-2 rounded-2xl border-[#E2E8F0] text-sm font-semibold text-[#0F172A] hover:bg-[#F1F5F9]"
+              className="h-11 w-full gap-2 rounded-2xl border-[#E2E8F0] px-3 text-xs font-semibold text-[#0F172A] hover:bg-[#F1F5F9] min-[426px]:flex-1 sm:text-sm"
             >
               <RefreshCcw className="h-4 w-4" />
               Refazer foto
@@ -162,7 +162,7 @@ export const CheckinCameraStep = ({ cameraStreamRef }: CheckinCameraStepProps) =
             <Button
               onClick={() => {}}
               disabled
-              className="h-11 flex-1 gap-2 rounded-2xl bg-[#16A34A] text-sm font-semibold text-white disabled:opacity-90"
+              className="h-11 w-full gap-2 rounded-2xl bg-[#16A34A] px-3 text-xs font-semibold text-white disabled:opacity-90 min-[426px]:flex-1 sm:text-sm"
             >
               {isCapturing ? (
                 <>
@@ -184,7 +184,7 @@ export const CheckinCameraStep = ({ cameraStreamRef }: CheckinCameraStepProps) =
               onClick={handleRestartCamera}
               disabled={isRequestingCamera || isCapturing}
               variant="outline"
-              className="h-11 w-full gap-2 rounded-2xl border-[#E2E8F0] text-sm font-semibold text-[#0F172A] hover:bg-[#F1F5F9] disabled:opacity-70"
+              className="h-11 w-full gap-2 rounded-2xl border-[#E2E8F0] px-3 text-xs font-semibold text-[#0F172A] hover:bg-[#F1F5F9] disabled:opacity-70 sm:text-sm"
             >
               <RotateCw className="h-4 w-4" />
               Reinicializar câmera
@@ -193,7 +193,7 @@ export const CheckinCameraStep = ({ cameraStreamRef }: CheckinCameraStepProps) =
               onClick={handleCapture}
               disabled={!isCameraReady}
               size="lg"
-              className="h-12 w-full gap-2 rounded-2xl bg-[#2563EB] text-sm font-semibold text-white shadow-[0_10px_24px_rgba(37,99,235,0.18)] hover:bg-[#1D4ED8] disabled:opacity-70"
+              className="h-12 w-full gap-2 rounded-2xl bg-[#2563EB] px-3 text-xs font-semibold text-white shadow-[0_10px_24px_rgba(37,99,235,0.18)] hover:bg-[#1D4ED8] disabled:opacity-70 sm:text-sm"
             >
               <Camera className="h-4 w-4" />
               Capturar rosto
