@@ -5,7 +5,6 @@ on:
   push:
     branches:
       - homolog
-      - feature/max-observability-prod-hostinger-v2
 
 jobs:
   secret-scan:
@@ -22,7 +21,7 @@ jobs:
           docker run --rm \
             -v "${{ github.workspace }}:/repo" \
             -w /repo \
-            zricethezav/gitleaks:latest detect \
+            zricethezav/gitleaks:v8.24.2 detect \
             --source . \
             --redact \
             --exit-code 1 \
