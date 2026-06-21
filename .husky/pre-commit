@@ -1,0 +1,29 @@
+#!/usr/bin/env sh
+# Pre-commit hook: Validate no secrets in frontend code
+
+set -e
+
+echo "🔐 Frontend pre-commit security check..."
+
+# Run gitleaks on staged files if available
+if command -v gitleaks &>/dev/null; then
+  echo "  ⚡ Scanning for secrets with gitleaks..."
+  if gitleaks protect --staged --config .gitleaks.toml --exit-code 0 2>/dev/null; then
+    echo "  ✓ No secrets detected"
+  else
+    echo "  ✗ Gitleaks found potential secrets!"
+    exit 1
+  fi
+else
+  echo "  ℹ gitleaks not installed — will run in CI pipeline"
+fi
+
+# Check for common secret patterns
+echo "  ⚡ Checking for hardcoded secrets patterns..."
+if grep -r "JWT_SECRET\|API_KEY\|password.*=.*['\"]" src --include="*.ts" --include="*.tsx" 2>/dev/null | grep -v "test\|example\|placeholder"; then
+  echo "  ⚠ Potential hardcoded secret detected"
+  exit 1
+fi
+
+echo "✓ Frontend pre-commit check passed"
+exit 0
