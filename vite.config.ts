@@ -37,6 +37,7 @@ export default defineConfig(({ mode }) => ({
     },
   },
   build: {
+    sourcemap: false, // Security: Disable sourcemaps in production to prevent reverse engineering
     rollupOptions: {
       output: {
         manualChunks: (id) => {
