@@ -4,6 +4,7 @@ export const LANDING_NAV: LandingSection[] = [
   { id: "funcionalidades", label: "Funcionalidades" },
   { id: "jornada", label: "Jornada e Ponto" },
   { id: "pessoas", label: "Pessoas" },
+  { id: "assinatura", label: "Assinatura" },
   { id: "lgpd", label: "LGPD e Privacidade" },
   { id: "seguranca", label: "Segurança" },
   { id: "contato", label: "Demonstração" },
