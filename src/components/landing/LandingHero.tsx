@@ -1,4 +1,4 @@
-import { ArrowRight, CheckCircle, Clock, Shield, Users, Zap } from "lucide-react";
+import { ArrowRight, CheckCircle, Shield } from "lucide-react";
 import logoAzul from "@/assets/brand/logo-azul.png";
 import { HERO_STATS } from "@/data/landing-page";
 
@@ -106,93 +106,45 @@ export function LandingHero() {
             </div>
           </div>
 
-          {/* ── Right column — dashboard card ── */}
-          <div className="hidden lg:block relative">
-            {/* Outer shadow glow */}
-            <div className="absolute inset-0 rounded-3xl bg-gradient-to-br from-[#2563EB]/10 via-[#22D3EE]/5 to-[#16A34A]/5 blur-2xl scale-105 pointer-events-none" />
+          {/* ── Right column — logo ── */}
+          <div className="hidden lg:flex items-center justify-center relative">
+            {/* Radial glow layers */}
+            <div
+              className="absolute w-[420px] h-[420px] rounded-full pointer-events-none"
+              style={{ background: "radial-gradient(ellipse, rgba(37,99,235,0.08) 0%, rgba(34,211,238,0.05) 45%, transparent 70%)" }}
+            />
+            <div
+              className="absolute w-[280px] h-[280px] rounded-full pointer-events-none"
+              style={{ background: "radial-gradient(ellipse, rgba(37,99,235,0.06) 0%, transparent 70%)" }}
+            />
 
-            {/* Card */}
-            <div className="relative rounded-3xl border border-[#E2E8F0] bg-white p-6 shadow-[0_24px_60px_rgba(0,0,0,0.1),0_0_0_1px_rgba(37,99,235,0.06)]">
-              {/* Card header */}
-              <div className="flex items-center justify-between mb-5">
-                <div className="flex items-center gap-3">
-                  <img src={logoAzul} alt="Kronos" className="h-6 w-auto" />
-                  <span className="text-[10px] font-semibold text-[#94A3B8] uppercase tracking-widest">
-                    Dashboard operacional
-                  </span>
-                </div>
-                <div className="flex items-center gap-1.5 px-2.5 py-1 rounded-full bg-[#DCFCE7] border border-[#BBF7D0]">
-                  <span className="w-1.5 h-1.5 rounded-full bg-[#16A34A] animate-pulse" />
-                  <span className="text-[10px] text-[#15803D] font-semibold">Online</span>
-                </div>
-              </div>
+            {/* Ring decorations */}
+            <div className="absolute w-[380px] h-[380px] rounded-full border border-[#2563EB]/6 pointer-events-none" />
+            <div className="absolute w-[300px] h-[300px] rounded-full border border-[#2563EB]/8 pointer-events-none" />
+            <div className="absolute w-[220px] h-[220px] rounded-full border border-[#2563EB]/10 pointer-events-none" />
 
-              {/* Metric cards */}
-              <div className="grid grid-cols-2 gap-3 mb-4">
-                {[
-                  { label: "Colaboradores ativos", value: "128", icon: Users, color: "#2563EB", bg: "#EFF6FF", border: "#BFDBFE" },
-                  { label: "Aprovações pendentes", value: "7", icon: Zap, color: "#D97706", bg: "#FFFBEB", border: "#FDE68A" },
-                  { label: "Ponto hoje", value: "94%", icon: Clock, color: "#16A34A", bg: "#F0FDF4", border: "#BBF7D0" },
-                  { label: "Conformidade LGPD", value: "✓", icon: Shield, color: "#0891B2", bg: "#ECFEFF", border: "#A5F3FC" },
-                ].map(({ label, value, icon: Icon, color, bg, border }) => (
-                  <div
-                    key={label}
-                    className="rounded-2xl p-4 border transition-shadow hover:shadow-md"
-                    style={{ background: bg, borderColor: border }}
-                  >
-                    <div className="flex items-center gap-2 mb-2">
-                      <Icon size={14} style={{ color }} />
-                      <span className="text-[10px] text-[#64748B]">{label}</span>
-                    </div>
-                    <p className="text-2xl font-bold" style={{ color }}>{value}</p>
-                  </div>
-                ))}
-              </div>
+            {/* Logo */}
+            <img
+              src={logoAzul}
+              alt="Kronos"
+              className="relative w-64 xl:w-80 h-auto drop-shadow-[0_8px_32px_rgba(37,99,235,0.18)]"
+            />
 
-              {/* Activity feed */}
-              <div className="space-y-2 mb-4">
-                <p className="text-[10px] font-semibold text-[#94A3B8] uppercase tracking-widest px-1 mb-2">
-                  Atividades recentes
-                </p>
-                {[
-                  { label: "Solicitação de férias aprovada", tag: "Aprovado", color: "#16A34A", bg: "#F0FDF4", border: "#BBF7D0" },
-                  { label: "Ajuste de ponto pendente", tag: "Pendente", color: "#D97706", bg: "#FFFBEB", border: "#FDE68A" },
-                  { label: "Exportação LGPD concluída", tag: "Concluído", color: "#0891B2", bg: "#ECFEFF", border: "#A5F3FC" },
-                ].map(({ label, tag, color, bg, border }) => (
-                  <div
-                    key={label}
-                    className="flex items-center justify-between rounded-xl px-3.5 py-2.5 bg-[#F8FAFC] border border-[#E2E8F0] hover:border-[#CBD5E1] transition-colors"
-                  >
-                    <span className="text-xs text-[#374151]">{label}</span>
-                    <span
-                      className="text-[10px] font-semibold px-2 py-0.5 rounded-full ml-2 flex-shrink-0 border"
-                      style={{ color, background: bg, borderColor: border }}
-                    >
-                      {tag}
-                    </span>
-                  </div>
-                ))}
-              </div>
-
-              {/* Security strip */}
-              <div className="flex items-center gap-2 rounded-xl p-3 bg-[#F0FDF4] border border-[#BBF7D0]">
-                <Shield size={13} className="text-[#16A34A] flex-shrink-0" />
-                <p className="text-[10px] text-[#15803D] font-medium">
-                  Cookie HttpOnly · CSRF · LGPD · Rastreabilidade
-                </p>
-              </div>
+            {/* Floating pill — top-right */}
+            <div className="absolute top-8 right-0 flex items-center gap-2 px-3.5 py-2 rounded-full bg-white border border-[#E2E8F0] shadow-md">
+              <span className="w-2 h-2 rounded-full bg-[#16A34A] animate-pulse flex-shrink-0" />
+              <span className="text-xs font-semibold text-[#111827]">LGPD Ready</span>
             </div>
 
-            {/* Floating badge top-right */}
-            <div className="absolute -top-4 -right-4 rounded-2xl border border-[#E2E8F0] bg-white px-4 py-3 shadow-lg">
-              <p className="text-[10px] text-[#94A3B8] mb-0.5">Conformidade</p>
-              <p className="text-sm font-bold text-[#0891B2]">LGPD Ready</p>
+            {/* Floating pill — bottom-left */}
+            <div className="absolute bottom-8 left-0 flex items-center gap-2 px-3.5 py-2 rounded-full bg-white border border-[#E2E8F0] shadow-md">
+              <Shield size={13} className="text-[#2563EB] flex-shrink-0" />
+              <span className="text-xs font-semibold text-[#111827]">Cookie HttpOnly · CSRF</span>
             </div>
 
-            {/* Floating badge bottom-left */}
-            <div className="absolute -bottom-4 -left-4 rounded-2xl border border-[#E2E8F0] bg-white px-4 py-3 shadow-lg">
-              <p className="text-[10px] text-[#94A3B8] mb-0.5">Relatórios</p>
-              <p className="text-sm font-bold text-[#D97706]">AFD · AEJ</p>
+            {/* Floating pill — bottom-right */}
+            <div className="absolute bottom-16 right-2 flex items-center gap-2 px-3.5 py-2 rounded-full bg-white border border-[#E2E8F0] shadow-md">
+              <span className="text-xs font-semibold text-[#D97706]">AFD · AEJ</span>
             </div>
           </div>
         </div>
