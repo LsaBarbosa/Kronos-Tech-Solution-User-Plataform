@@ -10,7 +10,7 @@ import { LandingFooter } from "@/components/landing/LandingFooter";
 
 export default function CommercialLanding() {
   return (
-    <div className="min-h-screen bg-[#030d1a]">
+    <div className="min-h-screen bg-[#F8FAFC]">
       <LandingHeader />
       <main>
         <LandingHero />

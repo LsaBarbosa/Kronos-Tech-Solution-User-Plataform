@@ -2,50 +2,17 @@ import { Clock, Users, FileText, CheckSquare, Scale, Shield } from "lucide-react
 import { LANDING_MODULES } from "@/data/landing-page";
 import type { LandingModule } from "@/types/landing";
 
-const ICON_MAP: Record<string, React.ComponentType<{ size?: number; className?: string; style?: React.CSSProperties }>> = {
+const ICON_MAP: Record<string, React.ComponentType<{ size?: number; style?: React.CSSProperties }>> = {
   Clock, Users, FileText, CheckSquare, Scale, Shield,
 };
 
 const COLOR_CONFIG: Record<LandingModule["color"], {
-  glow: string;
-  gradient: string;
-  icon: string;
-  dot: string;
-  badge: string;
-  badgeBg: string;
+  icon: string; bg: string; border: string; dot: string; topBar: string;
 }> = {
-  blue: {
-    glow: "rgba(37,99,235,0.15)",
-    gradient: "linear-gradient(135deg, rgba(37,99,235,0.2) 0%, rgba(30,58,138,0.1) 100%)",
-    icon: "#2563EB",
-    dot: "#2563EB",
-    badge: "#93C5FD",
-    badgeBg: "rgba(37,99,235,0.12)",
-  },
-  cyan: {
-    glow: "rgba(34,211,238,0.15)",
-    gradient: "linear-gradient(135deg, rgba(34,211,238,0.15) 0%, rgba(8,145,178,0.08) 100%)",
-    icon: "#22D3EE",
-    dot: "#0891B2",
-    badge: "#67E8F9",
-    badgeBg: "rgba(34,211,238,0.12)",
-  },
-  green: {
-    glow: "rgba(22,163,74,0.15)",
-    gradient: "linear-gradient(135deg, rgba(22,163,74,0.18) 0%, rgba(20,83,45,0.1) 100%)",
-    icon: "#16A34A",
-    dot: "#16A34A",
-    badge: "#86EFAC",
-    badgeBg: "rgba(22,163,74,0.12)",
-  },
-  amber: {
-    glow: "rgba(245,158,11,0.15)",
-    gradient: "linear-gradient(135deg, rgba(245,158,11,0.18) 0%, rgba(180,83,9,0.1) 100%)",
-    icon: "#F59E0B",
-    dot: "#D97706",
-    badge: "#FCD34D",
-    badgeBg: "rgba(245,158,11,0.12)",
-  },
+  blue:  { icon: "#2563EB", bg: "#EFF6FF", border: "#BFDBFE", dot: "#2563EB", topBar: "#2563EB" },
+  cyan:  { icon: "#0891B2", bg: "#ECFEFF", border: "#A5F3FC", dot: "#0891B2", topBar: "#22D3EE" },
+  green: { icon: "#16A34A", bg: "#F0FDF4", border: "#BBF7D0", dot: "#16A34A", topBar: "#16A34A" },
+  amber: { icon: "#D97706", bg: "#FFFBEB", border: "#FDE68A", dot: "#D97706", topBar: "#F59E0B" },
 };
 
 function ModuleCard({ module }: { module: LandingModule }) {
@@ -53,39 +20,29 @@ function ModuleCard({ module }: { module: LandingModule }) {
   const cfg = COLOR_CONFIG[module.color];
 
   return (
-    <article
-      className="group relative rounded-2xl border border-white/8 overflow-hidden transition-all duration-300 hover:border-white/18 hover:-translate-y-1"
-      style={{ background: "rgba(255,255,255,0.03)" }}
-    >
-      {/* Hover glow */}
+    <article className="group relative bg-white rounded-2xl border border-[#E2E8F0] overflow-hidden transition-all duration-200 hover:shadow-[0_8px_30px_rgba(0,0,0,0.08)] hover:-translate-y-1 hover:border-transparent">
+      {/* Top accent bar */}
       <div
-        className="absolute inset-0 opacity-0 group-hover:opacity-100 transition-opacity duration-300 pointer-events-none"
-        style={{ background: `radial-gradient(ellipse at 50% 0%, ${cfg.glow}, transparent 65%)` }}
-      />
-
-      {/* Top gradient bar */}
-      <div
-        className="h-0.5 w-full opacity-60 group-hover:opacity-100 transition-opacity"
-        style={{ background: `linear-gradient(90deg, transparent, ${cfg.icon}, transparent)` }}
+        className="h-0.5 w-full opacity-0 group-hover:opacity-100 transition-opacity duration-300"
+        style={{ background: `linear-gradient(90deg, transparent, ${cfg.topBar}, transparent)` }}
       />
 
       <div className="p-6 flex flex-col gap-4">
-        {/* Icon */}
         <div
-          className="w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0"
-          style={{ background: cfg.gradient }}
+          className="w-11 h-11 rounded-xl flex items-center justify-center flex-shrink-0 border"
+          style={{ background: cfg.bg, borderColor: cfg.border }}
         >
           {Icon && <Icon size={22} style={{ color: cfg.icon }} />}
         </div>
 
         <div>
-          <h3 className="text-base font-semibold text-white mb-2">{module.title}</h3>
+          <h3 className="text-base font-semibold text-[#111827] mb-2">{module.title}</h3>
           <p className="text-sm text-[#64748B] leading-relaxed">{module.description}</p>
         </div>
 
-        <ul className="mt-auto space-y-2 pt-2 border-t border-white/6">
+        <ul className="mt-auto space-y-2 pt-3 border-t border-[#F1F5F9]">
           {module.features.map((feature) => (
-            <li key={feature} className="flex items-center gap-2.5 text-xs text-[#94A3B8]">
+            <li key={feature} className="flex items-center gap-2.5 text-xs text-[#64748B]">
               <span
                 className="w-1.5 h-1.5 rounded-full flex-shrink-0"
                 style={{ backgroundColor: cfg.dot }}
@@ -101,22 +58,22 @@ function ModuleCard({ module }: { module: LandingModule }) {
 
 export function LandingFeatureGrid() {
   return (
-    <section id="funcionalidades" className="py-24 lg:py-32 relative overflow-hidden bg-[#030d1a]">
-      {/* Section glow */}
+    <section id="funcionalidades" className="py-24 lg:py-32 bg-[#F8FAFC] relative overflow-hidden">
+      {/* Subtle background accent */}
       <div
-        className="absolute top-1/2 left-1/2 -translate-x-1/2 -translate-y-1/2 w-[600px] h-[400px] rounded-full blur-3xl pointer-events-none opacity-20"
-        style={{ background: "radial-gradient(ellipse, #2563EB 0%, transparent 70%)" }}
+        className="absolute top-0 left-1/2 -translate-x-1/2 w-[800px] h-px pointer-events-none"
+        style={{ background: "linear-gradient(90deg, transparent, #2563EB30, transparent)" }}
       />
 
       <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         {/* Header */}
         <div className="text-center max-w-2xl mx-auto mb-16">
-          <span className="inline-flex items-center gap-2 text-xs font-semibold text-[#22D3EE] uppercase tracking-widest mb-4">
-            <span className="w-8 h-px bg-[#22D3EE]/40" />
+          <span className="inline-flex items-center gap-2 text-xs font-semibold text-[#2563EB] uppercase tracking-widest mb-4">
+            <span className="w-8 h-px bg-[#2563EB]/30" />
             Funcionalidades
-            <span className="w-8 h-px bg-[#22D3EE]/40" />
+            <span className="w-8 h-px bg-[#2563EB]/30" />
           </span>
-          <h2 className="text-3xl lg:text-4xl xl:text-5xl font-bold text-white mb-5 leading-tight">
+          <h2 className="text-3xl lg:text-4xl xl:text-5xl font-bold text-[#111827] mb-5 leading-tight">
             Tudo que sua operação precisa,{" "}
             <span className="landing-gradient-text">integrado.</span>
           </h2>
@@ -133,24 +90,18 @@ export function LandingFeatureGrid() {
           ))}
         </div>
 
-        {/* Pillars row */}
-        <div className="mt-16 flex flex-wrap items-center justify-center gap-3">
+        {/* Pillars */}
+        <div className="mt-14 flex items-center justify-center gap-2 flex-wrap">
           {[
             { label: "Tempo", color: "#2563EB" },
-            { label: "·", color: "#ffffff22" },
-            { label: "Pessoas", color: "#22D3EE" },
-            { label: "·", color: "#ffffff22" },
+            { label: "·", color: "#CBD5E1" },
+            { label: "Pessoas", color: "#0891B2" },
+            { label: "·", color: "#CBD5E1" },
             { label: "Conformidade", color: "#16A34A" },
-            { label: "·", color: "#ffffff22" },
-            { label: "Resultados", color: "#F59E0B" },
+            { label: "·", color: "#CBD5E1" },
+            { label: "Resultados", color: "#D97706" },
           ].map(({ label, color }, i) => (
-            <span
-              key={i}
-              className="text-sm font-semibold"
-              style={{ color }}
-            >
-              {label}
-            </span>
+            <span key={i} className="text-sm font-semibold" style={{ color }}>{label}</span>
           ))}
         </div>
       </div>
