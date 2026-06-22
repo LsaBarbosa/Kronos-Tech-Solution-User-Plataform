@@ -478,3 +478,34 @@ Identidade visual: Azul Royal, Azul Escuro e Verde
   background-clip: text;
   -webkit-text-fill-color: transparent;
 }
+
+/* ── Flip card 3D ── */
+.landing-flip-wrapper {
+  perspective: 1200px;
+}
+
+.landing-flip-inner {
+  position: relative;
+  width: 100%;
+  height: 100%;
+  transform-style: preserve-3d;
+  transition: transform 0.55s cubic-bezier(0.4, 0, 0.2, 1);
+}
+
+.landing-flip-inner.landing-flipped {
+  transform: rotateY(180deg);
+}
+
+.landing-flip-front,
+.landing-flip-back {
+  position: absolute;
+  inset: 0;
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  border-radius: 1rem;
+  overflow: hidden;
+}
+
+.landing-flip-back {
+  transform: rotateY(180deg);
+}
