@@ -14,7 +14,7 @@ const HeaderBrand = ({ variant }: HeaderBrandProps) => {
       className="flex items-center rounded-xl focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-[#2563EB] focus-visible:ring-offset-2"
     >
       <img
-        src={variant === "desktop" ? "/logo_simbolo.png" : "/logo_mobile_1.png"}
+        src={variant === "desktop" ? "/logo_simbolo.png" : "/kronos-logo-hero.png.png"}
         alt=""
         aria-hidden="true"
         className={cn(
