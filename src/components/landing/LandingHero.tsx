@@ -105,36 +105,38 @@ export function LandingHero() {
           </div>
         </div>
 
-        {/* ── RIGHT — logo panel (desktop only) ── */}
-        <div className="hidden lg:flex items-center justify-center lg:justify-start lg:pl-16 xl:pl-24 lg:pr-10 relative border-l border-[#E2E8F0]">
-          {/* Panel tint */}
-          <div className="absolute inset-0 bg-gradient-to-br from-[#EFF6FF]/60 via-white to-[#ECFEFF]/30 pointer-events-none" />
+        {/* ── RIGHT — logo panel ── */}
+        {/* Mobile: stacks below text (flex-col order). Desktop: right column of grid. */}
+        <div className="flex items-center justify-center px-6 pb-14 pt-4 lg:p-0 relative lg:border-l border-[#E2E8F0]">
+          {/* Panel tint — desktop only */}
+          <div className="absolute inset-0 hidden lg:block bg-gradient-to-br from-[#EFF6FF]/50 via-white to-[#ECFEFF]/20 pointer-events-none" />
 
           {/* Radial glow behind logo */}
           <div
-            className="absolute w-[500px] h-[500px] rounded-full pointer-events-none"
+            className="absolute w-[480px] h-[480px] rounded-full pointer-events-none"
             style={{ background: "radial-gradient(ellipse, rgba(37,99,235,0.07) 0%, rgba(34,211,238,0.04) 50%, transparent 72%)" }}
           />
 
-          {/* Logo */}
+          {/* Logo — object-fit: contain, bounded by panel */}
           <img
             src={logoAzul}
             alt="Kronos"
-            className="relative w-[85%] max-w-[480px] h-auto drop-shadow-[0_12px_40px_rgba(6,38,74,0.12)]"
+            className="relative w-full max-w-[min(90vw,360px)] sm:max-w-[420px] lg:max-w-[580px] xl:max-w-[640px] h-auto"
+            style={{ objectFit: "contain" }}
           />
 
-          {/* Floating pills */}
-          <div className="absolute top-10 right-10 flex items-center gap-2 px-3.5 py-2 rounded-full bg-white border border-[#E2E8F0] shadow-md">
+          {/* Floating pills — desktop only */}
+          <div className="hidden lg:flex absolute top-10 right-10 items-center gap-2 px-3.5 py-2 rounded-full bg-white border border-[#E2E8F0] shadow-md">
             <span className="w-2 h-2 rounded-full bg-[#16A34A] animate-pulse flex-shrink-0" />
             <span className="text-xs font-semibold text-[#111827]">LGPD Ready</span>
           </div>
 
-          <div className="absolute bottom-14 right-10 flex items-center gap-2 px-3.5 py-2 rounded-full bg-white border border-[#E2E8F0] shadow-md">
+          <div className="hidden lg:flex absolute bottom-14 right-10 items-center gap-2 px-3.5 py-2 rounded-full bg-white border border-[#E2E8F0] shadow-md">
             <Shield size={13} className="text-[#2563EB] flex-shrink-0" />
             <span className="text-xs font-semibold text-[#111827]">Cookie HttpOnly · CSRF</span>
           </div>
 
-          <div className="absolute bottom-32 left-10 flex items-center gap-2 px-3.5 py-2 rounded-full bg-white border border-[#E2E8F0] shadow-md">
+          <div className="hidden lg:flex absolute bottom-32 left-10 items-center gap-2 px-3.5 py-2 rounded-full bg-white border border-[#E2E8F0] shadow-md">
             <span className="text-xs font-semibold text-[#D97706]">AFD · AEJ · Espelho de ponto</span>
           </div>
         </div>
