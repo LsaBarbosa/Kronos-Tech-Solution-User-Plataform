@@ -9,30 +9,28 @@ const scrollTo = (id: string) => {
 
 export function LandingHero() {
   return (
-    <section
-      className="relative min-h-screen flex flex-col justify-center overflow-hidden bg-white"
-      aria-label="Seção principal"
-    >
-      {/* Light blob backgrounds */}
-      <div className="absolute inset-0 pointer-events-none" aria-hidden="true">
-        <div className="landing-blob landing-blob-1-light" />
-        <div className="landing-blob landing-blob-2-light" />
-        <div className="landing-blob landing-blob-3-light" />
-        {/* Subtle grid pattern */}
-        <div
-          className="absolute inset-0 opacity-[0.03]"
-          style={{
-            backgroundImage: `linear-gradient(#2563EB 1px, transparent 1px), linear-gradient(90deg, #2563EB 1px, transparent 1px)`,
-            backgroundSize: "64px 64px",
-          }}
-        />
-      </div>
+    <section className="relative bg-white overflow-hidden" aria-label="Seção principal">
 
-      <div className="relative max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 pt-28 pb-16 lg:pt-36 lg:pb-24 w-full">
-        <div className="grid lg:grid-cols-2 gap-14 lg:gap-20 items-center">
+      {/* ── Split panel (min-h-screen) ── */}
+      <div className="relative min-h-screen flex flex-col lg:grid lg:grid-cols-2">
 
-          {/* ── Left column ── */}
-          <div className="space-y-8">
+        {/* Blobs — left side only */}
+        <div className="absolute inset-0 pointer-events-none" aria-hidden="true">
+          <div className="landing-blob landing-blob-1-light" />
+          <div className="landing-blob landing-blob-2-light" />
+          <div
+            className="absolute inset-0 opacity-[0.025]"
+            style={{
+              backgroundImage: `linear-gradient(#2563EB 1px, transparent 1px), linear-gradient(90deg, #2563EB 1px, transparent 1px)`,
+              backgroundSize: "64px 64px",
+            }}
+          />
+        </div>
+
+        {/* ── LEFT — text content ── */}
+        <div className="relative z-10 flex items-center justify-center lg:justify-end px-6 sm:px-10 lg:pl-8 lg:pr-16 xl:pr-24 pt-28 pb-12 lg:py-0">
+          <div className="w-full max-w-[560px] space-y-8">
+
             {/* Badge */}
             <div className="inline-flex items-center gap-2.5 px-4 py-2 rounded-full bg-[#EFF6FF] border border-[#BFDBFE]">
               <span className="relative flex h-2 w-2">
@@ -45,13 +43,13 @@ export function LandingHero() {
             </div>
 
             {/* Headline */}
-            <h1 className="text-4xl sm:text-5xl lg:text-[3.25rem] xl:text-6xl font-extrabold leading-[1.1] tracking-tight text-[#111827]">
+            <h1 className="text-4xl sm:text-5xl lg:text-[3rem] xl:text-[3.5rem] font-extrabold leading-[1.1] tracking-tight text-[#111827]">
               Gestão de ponto, pessoas e{" "}
               <span className="landing-gradient-text">conformidade</span>{" "}
               em uma única plataforma.
             </h1>
 
-            <p className="text-lg text-[#64748B] leading-relaxed max-w-lg">
+            <p className="text-lg text-[#64748B] leading-relaxed">
               Centralize jornada, documentos, aprovações, privacidade LGPD e relatórios legais.
               Reduza retrabalho e organize evidências com rastreabilidade completa.
             </p>
@@ -105,52 +103,46 @@ export function LandingHero() {
               <p className="text-xs text-[#94A3B8]">Usado por times de RH, DP, TI e gestão</p>
             </div>
           </div>
-
-          {/* ── Right column — logo ── */}
-          <div className="hidden lg:flex items-center justify-center relative">
-            {/* Radial glow layers */}
-            <div
-              className="absolute w-[420px] h-[420px] rounded-full pointer-events-none"
-              style={{ background: "radial-gradient(ellipse, rgba(37,99,235,0.08) 0%, rgba(34,211,238,0.05) 45%, transparent 70%)" }}
-            />
-            <div
-              className="absolute w-[280px] h-[280px] rounded-full pointer-events-none"
-              style={{ background: "radial-gradient(ellipse, rgba(37,99,235,0.06) 0%, transparent 70%)" }}
-            />
-
-            {/* Ring decorations */}
-            <div className="absolute w-[380px] h-[380px] rounded-full border border-[#2563EB]/6 pointer-events-none" />
-            <div className="absolute w-[300px] h-[300px] rounded-full border border-[#2563EB]/8 pointer-events-none" />
-            <div className="absolute w-[220px] h-[220px] rounded-full border border-[#2563EB]/10 pointer-events-none" />
-
-            {/* Logo */}
-            <img
-              src={logoAzul}
-              alt="Kronos"
-              className="relative w-64 xl:w-80 h-auto drop-shadow-[0_8px_32px_rgba(37,99,235,0.18)]"
-            />
-
-            {/* Floating pill — top-right */}
-            <div className="absolute top-8 right-0 flex items-center gap-2 px-3.5 py-2 rounded-full bg-white border border-[#E2E8F0] shadow-md">
-              <span className="w-2 h-2 rounded-full bg-[#16A34A] animate-pulse flex-shrink-0" />
-              <span className="text-xs font-semibold text-[#111827]">LGPD Ready</span>
-            </div>
-
-            {/* Floating pill — bottom-left */}
-            <div className="absolute bottom-8 left-0 flex items-center gap-2 px-3.5 py-2 rounded-full bg-white border border-[#E2E8F0] shadow-md">
-              <Shield size={13} className="text-[#2563EB] flex-shrink-0" />
-              <span className="text-xs font-semibold text-[#111827]">Cookie HttpOnly · CSRF</span>
-            </div>
-
-            {/* Floating pill — bottom-right */}
-            <div className="absolute bottom-16 right-2 flex items-center gap-2 px-3.5 py-2 rounded-full bg-white border border-[#E2E8F0] shadow-md">
-              <span className="text-xs font-semibold text-[#D97706]">AFD · AEJ</span>
-            </div>
-          </div>
         </div>
 
-        {/* Stats strip */}
-        <div className="mt-20 pt-8 border-t border-[#E2E8F0]">
+        {/* ── RIGHT — logo panel (desktop only) ── */}
+        <div className="hidden lg:flex items-center justify-center lg:justify-start lg:pl-16 xl:pl-24 lg:pr-10 relative border-l border-[#E2E8F0]">
+          {/* Panel tint */}
+          <div className="absolute inset-0 bg-gradient-to-br from-[#EFF6FF]/60 via-white to-[#ECFEFF]/30 pointer-events-none" />
+
+          {/* Radial glow behind logo */}
+          <div
+            className="absolute w-[500px] h-[500px] rounded-full pointer-events-none"
+            style={{ background: "radial-gradient(ellipse, rgba(37,99,235,0.07) 0%, rgba(34,211,238,0.04) 50%, transparent 72%)" }}
+          />
+
+          {/* Logo */}
+          <img
+            src={logoAzul}
+            alt="Kronos"
+            className="relative w-[85%] max-w-[480px] h-auto drop-shadow-[0_12px_40px_rgba(6,38,74,0.12)]"
+          />
+
+          {/* Floating pills */}
+          <div className="absolute top-10 right-10 flex items-center gap-2 px-3.5 py-2 rounded-full bg-white border border-[#E2E8F0] shadow-md">
+            <span className="w-2 h-2 rounded-full bg-[#16A34A] animate-pulse flex-shrink-0" />
+            <span className="text-xs font-semibold text-[#111827]">LGPD Ready</span>
+          </div>
+
+          <div className="absolute bottom-14 right-10 flex items-center gap-2 px-3.5 py-2 rounded-full bg-white border border-[#E2E8F0] shadow-md">
+            <Shield size={13} className="text-[#2563EB] flex-shrink-0" />
+            <span className="text-xs font-semibold text-[#111827]">Cookie HttpOnly · CSRF</span>
+          </div>
+
+          <div className="absolute bottom-32 left-10 flex items-center gap-2 px-3.5 py-2 rounded-full bg-white border border-[#E2E8F0] shadow-md">
+            <span className="text-xs font-semibold text-[#D97706]">AFD · AEJ · Espelho de ponto</span>
+          </div>
+        </div>
+      </div>
+
+      {/* ── Stats strip (below split) ── */}
+      <div className="relative z-10 border-t border-[#E2E8F0] bg-white">
+        <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-8">
           <div className="grid grid-cols-2 lg:grid-cols-4 gap-6">
             {HERO_STATS.map(({ label, value }) => (
               <div key={label} className="text-center">
