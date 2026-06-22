@@ -20,7 +20,7 @@ export interface SignServiceContractRequest {
   declarationVersion: string;
   declarationHashSha256: string;
   contractDocumentHashSha256: string;
-  password: string;
+  faceImageBase64: string;
 }
 
 export interface SignServiceContractResponse {

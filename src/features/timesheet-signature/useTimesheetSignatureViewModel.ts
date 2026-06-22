@@ -40,7 +40,7 @@ export interface TimesheetSignatureViewModel {
   setSelectedPeriod: (period: SelectedPeriod | null) => void;
   refresh: () => Promise<void>;
   preview: () => Promise<void>;
-  sign: (password: string) => Promise<boolean>;
+  sign: (faceImageBase64: string) => Promise<boolean>;
   downloadSigned: (signatureId: string) => Promise<void>;
 }
 
@@ -122,7 +122,7 @@ export const useTimesheetSignatureViewModel = (): TimesheetSignatureViewModel =>
   }, [selectedPeriod, toast]);
 
   const sign = useCallback(
-    async (password: string): Promise<boolean> => {
+    async (faceImageBase64: string): Promise<boolean> => {
       if (!status || !status.eligible) {
         toast({
           variant: "destructive",
@@ -159,7 +159,7 @@ export const useTimesheetSignatureViewModel = (): TimesheetSignatureViewModel =>
           declarationVersion: status.declarationVersion,
           declarationHashSha256: status.declarationHashSha256,
           recordsSnapshotHashSha256: status.recordsSnapshotHashSha256,
-          password,
+          faceImageBase64,
         });
         setLastSignature(response);
         toast({
@@ -175,7 +175,7 @@ export const useTimesheetSignatureViewModel = (): TimesheetSignatureViewModel =>
             case "BAD_REQUEST":
               return extractBackendMessage(error) ?? "Dados inválidos. Recarregue a tela.";
             case "FORBIDDEN":
-              return "Senha inválida.";
+              return "Reconhecimento facial não confirmado.";
             case "CONFLICT":
               return extractBackendMessage(error) ?? "Não foi possível assinar.";
             default:

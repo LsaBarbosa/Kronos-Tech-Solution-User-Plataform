@@ -52,7 +52,7 @@ export interface ServiceContractSignatureViewModel {
   lastSignature: SignServiceContractResponse | null;
   refresh: () => Promise<void>;
   preview: () => Promise<void>;
-  sign: (password: string) => Promise<boolean>;
+  sign: (faceImageBase64: string) => Promise<boolean>;
   downloadSigned: (signatureId: string) => Promise<void>;
 }
 
@@ -127,7 +127,7 @@ export const useServiceContractSignatureViewModel = (): ServiceContractSignature
   }, [selectedContract, toast]);
 
   const sign = useCallback(
-    async (password: string): Promise<boolean> => {
+    async (faceImageBase64: string): Promise<boolean> => {
       if (!selectedContract) {
         toast({
           variant: "destructive",
@@ -151,7 +151,7 @@ export const useServiceContractSignatureViewModel = (): ServiceContractSignature
           declarationVersion: selectedContract.declarationVersion,
           declarationHashSha256: selectedContract.declarationHashSha256,
           contractDocumentHashSha256: selectedContract.documentHashSha256,
-          password,
+          faceImageBase64,
         });
         setLastSignature(response);
         toast({
@@ -167,7 +167,7 @@ export const useServiceContractSignatureViewModel = (): ServiceContractSignature
             case "BAD_REQUEST":
               return extractBackendMessage(error) ?? "Dados inválidos. Recarregue a tela.";
             case "FORBIDDEN":
-              return extractBackendMessage(error) ?? "Acesso negado ou senha inválida.";
+              return extractBackendMessage(error) ?? "Reconhecimento facial não confirmado.";
             case "CONFLICT":
               return extractBackendMessage(error) ?? "Não foi possível assinar.";
             default:

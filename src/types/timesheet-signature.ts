@@ -25,7 +25,7 @@ export interface SignPreviousMonthRequest {
   declarationVersion: string;
   declarationHashSha256: string;
   recordsSnapshotHashSha256: string;
-  password: string;
+  faceImageBase64: string;
 }
 
 export interface SignPreviousMonthResponse {

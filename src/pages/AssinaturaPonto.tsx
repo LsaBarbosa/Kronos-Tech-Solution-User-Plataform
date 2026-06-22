@@ -1,5 +1,5 @@
-import { useCallback, useMemo, useState } from "react";
-import { Eye, EyeOff, FileSignature, Loader2, RefreshCcw } from "lucide-react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
+import { Camera, FileSignature, Loader2, RefreshCcw, RotateCw, ScanFace } from "lucide-react";
 import PageShell from "@/components/PageShell";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
@@ -7,6 +7,8 @@ import { useTimesheetSignatureViewModel } from "@/features/timesheet-signature/u
 import SignaturePendingBlockers from "@/components/timesheet-signature/SignaturePendingBlockers";
 import SignatureDeclarationBox from "@/components/timesheet-signature/SignatureDeclarationBox";
 import SignatureStatusCard from "@/components/timesheet-signature/SignatureStatusCard";
+import { captureFrameFromVideo, startCameraStream, stopCameraStream } from "@/utils/camera.util";
+import { safeLogger } from "@/utils/security/safeLogger";
 
 const formatMonthInputValue = (year: number, month: number): string =>
   `${year}-${String(month).padStart(2, "0")}`;
@@ -35,14 +37,32 @@ const AssinaturaPonto = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const vm = useTimesheetSignatureViewModel();
   const [confirmChecked, setConfirmChecked] = useState(false);
-  const [password, setPassword] = useState("");
-  const [showPassword, setShowPassword] = useState(false);
+  const [capturedDataUrl, setCapturedDataUrl] = useState<string | null>(null);
+  const [isCameraActive, setIsCameraActive] = useState(false);
+  const [isCameraLoading, setIsCameraLoading] = useState(false);
+  const [cameraError, setCameraError] = useState<string | null>(null);
+  const videoRef = useRef<HTMLVideoElement>(null);
+  const streamRef = useRef<MediaStream | null>(null);
   const [monthInputValue, setMonthInputValue] = useState<string>(() => defaultPreviousMonthInput());
 
   const maxMonthValue = useMemo(() => {
     const now = new Date();
     const previous = new Date(now.getFullYear(), now.getMonth() - 1, 1);
     return formatMonthInputValue(previous.getFullYear(), previous.getMonth() + 1);
+  }, []);
+
+  const toggleSidebar = useCallback(() => setSidebarOpen((prev) => !prev), []);
+
+  const stopCamera = useCallback(() => {
+    stopCameraStream(streamRef.current);
+    streamRef.current = null;
+    setIsCameraActive(false);
+  }, []);
+
+  useEffect(() => {
+    return () => {
+      stopCameraStream(streamRef.current);
+    };
   }, []);
 
   const handleMonthChange = useCallback(
@@ -54,35 +74,83 @@ const AssinaturaPonto = () => {
         return;
       }
       if (value >= currentMonthInput()) {
-        // bloqueio defensivo na UI (o backend revalida igual)
         return;
       }
       vm.setSelectedPeriod(parsed);
       setConfirmChecked(false);
-      setPassword("");
+      setCapturedDataUrl(null);
+      stopCamera();
+      setCameraError(null);
     },
-    [vm]
+    [vm, stopCamera]
   );
 
-  const toggleSidebar = useCallback(() => setSidebarOpen((prev) => !prev), []);
+  const handleStartCamera = useCallback(async () => {
+    setCapturedDataUrl(null);
+    setCameraError(null);
+    setIsCameraLoading(true);
+    try {
+      const stream = await startCameraStream();
+      streamRef.current = stream;
+      setIsCameraActive(true); // renders <video> first; srcObject is attached in useEffect below
+    } catch {
+      setCameraError("Não foi possível acessar a câmera. Verifique as permissões.");
+      setIsCameraLoading(false);
+    }
+  }, []);
+
+  // Attach stream after <video> element mounts (isCameraActive=true triggers the render)
+  useEffect(() => {
+    if (!isCameraActive || !videoRef.current || !streamRef.current) return;
+    const video = videoRef.current;
+    video.srcObject = streamRef.current;
+    video
+      .play()
+      .then(() => setIsCameraLoading(false))
+      .catch(() => {
+        setCameraError("Não foi possível iniciar a câmera.");
+        setIsCameraLoading(false);
+        stopCamera();
+      });
+  }, [isCameraActive, stopCamera]);
+
+  const handleCapture = useCallback(() => {
+    if (!videoRef.current) return;
+    try {
+      const dataUrl = captureFrameFromVideo(videoRef.current);
+      setCapturedDataUrl(dataUrl);
+      stopCamera();
+    } catch (err) {
+      safeLogger.error("Erro ao capturar imagem:", err);
+      setCameraError("Falha ao capturar imagem. Tente novamente.");
+    }
+  }, [stopCamera]);
+
+  const handleRetake = useCallback(() => {
+    setCapturedDataUrl(null);
+    setCameraError(null);
+    void handleStartCamera();
+  }, [handleStartCamera]);
 
   const handleSubmit = useCallback(
     async (event: React.FormEvent<HTMLFormElement>) => {
       event.preventDefault();
-      if (!confirmChecked) return;
-      if (!password) return;
-      const ok = await vm.sign(password);
-      // Limpa senha em qualquer caso (sucesso ou falha) para evitar reuso/cache em DOM.
-      setPassword("");
+      if (!confirmChecked || !capturedDataUrl) return;
+      const base64 = capturedDataUrl.split(",")[1];
+      if (!base64) return;
+      const ok = await vm.sign(base64);
       if (ok) {
+        setCapturedDataUrl(null);
         setConfirmChecked(false);
+        setCameraError(null);
       }
     },
-    [confirmChecked, password, vm]
+    [confirmChecked, capturedDataUrl, vm]
   );
 
   const isLoading = vm.isLoading && !vm.status;
   const status = vm.status;
+  const canSubmit = confirmChecked && Boolean(capturedDataUrl) && !vm.isSubmitting;
 
   return (
     <PageShell
@@ -186,42 +254,92 @@ const AssinaturaPonto = () => {
                       />
                     </div>
 
-                    <div className="space-y-2">
+                    <div className="space-y-3">
                       <h3 className="text-sm font-semibold text-slate-900 dark:text-slate-100">
-                        3. Informe sua senha atual
+                        3. Autenticação por reconhecimento facial
                       </h3>
-                      <div className="relative">
-                        <Input
-                          type={showPassword ? "text" : "password"}
-                          autoComplete="current-password"
-                          value={password}
-                          onChange={(event) => setPassword(event.target.value)}
-                          placeholder="Senha de acesso ao Kronos"
-                          disabled={vm.isSubmitting}
-                          required
-                          aria-label="Senha"
-                        />
-                        <Button
-                          type="button"
-                          size="sm"
-                          variant="ghost"
-                          onClick={() => setShowPassword((prev) => !prev)}
-                          className="absolute right-2 top-1/2 h-7 w-7 -translate-y-1/2 p-0"
-                          aria-label={showPassword ? "Ocultar senha" : "Mostrar senha"}
-                          disabled={vm.isSubmitting}
-                        >
-                          {showPassword ? <EyeOff className="h-4 w-4" /> : <Eye className="h-4 w-4" />}
-                        </Button>
-                      </div>
-                      <p className="text-[11px] text-slate-500 dark:text-slate-400">
-                        A senha nunca é armazenada nem registrada em históricos do sistema.
+                      <p className="text-xs text-slate-500 dark:text-slate-400">
+                        Capture uma foto do seu rosto para confirmar sua identidade.
                       </p>
+
+                      {capturedDataUrl ? (
+                        <div className="space-y-3">
+                          <div className="overflow-hidden rounded-xl border border-[#E5E7EB] dark:border-[#404854]">
+                            <img
+                              src={capturedDataUrl}
+                              alt="Foto capturada"
+                              className="w-full object-cover"
+                            />
+                          </div>
+                          <Button
+                            type="button"
+                            variant="outline"
+                            size="sm"
+                            onClick={handleRetake}
+                            disabled={vm.isSubmitting}
+                          >
+                            <RotateCw className="mr-2 h-4 w-4" />
+                            Repetir captura
+                          </Button>
+                        </div>
+                      ) : isCameraActive ? (
+                        <div className="space-y-3">
+                          <div className="relative overflow-hidden rounded-xl border border-[#E5E7EB] bg-black dark:border-[#404854]">
+                            <video
+                              ref={videoRef}
+                              autoPlay
+                              playsInline
+                              muted
+                              className="w-full"
+                              aria-label="Visualização da câmera"
+                            />
+                            <div className="pointer-events-none absolute inset-0 flex items-center justify-center">
+                              <div className="h-40 w-32 rounded-full border-2 border-white/60 opacity-60" />
+                            </div>
+                          </div>
+                          <p className="text-[11px] text-slate-500 dark:text-slate-400">
+                            Centralize seu rosto no guia oval, com boa iluminação.
+                          </p>
+                          <Button
+                            type="button"
+                            onClick={handleCapture}
+                            disabled={vm.isSubmitting}
+                            className="bg-[#7C3AED] hover:bg-[#6D28D9]"
+                          >
+                            <ScanFace className="mr-2 h-4 w-4" />
+                            Capturar
+                          </Button>
+                        </div>
+                      ) : (
+                        <div className="space-y-2">
+                          {cameraError ? (
+                            <p className="text-xs text-red-500 dark:text-red-400">{cameraError}</p>
+                          ) : null}
+                          <Button
+                            type="button"
+                            variant="outline"
+                            onClick={handleStartCamera}
+                            disabled={isCameraLoading || vm.isSubmitting}
+                          >
+                            {isCameraLoading ? (
+                              <>
+                                <Loader2 className="mr-2 h-4 w-4 animate-spin" /> Acessando câmera…
+                              </>
+                            ) : (
+                              <>
+                                <Camera className="mr-2 h-4 w-4" />
+                                Ativar câmera
+                              </>
+                            )}
+                          </Button>
+                        </div>
+                      )}
                     </div>
 
                     <Button
                       type="submit"
                       className="w-full bg-[#7C3AED] hover:bg-[#6D28D9]"
-                      disabled={!confirmChecked || !password || vm.isSubmitting}
+                      disabled={!canSubmit}
                     >
                       {vm.isSubmitting ? (
                         <>
