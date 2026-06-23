@@ -24,11 +24,19 @@ export const useResetPassword = (): UseResetPasswordReturn => {
     const navigate = useNavigate();
     const { toast } = useToast();
 
-    // Lê o token de sessionStorage (depositado por TokenRedirect) e limpa imediatamente
+    // Lê o token de sessionStorage (depositado por TokenRedirect) ou direto da URL
+    // (link de e-mail aponta para /resetar-senha?token=...) e limpa ambos imediatamente
     const [token] = useState<string | null>(() => {
-        const t = sessionStorage.getItem("pwd_reset_token");
-        if (t) sessionStorage.removeItem("pwd_reset_token");
-        return t;
+        const stored = sessionStorage.getItem("pwd_reset_token");
+        if (stored) {
+            sessionStorage.removeItem("pwd_reset_token");
+            return stored;
+        }
+        const urlToken = new URLSearchParams(window.location.search).get("token");
+        if (urlToken) {
+            window.history.replaceState({}, "", window.location.pathname);
+        }
+        return urlToken;
     });
 
     const form = useForm<ResetPasswordFormType>({
