@@ -4,7 +4,7 @@ import { useState, useCallback, useEffect } from "react";
 import type { UseFormReturn } from "react-hook-form";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
-import { useSearchParams, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import type { ResetPasswordFormType, ResetPasswordPayload } from "@/types/auth";
 import { resetPasswordSchema } from "@/types/auth";
@@ -21,12 +21,15 @@ interface UseResetPasswordReturn {
 }
 
 export const useResetPassword = (): UseResetPasswordReturn => {
-    const [searchParams] = useSearchParams();
     const navigate = useNavigate();
     const { toast } = useToast();
-    
-    // Extrai o token da URL
-    const token = searchParams.get('token');
+
+    // Lê o token de sessionStorage (depositado por TokenRedirect) e limpa imediatamente
+    const [token] = useState<string | null>(() => {
+        const t = sessionStorage.getItem("pwd_reset_token");
+        if (t) sessionStorage.removeItem("pwd_reset_token");
+        return t;
+    });
 
     const form = useForm<ResetPasswordFormType>({
         resolver: zodResolver(resetPasswordSchema),

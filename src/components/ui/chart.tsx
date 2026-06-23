@@ -6,6 +6,19 @@ import { cn } from "@/lib/utils"
 // Format: { THEME_NAME: CSS_SELECTOR }
 const THEMES = { light: "", dark: ".dark" } as const
 
+// Allowlist: hex, rgb/rgba, hsl/hsla, CSS var(), or named keyword (letters only)
+const CSS_COLOR_SAFE =
+  /^(#[0-9a-fA-F]{3,8}|rgb\(\s*\d+\s*,\s*\d+\s*,\s*\d+\s*\)|rgba\(\s*\d+\s*,\s*\d+\s*,\s*\d+\s*,\s*[\d.]+\s*\)|hsl\(\s*[\d.]+\s*(?:deg)?\s*,\s*[\d.]+%\s*,\s*[\d.]+%\s*\)|hsla\(\s*[\d.]+\s*(?:deg)?\s*,\s*[\d.]+%\s*,\s*[\d.]+%\s*,\s*[\d.]+\s*\)|var\(--[a-zA-Z0-9-]+\)|[a-zA-Z]+)$/
+const CSS_IDENT_SAFE = /^[a-zA-Z0-9_-]+$/
+
+function sanitizeCssColor(value: string): string | null {
+  return CSS_COLOR_SAFE.test(value.trim()) ? value.trim() : null
+}
+
+function sanitizeCssIdent(value: string): string | null {
+  return CSS_IDENT_SAFE.test(value) ? value : null
+}
+
 export type ChartConfig = {
   [k in string]: {
     label?: React.ReactNode
@@ -66,11 +79,12 @@ const ChartContainer = React.forwardRef<
 ChartContainer.displayName = "Chart"
 
 const ChartStyle = ({ id, config }: { id: string; config: ChartConfig }) => {
+  const safeId = sanitizeCssIdent(id)
   const colorConfig = Object.entries(config).filter(
     ([_, config]) => config.theme || config.color
   )
 
-  if (!colorConfig.length) {
+  if (!colorConfig.length || !safeId) {
     return null
   }
 
@@ -80,14 +94,17 @@ const ChartStyle = ({ id, config }: { id: string; config: ChartConfig }) => {
         __html: Object.entries(THEMES)
           .map(
             ([theme, prefix]) => `
-${prefix} [data-chart=${id}] {
+${prefix} [data-chart=${safeId}] {
 ${colorConfig
   .map(([key, itemConfig]) => {
-    const color =
+    const safeKey = sanitizeCssIdent(key)
+    const rawColor =
       itemConfig.theme?.[theme as keyof typeof itemConfig.theme] ||
       itemConfig.color
-    return color ? `  --color-${key}: ${color};` : null
+    const safeColor = rawColor ? sanitizeCssColor(rawColor) : null
+    return safeKey && safeColor ? `  --color-${safeKey}: ${safeColor};` : null
   })
+  .filter(Boolean)
   .join("\n")}
 }
 `

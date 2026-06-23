@@ -9,7 +9,8 @@ const TokenRedirect = () => {
 
   useEffect(() => {
     if (token) {
-      navigate(`/resetar-senha?token=${token}`, { replace: true });
+      sessionStorage.setItem("pwd_reset_token", token);
+      navigate("/resetar-senha", { replace: true });
     }
   }, [token, navigate]);
 
