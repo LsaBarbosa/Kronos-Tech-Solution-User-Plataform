@@ -32,6 +32,7 @@ const defineRoute = (
 export const APP_PATHS = {
   root: "/",
   login: "/login",
+  selecionarEmpresa: "/selecionar-empresa",
   senhaPrimeiroAcesso: "/senha-primeiro-acesso",
   resetarSenha: "/resetar-senha",
   dashboard: "/dashboard",

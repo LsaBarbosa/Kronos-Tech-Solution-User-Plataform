@@ -11,6 +11,7 @@ import { loginWithPassword } from "@/service/auth.service";
 import { getServiceErrorMessage } from "@/service/helpers/service-error.helper";
 import { toast } from "@/hooks/use-toast";
 import { APP_PATHS } from "@/config/app-routes";
+import { usePostLoginRedirect } from "@/hooks/usePostLoginRedirect";
 
 const LoginForm = () => {
   const [username, setUsername] = useState("");
@@ -21,6 +22,7 @@ const LoginForm = () => {
   const navigate = useNavigate();
   const location = useLocation();
   const { login } = useAuth();
+  const { redirectAfterLogin } = usePostLoginRedirect();
 
   useEffect(() => {
     if ((location.state as Record<string, unknown> | null)?.reason === "session_expired") {
@@ -35,7 +37,7 @@ const LoginForm = () => {
       await loginWithPassword({ username, password });
       await login();
       toast.success("Login realizado com sucesso!");
-      navigate("/dashboard", { replace: true });
+      await redirectAfterLogin();
     } catch (error) {
       toast.error(getServiceErrorMessage(error, "Erro desconhecido ao tentar fazer login."));
     } finally {
