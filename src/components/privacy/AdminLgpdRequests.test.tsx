@@ -146,8 +146,8 @@ describe("AdminLgpdRequests", () => {
     expect(screen.getAllByText("ACCESS").length).toBeGreaterThan(0);
     // status label "Aberto" appears in the row and side panel
     expect(screen.getAllByText("Aberto").length).toBeGreaterThan(0);
-    // "Não atribuído" replaces null assignedToName in side panel
-    expect(screen.getByText("Não atribuído")).toBeInTheDocument();
+    // "Não atribuído" replaces null assignedToName in side panel (rendered after useEffect auto-selects)
+    expect(await screen.findByText("Não atribuído")).toBeInTheDocument();
   });
 
   it("does not break when createdAt is invalid", async () => {
