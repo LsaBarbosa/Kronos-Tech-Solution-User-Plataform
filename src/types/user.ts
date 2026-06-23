@@ -61,6 +61,7 @@ export interface UserData {
   companyName: string;
   lastSeenMessageTimestamp: string | null;
   homeOffice: boolean;
+  sandbox?: boolean;
 
   // A role é injetada a partir do token no hook para conveniência
   role?: 'PARTNER' | 'MANAGER' | 'ADMIN' | 'CTO' | 'USER' | string;

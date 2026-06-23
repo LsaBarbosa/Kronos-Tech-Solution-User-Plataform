@@ -8,6 +8,7 @@ import {
   ClipboardCheck,
   FileSignature,
   FileText,
+  FlaskConical,
   Scale,
   Shield,
   TimerReset,
@@ -43,7 +44,8 @@ type AdminGroupKey =
   | "timeOff"
   | "contracts"
   | "audit"
-  | "lgpd";
+  | "lgpd"
+  | "ctoDemo";
 
 interface AdminGroupConfig {
   key: AdminGroupKey;
@@ -173,6 +175,21 @@ const buildGroups = (): AdminGroupConfig[] => [
         route: APP_ROUTE_META.lgpdAdminInventory,
         icon: FileText,
         description: "Gerencie o inventário de tratamento de dados pessoais.",
+      },
+    ],
+  },
+  {
+    key: "ctoDemo",
+    title: "Demo Sandbox",
+    subtitle: "Ambiente controlado de demonstração",
+    icon: FlaskConical,
+    tone: "from-[#78350F] to-[#D97706]",
+    accent: "bg-[#FEF3C7] text-[#92400E]",
+    routes: [
+      {
+        route: APP_ROUTE_META.ctoDemoSandbox,
+        icon: FlaskConical,
+        description: "Crie ou remova o ambiente de demo com empresa, usuário e dados sintéticos.",
       },
     ],
   },

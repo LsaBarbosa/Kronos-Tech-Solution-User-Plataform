@@ -74,6 +74,7 @@ export const APP_PATHS = {
   lgpdAdminInventory: "/lgpd/admin/inventory",
   lgpdAdminInventoryForm: "/lgpd/admin/inventory/novo",
   lgpdAdminInventoryEdit: "/lgpd/admin/inventory/:processCode/editar",
+  ctoDemoSandbox: "/cto/demo",
 } as const;
 
 export const APP_ROUTE_META = {
@@ -294,6 +295,15 @@ export const APP_ROUTE_META = {
       { label: "Início", path: APP_PATHS.dashboard },
       { label: "Inventário de Tratamento", path: APP_PATHS.lgpdAdminInventory },
       { label: "Editar Processo", path: APP_PATHS.lgpdAdminInventoryEdit },
+    ],
+  }),
+  ctoDemoSandbox: defineRoute(APP_PATHS.ctoDemoSandbox, "Demo Sandbox", {
+    allowedRoles: ["CTO"],
+    showInMenu: false,
+    breadcrumbs: [
+      { label: "Início", path: APP_PATHS.dashboard },
+      { label: "Administração", path: APP_PATHS.administracao },
+      { label: "Demo Sandbox", path: APP_PATHS.ctoDemoSandbox },
     ],
   }),
   privacyProcessingCatalog: defineRoute(APP_PATHS.privacyProcessingCatalog, "Catálogo de Tratamento de Dados", {

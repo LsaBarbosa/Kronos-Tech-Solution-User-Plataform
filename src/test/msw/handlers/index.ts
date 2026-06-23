@@ -1,5 +1,6 @@
 import { authHandlers } from "./auth.handlers";
 import { companyHandlers } from "./company.handlers";
+import { demoHandlers } from "./demo.handlers";
 import { documentHandlers } from "./document.handlers";
 import { employeeHandlers } from "./employee.handlers";
 import { geolocationHandlers } from "./geolocation.handlers";
@@ -14,6 +15,7 @@ export const handlers = [
   ...userHandlers,
   ...employeeHandlers,
   ...companyHandlers,
+  ...demoHandlers,
   ...geolocationHandlers,
   ...documentHandlers,
   ...messageHandlers,

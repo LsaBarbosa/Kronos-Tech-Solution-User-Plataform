@@ -1,6 +1,7 @@
 export const API_ROUTES = {
   AUTH: "auth",
   COMPANIES: "companies",
+  CTO_DEMO: "cto/demo",
   DOCUMENTS: "documents",
   EMPLOYEE: "employee",
   GEOLOCATION: "geolocation",
@@ -113,6 +114,12 @@ export const COMPANY_PATHS = {
 
 export const MESSAGE_PATHS = {
   DELETE: (messageId: string) => messageId,
+} as const;
+
+export const CTO_DEMO_PATHS = {
+  CREATE: "create",
+  STATUS: "status",
+  VALIDATE: "validate",
 } as const;
 
 export const LGPD_PATHS = {

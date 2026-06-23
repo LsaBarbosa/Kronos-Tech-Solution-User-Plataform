@@ -8,6 +8,7 @@ import { AuthProvider } from "@/context/AuthContext";
 import { CheckinProvider } from "@/context/CheckinContext";
 import { CheckinModal } from "@/components/checkin/CheckinModal";
 import AppErrorBoundary from "@/components/AppErrorBoundary";
+import SandboxBanner from "@/components/SandboxBanner";
 import ProtectedRoute from "./components/ProtectedRoute";
 import RoleRoute from "./components/RoleRoute";
 import { APP_PATHS, APP_ROUTE_META } from "@/config/app-routes";
@@ -74,6 +75,7 @@ const PrivacyProcessingCatalog = lazy(() => import("./pages/PrivacyProcessingCat
 const PrivacyPolicy = lazy(() => import("./pages/PrivacyPolicy"));
 const PrivacyBiometricTerm = lazy(() => import("./pages/PrivacyBiometricTerm"));
 const SelecionarEmpresa = lazy(() => import("./pages/SelecionarEmpresa"));
+const CTODemoSandbox = lazy(() => import("./pages/CTODemoSandbox"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
 const PageFallback = () => (
@@ -104,6 +106,7 @@ const App = () => (
           <CheckinProvider>
             <TooltipProvider>
               <Toaster />
+              <SandboxBanner />
               <CheckinModal />
               <AppErrorBoundary>
               <Suspense fallback={<PageFallback />}>
@@ -156,6 +159,7 @@ const App = () => (
                     {renderProtectedRoleRoute({ routeKey: "lgpdAdminInventoryForm", element: <InventoryForm /> })}
                     {renderProtectedRoleRoute({ routeKey: "lgpdAdminInventoryEdit", element: <InventoryForm /> })}
                     {renderProtectedRoleRoute({ routeKey: "administracao", element: <Administracao /> })}
+                    {renderProtectedRoleRoute({ routeKey: "ctoDemoSandbox", element: <CTODemoSandbox /> })}
                   </Route>
 
                   <Route path="/privacy-policy" element={<Navigate to={APP_PATHS.privacyPolicy} replace />} />
