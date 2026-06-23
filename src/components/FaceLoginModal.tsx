@@ -18,12 +18,12 @@ import {
     DialogTitle,
 } from "@/components/ui/dialog";
 import { toast } from "@/hooks/use-toast";
-import { useNavigate } from "react-router-dom";
 import { loginWithFace } from "@/service/auth.service";
 import { useAuth } from "@/context/AuthContext";
 import { getServiceErrorMessage } from "@/service/helpers/service-error.helper";
 import { isBiometricLivenessRequired } from "@/config/biometric";
 import { safeLogger } from "@/utils/security/safeLogger";
+import { usePostLoginRedirect } from "@/hooks/usePostLoginRedirect";
 
 interface FaceLoginModalProps {
     isOpen: boolean;
@@ -45,8 +45,8 @@ const FaceLoginModal = ({ isOpen, onOpenChange }: FaceLoginModalProps) => {
 
     const videoRef = useRef<HTMLVideoElement>(null);
     const canvasRef = useRef<HTMLCanvasElement>(null);
-    const navigate = useNavigate();
     const { login } = useAuth();
+    const { redirectAfterLogin } = usePostLoginRedirect();
 
     const isValidCapturedImage = useCallback((capturedDataUrl: string | null) => {
         return Boolean(capturedDataUrl?.startsWith("data:image/") && capturedDataUrl.length > 100);
@@ -184,7 +184,7 @@ const FaceLoginModal = ({ isOpen, onOpenChange }: FaceLoginModalProps) => {
             });
             stopWebcam();
             onOpenChange(false);
-            navigate("/dashboard", { replace: true });
+            await redirectAfterLogin();
         } catch (error: unknown) {
             toast.error(
                 getServiceErrorMessage(error, "Rosto não reconhecido ou não cadastrado.")

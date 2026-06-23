@@ -2,6 +2,10 @@ import { api } from "@/config/api";
 import { API_ROUTES, AUTH_PATHS, buildRoute } from "@/config/api-routes";
 import type { RecoverPasswordPayload, ResetPasswordPayload } from "@/types/auth";
 
+export interface SwitchCompanyPayload {
+    companyId: string;
+}
+
 export interface LoginPayload {
     username: string;
     password: string;
@@ -48,4 +52,13 @@ export const recoverPasswordRequest = async (payload: RecoverPasswordPayload): P
  */
 export const resetPassword = async (payload: ResetPasswordPayload): Promise<void> => {
     await api.post(buildRoute(API_ROUTES.AUTH, AUTH_PATHS.RESET_PASSWORD), payload);
+};
+
+/**
+ * Troca a empresa ativa do usuário autenticado.
+ * O backend reemite o cookie JWT com o novo activeCompanyId.
+ * Após a chamada, recarregar a página para aplicar o novo contexto.
+ */
+export const switchCompany = async (companyId: string): Promise<void> => {
+    await api.post(buildRoute(API_ROUTES.AUTH, AUTH_PATHS.SWITCH_COMPANY), { companyId } satisfies SwitchCompanyPayload);
 };

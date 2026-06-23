@@ -5,6 +5,7 @@ import {
   Building2,
   ChevronLeft,
   Edit3,
+  Link2,
   PlusCircle,
   Search,
   Sparkles,
@@ -79,6 +80,18 @@ const ACTIONS: EmpresaAction[] = [
     accentText: "text-[#5B21B6]",
     ctaLabel: "Atualizar dados",
     path: APP_PATHS.empresaAtualizar,
+  },
+  {
+    key: "multi-acesso",
+    label: "Multiempresa",
+    title: "Acesso multiempresa",
+    description: "Vincule um usuário existente a uma nova empresa sem criar novo cadastro.",
+    icon: Link2,
+    tone: "from-[#D97706] to-[#F59E0B]",
+    accentBg: "bg-[#FEF3C7]",
+    accentText: "text-[#B45309]",
+    ctaLabel: "Gerenciar acessos",
+    path: APP_PATHS.empresaMultiAcesso,
   },
 ];
 

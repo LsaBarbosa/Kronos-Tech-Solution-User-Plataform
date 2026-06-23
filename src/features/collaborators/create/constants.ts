@@ -70,38 +70,7 @@ export const COLLABORATOR_LONG_DAY_OPTIONS = [
   { value: "SUNDAY", label: "Domingo" },
 ] as const;
 
-export const COLLABORATOR_DESKTOP_STEPS = [
-  {
-    number: "1",
-    title: "Dados",
-    description: "Cadastro pessoal e profissional.",
-  },
-  {
-    number: "2",
-    title: "Escala",
-    description: "Configuração da escala e da jornada.",
-  },
-  {
-    number: "3",
-    title: "Jornada",
-    description: "Entrada, intervalo e saída.",
-  },
-  {
-    number: "4",
-    title: "Acesso",
-    description: "Vínculo do usuário e perfil.",
-  },
-] as const;
-
 export const COLLABORATOR_MOBILE_STEPS = [
-  { number: "1", title: "Dados" },
-  { number: "2", title: "Escala" },
-  { number: "3", title: "Acesso" },
-] as const;
-
-export const COLLABORATOR_FLOW_RULES = [
-  "CPF precisa ser validado antes de salvar o colaborador.",
-  "Usuário só pode ser criado depois de existir employeeId.",
-  "Username precisa ser validado antes de concluir o vínculo.",
-  "Home office desliga ou exige geolocalização conforme a escolha.",
+  { number: "1", title: "Dados e empresa" },
+  { number: "2", title: "Escala e jornada" },
 ] as const;

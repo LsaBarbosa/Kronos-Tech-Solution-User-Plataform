@@ -21,6 +21,7 @@ export const AUTH_PATHS = {
   RECOVER_PASSWORD: "recover-password",
   RESET_PASSWORD: "reset-password",
   LOGOUT: "logout",
+  SWITCH_COMPANY: "switch-company",
 } as const;
 
 export const TERMS_PATHS = {
@@ -92,12 +93,16 @@ export const USER_PATHS = {
   CHECK_USERNAME: "check-username",
   TOGGLE_ACTIVATE: (userId: string) => `toggle-activate/${userId}`,
   UPDATE: (userId: string) => `${userId}`,
+  ME_COMPANIES: "me/companies",
+  COMPANY_ACCESS: (userId: string) => `${userId}/company-access`,
 } as const;
 
 export const EMPLOYEE_PATHS = {
   CHECK_CPF: "check-cpf",
   OWN_PROFILE: "own-profile",
   MARK_MESSAGES_SEEN: "mark-messages-seen",
+  BY_COMPANY: (companyId: string) => `by-company/${companyId}`,
+  FIND_BY_CPF: "find-by-cpf",
 } as const;
 
 export const COMPANY_PATHS = {

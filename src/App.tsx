@@ -21,6 +21,7 @@ const Empresa = lazy(() => import("./pages/Empresa"));
 const CriarEmpresa = lazy(() => import("./pages/CriarEmpresa"));
 const BuscarEmpresa = lazy(() => import("./pages/BuscarEmpresa"));
 const AtualizarEmpresa = lazy(() => import("./pages/AtualizarEmpresa"));
+const EmpresaMultiAcesso = lazy(() => import("./pages/EmpresaMultiAcesso"));
 const RelatorioDetalhado = lazy(() => import("./pages/RelatorioDetalhado"));
 const EspelhoPonto = lazy(() => import("./pages/EspelhoPonto"));
 const AssinaturaPonto = lazy(() => import("./pages/AssinaturaPonto"));
@@ -72,6 +73,7 @@ const InventoryForm = lazy(() =>
 const PrivacyProcessingCatalog = lazy(() => import("./pages/PrivacyProcessingCatalog"));
 const PrivacyPolicy = lazy(() => import("./pages/PrivacyPolicy"));
 const PrivacyBiometricTerm = lazy(() => import("./pages/PrivacyBiometricTerm"));
+const SelecionarEmpresa = lazy(() => import("./pages/SelecionarEmpresa"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
 const PageFallback = () => (
@@ -116,6 +118,7 @@ const App = () => (
                   <Route path="/aviso" element={<Navigate to={APP_PATHS.avisos} replace />} />
 
                   <Route element={<ProtectedRoute />}>
+                    <Route path={APP_PATHS.selecionarEmpresa} element={<SelecionarEmpresa />} />
                     <Route path={APP_PATHS.dashboard} element={<Dashboard />} />
                     <Route path={APP_PATHS.relatorioDetalhado} element={<RelatorioDetalhado />} />
                     <Route path={APP_PATHS.espelhoPonto} element={<EspelhoPonto />} />
@@ -136,6 +139,7 @@ const App = () => (
                     {renderProtectedRoleRoute({ routeKey: "empresaCriar", element: <CriarEmpresa /> })}
                     {renderProtectedRoleRoute({ routeKey: "empresaBuscar", element: <BuscarEmpresa /> })}
                     {renderProtectedRoleRoute({ routeKey: "empresaAtualizar", element: <AtualizarEmpresa /> })}
+                    {renderProtectedRoleRoute({ routeKey: "empresaMultiAcesso", element: <EmpresaMultiAcesso /> })}
                     {renderProtectedRoleRoute({ routeKey: "auditoria", element: <AuditoriaFiscal /> })}
                     {renderProtectedRoleRoute({ routeKey: "criarColaborador", element: <CriarColaborador /> })}
                     {renderProtectedRoleRoute({ routeKey: "criarAdministrador", element: <CriarManager /> })}

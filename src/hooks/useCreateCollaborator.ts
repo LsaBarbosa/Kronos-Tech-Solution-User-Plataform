@@ -1,15 +1,14 @@
-import { type ChangeEvent, useCallback, useState } from "react";
+import { type ChangeEvent, useCallback, useEffect, useState } from "react";
+import { useNavigate } from "react-router-dom";
 import { useForm } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { toast } from "@/hooks/use-toast";
 import { preloadCsrfToken } from "@/service/csrf.service";
-import {
-  checkCpfAvailability,
-  checkUsernameAvailability,
-  createCollaborator,
-  createUser,
-} from "@/service/collaborator-management.service";
+import { checkCpfAvailability, createCollaborator } from "@/service/collaborator-management.service";
+import { findEmployeeByCpf } from "@/service/employee.service";
+import { fetchCompanyList } from "@/service/company.service";
+import { APP_PATHS } from "@/config/app-routes";
 import {
   cepMask,
   cpfMask,
@@ -23,7 +22,7 @@ import {
 } from "@/features/collaborators/create/constants";
 import { safeLogger } from "@/utils/security/safeLogger";
 
-const employeeSchema = z.object({
+const schema = z.object({
   nomeCompleto: z.string().min(2, "Nome deve ter pelo menos 2 caracteres"),
   cpf: z.string().length(14, "CPF deve ter 11 dígitos"),
   cargo: z.string().min(2, "Cargo deve ter pelo menos 2 caracteres"),
@@ -47,32 +46,55 @@ const employeeSchema = z.object({
   fixedWorkDays: z.array(z.string()).optional(),
 });
 
-const userSchema = z.object({
-  username: z.string().min(4, "Usuário deve ter pelo menos 4 caracteres"),
-  role: z.enum(["MANAGER", "PARTNER"]),
-});
+export type CollaboratorFormData = z.infer<typeof schema>;
 
-const formSchema = employeeSchema.extend({
-  username: z.string().optional(),
-  role: z.enum(["MANAGER", "PARTNER"]).optional(),
-});
-
-export type CollaboratorFormData = z.infer<typeof employeeSchema> & z.infer<typeof userSchema>;
+export interface CompanyOption {
+  companyId: string;
+  companyName: string;
+}
 
 export const useCreateCollaborator = () => {
+  const navigate = useNavigate();
+
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
-  const [savedEmployeeId, setSavedEmployeeId] = useState<string | null>(null);
-  const [stepCompleted, setStepCompleted] = useState(false);
   const [cpfAvailability, setCpfAvailability] = useState<"available" | "unavailable" | "checking" | null>(null);
   const [isCheckingCPF, setIsCheckingCPF] = useState(false);
-  const [usernameAvailability, setUsernameAvailability] = useState<"available" | "unavailable" | "checking" | null>(null);
-  const [isCheckingUsername, setIsCheckingUsername] = useState(false);
+  const [isAutoFilled, setIsAutoFilled] = useState(false);
+  const [autoFilledFrom, setAutoFilledFrom] = useState<string | undefined>(undefined);
   const [faceImageBase64, setFaceImageBase64] = useState<string | undefined>(undefined);
   const [fileName, setFileName] = useState<string | undefined>(undefined);
 
+  const [companies, setCompanies] = useState<CompanyOption[]>([]);
+  const [isLoadingCompanies, setIsLoadingCompanies] = useState(true);
+  const [selectedCompanyId, setSelectedCompanyId] = useState<string | undefined>(undefined);
+
+  useEffect(() => {
+    let cancelled = false;
+    setIsLoadingCompanies(true);
+    // Carrega todas as empresas do sistema para qualquer role
+    void fetchCompanyList()
+      .then((list) => {
+        if (cancelled) return;
+        const options: CompanyOption[] = list
+          .filter((c) => c.active)
+          .map((c) => ({ companyId: c.id, companyName: c.name }));
+        setCompanies(options);
+        if (options.length === 1) setSelectedCompanyId(options[0].companyId);
+      })
+      .catch(() => {
+        if (!cancelled) toast({ title: "Erro ao carregar empresas", variant: "destructive" });
+      })
+      .finally(() => {
+        if (!cancelled) setIsLoadingCompanies(false);
+      });
+    return () => {
+      cancelled = true;
+    };
+  }, []);
+
   const form = useForm<CollaboratorFormData>({
-    resolver: zodResolver(formSchema),
+    resolver: zodResolver(schema),
     defaultValues: {
       nomeCompleto: "",
       cpf: "",
@@ -89,30 +111,23 @@ export const useCreateCollaborator = () => {
       breakEndTime: "13:00",
       scheduleType: "TRADITIONAL_5X2",
       fixedWorkDays: ["MONDAY", "TUESDAY", "WEDNESDAY", "THURSDAY", "FRIDAY"],
-      username: "",
-      role: "PARTNER",
     },
   });
 
   const selectedScheduleType = form.watch("scheduleType");
 
-  const maskCPF = useCallback((value: string) => {
-    return cpfMask(value);
-  }, []);
-
-  const maskPhone = useCallback((value: string) => {
-    return phoneMask(value);
-  }, []);
-
-  const maskCEP = useCallback((value: string) => {
-    return cepMask(value);
-  }, []);
-
-  const maskCurrency = useCallback((value: string) => {
-    return currencyMask(value);
-  }, []);
+  const maskCPF = useCallback((value: string) => cpfMask(value), []);
+  const maskPhone = useCallback((value: string) => phoneMask(value), []);
+  const maskCEP = useCallback((value: string) => cepMask(value), []);
+  const maskCurrency = useCallback((value: string) => currencyMask(value), []);
 
   const handleToggleSidebar = useCallback(() => setSidebarOpen((prev) => !prev), []);
+
+  const resetCpfStatus = useCallback(() => {
+    setCpfAvailability(null);
+    setIsAutoFilled(false);
+    setAutoFilledFrom(undefined);
+  }, []);
 
   const handleImageUpload = useCallback((event: ChangeEvent<HTMLInputElement>) => {
     const file = event.target.files?.[0];
@@ -120,8 +135,7 @@ export const useCreateCollaborator = () => {
       setFileName(file.name);
       const reader = new FileReader();
       reader.onloadend = () => {
-        const base64String = reader.result as string;
-        const base64Data = base64String.split(",")[1];
+        const base64Data = (reader.result as string).split(",")[1];
         setFaceImageBase64(base64Data);
       };
       reader.readAsDataURL(file);
@@ -137,7 +151,7 @@ export const useCreateCollaborator = () => {
 
     if (cpf.length !== 11) {
       toast({
-        title: "Erro de validação",
+        title: "CPF inválido",
         description: "O CPF deve ter 11 dígitos.",
         variant: "destructive",
       });
@@ -145,264 +159,177 @@ export const useCreateCollaborator = () => {
       return;
     }
 
+    if (!selectedCompanyId) {
+      toast({
+        title: "Selecione uma empresa",
+        description: "Escolha a empresa antes de verificar o CPF.",
+        variant: "destructive",
+      });
+      return;
+    }
+
     setIsCheckingCPF(true);
     setCpfAvailability("checking");
+    setIsAutoFilled(false);
+    setAutoFilledFrom(undefined);
 
     try {
-      const available = await checkCpfAvailability(cpf);
-      setCpfAvailability(available ? "available" : "unavailable");
-      toast({
-        title: available ? "CPF disponível!" : "CPF indisponível",
-        description: available
-          ? "Você pode usar este CPF para o registro."
-          : "Este CPF já está cadastrado no sistema.",
-        variant: available ? "default" : "destructive",
-      });
+      // 1. Verifica se o CPF já existe na empresa selecionada (bloqueia duplicata)
+      const existsInTarget = !(await checkCpfAvailability(cpf, selectedCompanyId));
+      if (existsInTarget) {
+        setCpfAvailability("unavailable");
+        toast({
+          title: "CPF já cadastrado nessa empresa",
+          description: "Esse colaborador já existe na empresa selecionada.",
+          variant: "destructive",
+        });
+        return;
+      }
+
+      // 2. Busca globalmente para preencher automaticamente
+      const existing = await findEmployeeByCpf(cpf);
+      if (existing) {
+        const phone = (existing.phone ?? "").replace(/\D/g, "");
+        form.setValue("nomeCompleto", existing.fullName);
+        form.setValue("cargo", existing.jobPosition);
+        form.setValue("email", existing.email);
+        form.setValue("telefone", phoneMask(phone));
+        if (existing.salary != null) {
+          form.setValue("salario", currencyMask(String(Math.round(existing.salary * 100))));
+        }
+        form.setValue("homeOffice", existing.homeOffice ? "true" : "false");
+        if (existing.workStartTime) form.setValue("workStartTime", existing.workStartTime);
+        if (existing.workEndTime) form.setValue("workEndTime", existing.workEndTime);
+        if (existing.breakStartTime) form.setValue("breakStartTime", existing.breakStartTime);
+        if (existing.breakEndTime) form.setValue("breakEndTime", existing.breakEndTime);
+        if (existing.scheduleType) form.setValue("scheduleType", existing.scheduleType);
+        if (existing.scaleStartDate) form.setValue("scaleStartDate", existing.scaleStartDate);
+        if (existing.preferredDayOff) form.setValue("preferredDayOff", existing.preferredDayOff);
+        if (existing.weekendOffIndex != null) form.setValue("weekendOffIndex", String(existing.weekendOffIndex));
+        if (existing.fixedWorkDays?.length) form.setValue("fixedWorkDays", existing.fixedWorkDays);
+        if (existing.address?.postalCode) {
+          form.setValue("cep", existing.address.postalCode.replace(/\D/g, "").replace(/^(\d{5})(\d{3})$/, "$1-$2"));
+          form.setValue("numero", existing.address.number ?? "");
+        }
+        setIsAutoFilled(true);
+        setAutoFilledFrom(existing.companyName);
+        setCpfAvailability("available");
+        toast({
+          title: "Dados preenchidos automaticamente",
+          description: `CPF encontrado em "${existing.companyName}". Revise os dados e salve para registrar nessa empresa.`,
+        });
+      } else {
+        setCpfAvailability("available");
+        toast({
+          title: "CPF disponível",
+          description: "Nenhum cadastro anterior encontrado. Preencha os dados manualmente.",
+        });
+      }
     } catch (error) {
-      safeLogger.error("Erro na comunicação com a API:", error);
-      toast({ title: "Erro de rede", description: "Falha ao conectar com o servidor.", variant: "destructive" });
+      safeLogger.error("Erro ao verificar CPF:", error);
+      toast({
+        title: "Erro de rede",
+        description: "Falha ao conectar com o servidor.",
+        variant: "destructive",
+      });
       setCpfAvailability(null);
     } finally {
       setIsCheckingCPF(false);
     }
-  }, [form]);
+  }, [form, selectedCompanyId]);
 
-  const handleCheckUsername = useCallback(async () => {
-    if (!stepCompleted) {
-      toast({
-        title: "Passo Incompleto",
-        description: "Por favor, conclua primeiro o cadastro do Colaborador (Passo 1).",
-        variant: "destructive",
-      });
-      setUsernameAvailability(null);
-      return;
-    }
+  const handleCreateEmployee = useCallback(
+    async (data: CollaboratorFormData) => {
+      if (isSubmitting) return false;
 
-    const username = form.getValues("username");
-    const usernameValidation = userSchema.pick({ username: true }).safeParse({ username });
+      if (!selectedCompanyId) {
+        toast({ title: "Selecione uma empresa", description: "Escolha a empresa de destino antes de salvar.", variant: "destructive" });
+        return false;
+      }
 
-    if (!usernameValidation.success) {
-      toast({
-        title: "Erro de validação",
-        description: "O nome de usuário deve ter pelo menos 4 caracteres.",
-        variant: "destructive",
-      });
-      setUsernameAvailability(null);
-      return;
-    }
+      if (cpfAvailability !== "available") {
+        toast({
+          title: "Ação pendente",
+          description: "Verifique a disponibilidade do CPF antes de continuar.",
+          variant: "destructive",
+        });
+        return false;
+      }
 
-    setIsCheckingUsername(true);
-    setUsernameAvailability("checking");
+      setIsSubmitting(true);
+      try {
+        await preloadCsrfToken();
+        await createCollaborator({
+          fullName: data.nomeCompleto,
+          cpf: data.cpf.replace(/\D/g, ""),
+          jobPosition: data.cargo,
+          email: data.email,
+          salary: currencyValue(data.salario),
+          phone: data.telefone.replace(/\D/g, ""),
+          homeOffice: data.homeOffice === "true",
+          faceImageBase64,
+          address: {
+            postalCode: data.cep.replace(/\D/g, ""),
+            number: data.numero,
+          },
+          workStartTime: data.workStartTime,
+          workEndTime: data.workEndTime,
+          breakStartTime: data.breakStartTime,
+          breakEndTime: data.breakEndTime,
+          scheduleType: data.scheduleType,
+          scaleStartDate: data.scaleStartDate || null,
+          preferredDayOff: data.preferredDayOff || null,
+          weekendOffIndex: data.weekendOffIndex ? parseInt(data.weekendOffIndex) : null,
+          fixedWorkDays: data.fixedWorkDays || [],
+          companyId: selectedCompanyId,
+        });
 
-    try {
-      const available = await checkUsernameAvailability(username);
-      setUsernameAvailability(available ? "available" : "unavailable");
-      toast({
-        title: available ? "Nome de usuário disponível!" : "Nome de usuário indisponível",
-        description: available
-          ? "Você pode usar este nome de usuário para o registro."
-          : "Este nome de usuário já está em uso.",
-        variant: available ? "default" : "destructive",
-      });
-    } catch (error) {
-      safeLogger.error("Erro na comunicação com a API:", error);
-      toast({ title: "Erro de rede", description: "Falha ao conectar com o servidor.", variant: "destructive" });
-      setUsernameAvailability(null);
-    } finally {
-      setIsCheckingUsername(false);
-    }
-  }, [form, stepCompleted]);
+        const companyName = companies.find((c) => c.companyId === selectedCompanyId)?.companyName ?? "";
+        toast({
+          title: "Colaborador criado!",
+          description: `${data.nomeCompleto} foi cadastrado${companyName ? ` em ${companyName}` : ""}.`,
+        });
+        navigate(APP_PATHS.listaColaboradores);
+        return true;
+      } catch (error) {
+        safeLogger.error("Erro ao criar colaborador:", error);
+        toast({
+          title: "Erro ao cadastrar colaborador",
+          description: error instanceof Error ? error.message : "Tente novamente mais tarde.",
+          variant: "destructive",
+        });
+        return false;
+      } finally {
+        setIsSubmitting(false);
+      }
+    },
+    [isSubmitting, cpfAvailability, faceImageBase64, selectedCompanyId, companies, navigate]
+  );
 
-  const handleCreateEmployee = useCallback(async (data: CollaboratorFormData) => {
-    // Guard against multiple concurrent submissions
-    if (isSubmitting) {
-      return;
-    }
-
-    setIsSubmitting(true);
-
-    const employeeValidation = employeeSchema.safeParse(data);
-    if (!employeeValidation.success) {
-      toast({
-        title: "Erro de validação",
-        description: "Preencha corretamente os Dados do Colaborador (Passo 1).",
-        variant: "destructive",
-      });
-      setIsSubmitting(false);
-      return;
-    }
-
-    if (cpfAvailability !== "available") {
-      toast({
-        title: "Ação Pendente",
-        description: "É necessário verificar a disponibilidade do CPF antes de continuar.",
-        variant: "destructive",
-      });
-      setIsSubmitting(false);
-      return;
-    }
-
-    try {
-      // Pre-load CSRF token before making the request
-      await preloadCsrfToken();
-      const employeePayload = {
-        fullName: data.nomeCompleto,
-        cpf: data.cpf.replace(/\D/g, ""),
-        jobPosition: data.cargo,
-        email: data.email,
-        salary: currencyValue(data.salario),
-        phone: data.telefone.replace(/\D/g, ""),
-        homeOffice: data.homeOffice === "true",
-        faceImageBase64,
-        address: {
-          postalCode: data.cep.replace(/\D/g, ""),
-          number: data.numero,
-        },
-        workStartTime: data.workStartTime,
-        workEndTime: data.workEndTime,
-        breakStartTime: data.breakStartTime,
-        breakEndTime: data.breakEndTime,
-        scheduleType: data.scheduleType,
-        scaleStartDate: data.scaleStartDate || null,
-        preferredDayOff: data.preferredDayOff || null,
-        weekendOffIndex: data.weekendOffIndex ? parseInt(data.weekendOffIndex) : null,
-        fixedWorkDays: data.fixedWorkDays || [],
-      };
-
-      const employeeData = await createCollaborator(employeePayload);
-      setSavedEmployeeId(employeeData.employeeId);
-      setStepCompleted(true);
-      toast({
-        title: "Colaborador criado!",
-        description: `O registro de ${data.nomeCompleto} foi salvo. Prossiga para vincular o acesso do usuário.`,
-      });
-      return true;
-    } catch (error) {
-      safeLogger.error("Erro no Passo 1 (Colaborador):", error);
-      toast({
-        title: "Erro ao cadastrar colaborador",
-        description: error instanceof Error ? error.message : "Tente novamente mais tarde.",
-        variant: "destructive",
-      });
-      return false;
-    } finally {
-      setIsSubmitting(false);
-    }
-  }, [isSubmitting, cpfAvailability, faceImageBase64]);
-
-  const handleCreateUser = useCallback(async (data: CollaboratorFormData) => {
-    // Guard against multiple concurrent submissions
-    if (isSubmitting) {
-      return;
-    }
-
-    setIsSubmitting(true);
-
-    const userValidation = userSchema.safeParse(data);
-    if (!userValidation.success) {
-      toast({
-        title: "Erro de validação",
-        description: "Preencha corretamente os Dados de Usuário (Passo 2).",
-        variant: "destructive",
-      });
-      setIsSubmitting(false);
-      return;
-    }
-
-    if (usernameAvailability !== "available") {
-      toast({
-        title: "Ação Pendente",
-        description: "É necessário verificar a disponibilidade do nome de usuário.",
-        variant: "destructive",
-      });
-      setIsSubmitting(false);
-      return;
-    }
-
-    if (!savedEmployeeId) {
-      toast({
-        title: "Erro de Fluxo",
-        description: "O ID do Colaborador não foi encontrado. Por favor, reinicie o cadastro.",
-        variant: "destructive",
-      });
-      setIsSubmitting(false);
-      return;
-    }
-
-    try {
-      // Pre-load CSRF token before making the request
-      await preloadCsrfToken();
-
-      const userPayload = {
-        username: data.username,
-        role: data.role,
-        employeeId: savedEmployeeId,
-      };
-
-      await createUser(userPayload);
-      toast({
-        title: "Cadastro Concluído!",
-        description: `O colaborador e o vínculo de acesso (${data.username}) foram criados com sucesso.`,
-      });
-      form.reset();
-      setSavedEmployeeId(null);
-      setStepCompleted(false);
-      setUsernameAvailability(null);
-      setFaceImageBase64(undefined);
-      setFileName(undefined);
-      return true;
-    } catch (error) {
-      safeLogger.error("Erro no Passo 2 (Usuário):", error);
-      toast({
-        title: "Erro ao criar usuário",
-        description: error instanceof Error ? error.message : "Tente novamente mais tarde.",
-        variant: "destructive",
-      });
-      return false;
-    } finally {
-      setIsSubmitting(false);
-    }
-  }, [isSubmitting, form, savedEmployeeId, usernameAvailability]);
-
-  const onSubmit = useCallback((data: CollaboratorFormData) => {
-    if (!stepCompleted) {
+  const onSubmit = useCallback(
+    (data: CollaboratorFormData) => {
       void handleCreateEmployee(data);
-    } else {
-      void handleCreateUser(data);
-    }
-  }, [handleCreateEmployee, handleCreateUser, stepCompleted]);
+    },
+    [handleCreateEmployee]
+  );
 
   const submitEmployee = useCallback(async () => {
     let success = false;
-
     await form.handleSubmit(async (data) => {
       success = (await handleCreateEmployee(data)) ?? false;
     })();
-
     return success;
   }, [form, handleCreateEmployee]);
-
-  const submitUser = useCallback(async () => {
-    let success = false;
-
-    await form.handleSubmit(async (data) => {
-      success = (await handleCreateUser(data)) ?? false;
-    })();
-
-    return success;
-  }, [form, handleCreateUser]);
 
   return {
     form,
     isSubmitting,
     sidebarOpen,
     handleToggleSidebar,
-    savedEmployeeId,
-    stepCompleted,
     cpfAvailability,
     isCheckingCPF,
-    usernameAvailability,
-    isCheckingUsername,
+    isAutoFilled,
+    autoFilledFrom,
     faceImageBase64,
     fileName,
     selectedScheduleType,
@@ -412,12 +339,15 @@ export const useCreateCollaborator = () => {
     maskCurrency,
     handleImageUpload,
     handleCheckCPF,
-    handleCheckUsername,
+    resetCpfStatus,
     submitEmployee,
-    submitUser,
     onSubmit,
     scheduleTypes: COLLABORATOR_SCHEDULE_OPTIONS,
     daysOfWeek: COLLABORATOR_LONG_DAY_OPTIONS,
+    companies,
+    isLoadingCompanies,
+    selectedCompanyId,
+    setSelectedCompanyId,
   };
 };
 

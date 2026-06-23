@@ -32,6 +32,7 @@ const defineRoute = (
 export const APP_PATHS = {
   root: "/",
   login: "/login",
+  selecionarEmpresa: "/selecionar-empresa",
   senhaPrimeiroAcesso: "/senha-primeiro-acesso",
   resetarSenha: "/resetar-senha",
   dashboard: "/dashboard",
@@ -46,6 +47,7 @@ export const APP_PATHS = {
   empresaCriar: "/empresa/criar",
   empresaBuscar: "/empresa/buscar",
   empresaAtualizar: "/empresa/atualizar",
+  empresaMultiAcesso: "/empresa/multi-acesso",
   documentos: "/documentos",
   enviarDocumentos: "/enviar-documentos",
   enviarDocumentoColaborador: "/enviar-documento-colaborador",
@@ -144,6 +146,15 @@ export const APP_ROUTE_META = {
       { label: "Atualizar Empresa", path: APP_PATHS.empresaAtualizar },
     ],
   }),
+  empresaMultiAcesso: defineRoute(APP_PATHS.empresaMultiAcesso, "Acesso Multiempresa", {
+    allowedRoles: ["CTO"],
+    showInMenu: false,
+    breadcrumbs: [
+      { label: "Início", path: APP_PATHS.dashboard },
+      { label: "Empresa", path: APP_PATHS.empresa },
+      { label: "Acesso Multiempresa", path: APP_PATHS.empresaMultiAcesso },
+    ],
+  }),
   documentos: defineRoute(APP_PATHS.documentos, "Buscar Documentos", {
     breadcrumbs: [{ label: "Início", path: APP_PATHS.dashboard }, { label: "Documentos", path: APP_PATHS.documentos }],
   }),
@@ -184,7 +195,7 @@ export const APP_ROUTE_META = {
     breadcrumbs: [{ label: "Início", path: APP_PATHS.dashboard }, { label: "Auditoria Fiscal", path: APP_PATHS.auditoria }],
   }),
   criarColaborador: defineRoute(APP_PATHS.criarColaborador, "Criar Colaborador", {
-    allowedRoles: ["MANAGER"],
+    allowedRoles: ["MANAGER", "CTO"],
     showInMenu: false,
     breadcrumbs: [
       { label: "Início", path: APP_PATHS.dashboard },
