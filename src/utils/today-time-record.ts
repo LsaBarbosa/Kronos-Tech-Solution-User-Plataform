@@ -101,6 +101,19 @@ const parseTodayDateValue = (value?: string | null): Date | null => {
     return null;
   }
 
+  // ISO with explicit timezone offset: extract components directly so the
+  // displayed time matches the offset in the string, not the local system TZ.
+  const isoWithTz = trimmed.match(
+    /^(\d{4})-(\d{2})-(\d{2})[T ](\d{2}):(\d{2})(?::(\d{2}))?[+-]\d{2}:\d{2}$/
+  );
+  if (isoWithTz) {
+    const [, year, month, day, hours, minutes, seconds = "0"] = isoWithTz;
+    return new Date(
+      Number(year), Number(month) - 1, Number(day),
+      Number(hours), Number(minutes), Number(seconds)
+    );
+  }
+
   const native = new Date(trimmed);
   if (!Number.isNaN(native.getTime())) {
     return native;

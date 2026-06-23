@@ -20,7 +20,7 @@ secretGroup = 2
 keywords = ["API_KEY"]
 severity = "HIGH"
 
-[[allowlist]]
+[allowlist]
 description = "Ignore test files"
 paths = [
   "src/**/*.test.ts",
