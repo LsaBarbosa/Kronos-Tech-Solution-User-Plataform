@@ -21,7 +21,7 @@ jobs:
           docker run --rm \
             -v "${{ github.workspace }}:/repo" \
             -w /repo \
-            zricethezav/gitleaks:v8.24.2 detect \
+            ghcr.io/gitleaks/gitleaks:v8.24.2 detect \
             --source . \
             --config .gitleaks.toml \
             --redact \

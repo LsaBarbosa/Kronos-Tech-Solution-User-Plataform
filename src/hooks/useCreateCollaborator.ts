@@ -194,7 +194,7 @@ export const useCreateCollaborator = () => {
         form.setValue("cargo", existing.jobPosition);
         form.setValue("email", existing.email);
         form.setValue("telefone", phoneMask(phone));
-        if (existing.salary != null) {
+        if (existing.salary !== null && existing.salary !== undefined) {
           form.setValue("salario", currencyMask(String(Math.round(existing.salary * 100))));
         }
         form.setValue("homeOffice", existing.homeOffice ? "true" : "false");
@@ -205,7 +205,7 @@ export const useCreateCollaborator = () => {
         if (existing.scheduleType) form.setValue("scheduleType", existing.scheduleType);
         if (existing.scaleStartDate) form.setValue("scaleStartDate", existing.scaleStartDate);
         if (existing.preferredDayOff) form.setValue("preferredDayOff", existing.preferredDayOff);
-        if (existing.weekendOffIndex != null) form.setValue("weekendOffIndex", String(existing.weekendOffIndex));
+        if (existing.weekendOffIndex !== null && existing.weekendOffIndex !== undefined) form.setValue("weekendOffIndex", String(existing.weekendOffIndex));
         if (existing.fixedWorkDays?.length) form.setValue("fixedWorkDays", existing.fixedWorkDays);
         if (existing.address?.postalCode) {
           form.setValue("cep", existing.address.postalCode.replace(/\D/g, "").replace(/^(\d{5})(\d{3})$/, "$1-$2"));
