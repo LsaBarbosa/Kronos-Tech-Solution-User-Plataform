@@ -41,7 +41,7 @@ export function LandingHeader() {
               <button
                 key={item.id}
                 onClick={() => scrollTo(item.id)}
-                className="px-3.5 py-2 rounded-lg text-sm font-medium text-[#64748B] hover:text-[#111827] hover:bg-[#F1F5F9] transition-all duration-150 cursor-pointer"
+                className="px-2.5 py-1.5 rounded-lg text-xs font-medium text-[#64748B] hover:text-[#111827] hover:bg-[#F1F5F9] transition-all duration-150 cursor-pointer"
               >
                 {item.label}
               </button>

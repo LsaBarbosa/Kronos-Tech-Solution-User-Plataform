@@ -3,6 +3,7 @@ import { LandingHero } from "@/components/landing/LandingHero";
 import { LandingFeatureGrid } from "@/components/landing/LandingFeatureGrid";
 import { LandingTimeManagement } from "@/components/landing/LandingTimeManagement";
 import { LandingPeopleDocuments } from "@/components/landing/LandingPeopleDocuments";
+import { LandingApprovals } from "@/components/landing/LandingApprovals";
 import { LandingDocumentSignature } from "@/components/landing/LandingDocumentSignature";
 import { LandingLegalFiscal } from "@/components/landing/LandingLegalFiscal";
 import { LandingLgpdSecurity } from "@/components/landing/LandingLgpdSecurity";
@@ -18,6 +19,7 @@ export default function CommercialLanding() {
         <LandingFeatureGrid />
         <LandingTimeManagement />
         <LandingPeopleDocuments />
+        <LandingApprovals />
         <LandingDocumentSignature />
         <LandingLegalFiscal />
         <LandingLgpdSecurity />
