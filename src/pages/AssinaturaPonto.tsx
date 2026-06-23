@@ -139,10 +139,10 @@ const AssinaturaPonto = () => {
       const base64 = capturedDataUrl.split(",")[1];
       if (!base64) return;
       const ok = await vm.sign(base64);
+      setCapturedDataUrl(null);
+      setCameraError(null);
       if (ok) {
-        setCapturedDataUrl(null);
         setConfirmChecked(false);
-        setCameraError(null);
       }
     },
     [confirmChecked, capturedDataUrl, vm]
