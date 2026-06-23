@@ -28,6 +28,7 @@ export interface CollaboratorCreationPayload {
   preferredDayOff: string | null;
   weekendOffIndex: number | null;
   fixedWorkDays: string[];
+  companyId?: string;
 }
 
 export interface CollaboratorCreationResponse {
@@ -83,8 +84,18 @@ const checkAvailabilityByStatus = async (
   }
 };
 
-export const checkCpfAvailability = async (cpf: string): Promise<boolean> =>
-  checkAvailabilityByStatus(buildRoute(API_ROUTES.EMPLOYEE, "check-cpf"), "cpf", cpf);
+export const checkCpfAvailability = async (cpf: string, companyId?: string): Promise<boolean> => {
+  try {
+    await api.get(buildRoute(API_ROUTES.EMPLOYEE, "check-cpf"), {
+      params: companyId ? { cpf, companyId } : { cpf },
+    });
+    return false;
+  } catch (error) {
+    const normalized = normalizeServiceError(error);
+    if (normalized.status === 404) return true;
+    throw normalized;
+  }
+};
 
 export const checkUsernameAvailability = async (
   username: string

@@ -19,18 +19,7 @@ const CreateCollaboratorPage = () => {
       return;
     }
 
-    if (mobileStep === 1) {
-      const success = await vm.submitEmployee();
-      if (success) {
-        setMobileStep(2);
-      }
-      return;
-    }
-
-    const success = await vm.submitUser();
-    if (success) {
-      setMobileStep(0);
-    }
+    await vm.submitEmployee();
   };
 
   return (

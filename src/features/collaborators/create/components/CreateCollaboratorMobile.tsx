@@ -1,8 +1,7 @@
 import { useMemo, type ReactNode } from "react";
-import { ShieldCheck, Sparkles, BadgeCheck, CheckCircle2 } from "lucide-react";
+import { Building2, WandSparkles } from "lucide-react";
 import { Link } from "react-router-dom";
 
-import { useAuth } from "@/context/AuthContext";
 import { APP_PATHS } from "@/config/app-routes";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -16,10 +15,8 @@ import type { UseCreateCollaboratorReturn } from "@/hooks/useCreateCollaborator"
 
 import {
   COLLABORATOR_DAY_OPTIONS,
-  COLLABORATOR_FLOW_RULES,
   COLLABORATOR_LONG_DAY_OPTIONS,
   COLLABORATOR_MOBILE_STEPS,
-  COLLABORATOR_ROLE_OPTIONS,
   COLLABORATOR_SCHEDULE_OPTIONS,
 } from "../constants";
 import {
@@ -27,7 +24,6 @@ import {
   formatScheduleSummary,
   getCpfVerificationLabel,
   getHomeOfficeLabel,
-  getUsernameVerificationLabel,
 } from "../utils/create-collaborator-formatters";
 import { StatusBadge } from "./StatusBadge";
 
@@ -100,11 +96,7 @@ const CreateCollaboratorMobile = ({
   onStepChange,
   onPrimaryAction,
 }: CreateCollaboratorMobileProps) => {
-  const { user } = useAuth();
-  const roleLabel = user?.role ?? "MANAGER";
-
   const cpfBadge = getCpfVerificationLabel(vm.cpfAvailability);
-  const usernameBadge = getUsernameVerificationLabel(vm.usernameAvailability);
   const homeOfficeLabel = getHomeOfficeLabel(vm.form.watch("homeOffice"));
   const selectedScheduleType = vm.form.watch("scheduleType");
   const scheduleSummary = formatScheduleSummary(selectedScheduleType, vm.form.watch("fixedWorkDays") ?? []);
@@ -118,28 +110,16 @@ const CreateCollaboratorMobile = ({
   const isSixByOne = selectedScheduleType?.includes("SIX_BY_ONE");
   const isRotating = selectedScheduleType?.startsWith("ROTATING");
 
+  const selectedCompanyName = vm.companies.find((c) => c.companyId === vm.selectedCompanyId)?.companyName ?? "";
+
   const actionLabel = useMemo(() => {
-    if (activeStep === 0) {
-      return "Próximo: Escala";
-    }
-
-    if (activeStep === 1) {
-      return "Salvar dados e continuar";
-    }
-
-    return "Concluir cadastro";
+    if (activeStep === 0) return "Próximo: Escala";
+    return "Criar colaborador";
   }, [activeStep]);
 
   const actionDescription = useMemo(() => {
-    if (activeStep === 0) {
-      return "Revise os dados pessoais antes de avançar.";
-    }
-
-    if (activeStep === 1) {
-      return "Salvar colaborador para liberar o vínculo de acesso.";
-    }
-
-    return "Username e perfil serão enviados para criação do vínculo.";
+    if (activeStep === 0) return "Revise os dados e a empresa antes de avançar.";
+    return "Confirme a escala e salve o colaborador.";
   }, [activeStep]);
 
   const handleCpfMask = (value: string) => vm.maskCPF(value);
@@ -159,14 +139,13 @@ const CreateCollaboratorMobile = ({
                 <div className="text-xs uppercase tracking-[0.18em] text-white/70">Onboarding</div>
               </div>
             </div>
-            <Badge variant="outline" className="rounded-full border-white/20 bg-white/10 px-3 py-1 text-[11px] font-semibold text-white">
-              {roleLabel}
-            </Badge>
           </div>
 
           <div className="mt-6">
             <h1 className="text-3xl font-semibold tracking-tight text-white">Novo cadastro</h1>
-            <p className="mt-1 text-sm text-white/78">Dados, escala e acesso.</p>
+            <p className="mt-1 text-sm text-white/78">
+              {selectedCompanyName ? `Empresa: ${selectedCompanyName}` : "Selecione a empresa e preencha os dados."}
+            </p>
           </div>
 
           <div className="mt-5 grid grid-cols-2 gap-2">
@@ -194,23 +173,19 @@ const CreateCollaboratorMobile = ({
 
       <main className="space-y-4 px-4 pb-[calc(env(safe-area-inset-bottom)+6.5rem)] pt-4 sm:px-6">
         <section className="rounded-[26px] border border-slate-200 bg-white p-3 shadow-sm">
-          <div className="grid grid-cols-1 gap-2 sm:grid-cols-3">
-            {COLLABORATOR_MOBILE_STEPS.map((step, index) => {
-              const locked = (vm.stepCompleted && index < 2) || (index === 2 && !vm.savedEmployeeId);
-
-              return (
-                <MobileStepHeader
-                  key={step.title}
-                  step={step.number}
-                  active={activeStep === index}
-                  locked={locked}
-                  onClick={locked ? undefined : () => onStepChange(index)}
-                />
-              );
-            })}
+          <div className="grid grid-cols-2 gap-2">
+            {COLLABORATOR_MOBILE_STEPS.map((step, index) => (
+              <MobileStepHeader
+                key={step.title}
+                step={step.number}
+                active={activeStep === index}
+                onClick={() => onStepChange(index)}
+              />
+            ))}
           </div>
         </section>
 
+        {/* ── Passo 1: Dados pessoais e empresa ── */}
         <Card
           className={cn(
             "overflow-hidden rounded-[28px] border bg-white shadow-[0_24px_60px_-48px_rgba(15,23,42,0.55)]",
@@ -220,8 +195,8 @@ const CreateCollaboratorMobile = ({
           <CardHeader className="gap-2 px-5 py-5">
             <div className="flex items-start justify-between gap-4">
               <div>
-                <CardTitle className="text-xl text-slate-900">1. Dados pessoais</CardTitle>
-                <CardDescription className="mt-1 text-sm text-slate-500">Nome, CPF, cargo, email e telefone.</CardDescription>
+                <CardTitle className="text-xl text-slate-900">1. Dados e empresa</CardTitle>
+                <CardDescription className="mt-1 text-sm text-slate-500">CPF, dados pessoais e empresa de destino.</CardDescription>
               </div>
               <StatusBadge label={cpfBadge.label} tone={cpfBadge.tone} description={cpfBadge.description} />
             </div>
@@ -229,6 +204,48 @@ const CreateCollaboratorMobile = ({
           <CardContent className="space-y-4 px-5 pb-5">
             {activeStep === 0 ? (
               <div className="space-y-4">
+                {/* Empresa */}
+                <div className="rounded-[20px] border border-blue-200 bg-blue-50/60 p-4">
+                  <div className="flex items-center gap-2 text-sm font-semibold text-blue-700">
+                    <Building2 className="h-4 w-4" />
+                    Empresa de destino
+                  </div>
+                  <div className="mt-2">
+                    {vm.isLoadingCompanies ? (
+                      <div className="h-12 animate-pulse rounded-xl bg-blue-100" />
+                    ) : (
+                      <Select
+                        value={vm.selectedCompanyId ?? ""}
+                        onValueChange={(value) => {
+                          vm.setSelectedCompanyId(value);
+                          vm.resetCpfStatus();
+                        }}
+                      >
+                        <SelectTrigger className="h-12 rounded-xl bg-white">
+                          <SelectValue placeholder="Selecione a empresa" />
+                        </SelectTrigger>
+                        <SelectContent>
+                          {vm.companies.map((company) => (
+                            <SelectItem key={company.companyId} value={company.companyId}>
+                              {company.companyName}
+                            </SelectItem>
+                          ))}
+                        </SelectContent>
+                      </Select>
+                    )}
+                  </div>
+                </div>
+
+                {/* Auto-fill banner */}
+                {vm.isAutoFilled && (
+                  <div className="flex items-start gap-2 rounded-[18px] border border-emerald-200 bg-emerald-50/80 px-4 py-3">
+                    <WandSparkles className="mt-0.5 h-4 w-4 shrink-0 text-emerald-600" />
+                    <p className="text-xs text-slate-700">
+                      Dados preenchidos automaticamente de <strong>{vm.autoFilledFrom}</strong>. Revise antes de salvar.
+                    </p>
+                  </div>
+                )}
+
                 <FormField
                   control={vm.form.control}
                   name="nomeCompleto"
@@ -262,13 +279,15 @@ const CreateCollaboratorMobile = ({
                         <Button
                           type="button"
                           onClick={vm.handleCheckCPF}
-                          disabled={vm.isCheckingCPF || field.value.replace(/\D/g, "").length < 11}
+                          disabled={vm.isCheckingCPF || !vm.selectedCompanyId || field.value.replace(/\D/g, "").length < 11}
                           className="h-12 w-full rounded-xl px-4 sm:w-auto"
                         >
-                          {vm.isCheckingCPF ? "Verificando" : "Validar"}
+                          {vm.isCheckingCPF ? "Verificando" : "Verificar"}
                         </Button>
                       </div>
-                      <FormDescription className="text-xs text-slate-500">A validação bloqueia duplicidade antes do envio.</FormDescription>
+                      <FormDescription className="text-xs text-slate-500">
+                        Se o CPF existir no sistema, os dados serão preenchidos automaticamente.
+                      </FormDescription>
                       <FormMessage />
                     </FormItem>
                   )}
@@ -421,8 +440,8 @@ const CreateCollaboratorMobile = ({
               </div>
             ) : (
               <MobileCollapsedSummary
-                title="Dados pessoais prontos"
-                subtitle="Nome, CPF, cargo, email e telefone já foram validados para a próxima etapa."
+                title={vm.form.watch("nomeCompleto") || "Dados pessoais"}
+                subtitle={selectedCompanyName ? `Empresa: ${selectedCompanyName}` : "Dados preenchidos."}
                 badge={
                   <StatusBadge
                     label={cpfBadge.label}
@@ -436,6 +455,7 @@ const CreateCollaboratorMobile = ({
           </CardContent>
         </Card>
 
+        {/* ── Passo 2: Escala e jornada ── */}
         <Card
           className={cn(
             "overflow-hidden rounded-[28px] border bg-white shadow-[0_24px_60px_-48px_rgba(15,23,42,0.55)]",
@@ -450,14 +470,9 @@ const CreateCollaboratorMobile = ({
               </div>
               <Badge
                 variant="outline"
-                className={cn(
-                  "rounded-full px-3 py-1 text-[11px] font-semibold",
-                  vm.stepCompleted
-                    ? "border-emerald-200 bg-emerald-50 text-emerald-700"
-                    : "border-amber-200 bg-amber-50 text-amber-800"
-                )}
+                className="rounded-full px-3 py-1 text-[11px] font-semibold border-slate-200 bg-slate-50 text-slate-700"
               >
-                {vm.stepCompleted ? "Concluída" : "Pendente"}
+                {scheduleSummary}
               </Badge>
             </div>
           </CardHeader>
@@ -492,7 +507,7 @@ const CreateCollaboratorMobile = ({
                   )}
                 />
 
-                {selectedScheduleType?.startsWith("ROTATING") && (
+                {isRotating && (
                   <FormField
                     control={vm.form.control}
                     name="scaleStartDate"
@@ -689,149 +704,9 @@ const CreateCollaboratorMobile = ({
               </div>
             ) : (
               <MobileCollapsedSummary
-                title="Escala pronta"
-                subtitle={journeySummary || "Escolha a escala e formalize a jornada antes de salvar."}
+                title="Escala configurada"
+                subtitle={journeySummary || "Avance para configurar a jornada."}
                 badge={<StatusBadge label={scheduleSummary} tone="info" description="Resumo operacional." className="w-full justify-between rounded-[18px]" />}
-              />
-            )}
-          </CardContent>
-        </Card>
-
-        <Card
-          className={cn(
-            "overflow-hidden rounded-[28px] border bg-white shadow-[0_24px_60px_-48px_rgba(15,23,42,0.55)]",
-            activeStep === 2 ? "border-blue-200 ring-1 ring-blue-100" : "border-slate-200"
-          )}
-        >
-          <CardHeader className="gap-2 px-5 py-5">
-            <div className="flex items-start justify-between gap-4">
-              <div>
-                <CardTitle className="text-xl text-slate-900">3. Acesso do usuário</CardTitle>
-                <CardDescription className="mt-1 text-sm text-slate-500">Username e perfil MANAGER/PARTNER.</CardDescription>
-              </div>
-              <Badge
-                variant="outline"
-                className={cn(
-                  "rounded-full px-3 py-1 text-[11px] font-semibold",
-                  vm.savedEmployeeId
-                    ? "border-emerald-200 bg-emerald-50 text-emerald-700"
-                    : "border-amber-200 bg-amber-50 text-amber-800"
-                )}
-              >
-                {vm.savedEmployeeId ? "Pronto" : "Pendente"}
-              </Badge>
-            </div>
-          </CardHeader>
-          <CardContent className="space-y-4 px-5 pb-5">
-            {activeStep === 2 ? (
-              <div className="space-y-4">
-                  <div className={cn("rounded-[24px] border px-4 py-4", vm.stepCompleted ? "border-emerald-200 bg-emerald-50" : "border-amber-200 bg-amber-50")}>
-                  <div className="flex items-start gap-3">
-                    {vm.stepCompleted ? (
-                      <CheckCircle2 className="mt-0.5 h-5 w-5 text-emerald-600" />
-                    ) : (
-                      <BadgeCheck className="mt-0.5 h-5 w-5 text-amber-600" />
-                    )}
-                    <div className="min-w-0">
-                      <div className="text-sm font-semibold text-slate-900">
-                        {vm.stepCompleted ? "Colaborador salvo" : "Passo 1 bloqueado"}
-                      </div>
-                      <div className="mt-1 text-sm text-slate-600">
-                        {vm.stepCompleted
-                          ? "Agora é possível validar username e concluir o vínculo."
-                          : "Salve os dados pessoais e a escala antes de criar o acesso."}
-                      </div>
-                    </div>
-                  </div>
-                </div>
-
-                <FormField
-                  control={vm.form.control}
-                  name="username"
-                  render={({ field }) => (
-                    <FormItem>
-                      <div className="flex items-center justify-between gap-3">
-                        <FormLabel>Nome de usuário</FormLabel>
-                        <StatusBadge label={usernameBadge.label} tone={usernameBadge.tone} description={usernameBadge.description} />
-                      </div>
-                      <div className="flex flex-col gap-2 sm:flex-row">
-                        <FormControl>
-                          <Input
-                            placeholder="mariana.costa"
-                            className="h-12 min-w-0 rounded-xl"
-                            disabled={!vm.stepCompleted}
-                            {...field}
-                          />
-                        </FormControl>
-                        <Button
-                          type="button"
-                          onClick={vm.handleCheckUsername}
-                          disabled={vm.isCheckingUsername || !vm.stepCompleted || field.value.length < 4}
-                          className="h-12 w-full rounded-xl px-4 sm:w-auto"
-                        >
-                          {vm.isCheckingUsername ? "Validando" : "Validar"}
-                        </Button>
-                      </div>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <FormField
-                  control={vm.form.control}
-                  name="role"
-                  render={({ field }) => (
-                    <FormItem>
-                      <FormLabel>Perfil</FormLabel>
-                      <Select onValueChange={field.onChange} value={field.value} disabled={!vm.stepCompleted}>
-                        <FormControl>
-                          <SelectTrigger className="h-12 rounded-xl">
-                            <SelectValue placeholder="Selecione o perfil" />
-                          </SelectTrigger>
-                        </FormControl>
-                        <SelectContent>
-                          {COLLABORATOR_ROLE_OPTIONS.map((option) => (
-                            <SelectItem key={option.value} value={option.value}>
-                              <div className="flex flex-col">
-                                <span>{option.label}</span>
-                                <span className="text-xs text-slate-500">{option.description}</span>
-                              </div>
-                            </SelectItem>
-                          ))}
-                        </SelectContent>
-                      </Select>
-                      <FormMessage />
-                    </FormItem>
-                  )}
-                />
-
-                <div className="rounded-[24px] border border-violet-200 bg-violet-50 p-4">
-                  <div className="flex items-center gap-2 text-sm font-semibold text-violet-700">
-                    <ShieldCheck className="h-4 w-4" />
-                    Regra de fluxo
-                  </div>
-                  <ul className="mt-3 space-y-2 text-sm leading-5 text-slate-600">
-                    {COLLABORATOR_FLOW_RULES.map((rule) => (
-                      <li key={rule} className="flex gap-2">
-                        <span className="mt-2 h-1.5 w-1.5 rounded-full bg-violet-400" />
-                        <span>{rule}</span>
-                      </li>
-                    ))}
-                  </ul>
-                </div>
-
-                <StatusBadge
-                  label={vm.savedEmployeeId ? "CPF verificado" : "CPF pendente"}
-                  tone={vm.savedEmployeeId ? "success" : "warning"}
-                  description={vm.savedEmployeeId ? "Agora o vínculo pode ser finalizado." : "O acesso continua bloqueado."}
-                  className="w-full justify-between rounded-[18px]"
-                />
-              </div>
-            ) : (
-              <MobileCollapsedSummary
-                title="Acesso bloqueado"
-                subtitle="Username e perfil serão liberados após salvar os dados e a escala."
-                badge={<StatusBadge label={usernameBadge.label} tone={usernameBadge.tone} description={usernameBadge.description} className="w-full justify-between rounded-[18px]" />}
               />
             )}
           </CardContent>
@@ -847,10 +722,14 @@ const CreateCollaboratorMobile = ({
           <Button
             type="button"
             onClick={() => void onPrimaryAction()}
-            disabled={vm.isSubmitting || (activeStep === 1 && (vm.cpfAvailability !== "available" || vm.stepCompleted)) || (activeStep === 2 && (!vm.stepCompleted || vm.usernameAvailability !== "available"))}
+            disabled={
+              vm.isSubmitting ||
+              (activeStep === 0 && (!vm.selectedCompanyId || vm.cpfAvailability !== "available")) ||
+              (activeStep === 1 && vm.isSubmitting)
+            }
             className="h-12 w-full rounded-2xl px-5 sm:w-auto"
           >
-            {vm.isSubmitting ? "Aguarde..." : actionLabel}
+            {vm.isSubmitting ? "Salvando..." : actionLabel}
           </Button>
         </div>
       </div>

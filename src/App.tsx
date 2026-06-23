@@ -21,6 +21,7 @@ const Empresa = lazy(() => import("./pages/Empresa"));
 const CriarEmpresa = lazy(() => import("./pages/CriarEmpresa"));
 const BuscarEmpresa = lazy(() => import("./pages/BuscarEmpresa"));
 const AtualizarEmpresa = lazy(() => import("./pages/AtualizarEmpresa"));
+const EmpresaMultiAcesso = lazy(() => import("./pages/EmpresaMultiAcesso"));
 const RelatorioDetalhado = lazy(() => import("./pages/RelatorioDetalhado"));
 const EspelhoPonto = lazy(() => import("./pages/EspelhoPonto"));
 const AssinaturaPonto = lazy(() => import("./pages/AssinaturaPonto"));
@@ -136,6 +137,7 @@ const App = () => (
                     {renderProtectedRoleRoute({ routeKey: "empresaCriar", element: <CriarEmpresa /> })}
                     {renderProtectedRoleRoute({ routeKey: "empresaBuscar", element: <BuscarEmpresa /> })}
                     {renderProtectedRoleRoute({ routeKey: "empresaAtualizar", element: <AtualizarEmpresa /> })}
+                    {renderProtectedRoleRoute({ routeKey: "empresaMultiAcesso", element: <EmpresaMultiAcesso /> })}
                     {renderProtectedRoleRoute({ routeKey: "auditoria", element: <AuditoriaFiscal /> })}
                     {renderProtectedRoleRoute({ routeKey: "criarColaborador", element: <CriarColaborador /> })}
                     {renderProtectedRoleRoute({ routeKey: "criarAdministrador", element: <CriarManager /> })}
