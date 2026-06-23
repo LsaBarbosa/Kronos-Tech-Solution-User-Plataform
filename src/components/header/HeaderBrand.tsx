@@ -19,7 +19,7 @@ const HeaderBrand = ({ variant }: HeaderBrandProps) => {
         aria-hidden="true"
         className={cn(
           "w-auto object-contain",
-          variant === "desktop" ? "h-10" : "h-10 max-w-[190px]"
+          variant === "desktop" ? "h-10" : "h-14 max-w-[220px]"
         )}
       />
     </Link>
