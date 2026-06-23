@@ -158,7 +158,7 @@ describe("AdminLgpdRequests", () => {
 
     renderAdminRequests();
 
-    expect(await screen.findByText("Maria Souza")).toBeInTheDocument();
+    expect((await screen.findAllByText("Maria Souza")).length).toBeGreaterThan(0);
     expect(screen.getAllByText("—").length).toBeGreaterThan(0);
   });
 

@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
+import { MemoryRouter } from "react-router-dom";
 import PrivacyBiometricTerm from "./PrivacyBiometricTerm";
 import * as privacyService from "@/service/public-privacy.service";
 
@@ -31,7 +32,7 @@ describe("PrivacyBiometricTerm", () => {
       () => new Promise(() => {})
     );
 
-    const { container } = render(<PrivacyBiometricTerm />);
+    const { container } = render(<MemoryRouter><PrivacyBiometricTerm /></MemoryRouter>);
 
     expect(container.querySelector(".animate-spin")).toBeInTheDocument();
   });
@@ -41,7 +42,7 @@ describe("PrivacyBiometricTerm", () => {
       mockBiometricTerm
     );
 
-    render(<PrivacyBiometricTerm />);
+    render(<MemoryRouter><PrivacyBiometricTerm /></MemoryRouter>);
 
     await waitFor(() => {
       expect(screen.getByText("Termo de Biometria Facial")).toBeInTheDocument();
@@ -56,7 +57,7 @@ describe("PrivacyBiometricTerm", () => {
       mockBiometricTerm
     );
 
-    render(<PrivacyBiometricTerm />);
+    render(<MemoryRouter><PrivacyBiometricTerm /></MemoryRouter>);
 
     await waitFor(() => {
       expect(screen.getByText(/Versão 2026\.05\.1/)).toBeInTheDocument();
@@ -70,7 +71,7 @@ describe("PrivacyBiometricTerm", () => {
       new Error(errorMessage)
     );
 
-    render(<PrivacyBiometricTerm />);
+    render(<MemoryRouter><PrivacyBiometricTerm /></MemoryRouter>);
 
     await waitFor(() => {
       expect(screen.getByText("Erro ao Carregar")).toBeInTheDocument();
@@ -82,7 +83,7 @@ describe("PrivacyBiometricTerm", () => {
       mockBiometricTerm
     );
 
-    render(<PrivacyBiometricTerm />);
+    render(<MemoryRouter><PrivacyBiometricTerm /></MemoryRouter>);
 
     await waitFor(() => {
       expect(screen.getByText("O que é biometria")).toBeInTheDocument();
@@ -102,7 +103,7 @@ describe("PrivacyBiometricTerm", () => {
       mockBiometricTerm
     );
 
-    render(<PrivacyBiometricTerm />);
+    render(<MemoryRouter><PrivacyBiometricTerm /></MemoryRouter>);
 
     await waitFor(() => {
       expect(screen.getByText(/Informações Importantes/)).toBeInTheDocument();
@@ -126,7 +127,7 @@ describe("PrivacyBiometricTerm", () => {
       termWithRevocationInfo
     );
 
-    render(<PrivacyBiometricTerm />);
+    render(<MemoryRouter><PrivacyBiometricTerm /></MemoryRouter>);
 
     await waitFor(() => {
       expect(screen.getByText("Revogação")).toBeInTheDocument();
@@ -138,7 +139,7 @@ describe("PrivacyBiometricTerm", () => {
       mockBiometricTerm
     );
 
-    render(<PrivacyBiometricTerm />);
+    render(<MemoryRouter><PrivacyBiometricTerm /></MemoryRouter>);
 
     await waitFor(() => {
       expect(screen.getByText(/direito LGPD/i)).toBeInTheDocument();
@@ -150,7 +151,7 @@ describe("PrivacyBiometricTerm", () => {
       mockBiometricTerm
     );
 
-    render(<PrivacyBiometricTerm />);
+    render(<MemoryRouter><PrivacyBiometricTerm /></MemoryRouter>);
 
     await waitFor(() => {
       expect(screen.getByText(/encarregado de proteção de dados/)).toBeInTheDocument();

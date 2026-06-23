@@ -8,6 +8,14 @@ import type { PreviousMonthSignatureStatus } from "@/types/timesheet-signature";
 
 const toastMock = vi.fn();
 
+const cameraMock = vi.hoisted(() => ({
+  startCameraStream: vi.fn(),
+  stopCameraStream: vi.fn(),
+  captureFrameFromVideo: vi.fn(),
+}));
+
+vi.mock("@/utils/camera.util", () => cameraMock);
+
 vi.mock("@/hooks/use-toast", () => ({
   useToast: () => ({ toast: toastMock }),
 }));
@@ -111,7 +119,7 @@ describe("AssinaturaPonto", () => {
     expect(button).toBeDisabled();
   });
 
-  it("submete e limpa a senha após a tentativa", async () => {
+  it("submete e limpa a imagem após a tentativa", async () => {
     serviceMock.getMonthStatus.mockResolvedValueOnce(baseStatus());
     serviceMock.fetchMonthPreviewPdf.mockResolvedValueOnce({
       blob: new Blob([new Uint8Array([1, 2, 3])], { type: "application/pdf" }),
@@ -122,7 +130,7 @@ describe("AssinaturaPonto", () => {
       referenceMonth: 5,
       signedAt: "2026-06-01T12:00:00Z",
       signatureType: "INTERNAL_ADVANCED",
-      signatureMethod: "PASSWORD_REAUTH",
+      signatureMethod: "FACIAL_RECOGNITION",
       pointMirrorHashSha256: "hash-do-pdf",
       recordsSnapshotHashSha256: "hash-records",
       pointMirrorDocumentId: null,
@@ -140,6 +148,13 @@ describe("AssinaturaPonto", () => {
       })
     );
 
+    cameraMock.startCameraStream.mockResolvedValue({} as MediaStream);
+    cameraMock.captureFrameFromVideo.mockReturnValue("data:image/jpeg;base64,abc123");
+    Object.defineProperty(HTMLVideoElement.prototype, "play", {
+      configurable: true,
+      value: vi.fn().mockResolvedValue(undefined),
+    });
+
     const user = userEvent.setup();
     const openSpy = vi.spyOn(window, "open").mockReturnValue(null);
 
@@ -151,19 +166,29 @@ describe("AssinaturaPonto", () => {
     const checkbox = screen.getByRole("checkbox");
     await user.click(checkbox);
 
-    const password = screen.getByPlaceholderText(/Senha de acesso/i);
-    await user.type(password, "minha-senha-secreta");
+    // Inicia câmera
+    const cameraButton = screen.getByRole("button", { name: /Ativar câmera/i });
+    await user.click(cameraButton);
+
+    // Captura foto
+    const captureButton = await screen.findByRole("button", { name: /Capturar/i });
+    await user.click(captureButton);
+
+    // Foto aparece no DOM
+    expect(screen.getByAltText("Foto capturada")).toBeInTheDocument();
 
     const submit = screen.getByRole("button", { name: /Assinar ponto/i });
     await waitFor(() => expect(submit).not.toBeDisabled());
-
     await user.click(submit);
 
     await waitFor(() => expect(serviceMock.sign).toHaveBeenCalledTimes(1));
-    // Após sucesso, status muda para ALREADY_SIGNED e o formulário inteiro (incluindo o input
-    // de senha) é desmontado — a senha não permanece no DOM/state da página.
+    expect(serviceMock.sign).toHaveBeenCalledWith(
+      expect.objectContaining({ faceImageBase64: "abc123" })
+    );
+
+    // Após submissão (sucesso), imagem é limpa do estado
     await waitFor(() =>
-      expect(screen.queryByPlaceholderText(/Senha de acesso/i)).not.toBeInTheDocument()
+      expect(screen.queryByAltText("Foto capturada")).not.toBeInTheDocument()
     );
     openSpy.mockRestore();
   });

@@ -1,5 +1,6 @@
 import { describe, it, expect, vi, beforeEach } from "vitest";
 import { render, screen, waitFor } from "@testing-library/react";
+import { MemoryRouter } from "react-router-dom";
 import PrivacyProcessingCatalog from "./PrivacyProcessingCatalog";
 import * as privacyService from "@/service/public-privacy.service";
 
@@ -32,7 +33,7 @@ describe("PrivacyProcessingCatalog", () => {
       () => new Promise(() => {})
     );
 
-    const { container } = render(<PrivacyProcessingCatalog />);
+    const { container } = render(<MemoryRouter><PrivacyProcessingCatalog /></MemoryRouter>);
 
     expect(container.querySelector(".animate-spin")).toBeInTheDocument();
   });
@@ -42,7 +43,7 @@ describe("PrivacyProcessingCatalog", () => {
       mockProcessingCatalog
     );
 
-    render(<PrivacyProcessingCatalog />);
+    render(<MemoryRouter><PrivacyProcessingCatalog /></MemoryRouter>);
 
     await waitFor(() => {
       expect(screen.getByText("Catálogo de Tratamento de Dados")).toBeInTheDocument();
@@ -57,7 +58,7 @@ describe("PrivacyProcessingCatalog", () => {
       mockProcessingCatalog
     );
 
-    render(<PrivacyProcessingCatalog />);
+    render(<MemoryRouter><PrivacyProcessingCatalog /></MemoryRouter>);
 
     await waitFor(() => {
       expect(screen.getByText(/Versão 2026\.05\.1/)).toBeInTheDocument();
@@ -71,7 +72,7 @@ describe("PrivacyProcessingCatalog", () => {
       new Error(errorMessage)
     );
 
-    render(<PrivacyProcessingCatalog />);
+    render(<MemoryRouter><PrivacyProcessingCatalog /></MemoryRouter>);
 
     await waitFor(() => {
       expect(screen.getByText("Erro ao Carregar")).toBeInTheDocument();
@@ -83,7 +84,7 @@ describe("PrivacyProcessingCatalog", () => {
       mockProcessingCatalog
     );
 
-    render(<PrivacyProcessingCatalog />);
+    render(<MemoryRouter><PrivacyProcessingCatalog /></MemoryRouter>);
 
     await waitFor(() => {
       expect(screen.getByText("Categorias de Dados")).toBeInTheDocument();
@@ -97,7 +98,7 @@ describe("PrivacyProcessingCatalog", () => {
       mockProcessingCatalog
     );
 
-    render(<PrivacyProcessingCatalog />);
+    render(<MemoryRouter><PrivacyProcessingCatalog /></MemoryRouter>);
 
     await waitFor(() => {
       expect(screen.getByText("Finalidades")).toBeInTheDocument();
@@ -110,7 +111,7 @@ describe("PrivacyProcessingCatalog", () => {
       mockProcessingCatalog
     );
 
-    render(<PrivacyProcessingCatalog />);
+    render(<MemoryRouter><PrivacyProcessingCatalog /></MemoryRouter>);
 
     await waitFor(() => {
       expect(screen.getByText("Bases Legais")).toBeInTheDocument();
@@ -123,7 +124,7 @@ describe("PrivacyProcessingCatalog", () => {
       mockProcessingCatalog
     );
 
-    render(<PrivacyProcessingCatalog />);
+    render(<MemoryRouter><PrivacyProcessingCatalog /></MemoryRouter>);
 
     await waitFor(() => {
       expect(screen.getByText("Seus Direitos")).toBeInTheDocument();
@@ -137,7 +138,7 @@ describe("PrivacyProcessingCatalog", () => {
       mockProcessingCatalog
     );
 
-    render(<PrivacyProcessingCatalog />);
+    render(<MemoryRouter><PrivacyProcessingCatalog /></MemoryRouter>);
 
     await waitFor(() => {
       expect(screen.getByText("Retenção de Dados")).toBeInTheDocument();
