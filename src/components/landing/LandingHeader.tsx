@@ -3,6 +3,7 @@ import { Link } from "react-router-dom";
 import { Menu, X, ArrowRight } from "lucide-react";
 import logoAzul from "@/assets/brand/logo-azul.png";
 import { LANDING_NAV } from "@/data/landing-page";
+import { APP_PATHS } from "@/config/app-routes";
 
 export function LandingHeader() {
   const [menuOpen, setMenuOpen] = useState(false);
@@ -50,10 +51,16 @@ export function LandingHeader() {
           {/* Desktop CTAs */}
           <div className="hidden lg:flex items-center gap-2.5">
             <Link
-              to="/login"
+              to={APP_PATHS.senhaPrimeiroAcesso}
               className="px-4 py-2 rounded-lg text-sm font-medium text-[#64748B] hover:text-[#111827] hover:bg-[#F1F5F9] transition-all duration-150"
             >
-              Entrar
+              Primeiro acesso
+            </Link>
+            <Link
+              to={APP_PATHS.login}
+              className="px-4 py-2 rounded-lg text-sm font-medium text-[#64748B] hover:text-[#111827] hover:bg-[#F1F5F9] transition-all duration-150"
+            >
+              Acessar plataforma
             </Link>
             <button
               onClick={() => scrollTo("contato")}
@@ -94,11 +101,18 @@ export function LandingHeader() {
           ))}
           <div className="pt-3 space-y-2 border-t border-[#E2E8F0] mt-2">
             <Link
-              to="/login"
+              to={APP_PATHS.senhaPrimeiroAcesso}
               onClick={() => setMenuOpen(false)}
               className="block w-full text-center px-4 py-3 rounded-xl text-sm font-medium border border-[#E2E8F0] text-[#64748B] hover:bg-[#F1F5F9] transition-all min-h-[44px]"
             >
-              Entrar na plataforma
+              Primeiro acesso
+            </Link>
+            <Link
+              to={APP_PATHS.login}
+              onClick={() => setMenuOpen(false)}
+              className="block w-full text-center px-4 py-3 rounded-xl text-sm font-medium border border-[#E2E8F0] text-[#64748B] hover:bg-[#F1F5F9] transition-all min-h-[44px]"
+            >
+              Acessar plataforma
             </Link>
             <button
               onClick={() => scrollTo("contato")}

@@ -1,6 +1,8 @@
 import { useEffect, useState } from "react";
+import { Link } from "react-router-dom";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
-import { Loader2, AlertCircle } from "lucide-react";
+import { Loader2, AlertCircle, ArrowLeft } from "lucide-react";
+import { APP_PATHS } from "@/config/app-routes";
 import { getPublicBiometricTerm, type PublicBiometricTermResponse } from "@/service/public-privacy.service";
 import { getServiceErrorMessage } from "@/service/helpers/service-error.helper";
 
@@ -64,6 +66,13 @@ export default function PrivacyBiometricTerm() {
   return (
     <div className="min-h-screen bg-background p-4 sm:p-6 lg:p-8">
       <div className="mx-auto max-w-4xl space-y-6">
+        <Link
+          to={APP_PATHS.root}
+          className="inline-flex items-center gap-2 text-sm font-medium text-[#64748B] hover:text-[#111827] transition-colors"
+        >
+          <ArrowLeft className="h-4 w-4" />
+          Voltar para página principal
+        </Link>
         <div className="space-y-2">
           <h1 className="text-3xl font-bold">{data.title}</h1>
           <p className="text-muted-foreground">

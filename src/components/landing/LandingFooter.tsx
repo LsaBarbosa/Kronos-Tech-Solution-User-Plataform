@@ -1,5 +1,6 @@
 import { Link } from "react-router-dom";
 import logoAzul from "@/assets/brand/logo-azul.png";
+import { APP_PATHS } from "@/config/app-routes";
 
 const scrollTo = (id: string) => {
   const el = document.getElementById(id);
@@ -59,9 +60,9 @@ export function LandingFooter() {
           <div className="space-y-4">
             <p className="text-[10px] font-bold text-[#22D3EE] uppercase tracking-widest">Legal</p>
             <ul className="space-y-2.5">
-              <li><Link to="/privacy/policy" className="text-sm text-[#64748B] hover:text-white transition-colors">Política de Privacidade</Link></li>
-              <li><Link to="/privacy/processing-catalog" className="text-sm text-[#64748B] hover:text-white transition-colors">Catálogo de Tratamento</Link></li>
-              <li><Link to="/privacy/biometric-term" className="text-sm text-[#64748B] hover:text-white transition-colors">Termo de Biometria</Link></li>
+              <li><Link to={APP_PATHS.privacyPolicy} className="text-sm text-[#64748B] hover:text-white transition-colors">Política de Privacidade</Link></li>
+              <li><Link to={APP_PATHS.privacyProcessingCatalog} className="text-sm text-[#64748B] hover:text-white transition-colors">Catálogo de Tratamento</Link></li>
+              <li><Link to={APP_PATHS.privacyBiometricTerm} className="text-sm text-[#64748B] hover:text-white transition-colors">Termo de Biometria</Link></li>
             </ul>
           </div>
 
@@ -69,8 +70,8 @@ export function LandingFooter() {
           <div className="space-y-4">
             <p className="text-[10px] font-bold text-[#22D3EE] uppercase tracking-widest">Acesso</p>
             <ul className="space-y-2.5">
-              <li><Link to="/login" className="text-sm text-[#64748B] hover:text-white transition-colors">Acessar plataforma</Link></li>
-              <li><Link to="/senha-primeiro-acesso" className="text-sm text-[#64748B] hover:text-white transition-colors">Primeiro acesso</Link></li>
+              <li><Link to={APP_PATHS.login} className="text-sm text-[#64748B] hover:text-white transition-colors">Acessar plataforma</Link></li>
+              <li><Link to={APP_PATHS.senhaPrimeiroAcesso} className="text-sm text-[#64748B] hover:text-white transition-colors">Primeiro acesso</Link></li>
               <li>
                 <button onClick={() => scrollTo("contato")} className="text-sm text-[#64748B] hover:text-white transition-colors">
                   Agendar demonstração
