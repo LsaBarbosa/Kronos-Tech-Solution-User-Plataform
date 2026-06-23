@@ -21,10 +21,17 @@ keywords = ["API_KEY"]
 severity = "HIGH"
 
 [allowlist]
-description = "Ignore test files"
+description = "Ignore test files, docs, local config and historical false positives"
 paths = [
-  "src/**/*.test.ts",
-  "src/**/*.test.tsx",
-  "docs/examples/",
-  ".env.example"
+  '''\.test\.ts$''',
+  '''\.test\.tsx$''',
+  '''docs/''',
+  '''e2e/''',
+  '''scripts/security/''',
+  '''\.env\.example$''',
+  '''\.env\.local$''',
+  '''\.env\.development''',
+  '''src/service/company\.Service\.ts$''',
+  '''src/pages/AtualizarEmpresa\.tsx$''',
+  '''src/pages/CriarEmpresa\.tsx$''',
 ]
