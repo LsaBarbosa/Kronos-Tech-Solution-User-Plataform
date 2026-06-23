@@ -36,7 +36,7 @@ export function LandingHeader() {
           </a>
 
           {/* Desktop nav */}
-          <nav className="hidden lg:flex items-center gap-1" aria-label="Navegação principal">
+          <nav className="hidden md:flex items-center gap-1" aria-label="Navegação principal">
             {LANDING_NAV.map((item) => (
               <button
                 key={item.id}
@@ -49,7 +49,7 @@ export function LandingHeader() {
           </nav>
 
           {/* Desktop CTAs */}
-          <div className="hidden lg:flex items-center gap-2.5">
+          <div className="hidden md:flex items-center gap-2.5">
             <Link
               to={APP_PATHS.senhaPrimeiroAcesso}
               className="px-4 py-2 rounded-lg text-sm font-medium text-[#64748B] hover:text-[#111827] hover:bg-[#F1F5F9] transition-all duration-150"
@@ -73,7 +73,7 @@ export function LandingHeader() {
 
           {/* Mobile toggle */}
           <button
-            className="lg:hidden p-2 rounded-lg text-[#64748B] hover:text-[#111827] hover:bg-[#F1F5F9] transition-all"
+            className="md:hidden p-2 rounded-lg text-[#64748B] hover:text-[#111827] hover:bg-[#F1F5F9] transition-all"
             onClick={() => setMenuOpen(!menuOpen)}
             aria-label={menuOpen ? "Fechar menu" : "Abrir menu"}
             aria-expanded={menuOpen}
@@ -85,7 +85,7 @@ export function LandingHeader() {
 
       {/* Mobile menu */}
       <div
-        className={`lg:hidden overflow-hidden transition-all duration-300 ${
+        className={`md:hidden overflow-hidden transition-all duration-300 ${
           menuOpen ? "max-h-[480px] opacity-100" : "max-h-0 opacity-0"
         } bg-white/98 backdrop-blur-xl border-t border-[#E2E8F0]`}
       >
