@@ -1,6 +1,7 @@
 import { useState } from "react";
 import { Link } from "react-router-dom";
-import { ArrowRight, Calendar, CheckCircle, Sparkles } from "lucide-react";
+import { ArrowRight, Calendar, CheckCircle, Loader2, Sparkles } from "lucide-react";
+import { submitCommercialLead } from "@/service/commercial-lead.service";
 
 const DEMO_BENEFITS = [
   "Apresentação dos módulos em uso real",
@@ -11,14 +12,32 @@ const DEMO_BENEFITS = [
 
 export function LandingCTA() {
   const [submitted, setSubmitted] = useState(false);
+  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState<string | null>(null);
   const [form, setForm] = useState({ nome: "", empresa: "", email: "" });
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
-    // Formulário visual — sem envio para API.
-    // Para captação real, conectar handleSubmit a um endpoint ou canal comercial.
-    setSubmitted(true);
-    setForm({ nome: "", empresa: "", email: "" });
+    setError(null);
+    setLoading(true);
+    try {
+      await submitCommercialLead({
+        name: form.nome.trim(),
+        company: form.empresa.trim(),
+        corporateEmail: form.email.trim(),
+      });
+      setSubmitted(true);
+      setForm({ nome: "", empresa: "", email: "" });
+    } catch (err: unknown) {
+      const status = (err as { response?: { status?: number } })?.response?.status;
+      if (status === 429) {
+        setError("Muitas solicitações. Aguarde alguns minutos e tente novamente.");
+      } else {
+        setError("Não foi possível enviar sua solicitação. Tente novamente em instantes.");
+      }
+    } finally {
+      setLoading(false);
+    }
   };
 
   return (
@@ -113,20 +132,37 @@ export function LandingCTA() {
                           type={type}
                           required
                           autoComplete={autocomplete}
+                          disabled={loading}
                           value={form[key as keyof typeof form]}
                           onChange={(e) => setForm((f) => ({ ...f, [key]: e.target.value }))}
-                          className="w-full px-4 py-3 rounded-xl border border-[#E2E8F0] bg-[#F8FAFC] text-sm text-[#111827] placeholder:text-[#CBD5E1] focus:outline-none focus:ring-2 focus:ring-[#2563EB]/20 focus:border-[#2563EB] focus:bg-white transition-all duration-150 min-h-[44px]"
+                          className="w-full px-4 py-3 rounded-xl border border-[#E2E8F0] bg-[#F8FAFC] text-sm text-[#111827] placeholder:text-[#CBD5E1] focus:outline-none focus:ring-2 focus:ring-[#2563EB]/20 focus:border-[#2563EB] focus:bg-white transition-all duration-150 min-h-[44px] disabled:opacity-60"
                           placeholder={placeholder}
                         />
                       </div>
                     ))}
 
+                    {error && (
+                      <p className="text-xs text-[#DC2626] bg-[#FEF2F2] border border-[#FECACA] rounded-lg px-3 py-2">
+                        {error}
+                      </p>
+                    )}
+
                     <button
                       type="submit"
-                      className="group w-full flex items-center justify-center gap-2 px-6 py-4 rounded-xl bg-[#2563EB] text-white font-semibold text-sm hover:bg-[#1d4ed8] transition-all duration-200 shadow-[0_4px_20px_rgba(37,99,235,0.3)] hover:shadow-[0_8px_30px_rgba(37,99,235,0.4)] hover:-translate-y-0.5 min-h-[52px] mt-2"
+                      disabled={loading}
+                      className="group w-full flex items-center justify-center gap-2 px-6 py-4 rounded-xl bg-[#2563EB] text-white font-semibold text-sm hover:bg-[#1d4ed8] transition-all duration-200 shadow-[0_4px_20px_rgba(37,99,235,0.3)] hover:shadow-[0_8px_30px_rgba(37,99,235,0.4)] hover:-translate-y-0.5 min-h-[52px] mt-2 disabled:opacity-70 disabled:cursor-not-allowed disabled:hover:translate-y-0 disabled:hover:shadow-[0_4px_20px_rgba(37,99,235,0.3)]"
                     >
-                      Solicitar demonstração
-                      <ArrowRight size={16} className="transition-transform group-hover:translate-x-1" />
+                      {loading ? (
+                        <>
+                          <Loader2 size={16} className="animate-spin" />
+                          Enviando...
+                        </>
+                      ) : (
+                        <>
+                          Solicitar demonstração
+                          <ArrowRight size={16} className="transition-transform group-hover:translate-x-1" />
+                        </>
+                      )}
                     </button>
 
                     <p className="text-[10px] text-[#94A3B8] text-center leading-relaxed">
