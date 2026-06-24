@@ -9,4 +9,9 @@ export const queryKeys = {
   vacationCount: ["pendingVacationCount"] as const,
   vacationRequests: ["vacationRequests"] as const,
   fiscal: ["fiscal"] as const,
+  faqSearch: (query: string, screen?: string, page?: number) =>
+    ["faq", "search", query, screen, page] as const,
+  faqContextual: (screen: string, limit?: number) =>
+    ["faq", "contextual", screen, limit] as const,
+  faqDetail: (faqId: string) => ["faq", "detail", faqId] as const,
 };

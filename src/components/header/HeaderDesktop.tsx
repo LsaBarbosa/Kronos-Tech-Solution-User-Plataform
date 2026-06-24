@@ -2,6 +2,7 @@ import HeaderBrand from "./HeaderBrand";
 import HeaderNav from "./HeaderNav";
 import HeaderNotifications from "./HeaderNotifications";
 import HeaderAccountMenu from "./HeaderAccountMenu";
+import { FaqSearchTrigger } from "@/components/faq/FaqSearchTrigger";
 
 interface HeaderDesktopProps {
   role: string;
@@ -41,6 +42,7 @@ const HeaderDesktop = ({
       </div>
 
       <div className="flex items-center justify-end gap-2 sm:gap-3">
+        <FaqSearchTrigger />
         <HeaderNotifications
           pendingCount={pendingCount}
           hasError={pendingHasError}

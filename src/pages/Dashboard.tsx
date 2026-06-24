@@ -2,6 +2,8 @@ import { useCallback, useEffect, useMemo, useState } from "react";
 import { useLocation, useNavigate } from "react-router-dom";
 import PageShell from "@/components/PageShell";
 import { APP_PATHS } from "@/config/app-routes";
+import { FaqContextualBlock } from "@/components/faq/FaqContextualBlock";
+import { FAQ_SCREEN_KEYS } from "@/constants/faqScreenKeys";
 import DashboardDesktop from "@/components/dashboard-command-center/DashboardDesktop";
 import DashboardMobile from "@/components/dashboard-command-center/DashboardMobile";
 import { useDashboardResponsiveMode } from "@/components/dashboard-command-center/useDashboardResponsiveMode";
@@ -135,6 +137,7 @@ const Dashboard = () => {
       ) : (
         <DashboardMobile data={data} actions={actions} />
       )}
+      <FaqContextualBlock screenKey={FAQ_SCREEN_KEYS.DASHBOARD} className="mt-6" />
     </PageShell>
   );
 };
