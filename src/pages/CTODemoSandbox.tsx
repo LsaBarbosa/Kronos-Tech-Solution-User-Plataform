@@ -190,7 +190,7 @@ const CTODemoSandbox = () => {
         <Button
           variant="outline"
           size="sm"
-          onClick={() => navigate(APP_PATHS.administracao)}
+          onClick={() => navigate(APP_PATHS.empresa)}
           className="h-10 gap-1 border-[#D8E2EC] bg-white text-[#102A43] hover:bg-[#F4F6F9]"
         >
           <ChevronLeft className="h-4 w-4" />
@@ -261,7 +261,7 @@ const CTODemoSandbox = () => {
             size="lg"
             className="gap-2 bg-green-700 hover:bg-green-800 text-white"
             onClick={() => void handleCreate()}
-            disabled={isBusy || status?.killSwitch || !status?.enabled}
+            disabled={isBusy || isStatusLoading || status?.killSwitch === true || status?.enabled === false}
           >
             {createMutation.isPending ? (
               <Loader2 className="h-4 w-4 animate-spin" />
@@ -291,7 +291,7 @@ const CTODemoSandbox = () => {
             variant="destructive"
             className="gap-2"
             onClick={() => setShowDeleteDialog(true)}
-            disabled={isBusy || status?.killSwitch || !status?.exists}
+            disabled={isBusy || isStatusLoading || status?.killSwitch === true || !status?.exists}
           >
             {deleteMutation.isPending ? (
               <Loader2 className="h-4 w-4 animate-spin" />

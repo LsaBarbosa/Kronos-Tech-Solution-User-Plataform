@@ -74,7 +74,7 @@ export const APP_PATHS = {
   lgpdAdminInventory: "/lgpd/admin/inventory",
   lgpdAdminInventoryForm: "/lgpd/admin/inventory/novo",
   lgpdAdminInventoryEdit: "/lgpd/admin/inventory/:processCode/editar",
-  ctoDemoSandbox: "/cto/demo",
+  ctoDemoSandbox: "/empresa/cto/demo",
 } as const;
 
 export const APP_ROUTE_META = {
@@ -302,7 +302,7 @@ export const APP_ROUTE_META = {
     showInMenu: false,
     breadcrumbs: [
       { label: "Início", path: APP_PATHS.dashboard },
-      { label: "Administração", path: APP_PATHS.administracao },
+      { label: "Empresa", path: APP_PATHS.empresa },
       { label: "Demo Sandbox", path: APP_PATHS.ctoDemoSandbox },
     ],
   }),
