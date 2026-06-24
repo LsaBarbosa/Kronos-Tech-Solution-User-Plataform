@@ -1,3 +1,0 @@
-# Teste
-
-Arquivo de validação.
