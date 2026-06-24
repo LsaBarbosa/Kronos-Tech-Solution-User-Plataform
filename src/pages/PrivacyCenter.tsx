@@ -13,6 +13,8 @@ import { usePrivacyResponsiveMode } from "@/components/privacy-center/usePrivacy
 import { exportMyData, listLgpdRequests } from "@/service/lgpd.service";
 import { getServiceErrorMessage } from "@/service/helpers/service-error.helper";
 import { useAuth } from "@/context/AuthContext";
+import { FaqContextualBlock } from "@/components/faq/FaqContextualBlock";
+import { FAQ_SCREEN_KEYS } from "@/constants/faqScreenKeys";
 
 const TOTAL_LGPD_RIGHTS = 12;
 
@@ -142,6 +144,7 @@ const PrivacyCenter = () => {
           nextActionLabel={nextActionLabel}
         />
       )}
+      <FaqContextualBlock screenKey={FAQ_SCREEN_KEYS.PRIVACY} className="mt-6" />
     </PageShell>
   );
 };

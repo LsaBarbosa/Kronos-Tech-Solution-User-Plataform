@@ -115,6 +115,14 @@ vi.mock("@/hooks/useTimeOffCount", () => ({
   useTimeOffCount: () => ({ pendingTimeOffCount: 0 }),
 }));
 
+vi.mock("@/components/faq/FaqContextualBlock", () => ({
+  FaqContextualBlock: () => null,
+}));
+
+vi.mock("@/components/faq/FaqSearchTrigger", () => ({
+  FaqSearchTrigger: () => null,
+}));
+
 describe("App routes", () => {
   beforeEach(() => {
     vi.resetModules();
