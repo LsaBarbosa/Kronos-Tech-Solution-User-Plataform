@@ -120,6 +120,7 @@ export const CTO_DEMO_PATHS = {
   CREATE: "create",
   STATUS: "status",
   VALIDATE: "validate",
+  PURGE: "purge",
 } as const;
 
 export const LGPD_PATHS = {

@@ -44,7 +44,7 @@ export const demoHandlers = [
     })
   ),
 
-  http.delete("*/cto/demo", () =>
+  http.delete("*/cto/demo/purge", () =>
     HttpResponse.json({
       operationId: "11111111-0000-0000-0000-000000000002",
       status: "SUCCESS",

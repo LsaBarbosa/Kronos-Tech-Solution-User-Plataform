@@ -16,7 +16,7 @@ export const createDemoSandbox = async (): Promise<DemoCreateResponse> => {
 
 export const deleteDemoSandbox = async (): Promise<DemoPurgeResponse> => {
   const response = await api.delete<DemoPurgeResponse>(
-    buildRoute(API_ROUTES.CTO_DEMO)
+    buildRoute(API_ROUTES.CTO_DEMO, CTO_DEMO_PATHS.PURGE)
   );
   return response.data;
 };
