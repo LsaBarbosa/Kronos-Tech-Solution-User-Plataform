@@ -5,6 +5,7 @@ import {
   Building2,
   ChevronLeft,
   Edit3,
+  FlaskConical,
   Link2,
   PlusCircle,
   Search,
@@ -92,6 +93,18 @@ const ACTIONS: EmpresaAction[] = [
     accentText: "text-[#B45309]",
     ctaLabel: "Gerenciar acessos",
     path: APP_PATHS.empresaMultiAcesso,
+  },
+  {
+    key: "demo-sandbox",
+    label: "Demo",
+    title: "Demo Sandbox",
+    description: "Crie ou remova o ambiente de demo com empresa, usuário e dados sintéticos.",
+    icon: FlaskConical,
+    tone: "from-[#78350F] to-[#D97706]",
+    accentBg: "bg-[#FEF3C7]",
+    accentText: "text-[#92400E]",
+    ctaLabel: "Acessar demo",
+    path: APP_PATHS.ctoDemoSandbox,
   },
 ];
 
