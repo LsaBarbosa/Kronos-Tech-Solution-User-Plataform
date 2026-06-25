@@ -3,6 +3,8 @@ import { useState } from "react";
 import { Form } from "@/components/ui/form";
 import Header from "@/components/Header";
 import { useCreateCollaborator } from "@/hooks/useCreateCollaborator";
+import { FaqContextualBlock } from "@/components/faq/FaqContextualBlock";
+import { FAQ_SCREEN_KEYS } from "@/constants/faqScreenKeys";
 
 import { useCreateCollaboratorResponsiveMode } from "../hooks/useCreateCollaboratorResponsiveMode";
 import CreateCollaboratorDesktop from "./CreateCollaboratorDesktop";
@@ -37,6 +39,7 @@ const CreateCollaboratorPage = () => {
           />
         )}
       </div>
+      <FaqContextualBlock screenKey={FAQ_SCREEN_KEYS.EMPLOYEES} className="mt-6 px-4" />
     </Form>
   );
 };

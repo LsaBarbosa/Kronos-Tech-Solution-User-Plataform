@@ -7,6 +7,8 @@ import StatusRegistroMobile from "@/components/status-registro/StatusRegistroMob
 import StatusConfirmDialog from "@/components/status-registro/StatusConfirmDialog";
 import { useStatusRegistroResponsiveMode } from "@/components/status-registro/useStatusRegistroResponsiveMode";
 import { useStatusRegistroViewModel } from "@/components/status-registro/useStatusRegistroViewModel";
+import { FaqContextualBlock } from "@/components/faq/FaqContextualBlock";
+import { FAQ_SCREEN_KEYS } from "@/constants/faqScreenKeys";
 
 const StatusRegistro = () => {
   const navigate = useNavigate();
@@ -38,6 +40,8 @@ const StatusRegistro = () => {
         onCancel={viewModel.cancelDecision}
         onConfirm={viewModel.confirmDecision}
       />
+
+      <FaqContextualBlock screenKey={FAQ_SCREEN_KEYS.TIME_RECORDS} className="mt-6" />
     </PageShell>
   );
 };

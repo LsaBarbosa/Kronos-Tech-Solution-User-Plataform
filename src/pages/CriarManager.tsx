@@ -13,6 +13,8 @@ import {
 } from "@/components/ui/select";
 import { Checkbox } from "@/components/ui/checkbox";
 import { useCreateManager } from "@/hooks/useCreateManager";
+import { FaqContextualBlock } from "@/components/faq/FaqContextualBlock";
+import { FAQ_SCREEN_KEYS } from "@/constants/faqScreenKeys";
 
 const CriarManager = () => {
     const {
@@ -379,6 +381,7 @@ const CriarManager = () => {
                             </form>
                         </Form>
                     </div>
+          <FaqContextualBlock screenKey={FAQ_SCREEN_KEYS.USERS} className="mt-6 px-4" />
         </PageShell>
     );
 };

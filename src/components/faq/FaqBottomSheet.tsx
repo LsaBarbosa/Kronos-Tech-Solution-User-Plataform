@@ -1,17 +1,17 @@
 import { useEffect, useRef, useState } from "react";
-import { X, ArrowLeft } from "lucide-react";
-import { Sheet, SheetContent, SheetHeader, SheetTitle } from "@/components/ui/sheet";
+import { X, ArrowLeft, Search, BookOpen, ChevronRight } from "lucide-react";
+import { Sheet, SheetContent, SheetTitle } from "@/components/ui/sheet";
 import { Input } from "@/components/ui/input";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
 import { FaqCategoryChips } from "./FaqCategoryChips";
 import { FaqLoadingState } from "./FaqLoadingState";
 import { FaqEmptyState } from "./FaqEmptyState";
 import { FaqErrorState } from "./FaqErrorState";
 import { FaqArticleView } from "./FaqArticleView";
 import { useFaqSearch } from "@/hooks/useFaqSearch";
-import { Accordion, AccordionItem, AccordionTrigger, AccordionContent } from "@/components/ui/accordion";
-import { Badge } from "@/components/ui/badge";
 import type { FaqItem } from "@/types/faq";
+import { cn } from "@/lib/utils";
 
 interface FaqBottomSheetProps {
   open: boolean;
@@ -30,12 +30,9 @@ export function FaqBottomSheet({ open, onClose, screenKey }: FaqBottomSheetProps
 
   const { results, isLoading, isError, isEmpty } = useFaqSearch(query, screenKey);
 
-  // Foco automático ao abrir
   useEffect(() => {
     if (open) {
-      const timer = window.setTimeout(() => {
-        inputRef.current?.focus();
-      }, 150);
+      const timer = window.setTimeout(() => inputRef.current?.focus(), 200);
       return () => window.clearTimeout(timer);
     } else {
       setQuery("");
@@ -44,151 +41,155 @@ export function FaqBottomSheet({ open, onClose, screenKey }: FaqBottomSheetProps
     }
   }, [open]);
 
-  // Derivar categorias únicas dos resultados
-  const categories = Array.from(
-    new Set(results.map((r) => r.category.name))
-  );
-
-  const filtered =
-    selectedCategory
-      ? results.filter((r) => r.category.name === selectedCategory)
-      : results;
-
+  const categories = Array.from(new Set(results.map((r) => r.category.name)));
+  const filtered = selectedCategory ? results.filter((r) => r.category.name === selectedCategory) : results;
   const showResults = query.trim().length >= 1;
 
   return (
     <Sheet open={open} onOpenChange={(v) => { if (!v) onClose(); }}>
       <SheetContent
         side="bottom"
-        className="flex flex-col gap-0 rounded-t-xl p-0"
+        className="flex flex-col gap-0 rounded-t-2xl p-0 overflow-hidden"
         style={{ height: "92dvh" }}
-        aria-label="Busca de ajuda e perguntas frequentes"
+        aria-label="Central de Ajuda"
       >
-        <SheetHeader className="border-b px-4 py-3">
-          <div className="flex items-center justify-between">
-            {selectedFaq ? (
-              <Button
-                variant="ghost"
-                size="sm"
-                onClick={() => setSelectedFaq(null)}
-                aria-label="Voltar para a lista de perguntas"
-                className="gap-1 px-1"
-              >
-                <ArrowLeft className="h-4 w-4" aria-hidden="true" />
-                Voltar
-              </Button>
-            ) : (
-              <SheetTitle className="text-base font-semibold">Ajuda</SheetTitle>
-            )}
-            <Button
-              variant="ghost"
-              size="sm"
-              onClick={onClose}
-              aria-label="Fechar ajuda"
-              className="px-2"
-            >
-              <X className="h-4 w-4" aria-hidden="true" />
-              <span className="sr-only">Fechar</span>
-            </Button>
-          </div>
-        </SheetHeader>
+        {/* Handle visual */}
+        <div className="flex justify-center pt-3 pb-1 shrink-0">
+          <div className="h-1 w-10 rounded-full bg-border" aria-hidden="true" />
+        </div>
 
-        <div className="flex flex-1 flex-col overflow-hidden px-4 py-3">
+        {/* Cabeçalho */}
+        <div className="flex items-center justify-between px-4 pb-3 shrink-0">
           {selectedFaq ? (
-            /* Tela de detalhe */
-            <div className="overflow-y-auto flex-1">
-              <FaqArticleView faq={selectedFaq} />
-            </div>
+            <button
+              type="button"
+              onClick={() => setSelectedFaq(null)}
+              aria-label="Voltar para a lista"
+              className="flex items-center gap-1.5 text-sm text-muted-foreground hover:text-foreground transition-colors group"
+            >
+              <ArrowLeft className="h-4 w-4 transition-transform group-hover:-translate-x-0.5" />
+              Voltar
+            </button>
           ) : (
-            /* Tela de lista */
-            <>
-              {/* Campo de busca */}
-              <div className="relative mb-3">
-                <Input
-                  ref={inputRef}
-                  value={query}
-                  onChange={(e) => {
-                    setQuery(e.target.value);
-                    setSelectedCategory(null);
-                  }}
-                  placeholder="Buscar nas perguntas frequentes…"
-                  aria-label="Campo de busca nas perguntas frequentes"
-                  className="pr-8"
-                />
-                {query && (
-                  <button
-                    type="button"
-                    aria-label="Limpar busca"
-                    onClick={() => { setQuery(""); setSelectedCategory(null); }}
-                    className="absolute right-2 top-1/2 -translate-y-1/2 text-muted-foreground"
-                  >
-                    <X className="h-4 w-4" aria-hidden="true" />
-                  </button>
-                )}
-              </div>
+            <SheetTitle className="text-base font-semibold">Central de Ajuda</SheetTitle>
+          )}
+          <Button
+            variant="ghost"
+            size="sm"
+            onClick={onClose}
+            aria-label="Fechar ajuda"
+            className="h-8 w-8 p-0 rounded-full"
+          >
+            <X className="h-4 w-4" aria-hidden="true" />
+          </Button>
+        </div>
 
-              {/* Chips de categoria */}
-              {showResults && !isLoading && categories.length > 1 && (
-                <div className="mb-3">
-                  <FaqCategoryChips
-                    categories={categories}
-                    selected={selectedCategory}
-                    onSelect={setSelectedCategory}
-                  />
+        {/* Conteúdo principal */}
+        {selectedFaq ? (
+          /* Vista de artigo */
+          <div className="flex-1 overflow-y-auto px-4 pb-6">
+            <FaqArticleView faq={selectedFaq} onNavigate={onClose} />
+          </div>
+        ) : (
+          /* Vista de lista */
+          <div className="flex flex-1 flex-col overflow-hidden px-4">
+            {/* Campo de busca */}
+            <div className="relative mb-3 shrink-0">
+              <Search
+                className="absolute left-3 top-1/2 -translate-y-1/2 h-4 w-4 text-muted-foreground/60 pointer-events-none"
+                aria-hidden="true"
+              />
+              <Input
+                ref={inputRef}
+                value={query}
+                onChange={(e) => { setQuery(e.target.value); setSelectedCategory(null); }}
+                placeholder="Buscar tutoriais e dúvidas…"
+                aria-label="Campo de busca"
+                className="pl-9 pr-8"
+              />
+              {query && (
+                <button
+                  type="button"
+                  aria-label="Limpar busca"
+                  onClick={() => { setQuery(""); setSelectedCategory(null); }}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-muted-foreground hover:text-foreground transition-colors"
+                >
+                  <X className="h-4 w-4" aria-hidden="true" />
+                </button>
+              )}
+            </div>
+
+            {/* Chips de categoria */}
+            {showResults && !isLoading && categories.length > 1 && (
+              <div className="mb-3 shrink-0">
+                <FaqCategoryChips
+                  categories={categories}
+                  selected={selectedCategory}
+                  onSelect={setSelectedCategory}
+                />
+              </div>
+            )}
+
+            {/* Lista de resultados */}
+            <div className="flex-1 overflow-y-auto pb-4">
+              {!showResults && (
+                <div className="flex flex-col items-center justify-center h-full gap-3 text-center py-10">
+                  <div className="flex h-12 w-12 items-center justify-center rounded-full bg-muted">
+                    <Search className="h-5 w-5 text-muted-foreground/50" />
+                  </div>
+                  <div className="space-y-1 max-w-[220px]">
+                    <p className="text-sm font-medium">Buscar na Central de Ajuda</p>
+                    <p className="text-xs text-muted-foreground">
+                      Digite uma dúvida ou tema para encontrar o tutorial.
+                    </p>
+                  </div>
                 </div>
               )}
 
-              {/* Resultados */}
-              <div className="flex-1 overflow-y-auto">
-                {!showResults && (
-                  <p className="text-sm text-muted-foreground mt-2">
-                    Digite para buscar nas perguntas frequentes.
-                  </p>
-                )}
-                {showResults && isLoading && <FaqLoadingState count={3} />}
-                {showResults && isError && <FaqErrorState />}
-                {showResults && isEmpty && (
-                  <FaqEmptyState message="Nenhum resultado encontrado." />
-                )}
-                {showResults && !isLoading && !isError && filtered.length > 0 && (
-                  <Accordion type="single" collapsible className="w-full">
-                    {filtered.map((faq) => (
-                      <AccordionItem key={faq.id} value={faq.id}>
-                        <AccordionTrigger
-                          className="text-left text-sm font-medium py-3"
-                          aria-label={`Expandir resposta: ${faq.title}`}
-                        >
-                          <div className="flex flex-col gap-1 pr-2">
-                            <span>{faq.title}</span>
-                            <Badge variant="outline" className="w-fit text-xs">
-                              {faq.category.name}
-                            </Badge>
-                          </div>
-                        </AccordionTrigger>
-                        <AccordionContent>
-                          <div className="space-y-3 pb-2">
-                            <p className="text-sm text-muted-foreground leading-relaxed">
-                              {truncate(faq.shortAnswer, 200)}
-                            </p>
-                            <Button
-                              variant="link"
-                              size="sm"
-                              className="px-0 h-auto text-xs"
-                              onClick={() => setSelectedFaq(faq)}
-                              aria-label={`Ver resposta completa: ${faq.title}`}
-                            >
-                              Ver resposta completa
-                            </Button>
-                          </div>
-                        </AccordionContent>
-                      </AccordionItem>
-                    ))}
-                  </Accordion>
-                )}
-              </div>
-            </>
-          )}
-        </div>
+              {showResults && isLoading && <FaqLoadingState count={3} />}
+              {showResults && isError && <FaqErrorState />}
+              {showResults && !isLoading && !isError && isEmpty && (
+                <FaqEmptyState message="Nenhum resultado encontrado." />
+              )}
+
+              {showResults && !isLoading && !isError && filtered.length > 0 && (
+                <ul className="divide-y divide-border/40" role="list">
+                  {filtered.map((faq) => (
+                    <li key={faq.id}>
+                      <button
+                        type="button"
+                        onClick={() => setSelectedFaq(faq)}
+                        aria-label={`Abrir tutorial: ${faq.title}`}
+                        className={cn(
+                          "group w-full flex items-start gap-3 py-3.5 text-left",
+                          "rounded-md transition-colors hover:bg-muted/50",
+                          "focus-visible:outline-none focus-visible:ring-2 focus-visible:ring-ring",
+                          "px-1 -mx-1"
+                        )}
+                      >
+                        <div className="mt-0.5 flex h-8 w-8 shrink-0 items-center justify-center rounded-full bg-muted group-hover:bg-primary/10 transition-colors">
+                          <BookOpen className="h-4 w-4 text-muted-foreground/70 group-hover:text-primary transition-colors" aria-hidden="true" />
+                        </div>
+                        <div className="flex-1 min-w-0 space-y-1">
+                          <p className="text-sm font-medium text-foreground leading-snug group-hover:text-primary transition-colors line-clamp-2">
+                            {faq.title}
+                          </p>
+                          <p className="text-xs text-muted-foreground line-clamp-2 leading-relaxed">
+                            {truncate(faq.shortAnswer, 110)}
+                          </p>
+                          <Badge variant="outline" className="h-4 px-1.5 text-[10px] font-normal">
+                            {faq.category.name}
+                          </Badge>
+                        </div>
+                        <ChevronRight className="mt-2 h-4 w-4 shrink-0 text-muted-foreground/30 group-hover:text-primary group-hover:translate-x-0.5 transition-all" aria-hidden="true" />
+                      </button>
+                    </li>
+                  ))}
+                </ul>
+              )}
+            </div>
+          </div>
+        )}
       </SheetContent>
     </Sheet>
   );

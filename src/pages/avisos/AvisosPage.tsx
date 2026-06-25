@@ -7,6 +7,8 @@ import AvisosDesktopView from "./AvisosDesktopView";
 import AvisosMobileView from "./AvisosMobileView";
 import { useAvisosResponsiveMode } from "./useAvisosResponsiveMode";
 import { useAvisosViewModel } from "./useAvisosViewModel";
+import { FaqContextualBlock } from "@/components/faq/FaqContextualBlock";
+import { FAQ_SCREEN_KEYS } from "@/constants/faqScreenKeys";
 
 const AvisosPage = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -87,6 +89,8 @@ const AvisosPage = () => {
         onCancel={model.handleCancelDelete}
         onConfirm={model.handleDeleteMessage}
       />
+
+      <FaqContextualBlock screenKey={FAQ_SCREEN_KEYS.MESSAGES} className="mt-6" />
     </PageShell>
   );
 };
