@@ -11,8 +11,14 @@ export const API_ROUTES = {
   MESSAGES: "messages",
   RECORDS: "records",
   SERVICE_CONTRACTS: "service-contracts",
+  SUPPORT_CHAT: "support/chat",
   TERMS: "terms",
   USERS: "users",
+} as const;
+
+export const SUPPORT_CHAT_PATHS = {
+  CONFIG: "config",
+  IDENTITY: "identity",
 } as const;
 
 export const buildRoute = (...segments: string[]) => `/${segments.join("/")}`;
