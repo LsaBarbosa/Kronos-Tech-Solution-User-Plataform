@@ -13,6 +13,8 @@ export interface TawkIdentity {
   email: string;
   hash: string;
   ttlSeconds: number;
+  attributes: Record<string, string>;
+  tags: string[];
 }
 
 export const getChatConfig = async (): Promise<TawkChatConfig> => {

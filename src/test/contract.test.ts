@@ -369,4 +369,132 @@ describe("Contract tests — Front-end vs Back-end", () => {
       expect(response.status).toBe(204);
     });
   });
+
+  /**
+   * SUPPORT CHAT CONTRACT
+   */
+  describe("Support Chat contract", () => {
+    it("config retorna enabled, propertyId, widgetId quando chat habilitado", async () => {
+      server.use(
+        http.get("*/support/chat/config", () =>
+          HttpResponse.json({
+            enabled: true,
+            propertyId: "abc123",
+            widgetId: "widget456",
+          })
+        )
+      );
+
+      const response = await api.get("/support/chat/config");
+
+      expect(response.status).toBe(200);
+      expect(response.data).toHaveProperty("enabled", true);
+      expect(response.data).toHaveProperty("propertyId", "abc123");
+      expect(response.data).toHaveProperty("widgetId", "widget456");
+      expect(response.data).not.toHaveProperty("secureKey");
+      expect(response.data).not.toHaveProperty("webhookSecret");
+    });
+
+    it("config retorna enabled=false quando chat desabilitado", async () => {
+      server.use(
+        http.get("*/support/chat/config", () =>
+          HttpResponse.json({ enabled: false, propertyId: "", widgetId: "" })
+        )
+      );
+
+      const response = await api.get("/support/chat/config");
+
+      expect(response.data).toHaveProperty("enabled", false);
+    });
+
+    it("identity retorna userId, name, email, hash, ttlSeconds, attributes, tags para usuário autenticado", async () => {
+      server.use(
+        http.get("*/support/chat/identity", () =>
+          HttpResponse.json({
+            userId: "550e8400-e29b-41d4-a716-446655440000",
+            name: "Lucas Barbosa",
+            email: "lucas@kts.com",
+            hash: "a".repeat(64),
+            ttlSeconds: 3600,
+            attributes: {
+              "user-id": "550e8400-e29b-41d4-a716-446655440000",
+              "user-role": "manager",
+              "company-id": "660e8400-e29b-41d4-a716-446655440001",
+              "company-name": "Empresa Exemplo",
+              "environment": "production",
+            },
+            tags: ["kronos", "cliente-logado", "manager"],
+          })
+        )
+      );
+
+      const response = await api.get("/support/chat/identity");
+
+      expect(response.status).toBe(200);
+      expect(response.data).toHaveProperty("userId");
+      expect(response.data).toHaveProperty("name");
+      expect(response.data).toHaveProperty("email");
+      expect(response.data).toHaveProperty("hash");
+      expect(response.data).toHaveProperty("ttlSeconds");
+      expect(response.data).toHaveProperty("attributes");
+      expect(response.data).toHaveProperty("tags");
+      expect(response.data.attributes).toHaveProperty("user-id");
+      expect(response.data.attributes).toHaveProperty("user-role");
+      expect(response.data.attributes).toHaveProperty("company-id");
+      expect(response.data.attributes).toHaveProperty("company-name");
+      expect(response.data.attributes).not.toHaveProperty("secureKey");
+      expect(response.data.attributes).not.toHaveProperty("webhookSecret");
+      expect(Array.isArray(response.data.tags)).toBe(true);
+      expect(response.data.tags.length).toBeLessThanOrEqual(10);
+      expect(response.data).not.toHaveProperty("secureKey");
+      expect(response.data).not.toHaveProperty("webhookSecret");
+    });
+
+    it("userId da identity é único por usuário — dois usuários geram userId distintos", async () => {
+      const userAId = "550e8400-e29b-41d4-a716-446655440000";
+      const userBId = "660e8400-e29b-41d4-a716-446655440001";
+
+      expect(userAId).not.toBe(userBId);
+
+      const makeIdentity = (userId: string, hash: string, name: string, email: string) => ({
+        userId, name, email, hash, ttlSeconds: 3600,
+        attributes: { "user-id": userId },
+        tags: ["kronos", "cliente-logado"],
+      });
+
+      server.use(
+        http.get("*/support/chat/identity", () =>
+          HttpResponse.json(makeIdentity(userAId, "hash-a", "A", "a@kts.com"))
+        )
+      );
+      const responseA = await api.get("/support/chat/identity");
+
+      server.use(
+        http.get("*/support/chat/identity", () =>
+          HttpResponse.json(makeIdentity(userBId, "hash-b", "B", "b@kts.com"))
+        )
+      );
+      const responseB = await api.get("/support/chat/identity");
+
+      expect(responseA.data.userId).not.toBe(responseB.data.userId);
+      expect(responseA.data.hash).not.toBe(responseB.data.hash);
+    });
+
+    it("identity retorna 401 para usuário não autenticado", async () => {
+      server.use(
+        http.get("*/support/chat/identity", () =>
+          HttpResponse.json({ message: "Não autenticado" }, { status: 401 })
+        )
+      );
+
+      try {
+        await api.get("/support/chat/identity");
+        expect.fail("Should throw");
+      } catch (error) {
+        const serviceError = error as ServiceError;
+        expect(serviceError.kind).toBe("auth");
+        expect(serviceError.status).toBe(401);
+      }
+    });
+  });
 });
