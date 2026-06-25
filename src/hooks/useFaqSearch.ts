@@ -30,12 +30,12 @@ export const useFaqSearch = (
   });
 
   return {
-    results: data?.content ?? [],
+    results: data?.items ?? [],
     totalElements: data?.totalElements ?? 0,
     totalPages: data?.totalPages ?? 0,
     isLoading: enabled && isLoading,
     isError,
     error,
-    isEmpty: enabled && !isLoading && (data?.content ?? []).length === 0,
+    isEmpty: enabled && !isLoading && (data?.items ?? []).length === 0,
   };
 };

@@ -7,15 +7,17 @@ export interface FaqItem {
   id: string;
   title: string;
   shortAnswer: string;
-  fullAnswer: string;
+  fullAnswer?: string;
   category: FaqCategory;
-  screenKeys: string[];
+  relatedScreens: string[];
   tags: string[];
-  priority: number;
+  priority?: number;
+  relevanceScore?: number | null;
+  updatedAt?: string;
 }
 
 export interface FaqSearchResponse {
-  content: FaqItem[];
+  items: FaqItem[];
   totalElements: number;
   totalPages: number;
   page: number;
@@ -24,5 +26,5 @@ export interface FaqSearchResponse {
 
 export interface FaqContextualResponse {
   items: FaqItem[];
-  screenKey: string;
+  screen: string;
 }
