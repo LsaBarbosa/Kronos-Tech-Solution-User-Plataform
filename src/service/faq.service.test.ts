@@ -19,7 +19,7 @@ describe("faq.service", () => {
 
       const result = await searchFaqs("ponto");
 
-      expect(result.content).toHaveLength(2);
+      expect(result.items).toHaveLength(2);
       expect(result.totalElements).toBe(2);
       expect(result.totalPages).toBe(1);
       expect(result.page).toBe(0);
@@ -87,7 +87,7 @@ describe("faq.service", () => {
       const result = await getContextualFaqs("DASHBOARD");
 
       expect(result.items).toHaveLength(1);
-      expect(result.screenKey).toBe("DASHBOARD");
+      expect(result.screen).toBe("DASHBOARD");
     });
 
     it("passa screen e limit corretamente", async () => {
@@ -98,7 +98,7 @@ describe("faq.service", () => {
           expect(url.searchParams.get("limit")).toBe("3");
           return HttpResponse.json({
             items: [faqFixture.itemDocuments],
-            screenKey: "DOCUMENTS",
+            screen: "DOCUMENTS",
           });
         })
       );

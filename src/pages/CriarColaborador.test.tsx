@@ -60,6 +60,10 @@ vi.mock("@/components/faq/FaqSearchTrigger", () => ({
   FaqSearchTrigger: () => null,
 }));
 
+vi.mock("@/components/faq/FaqContextualBlock", () => ({
+  FaqContextualBlock: () => null,
+}));
+
 const mockToast = vi.mocked(toast);
 const mockCheckCpfAvailability = vi.mocked(checkCpfAvailability);
 const mockCheckUsernameAvailability = vi.mocked(checkUsernameAvailability);
