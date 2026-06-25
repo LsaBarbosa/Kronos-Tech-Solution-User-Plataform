@@ -6,7 +6,7 @@ const faqItemDashboard: FaqItem = {
   shortAnswer: "Acesse o painel e clique em Registrar Ponto.",
   fullAnswer: "Para registrar seu ponto, acesse o dashboard e clique no botão Registrar Ponto. O sistema solicitará confirmação biométrica.",
   category: { id: "cat-1", name: "Ponto" },
-  screenKeys: ["DASHBOARD", "TIME_RECORDS"],
+  relatedScreens: ["DASHBOARD", "TIME_RECORDS"],
   tags: ["ponto", "registro"],
   priority: 1,
 };
@@ -17,13 +17,13 @@ const faqItemDocuments: FaqItem = {
   shortAnswer: "Use a tela de Documentos para enviar arquivos.",
   fullAnswer: "Na tela de Documentos, clique em Enviar Documento e selecione o arquivo desejado.",
   category: { id: "cat-2", name: "Documentos" },
-  screenKeys: ["DOCUMENTS"],
+  relatedScreens: ["DOCUMENTS"],
   tags: ["documento", "upload"],
   priority: 2,
 };
 
 const searchResponse: FaqSearchResponse = {
-  content: [faqItemDashboard, faqItemDocuments],
+  items: [faqItemDashboard, faqItemDocuments],
   totalElements: 2,
   totalPages: 1,
   page: 0,
@@ -32,7 +32,7 @@ const searchResponse: FaqSearchResponse = {
 
 const contextualResponse: FaqContextualResponse = {
   items: [faqItemDashboard],
-  screenKey: "DASHBOARD",
+  screen: "DASHBOARD",
 };
 
 const emptySearchResponse: FaqSearchResponse = {
