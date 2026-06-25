@@ -1,8 +1,6 @@
 import { type ReactNode } from "react";
 import Header from "@/components/Header";
 import { cn } from "@/lib/utils";
-import { useAuth } from "@/context/AuthContext";
-import { useTawkWidget } from "@/hooks/useTawkWidget";
 
 type AuthenticatedPageLayoutProps = {
   children: ReactNode;
@@ -13,9 +11,6 @@ export function AuthenticatedPageLayout({
   children,
   className,
 }: AuthenticatedPageLayoutProps) {
-  const { isAuthenticated } = useAuth();
-  useTawkWidget({ isAuthenticated });
-
   return (
     <div className="min-h-screen bg-background relative overflow-hidden">
       <Header />
