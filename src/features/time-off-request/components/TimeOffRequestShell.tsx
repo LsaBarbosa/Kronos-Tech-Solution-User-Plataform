@@ -1,4 +1,6 @@
 import Header from "@/components/Header";
+import { FaqContextualBlock } from "@/components/faq/FaqContextualBlock";
+import { FAQ_SCREEN_KEYS } from "@/constants/faqScreenKeys";
 import { useTimeOffResponsiveMode } from "../hooks/useTimeOffResponsiveMode";
 import type { TimeOffRequestViewModel } from "../types";
 import TimeOffDesktopExperience from "./TimeOffDesktopExperience";
@@ -21,6 +23,7 @@ const TimeOffRequestShell = ({ viewModel }: TimeOffRequestShellProps) => {
           <TimeOffMobileExperience viewModel={viewModel} />
         )}
       </div>
+      <FaqContextualBlock screenKey={FAQ_SCREEN_KEYS.TIME_OFF} className="mt-6 px-4" />
     </>
   );
 };

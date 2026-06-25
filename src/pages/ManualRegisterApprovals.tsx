@@ -1,6 +1,8 @@
 import { useCallback } from "react";
 import { useNavigate } from "react-router-dom";
 import PageShell from "@/components/PageShell";
+import { FaqContextualBlock } from "@/components/faq/FaqContextualBlock";
+import { FAQ_SCREEN_KEYS } from "@/constants/faqScreenKeys";
 import { APP_PATHS } from "@/config/app-routes";
 import TimeOffApprovalDesktop from "@/features/time-off-approvals/components/TimeOffApprovalDesktop";
 import TimeOffApprovalMobile from "@/features/time-off-approvals/components/TimeOffApprovalMobile";
@@ -28,6 +30,8 @@ const ManualRegisterApprovals = () => {
       ) : (
         <TimeOffApprovalMobile viewModel={viewModel} onBack={handleBack} />
       )}
+
+      <FaqContextualBlock screenKey={FAQ_SCREEN_KEYS.TIME_OFF} />
 
       <TimeOffApprovalConfirmDialog
         request={viewModel.decisionTarget}

@@ -17,6 +17,10 @@ vi.mock("@/components/PageShell", () => ({
   default: ({ children }: { children: ReactNode }) => <>{children}</>,
 }));
 
+vi.mock("@/components/faq/FaqContextualBlock", () => ({
+  FaqContextualBlock: () => null,
+}));
+
 vi.mock("@/components/ui/select", async () => {
   const React = await import("react");
 

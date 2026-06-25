@@ -7,6 +7,8 @@ import { useToast } from "@/hooks/use-toast";
 import { ServiceContractSignatureService } from "@/service/serviceContractSignature.service";
 import { APP_PATHS } from "@/config/app-routes";
 import type { ServiceContractAdminItem } from "@/types/service-contract-signature";
+import { FaqContextualBlock } from "@/components/faq/FaqContextualBlock";
+import { FAQ_SCREEN_KEYS } from "@/constants/faqScreenKeys";
 
 const StatusBadge = ({ status }: { status: "ACTIVE" | "VOIDED" }) => (
   <span
@@ -167,6 +169,8 @@ const ContratosAdmin = () => {
           </ul>
         )}
       </div>
+
+      <FaqContextualBlock screenKey={FAQ_SCREEN_KEYS.CONTRACTS} className="mt-6" />
     </PageShell>
   );
 };

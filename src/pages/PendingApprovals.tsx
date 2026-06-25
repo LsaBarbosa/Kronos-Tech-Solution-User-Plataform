@@ -6,6 +6,8 @@ import ApprovalDesktop from "@/features/pending-approvals/components/ApprovalDes
 import ApprovalMobile from "@/features/pending-approvals/components/ApprovalMobile";
 import { useApprovalsResponsiveMode } from "@/features/pending-approvals/hooks/useApprovalsResponsiveMode";
 import { usePendingApprovalsViewModel } from "@/features/pending-approvals/hooks/usePendingApprovalsViewModel";
+import { FaqContextualBlock } from "@/components/faq/FaqContextualBlock";
+import { FAQ_SCREEN_KEYS } from "@/constants/faqScreenKeys";
 
 export const PendingApprovals = () => {
   const navigate = useNavigate();
@@ -27,6 +29,8 @@ export const PendingApprovals = () => {
       ) : (
         <ApprovalMobile viewModel={viewModel} onBack={handleBack} />
       )}
+
+      <FaqContextualBlock screenKey={FAQ_SCREEN_KEYS.TIME_RECORDS} className="mt-6" />
     </PageShell>
   );
 };

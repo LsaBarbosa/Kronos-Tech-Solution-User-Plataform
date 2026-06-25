@@ -1,6 +1,8 @@
 import { useCallback, useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import PageShell from "@/components/PageShell";
+import { FaqContextualBlock } from "@/components/faq/FaqContextualBlock";
+import { FAQ_SCREEN_KEYS } from "@/constants/faqScreenKeys";
 import { APP_PATHS } from "@/config/app-routes";
 import { useDocumentsPage } from "@/hooks/useDocumentsPage";
 import DocumentsDesktopView from "@/features/documents/components/DocumentsDesktopView";
@@ -102,6 +104,8 @@ const Documentos = () => {
       ) : (
         <DocumentsMobileView {...sharedProps} />
       )}
+
+      <FaqContextualBlock screenKey={FAQ_SCREEN_KEYS.DOCUMENTS} className="mt-4" />
 
       <DocumentDeleteDialog
         document={documentPendingDelete}

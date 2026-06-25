@@ -27,6 +27,8 @@ import {
 } from "@/components/ui/alert-dialog";
 import PageShell from "@/components/PageShell";
 import { APP_PATHS } from "@/config/app-routes";
+import { FaqContextualBlock } from "@/components/faq/FaqContextualBlock";
+import { FAQ_SCREEN_KEYS } from "@/constants/faqScreenKeys";
 import { useToast } from "@/hooks/use-toast";
 import {
   useDemoCreate,
@@ -459,6 +461,7 @@ const CTODemoSandbox = () => {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
+      <FaqContextualBlock screenKey={FAQ_SCREEN_KEYS.DASHBOARD} className="mt-6" />
     </PageShell>
   );
 };

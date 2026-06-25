@@ -56,6 +56,10 @@ vi.mock("@/service/csrf.service", () => ({
   preloadCsrfToken: vi.fn().mockResolvedValue(undefined),
 }));
 
+vi.mock("@/components/faq/FaqSearchTrigger", () => ({
+  FaqSearchTrigger: () => null,
+}));
+
 const mockToast = vi.mocked(toast);
 const mockCheckCpfAvailability = vi.mocked(checkCpfAvailability);
 const mockCheckUsernameAvailability = vi.mocked(checkUsernameAvailability);

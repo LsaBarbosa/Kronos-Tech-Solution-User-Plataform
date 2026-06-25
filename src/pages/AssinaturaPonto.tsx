@@ -8,6 +8,8 @@ import SignaturePendingBlockers from "@/components/timesheet-signature/Signature
 import SignatureDeclarationBox from "@/components/timesheet-signature/SignatureDeclarationBox";
 import SignatureStatusCard from "@/components/timesheet-signature/SignatureStatusCard";
 import { captureFrameFromVideo, startCameraStream, stopCameraStream } from "@/utils/camera.util";
+import { FaqContextualBlock } from "@/components/faq/FaqContextualBlock";
+import { FAQ_SCREEN_KEYS } from "@/constants/faqScreenKeys";
 import { safeLogger } from "@/utils/security/safeLogger";
 
 const formatMonthInputValue = (year: number, month: number): string =>
@@ -360,6 +362,7 @@ const AssinaturaPonto = () => {
           </>
         ) : null}
       </div>
+      <FaqContextualBlock screenKey={FAQ_SCREEN_KEYS.TIME_RECORDS} className="mt-6" />
     </PageShell>
   );
 };

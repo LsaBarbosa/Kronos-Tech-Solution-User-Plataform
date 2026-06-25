@@ -1,5 +1,7 @@
 import { useCallback, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { FaqContextualBlock } from "@/components/faq/FaqContextualBlock";
+import { FAQ_SCREEN_KEYS } from "@/constants/faqScreenKeys";
 import {
   ArrowRight,
   Building2,
@@ -223,6 +225,8 @@ const Empresa = () => {
             );
           })}
         </div>
+
+        <FaqContextualBlock screenKey={FAQ_SCREEN_KEYS.COMPANIES} />
       </div>
     </PageShell>
   );

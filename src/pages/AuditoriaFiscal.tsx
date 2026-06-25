@@ -6,6 +6,8 @@ import FiscalDesktopView from "@/features/fiscal-audit/components/FiscalDesktopV
 import FiscalMobileView from "@/features/fiscal-audit/components/FiscalMobileView";
 import { useFiscalAuditResponsiveMode } from "@/features/fiscal-audit/useFiscalAuditResponsiveMode";
 import { useFiscalAuditViewModel } from "@/features/fiscal-audit/useFiscalAuditViewModel";
+import { FaqContextualBlock } from "@/components/faq/FaqContextualBlock";
+import { FAQ_SCREEN_KEYS } from "@/constants/faqScreenKeys";
 
 const AuditoriaFiscal = () => {
   const navigate = useNavigate();
@@ -27,6 +29,7 @@ const AuditoriaFiscal = () => {
       ) : (
         <FiscalMobileView viewModel={viewModel} onBack={handleBack} />
       )}
+      <FaqContextualBlock screenKey={FAQ_SCREEN_KEYS.AUDIT} className="mt-6" />
     </PageShell>
   );
 };

@@ -30,6 +30,8 @@ import {
 } from "@/config/app-routes";
 import { useAuth } from "@/context/AuthContext";
 import { cn } from "@/lib/utils";
+import { FaqContextualBlock } from "@/components/faq/FaqContextualBlock";
+import { FAQ_SCREEN_KEYS } from "@/constants/faqScreenKeys";
 
 interface AdminRouteCard {
   route: AppRouteMeta;
@@ -356,6 +358,8 @@ const Administracao = () => {
           </div>
         )}
       </div>
+
+      <FaqContextualBlock screenKey={FAQ_SCREEN_KEYS.USERS} className="mt-6" />
     </PageShell>
   );
 };
