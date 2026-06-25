@@ -34,34 +34,35 @@ export function useTawkWidget({ isAuthenticated }: UseTawkWidgetOptions) {
         const config = await getChatConfig();
         if (cancelled || !config.enabled || !config.propertyId || !config.widgetId) return;
 
-        const identity = await getChatIdentity();
-        if (cancelled) return;
-
         if (!window.Tawk_API) {
           window.Tawk_API = {};
           window.Tawk_LoadStart = new Date();
         }
 
-        const scriptUrl = `https://embed.tawk.to/${config.propertyId}/${config.widgetId}`;
-
-        window.Tawk_API.onLoad = () => {
-          if (window.Tawk_API?.setAttributes) {
-            window.Tawk_API.setAttributes(
-              {
-                name: identity.name,
-                email: identity.email,
-                hash: identity.hash,
-                id: identity.userId,
-              },
-              (err) => {
-                if (err) {
-                  safeLogger.warn("Tawk.to setAttributes error:", err);
+        // Set up identity in onLoad — identity fetch happens AFTER script loads
+        // so a failure in identity doesn't prevent the widget from appearing
+        window.Tawk_API.onLoad = async () => {
+          try {
+            const identity = await getChatIdentity();
+            if (window.Tawk_API?.setAttributes) {
+              window.Tawk_API.setAttributes(
+                {
+                  name: identity.name,
+                  email: identity.email,
+                  hash: identity.hash,
+                  id: identity.userId,
+                },
+                (err) => {
+                  if (err) safeLogger.warn("Tawk.to setAttributes error:", err);
                 }
-              }
-            );
+              );
+            }
+          } catch (err) {
+            safeLogger.warn("Tawk.to: falha ao buscar identidade segura:", err);
           }
         };
 
+        const scriptUrl = `https://embed.tawk.to/${config.propertyId}/${config.widgetId}`;
         const script = document.createElement("script");
         script.async = true;
         script.src = scriptUrl;
@@ -87,8 +88,7 @@ export function useTawkWidget({ isAuthenticated }: UseTawkWidgetOptions) {
     if (!isAuthenticated && loadedRef.current) {
       if (window.Tawk_API?.logout) {
         window.Tawk_API.logout();
-      }
-      if (window.Tawk_API?.hideWidget) {
+      } else if (window.Tawk_API?.hideWidget) {
         window.Tawk_API.hideWidget();
       }
     }
