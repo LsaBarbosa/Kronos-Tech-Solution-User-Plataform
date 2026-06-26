@@ -177,7 +177,7 @@ export const APP_ROUTE_META = {
     breadcrumbs: [{ label: "Início", path: APP_PATHS.dashboard }, { label: "Avisos", path: APP_PATHS.avisos }],
   }),
   criarAviso: defineRoute(APP_PATHS.criarAviso, "Criar Aviso", {
-    allowedRoles: ["MANAGER"],
+    allowedRoles: ["MANAGER", "CTO"],
     showInMenu: false,
     breadcrumbs: [
       { label: "Início", path: APP_PATHS.dashboard },
