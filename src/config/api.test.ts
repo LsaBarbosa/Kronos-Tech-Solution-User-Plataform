@@ -179,6 +179,32 @@ describe("api", () => {
     expect(expiredCallback).toHaveBeenCalledWith("expired");
   });
 
+  it("nao chama callback de sessao expirada para 401 em /auth/checkin-face", async () => {
+    const expiredCallback = vi.fn();
+    registerSessionExpiredHandler(expiredCallback);
+
+    server.use(
+      http.post("http://localhost:3000/auth/checkin-face", () =>
+        HttpResponse.json(
+          { detail: "Face nao reconhecida." },
+          { status: 401 }
+        )
+      )
+    );
+
+    await expect(
+      api.post("http://localhost:3000/auth/checkin-face", {
+        faceImageBase64: "base64-image",
+        latitude: -22.9,
+        longitude: -43.2,
+      })
+    ).rejects.toMatchObject({
+      kind: "auth",
+      status: 401,
+    });
+    expect(expiredCallback).not.toHaveBeenCalled();
+  });
+
   it("shouldCallSessionExpiredHandlerWithBiometricConsentRevokedWhen401HasRevocationHeader", async () => {
     const expiredCallback = vi.fn();
     registerSessionExpiredHandler(expiredCallback);

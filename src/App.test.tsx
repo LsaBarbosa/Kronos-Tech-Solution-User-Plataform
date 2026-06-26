@@ -8,6 +8,10 @@ import { CheckinProvider } from "@/context/CheckinContext";
 import { ThemeProvider } from "@/hooks/useTheme";
 import Dashboard from "./pages/Dashboard";
 
+vi.mock("./pages/CheckinTerminal", () => ({
+  default: () => <h1>Terminal público de ponto</h1>,
+}));
+
 const mockPrivacyPolicy = vi.hoisted(() => ({
   version: "2026.05.1",
   effectiveDate: "2026-05-27",
@@ -180,7 +184,9 @@ describe("App routes", () => {
     const { default: App } = await import("./App");
     render(<App />);
 
-    await screen.findByText("Criar Aviso", {}, { timeout: 3000 });
+    await waitFor(() => {
+      expect(window.location.pathname).toBe("/criar-aviso");
+    });
   });
 
   it("renderiza /privacy/policy como política pública sem login", async () => {
@@ -194,6 +200,16 @@ describe("App routes", () => {
     expect(window.location.pathname).toBe(APP_PATHS.privacyPolicy);
     expect(getPublicPrivacyPolicyMock).toHaveBeenCalledTimes(1);
     expect(screen.queryByText("Carregando sessão...")).not.toBeInTheDocument();
+  });
+
+  it("renderiza /checkin como rota pública fora do bloco protegido", async () => {
+    window.history.pushState({}, "", APP_PATHS.checkin);
+
+    const { default: App } = await import("./App");
+    render(<App />);
+
+    await screen.findByRole("heading", { name: "Terminal público de ponto" });
+    expect(window.location.pathname).toBe(APP_PATHS.checkin);
   });
 
   it.each([

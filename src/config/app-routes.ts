@@ -32,6 +32,7 @@ const defineRoute = (
 export const APP_PATHS = {
   root: "/",
   login: "/login",
+  checkin: "/checkin",
   selecionarEmpresa: "/selecionar-empresa",
   senhaPrimeiroAcesso: "/senha-primeiro-acesso",
   resetarSenha: "/resetar-senha",
@@ -83,6 +84,10 @@ export const APP_ROUTE_META = {
     breadcrumbs: [{ label: "Início", path: APP_PATHS.dashboard }],
   }),
   login: defineRoute(APP_PATHS.login, "Login", { showInMenu: false }),
+  checkin: defineRoute(APP_PATHS.checkin, "Terminal de Ponto", {
+    showInMenu: false,
+    breadcrumbs: [{ label: "Terminal de Ponto", path: APP_PATHS.checkin }],
+  }),
   senhaPrimeiroAcesso: defineRoute(APP_PATHS.senhaPrimeiroAcesso, "Primeiro Acesso", { showInMenu: false }),
   resetarSenha: defineRoute(APP_PATHS.resetarSenha, "Redefinir Senha", { showInMenu: false }),
   dashboard: defineRoute(APP_PATHS.dashboard, "Início", {

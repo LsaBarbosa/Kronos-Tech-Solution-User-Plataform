@@ -15,6 +15,7 @@ import { APP_PATHS, APP_ROUTE_META } from "@/config/app-routes";
 
 const TokenRedirect = lazy(() => import("./pages/TokenRedirect"));
 const Login = lazy(() => import("./pages/Login"));
+const CheckinTerminal = lazy(() => import("./pages/CheckinTerminal"));
 const EsqueciSenha = lazy(() => import("./pages/EsqueciSenha"));
 const ResetPassword = lazy(() => import("./pages/ResetPassword"));
 const Dashboard = lazy(() => import("./pages/Dashboard"));
@@ -113,6 +114,7 @@ const App = () => (
                 <Routes>
                   <Route path={APP_PATHS.root} element={<TokenRedirect />} />
                   <Route path={APP_PATHS.login} element={<Login />} />
+                  <Route path={APP_PATHS.checkin} element={<CheckinTerminal />} />
                   <Route path={APP_PATHS.senhaPrimeiroAcesso} element={<EsqueciSenha />} />
                   <Route path={APP_PATHS.resetarSenha} element={<ResetPassword />} />
                   <Route path={APP_PATHS.privacyProcessingCatalog} element={<PrivacyProcessingCatalog />} />

@@ -121,6 +121,34 @@ describe("API Interceptor - CSRF Injection", () => {
     expect(csrfFetched).toBe(false);
   });
 
+  it("should NOT require CSRF for public terminal checkin endpoint", async () => {
+    let csrfFetched = false;
+
+    server.use(
+      http.get("*/auth/csrf", () => {
+        csrfFetched = true;
+        return HttpResponse.json(MOCK_CSRF_RESPONSE);
+      }),
+      http.post("*/auth/checkin-face", () =>
+        HttpResponse.json({
+          loginMessage: "Login realizado com sucesso.",
+          recordMessage: "Entrada às 08:01! (NSR: 123)",
+          actionType: "CHECKIN",
+          autoLogoutAfterSeconds: 10,
+          recordedAt: "2026-06-26T08:01:00-03:00",
+        })
+      )
+    );
+
+    await api.post("/auth/checkin-face", {
+      faceImageBase64: "imagem-base64",
+      latitude: -22.9,
+      longitude: -43.2,
+    });
+
+    expect(csrfFetched).toBe(false);
+  });
+
   it("should require CSRF for logout endpoint", async () => {
     let csrfFetched = false;
 

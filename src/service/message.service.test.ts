@@ -36,8 +36,13 @@ describe("message.service", () => {
         title: "Aviso",
         messageText: "Conteudo",
         priority: "NORMAL",
+        scope: "GLOBAL",
         createdAt: "2026-04-23T10:00:00Z",
         senderEmployeeId: "emp-1",
+        recipientEmployeeId: null,
+        deliveredCount: undefined,
+        seen: undefined,
+        senderName: undefined,
       },
     ]);
   });

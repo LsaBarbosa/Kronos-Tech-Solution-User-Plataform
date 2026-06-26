@@ -19,6 +19,7 @@ export const buildRoute = (...segments: string[]) => `/${segments.join("/")}`;
 export const AUTH_PATHS = {
   LOGIN: "login",
   LOGIN_FACE: "login-face",
+  CHECKIN_FACE: "checkin-face",
   RECOVER_PASSWORD: "recover-password",
   RESET_PASSWORD: "reset-password",
   LOGOUT: "logout",

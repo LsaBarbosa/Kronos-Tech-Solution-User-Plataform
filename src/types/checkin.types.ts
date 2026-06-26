@@ -23,6 +23,7 @@ export type CheckinErrorCode =
   | 'FACE_MISMATCH'
   | 'OUT_OF_ALLOWED_RADIUS'
   | 'CLOCK_NOT_SYNCHRONIZED'
+  | 'TERMS_NOT_ACCEPTED'
   | 'INCOMPATIBLE_RECORD_STATUS'
   | 'NETWORK_ERROR'
   | 'UNKNOWN_ERROR';
@@ -38,6 +39,30 @@ export interface CheckinResult {
   message: string;
   raw: unknown;
 }
+
+export interface TerminalCheckinRequest {
+  faceImageBase64: string;
+  latitude: number;
+  longitude: number;
+  accuracy?: number | null;
+  livenessPassed?: boolean;
+}
+
+export interface TerminalCheckinResponse {
+  loginMessage: string;
+  recordMessage: string;
+  actionType: string;
+  autoLogoutAfterSeconds: number;
+  recordedAt: string | null;
+}
+
+export type TerminalCheckinFlowStatus =
+  | 'start'
+  | 'collecting'
+  | 'submitting'
+  | 'success'
+  | 'error'
+  | 'exiting';
 
 export interface CheckinError {
   code: CheckinErrorCode;
