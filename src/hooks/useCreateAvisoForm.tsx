@@ -219,7 +219,7 @@ export const useCreateAvisoForm = (): UseCreateAvisoFormReturn => {
       return false;
     }
 
-    if (!canSubmit || !formState.priority) {
+    if (!canSubmit) {
       toast({
         title: "Campos obrigatorios",
         description: isManager
