@@ -108,6 +108,19 @@ describe("TerminalCheckinPage", () => {
     expect(screen.getByText("Modo toque rápido")).toBeInTheDocument();
   });
 
+  it("mantém a ordem texto, ações e card final no mobile", () => {
+    setDesktopViewport(false);
+
+    render(<TerminalCheckinPage />);
+
+    const copy = screen.getByTestId("terminal-checkin-mobile-copy");
+    const actions = screen.getByTestId("terminal-checkin-mobile-actions");
+    const status = screen.getByTestId("terminal-checkin-mobile-status");
+
+    expect(copy.compareDocumentPosition(actions) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+    expect(actions.compareDocumentPosition(status) & Node.DOCUMENT_POSITION_FOLLOWING).toBeTruthy();
+  });
+
   it("coleta dados, envia ao endpoint novo e reseta ao final do countdown", async () => {
     vi.useFakeTimers();
     mockSubmitTerminalCheckin.mockResolvedValue({

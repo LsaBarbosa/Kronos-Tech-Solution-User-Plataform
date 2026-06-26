@@ -125,7 +125,7 @@ const TerminalPreview = ({
     <div
       className={cn(
         "relative overflow-hidden rounded-[28px] border border-white/10 bg-[#06111F] shadow-[0_24px_60px_rgba(2,6,23,0.45)]",
-        compact ? "aspect-[4/5]" : "aspect-[4/3]"
+        compact ? "aspect-[5/4]" : "aspect-[4/3]"
       )}
     >
       <video
@@ -500,7 +500,7 @@ const MobileTerminalCheckin = ({ viewModel }: { viewModel: TerminalCheckinViewMo
     className="min-h-screen bg-[linear-gradient(180deg,_#0F3B66_0%,_#123E70_22%,_#EAF3FF_22%,_#F8FAFC_100%)] px-4 py-5"
   >
     <div className="mx-auto flex min-h-[calc(100vh-2.5rem)] max-w-md flex-col gap-4">
-      <header className="space-y-3 text-white">
+      <header data-testid="terminal-checkin-mobile-copy" className="space-y-3 text-white">
         <span className="inline-flex items-center gap-2 rounded-full bg-white/10 px-3 py-1.5 text-[11px] font-semibold uppercase tracking-[0.22em] text-[#DBEAFE]">
           <ShieldCheck className="h-4 w-4" />
           Modo toque rápido
@@ -516,11 +516,17 @@ const MobileTerminalCheckin = ({ viewModel }: { viewModel: TerminalCheckinViewMo
       </header>
 
       <TerminalPreview compact viewModel={viewModel} />
-      <TerminalStatusCard compact viewModel={viewModel} />
-      <TerminalErrorCard error={viewModel.state.error} />
 
-      <div className="mt-auto rounded-[28px] border border-[#D6E3F5] bg-white/95 p-4 shadow-[0_18px_40px_rgba(15,23,42,0.12)] backdrop-blur">
+      <div
+        data-testid="terminal-checkin-mobile-actions"
+        className="rounded-[28px] border border-[#D6E3F5] bg-white/95 p-4 shadow-[0_18px_40px_rgba(15,23,42,0.12)] backdrop-blur"
+      >
         <TerminalActionPanel compact viewModel={viewModel} />
+      </div>
+
+      <div data-testid="terminal-checkin-mobile-status" className="space-y-4">
+        <TerminalStatusCard compact viewModel={viewModel} />
+        <TerminalErrorCard error={viewModel.state.error} />
       </div>
     </div>
   </div>
