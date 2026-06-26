@@ -5,6 +5,8 @@ import { Button } from "@/components/ui/button";
 import { useServiceContractSignatureViewModel } from "@/features/service-contract-signature/useServiceContractSignatureViewModel";
 import { captureFrameFromVideo, startCameraStream, stopCameraStream } from "@/utils/camera.util";
 import { safeLogger } from "@/utils/security/safeLogger";
+import { FaqContextualBlock } from "@/components/faq/FaqContextualBlock";
+import { FAQ_SCREEN_KEYS } from "@/constants/faqScreenKeys";
 
 const AssinaturaContrato = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -361,6 +363,7 @@ const AssinaturaContrato = () => {
           </form>
         ) : null}
       </div>
+      <FaqContextualBlock screenKey={FAQ_SCREEN_KEYS.CONTRACTS} className="mt-6" />
     </PageShell>
   );
 };

@@ -24,6 +24,10 @@ vi.mock("@/components/PageShell", () => ({
   default: ({ children }: { children: React.ReactNode }) => <div data-testid="page-shell">{children}</div>,
 }));
 
+vi.mock("@/components/faq/FaqContextualBlock", () => ({
+  FaqContextualBlock: () => null,
+}));
+
 vi.mock("@/context/AuthContext", () => ({
   useAuth: () => ({
     status: "authenticated",

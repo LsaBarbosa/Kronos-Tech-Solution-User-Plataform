@@ -35,6 +35,14 @@ vi.mock("@/features/detailed-report-export", () => ({
   downloadDetailedReportCsv: vi.fn(),
 }));
 
+vi.mock("@/components/faq/FaqSearchTrigger", () => ({
+  FaqSearchTrigger: () => null,
+}));
+
+vi.mock("@/components/faq/FaqContextualBlock", () => ({
+  FaqContextualBlock: () => null,
+}));
+
 const mockUseAuth = vi.mocked(useAuth);
 const mockUseCheckin = vi.mocked(useCheckin);
 

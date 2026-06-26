@@ -3,6 +3,7 @@ import { companyHandlers } from "./company.handlers";
 import { demoHandlers } from "./demo.handlers";
 import { documentHandlers } from "./document.handlers";
 import { employeeHandlers } from "./employee.handlers";
+import { faqHandlers } from "./faq.handlers";
 import { geolocationHandlers } from "./geolocation.handlers";
 import { legalHandlers } from "./legal.handlers";
 import { messageHandlers } from "./message.handlers";
@@ -16,6 +17,7 @@ export const handlers = [
   ...employeeHandlers,
   ...companyHandlers,
   ...demoHandlers,
+  ...faqHandlers,
   ...geolocationHandlers,
   ...documentHandlers,
   ...messageHandlers,

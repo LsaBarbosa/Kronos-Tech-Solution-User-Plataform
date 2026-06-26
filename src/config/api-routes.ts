@@ -4,6 +4,7 @@ export const API_ROUTES = {
   CTO_DEMO: "cto/demo",
   DOCUMENTS: "documents",
   EMPLOYEE: "employee",
+  FAQ: "faqs",
   GEOLOCATION: "geolocation",
   LEGAL: "legal",
   LGPD: "lgpd",
@@ -121,6 +122,7 @@ export const CTO_DEMO_PATHS = {
   CREATE: "create",
   STATUS: "status",
   VALIDATE: "validate",
+  PURGE: "purge",
 } as const;
 
 export const LGPD_PATHS = {
@@ -146,4 +148,10 @@ export const LGPD_PATHS = {
   INVENTORY_ACTIVE: "inventory/active",
   INVENTORY_BY_CODE: (processCode: string) => `inventory/${processCode}`,
   INVENTORY_BY_ID: (inventoryId: string) => `inventory/${inventoryId}`,
+} as const;
+
+export const FAQ_PATHS = {
+  SEARCH: "search",
+  CONTEXTUAL: "contextual",
+  BY_ID: (faqId: string) => faqId,
 } as const;

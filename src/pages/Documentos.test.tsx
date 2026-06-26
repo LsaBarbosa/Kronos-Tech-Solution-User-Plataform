@@ -19,6 +19,10 @@ vi.mock("@/components/Sidebar", () => ({
   default: () => <div data-testid="sidebar" />,
 }));
 
+vi.mock("@/components/faq/FaqContextualBlock", () => ({
+  FaqContextualBlock: () => null,
+}));
+
 vi.mock("@/components/ui/select", async () => {
   const React = await import("react");
 

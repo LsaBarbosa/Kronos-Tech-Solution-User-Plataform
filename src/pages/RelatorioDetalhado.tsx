@@ -4,6 +4,8 @@ import { RegistroEdicaoModal } from "@/components/RegistroEdicaoModal";
 import { DetailedReportDesktop, DetailedReportMobile } from "@/components/relatorio-detalhado";
 import { useDetailedReportBuilder } from "@/hooks/useDetailedReportBuilder";
 import { useReportResponsiveMode } from "@/hooks/useReportResponsiveMode";
+import { FaqContextualBlock } from "@/components/faq/FaqContextualBlock";
+import { FAQ_SCREEN_KEYS } from "@/constants/faqScreenKeys";
 
 const RelatorioDetalhado = () => {
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -32,6 +34,8 @@ const RelatorioDetalhado = () => {
           form={viewModel.form}
           isSavingRecord={viewModel.isSavingRecord}
         />
+
+        <FaqContextualBlock screenKey={FAQ_SCREEN_KEYS.REPORTS} className="mt-6" />
       </div>
     </PageShell>
   );

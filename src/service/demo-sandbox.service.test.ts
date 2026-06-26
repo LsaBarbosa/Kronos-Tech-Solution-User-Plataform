@@ -70,7 +70,7 @@ describe("demo-sandbox.service", () => {
 
   it("deleta sandbox e retorna contadores de remoção", async () => {
     server.use(
-      http.delete("*/cto/demo", () =>
+      http.delete("*/cto/demo/purge", () =>
         HttpResponse.json({
           operationId: "xyz-456",
           status: "SUCCESS",

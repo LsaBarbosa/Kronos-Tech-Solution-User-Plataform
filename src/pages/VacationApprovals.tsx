@@ -1,6 +1,8 @@
 import { useCallback, useState } from "react";
 import { useNavigate } from "react-router-dom";
 import PageShell from "@/components/PageShell";
+import { FaqContextualBlock } from "@/components/faq/FaqContextualBlock";
+import { FAQ_SCREEN_KEYS } from "@/constants/faqScreenKeys";
 import { APP_PATHS } from "@/config/app-routes";
 import VacationApprovalDesktop from "@/features/vacation-approvals/components/VacationApprovalDesktop";
 import VacationApprovalMobile from "@/features/vacation-approvals/components/VacationApprovalMobile";
@@ -28,6 +30,8 @@ export const VacationApprovals = () => {
       ) : (
         <VacationApprovalMobile viewModel={viewModel} onBack={handleBack} />
       )}
+
+      <FaqContextualBlock screenKey={FAQ_SCREEN_KEYS.VACATION} />
 
       <VacationApprovalConfirmDialog
         request={viewModel.decisionTarget}

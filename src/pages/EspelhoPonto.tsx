@@ -7,6 +7,8 @@ import {
   EspelhoPontoMobile,
   useEspelhoPontoViewModel,
 } from "@/components/espelho-ponto";
+import { FaqContextualBlock } from "@/components/faq/FaqContextualBlock";
+import { FAQ_SCREEN_KEYS } from "@/constants/faqScreenKeys";
 
 const ROLE_LABELS: Record<string, string> = {
   MANAGER: "Gestor",
@@ -36,6 +38,7 @@ export default function EspelhoPonto() {
         ) : (
           <EspelhoPontoMobile viewModel={viewModel} roleLabel={roleLabel} />
         )}
+        <FaqContextualBlock screenKey={FAQ_SCREEN_KEYS.TIME_RECORDS} className="mt-6" />
       </div>
     </PageShell>
   );

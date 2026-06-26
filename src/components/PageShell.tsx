@@ -20,7 +20,7 @@ const PageShell = ({
   return (
     <div className="min-h-screen bg-background relative overflow-hidden">
       {withBackground && (
-        <div className="fixed inset-0 z-0">
+        <div className="fixed inset-0 z-0 pointer-events-none">
           <div
             className="absolute inset-0 opacity-5"
             style={{
