@@ -3,22 +3,6 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-    <!-- CSP: frame-ancestors e upgrade-insecure-requests devem ser configurados via header HTTP no nginx/servidor -->
-    <meta http-equiv="Content-Security-Policy"
-      content="
-        default-src 'self';
-        scr&#105;pt-src 'self';
-        style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
-        font-src 'self' https://fonts.gstatic.com;
-        img-src 'self' data: blob:;
-        media-src 'self' blob:;
-        connect-src 'self';
-        worker-src blob:;
-        base-uri 'self';
-        form-action 'self';
-        object-src 'none';
-      " />
-
     <title>Kronos Tech Solution</title>
     <meta name="description" content="Acesse a plataforma Kronos Tech Solution (KTS) para gerenciar colaboradores, documentos e relatórios de horas." />
     <meta name="author" content="Kronos Tech Solution" />

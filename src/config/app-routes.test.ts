@@ -18,7 +18,7 @@ describe("app-routes metadata", () => {
       { label: "Criar Empresa", path: APP_PATHS.empresaCriar },
     ]);
     expect(APP_ROUTE_META.criarAdministrador.allowedRoles).toEqual(["CTO", "MANAGER"]);
-    expect(APP_ROUTE_META.criarAviso.allowedRoles).toEqual(["MANAGER"]);
+    expect(APP_ROUTE_META.criarAviso.allowedRoles).toEqual(["MANAGER", "CTO"]);
     expect(APP_ROUTE_META.meusDocumentos.path).toBe(APP_PATHS.meusDocumentos);
   });
 });
