@@ -1,33 +1,33 @@
-import { api } from "@/config/api";
-import { API_ROUTES, AUTH_PATHS, buildRoute } from "@/config/api-routes";
-import {
-  extractObject,
-  safeNumber,
-  safeString,
-} from "@/service/helpers/response-normalizer.helper";
+import { loginWithFace } from "@/service/auth.service";
+import { registerCheckin } from "@/service/records.service";
 import type {
   TerminalCheckinRequest,
   TerminalCheckinResponse,
 } from "@/types/checkin.types";
 
+const DEFAULT_AUTO_LOGOUT_SECONDS = 10;
+
 export const submitTerminalCheckin = async (
   payload: TerminalCheckinRequest
 ): Promise<TerminalCheckinResponse> => {
-  const response = await api.post<unknown>(
-    buildRoute(API_ROUTES.AUTH, AUTH_PATHS.CHECKIN_FACE),
-    payload
-  );
+  const { faceImageBase64, latitude, longitude, livenessPassed } = payload;
 
-  const data = extractObject<Partial<TerminalCheckinResponse>>(response.data);
+  await loginWithFace({
+    faceImageBase64,
+    livenessPassed,
+  });
+
+  const checkinResult = await registerCheckin({
+    faceImageBase64,
+    latitude,
+    longitude,
+  });
 
   return {
-    loginMessage: safeString(data.loginMessage, "Login realizado com sucesso."),
-    recordMessage: safeString(data.recordMessage, "Registro realizado com sucesso."),
-    actionType: safeString(data.actionType, "UNKNOWN"),
-    autoLogoutAfterSeconds: safeNumber(data.autoLogoutAfterSeconds, 10),
-    recordedAt:
-      typeof data.recordedAt === "string" && data.recordedAt.trim()
-        ? data.recordedAt
-        : null,
+    loginMessage: "Autenticação facial realizada com sucesso.",
+    recordMessage: checkinResult.message,
+    actionType: checkinResult.actionType,
+    autoLogoutAfterSeconds: DEFAULT_AUTO_LOGOUT_SECONDS,
+    recordedAt: null,
   };
 };
