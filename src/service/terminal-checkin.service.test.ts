@@ -8,20 +8,25 @@ describe("terminal-checkin.service", () => {
     server.resetHandlers();
   });
 
-  it("autentica com face e reusa a mesma foto para registrar o ponto", async () => {
-    let loginBody: Record<string, unknown> | null = null;
-    let checkinBody: Record<string, unknown> | null = null;
-
+  it("envia o contrato facial atômico para /auth/checkin-face", async () => {
     server.use(
-      http.post("*/auth/login-face", async ({ request }) => {
-        loginBody = (await request.json()) as Record<string, unknown>;
-        return new HttpResponse(null, { status: 204 });
-      }),
-      http.post("*/records/checkin", async ({ request }) => {
-        checkinBody = (await request.json()) as Record<string, unknown>;
+      http.post("*/auth/checkin-face", async ({ request }) => {
+        const body = await request.json();
+
+        expect(body).toEqual({
+          faceImageBase64: "imagem-base64",
+          latitude: -22.9,
+          longitude: -43.2,
+          accuracy: 18.5,
+          livenessPassed: true,
+        });
+
         return HttpResponse.json({
+          loginMessage: "Login realizado com sucesso.",
+          recordMessage: "Entrada às 08:01! (NSR: 123)",
           actionType: "CHECKIN",
-          message: "Entrada às 08:01! (NSR: 123)",
+          autoLogoutAfterSeconds: 10,
+          recordedAt: "2026-06-26T08:01:00-03:00",
         });
       })
     );
@@ -35,38 +40,21 @@ describe("terminal-checkin.service", () => {
         livenessPassed: true,
       })
     ).resolves.toEqual({
-      loginMessage: "Autenticação facial realizada com sucesso.",
+      loginMessage: "Login realizado com sucesso.",
       recordMessage: "Entrada às 08:01! (NSR: 123)",
       actionType: "CHECKIN",
       autoLogoutAfterSeconds: 10,
-      recordedAt: null,
-    });
-
-    expect(loginBody).toEqual({
-      faceImageBase64: "imagem-base64",
-      livenessPassed: true,
-    });
-    expect(checkinBody).toEqual({
-      faceImageBase64: "imagem-base64",
-      latitude: -22.9,
-      longitude: -43.2,
+      recordedAt: "2026-06-26T08:01:00-03:00",
     });
   });
 
-  it("interrompe o fluxo quando a autenticacao facial falha", async () => {
-    const checkinSpy: { called: boolean } = { called: false };
-
+  it("normaliza campos ausentes da resposta", async () => {
     server.use(
-      http.post("*/auth/login-face", () =>
-        HttpResponse.json({ detail: "Face nao reconhecida." }, { status: 401 })
-      ),
-      http.post("*/records/checkin", async () => {
-        checkinSpy.called = true;
-        return HttpResponse.json({
+      http.post("*/auth/checkin-face", () =>
+        HttpResponse.json({
           actionType: "CHECKOUT",
-          message: "Nao deveria chegar aqui.",
-        });
-      })
+        })
+      )
     );
 
     await expect(
@@ -75,8 +63,12 @@ describe("terminal-checkin.service", () => {
         latitude: -22.9,
         longitude: -43.2,
       })
-    ).rejects.toThrow();
-
-    expect(checkinSpy.called).toBe(false);
+    ).resolves.toEqual({
+      loginMessage: "Autenticação facial realizada com sucesso.",
+      recordMessage: "Registro realizado com sucesso.",
+      actionType: "CHECKOUT",
+      autoLogoutAfterSeconds: 10,
+      recordedAt: null,
+    });
   });
 });
