@@ -36,7 +36,7 @@ const contextualResponse: FaqContextualResponse = {
 };
 
 const emptySearchResponse: FaqSearchResponse = {
-  content: [],
+  items: [],
   totalElements: 0,
   totalPages: 0,
   page: 0,

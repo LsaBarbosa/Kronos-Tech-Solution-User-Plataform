@@ -1,6 +1,7 @@
 // src/types/message.ts
 
 export type MessagePriority = 'NORMAL' | 'ALERT' | 'CRITICAL';
+export type MessageScope = 'DIRECT' | 'GLOBAL';
 
 /**
  * Interface para os dados da mensagem lida/buscada.
@@ -10,9 +11,12 @@ export interface Message {
   title: string;
   messageText: string;
   priority: MessagePriority;
+  scope?: MessageScope;
   createdAt: string;
   senderEmployeeId: string;
-  recipientEmployeeId?: string; // Se nulo, visível apenas para o remetente (Manager/CTO)
+  recipientEmployeeId?: string | null;
+  deliveredCount?: number;
+  seen?: boolean;
   senderName?: string;
 }
 
@@ -23,7 +27,7 @@ export interface MessagePayload {
     title: string;
     messageText: string;
     priority: MessagePriority;
-    recipientEmployeeIds: string[]; // Pode ser vazia
+    recipientEmployeeIds?: string[];
 }
 
 // --- Funções Utilitárias Puras de Exibição ---
@@ -73,9 +77,9 @@ export const getTipoColor = (tipo: string): string => {
  * Retorna o texto do indicador de destinatário e se a mensagem é só para o remetente.
  */
 export const getRecipientIndicatorText = (message: Message): { text: string; isSenderOnly: boolean } => {
-    const isSenderOnly = !message.recipientEmployeeId;
+    const isSenderOnly = message.scope !== "DIRECT";
     return {
-        text: isSenderOnly ? "Visível Apenas para o Remetente" : "Mensagem Direcionada",
+        text: isSenderOnly ? "Aviso global" : "Mensagem direcionada",
         isSenderOnly: isSenderOnly
     };
 };

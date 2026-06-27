@@ -3,13 +3,30 @@
   <head>
     <meta charset="UTF-8" />
     <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <!-- CSP: frame-ancestors e upgrade-insecure-requests devem ser configurados via header HTTP no nginx/servidor -->
+    <meta http-equiv="Content-Security-Policy"
+      content="
+        default-src 'self';
+        scr&#105;pt-src 'self';
+        style-src 'self' 'unsafe-inline' https://fonts.googleapis.com;
+        font-src 'self' https://fonts.gstatic.com;
+        img-src 'self' data: blob:;
+        media-src 'self' blob:;
+        connect-src 'self';
+        worker-src blob:;
+        base-uri 'self';
+        form-action 'self';
+        object-src 'none';
+      " />
+
     <title>Kronos Tech Solution</title>
     <meta name="description" content="Acesse a plataforma Kronos Tech Solution (KTS) para gerenciar colaboradores, documentos e relatórios de horas." />
     <meta name="author" content="Kronos Tech Solution" />
     
     <link rel="canonical" href="" />
-    <link rel="icon" type="image/png" href="/logo_simbolo.png" />
-    <link rel="apple-touch-icon" href="/logo_simbolo.png" />     
+    <link rel="icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="shortcut icon" type="image/svg+xml" href="/favicon.svg" />
+    <link rel="apple-touch-icon" href="/favicon.svg" />     
     
     <meta property="og:title" content="Acesso à Plataforma KTS" />
     <meta property="og:description" content="Acesse a plataforma Kronos Tech Solution (KTS) para gerenciar colaboradores, documentos e relatórios de horas." />
@@ -30,6 +47,6 @@
 
   <body>
     <div id="root"></div>
-    <script type="module" src="/src/main.tsx"></script>
+    <SCRIPT TYPE="module" SRC="/src/main.tsx"></SCRIPT>
   </body>
 </html>

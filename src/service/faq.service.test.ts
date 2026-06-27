@@ -98,7 +98,7 @@ describe("faq.service", () => {
           expect(url.searchParams.get("limit")).toBe("3");
           return HttpResponse.json({
             items: [faqFixture.itemDocuments],
-            screenKey: "DOCUMENTS",
+            screen: "DOCUMENTS",
           });
         })
       );
