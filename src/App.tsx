@@ -87,6 +87,8 @@ const PageFallback = () => (
 
 const queryClient = new QueryClient();
 
+const isTerminalOnly = import.meta.env.VITE_TERMINAL_ONLY_MODE === "true";
+
 const renderProtectedRoleRoute = ({
   routeKey,
   element,
@@ -99,7 +101,30 @@ const renderProtectedRoleRoute = ({
   </Route>
 );
 
-const App = () => (
+const TerminalOnlyApp = () => (
+  <QueryClientProvider client={queryClient}>
+    <ThemeProvider>
+      <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
+        <TooltipProvider>
+          <Toaster />
+          <AppErrorBoundary>
+            <Suspense fallback={<PageFallback />}>
+              <Routes>
+                <Route path="/" element={<TerminalCheckin />} />
+                <Route path="*" element={<Navigate to="/" replace />} />
+              </Routes>
+            </Suspense>
+          </AppErrorBoundary>
+        </TooltipProvider>
+      </BrowserRouter>
+    </ThemeProvider>
+  </QueryClientProvider>
+);
+
+const App = () => {
+  if (isTerminalOnly) return <TerminalOnlyApp />;
+
+  return (
   <QueryClientProvider client={queryClient}>
     <ThemeProvider>
       <BrowserRouter future={{ v7_startTransition: true, v7_relativeSplatPath: true }}>
@@ -176,6 +201,7 @@ const App = () => (
       </BrowserRouter>
     </ThemeProvider>
   </QueryClientProvider>
-);
+  );
+};
 
 export default App;
