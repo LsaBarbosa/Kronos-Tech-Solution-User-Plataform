@@ -76,6 +76,7 @@ const PrivacyPolicy = lazy(() => import("./pages/PrivacyPolicy"));
 const PrivacyBiometricTerm = lazy(() => import("./pages/PrivacyBiometricTerm"));
 const SelecionarEmpresa = lazy(() => import("./pages/SelecionarEmpresa"));
 const CTODemoSandbox = lazy(() => import("./pages/CTODemoSandbox"));
+const TerminalCheckin = lazy(() => import("./pages/TerminalCheckin"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
 const PageFallback = () => (
@@ -118,6 +119,7 @@ const App = () => (
                   <Route path={APP_PATHS.privacyProcessingCatalog} element={<PrivacyProcessingCatalog />} />
                   <Route path={APP_PATHS.privacyPolicy} element={<PrivacyPolicy />} />
                   <Route path={APP_PATHS.privacyBiometricTerm} element={<PrivacyBiometricTerm />} />
+                  <Route path={APP_PATHS.terminal} element={<TerminalCheckin />} />
                   <Route path="/aviso" element={<Navigate to={APP_PATHS.avisos} replace />} />
 
                   <Route element={<ProtectedRoute />}>

@@ -193,6 +193,7 @@ const isStateChangingMethod = (method?: string): boolean => {
 const endpoints_exempt_from_csrf = [
   "/auth/login",
   "/auth/login-face",
+  "/auth/terminal-checkin",
   "/auth/recover-password",
   "/auth/reset-password",
   "/auth/csrf",
@@ -205,6 +206,7 @@ const isCsrfRequired = (url: string): boolean => {
 const PUBLIC_AUTH_PATHS = [
   "/auth/login",
   "/auth/login-face",
+  "/auth/terminal-checkin",
   "/auth/recover-password",
   "/auth/reset-password",
   "/auth/csrf",

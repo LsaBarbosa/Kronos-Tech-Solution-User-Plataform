@@ -75,6 +75,7 @@ export const APP_PATHS = {
   lgpdAdminInventoryForm: "/lgpd/admin/inventory/novo",
   lgpdAdminInventoryEdit: "/lgpd/admin/inventory/:processCode/editar",
   ctoDemoSandbox: "/empresa/cto/demo",
+  terminal: "/terminal",
 } as const;
 
 export const APP_ROUTE_META = {
