@@ -19,6 +19,7 @@ dist-ssr
 .env.*.local
 .env.production
 .env.homolog
+.env.checkin
 # Use .env.production.example and .env.example as templates for development
 
 # Editor directories and files
