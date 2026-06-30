@@ -7,6 +7,7 @@ import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
 import { useTodayTimeRecordStatus } from "@/hooks/useTodayTimeRecordStatus";
 import { useCheckin } from "@/hooks/useCheckin";
+import { useAuth } from "@/context/AuthContext";
 import { cn } from "@/lib/utils";
 import {
   formatTodayHeadlineDate,
@@ -146,6 +147,8 @@ const DashboardTodayPanel = ({
 }: DashboardTodayPanelProps) => {
   const { todayStatus, isLoadingToday, todayError, refreshToday } = useTodayTimeRecordStatus();
   const { openCheckin } = useCheckin();
+  const { user } = useAuth();
+  const isTerminal = user?.profile?.terminalFlag ?? false;
 
   if (isLoadingToday && !todayStatus) {
     return <TodayLoadingState variant={variant} />;
@@ -243,15 +246,17 @@ const DashboardTodayPanel = ({
               </div>
             </div>
 
-            <Button
-              type="button"
-              className="mt-4 h-11 w-full gap-2 rounded-full bg-[#2563EB] text-white hover:bg-[#1D4ED8]"
-              onClick={openCheckin}
-              disabled={!primaryAction.enabled}
-            >
-              <Fingerprint className="h-4 w-4" />
-              {primaryActionLabel}
-            </Button>
+            {!isTerminal && (
+              <Button
+                type="button"
+                className="mt-4 h-11 w-full gap-2 rounded-full bg-[#2563EB] text-white hover:bg-[#1D4ED8]"
+                onClick={openCheckin}
+                disabled={!primaryAction.enabled}
+              >
+                <Fingerprint className="h-4 w-4" />
+                {primaryActionLabel}
+              </Button>
+            )}
           </div>
 
           <section className="rounded-[28px] border border-[#E2E8F0] bg-white px-4 py-5 shadow-sm">
@@ -298,18 +303,20 @@ const DashboardTodayPanel = ({
             <p className="mt-2 text-sm text-[#475569]">
               A proxima acao considera o status do dia e a sequencia atual das marcacoes.
             </p>
-            <div className="mt-4 grid grid-cols-2 gap-3">
+            <div className={cn("mt-4 grid gap-3", isTerminal ? "grid-cols-1" : "grid-cols-2")}>
               <Button type="button" variant="outline" className="rounded-full" onClick={secondaryAction}>
                 {secondaryActionLabel}
               </Button>
-              <Button
-                type="button"
-                className="rounded-full bg-[#2563EB] text-white hover:bg-[#1D4ED8]"
-                onClick={openCheckin}
-                disabled={!primaryAction.enabled}
-              >
-                {primaryActionLabel}
-              </Button>
+              {!isTerminal && (
+                <Button
+                  type="button"
+                  className="rounded-full bg-[#2563EB] text-white hover:bg-[#1D4ED8]"
+                  onClick={openCheckin}
+                  disabled={!primaryAction.enabled}
+                >
+                  {primaryActionLabel}
+                </Button>
+              )}
             </div>
           </section>
         </CardContent>
@@ -390,15 +397,17 @@ const DashboardTodayPanel = ({
                 </p>
               </div>
               <div className="flex flex-col gap-2 sm:flex-row">
-                <Button
-                  type="button"
-                  onClick={openCheckin}
-                  disabled={!primaryAction.enabled}
-                  className="h-11 gap-2 bg-[#2563EB] text-white hover:bg-[#1D4ED8]"
-                >
-                  <Fingerprint className="h-4 w-4" />
-                  {primaryActionLabel}
-                </Button>
+                {!isTerminal && (
+                  <Button
+                    type="button"
+                    onClick={openCheckin}
+                    disabled={!primaryAction.enabled}
+                    className="h-11 gap-2 bg-[#2563EB] text-white hover:bg-[#1D4ED8]"
+                  >
+                    <Fingerprint className="h-4 w-4" />
+                    {primaryActionLabel}
+                  </Button>
+                )}
                 <Button type="button" variant="outline" className="h-11 gap-2" onClick={secondaryAction}>
                   <TimerReset className="h-4 w-4" />
                   {secondaryActionLabel}
