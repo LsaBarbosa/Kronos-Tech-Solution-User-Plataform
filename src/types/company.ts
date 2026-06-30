@@ -24,13 +24,14 @@ export interface CompanyListItem {
     cnpj: string;
     email: string;
     active: boolean;
+    terminalFlag?: boolean;
     // Detalhes parciais necessários para a tabela
     address: Omit<Address, 'city' | 'state' | 'neighborhood'> & { city: string; state: string; }; // Garante CEP e número
     location?: Location;
-    
+
     // Contadores usados no Modal de Visualização (assumindo que a API retorna isso)
-    activeEmployees?: number; 
-    inactiveEmployees?: number; 
+    activeEmployees?: number;
+    inactiveEmployees?: number;
 }
 
 /**
@@ -40,6 +41,7 @@ export interface CompanyData extends CompanyListItem {
     address: Address; // Usa o tipo Address completo
     activeEmployees: number; // Garante o contador
     inactiveEmployees: number; // Garante o contador
+    terminalFlag: boolean;
     location?: Location;
 }
 

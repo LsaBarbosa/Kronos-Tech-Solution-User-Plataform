@@ -34,6 +34,7 @@ const mapCompanyListItem = (payload: CompanyReadResponse): CompanyListItem => ({
     cnpj: payload.cnpj ?? "",
     email: payload.email ?? "",
     active: payload.active ?? false,
+    terminalFlag: payload.terminalFlag ?? false,
     address: {
         street: payload.address?.street ?? "",
         number: payload.address?.number ?? "",
@@ -52,6 +53,7 @@ const mapCompanyReadModel = (payload: CompanyReadResponse): CompanyData => ({
     cnpj: payload.cnpj ?? "",
     email: payload.email ?? "",
     active: payload.active ?? false,
+    terminalFlag: payload.terminalFlag ?? false,
     address: {
         street: payload.address?.street ?? "",
         number: payload.address?.number ?? "",
@@ -138,6 +140,13 @@ export const getGeolocationFromCEP = async (cep: string, number: string): Promis
  */
 export const toggleCompanyStatus = async (cnpj: string): Promise<void> => {
     await api.patch(buildRoute(API_ROUTES.COMPANIES, cnpj, "toggle-activate"));
+};
+
+/**
+ * Alterna o flag de terminal exclusivo de uma empresa (somente CTO).
+ */
+export const toggleTerminalFlag = async (cnpj: string): Promise<void> => {
+    await api.patch(buildRoute(API_ROUTES.COMPANIES, cnpj, "toggle-terminal"));
 };
 
 // Função utilitária para formatar CNPJ (Mantida como pura)

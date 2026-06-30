@@ -75,6 +75,7 @@ export const APP_PATHS = {
   lgpdAdminInventoryForm: "/lgpd/admin/inventory/novo",
   lgpdAdminInventoryEdit: "/lgpd/admin/inventory/:processCode/editar",
   ctoDemoSandbox: "/empresa/cto/demo",
+  empresaTerminalFlag: "/empresa/terminal-flag",
 } as const;
 
 export const APP_ROUTE_META = {
@@ -304,6 +305,15 @@ export const APP_ROUTE_META = {
       { label: "Início", path: APP_PATHS.dashboard },
       { label: "Empresa", path: APP_PATHS.empresa },
       { label: "Demo Sandbox", path: APP_PATHS.ctoDemoSandbox },
+    ],
+  }),
+  empresaTerminalFlag: defineRoute(APP_PATHS.empresaTerminalFlag, "Terminal Exclusivo", {
+    allowedRoles: ["CTO"],
+    showInMenu: false,
+    breadcrumbs: [
+      { label: "Início", path: APP_PATHS.dashboard },
+      { label: "Empresa", path: APP_PATHS.empresa },
+      { label: "Terminal Exclusivo", path: APP_PATHS.empresaTerminalFlag },
     ],
   }),
   privacyProcessingCatalog: defineRoute(APP_PATHS.privacyProcessingCatalog, "Catálogo de Tratamento de Dados", {

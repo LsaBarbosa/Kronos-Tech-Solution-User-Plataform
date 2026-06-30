@@ -76,6 +76,7 @@ const PrivacyPolicy = lazy(() => import("./pages/PrivacyPolicy"));
 const PrivacyBiometricTerm = lazy(() => import("./pages/PrivacyBiometricTerm"));
 const SelecionarEmpresa = lazy(() => import("./pages/SelecionarEmpresa"));
 const CTODemoSandbox = lazy(() => import("./pages/CTODemoSandbox"));
+const TerminalFlagManager = lazy(() => import("./pages/TerminalFlagManager"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
 const PageFallback = () => (
@@ -160,6 +161,7 @@ const App = () => (
                     {renderProtectedRoleRoute({ routeKey: "lgpdAdminInventoryEdit", element: <InventoryForm /> })}
                     {renderProtectedRoleRoute({ routeKey: "administracao", element: <Administracao /> })}
                     {renderProtectedRoleRoute({ routeKey: "ctoDemoSandbox", element: <CTODemoSandbox /> })}
+                    {renderProtectedRoleRoute({ routeKey: "empresaTerminalFlag", element: <TerminalFlagManager /> })}
                   </Route>
 
                   <Route path="/privacy-policy" element={<Navigate to={APP_PATHS.privacyPolicy} replace />} />

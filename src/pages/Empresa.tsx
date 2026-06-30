@@ -9,6 +9,7 @@ import {
   Edit3,
   FlaskConical,
   Link2,
+  MonitorSmartphone,
   PlusCircle,
   Search,
   Sparkles,
@@ -108,6 +109,18 @@ const ACTIONS: EmpresaAction[] = [
     ctaLabel: "Acessar demo",
     path: APP_PATHS.ctoDemoSandbox,
   },
+  {
+    key: "terminal-flag",
+    label: "Terminal",
+    title: "Terminal exclusivo",
+    description: "Ative ou desative o modo terminal exclusivo por empresa, bloqueando o checkin pelo app.",
+    icon: MonitorSmartphone,
+    tone: "from-[#0F172A] to-[#334155]",
+    accentBg: "bg-[#F1F5F9]",
+    accentText: "text-[#1E293B]",
+    ctaLabel: "Gerenciar terminal",
+    path: APP_PATHS.empresaTerminalFlag,
+  },
 ];
 
 const Empresa = () => {
@@ -157,7 +170,7 @@ const Empresa = () => {
               <div className="flex flex-wrap gap-2 xl:justify-end">
                 <Badge className="border-white/15 bg-white/10 px-3 py-1.5 text-white">
                   <Building2 className="mr-2 h-3.5 w-3.5" />
-                  {ACTIONS.length} ações disponíveis
+                  {ACTIONS.length} módulos disponíveis
                 </Badge>
                 <Badge className="border-cyan-300/30 bg-cyan-400/10 text-cyan-50">
                   Acesso restrito · CTO

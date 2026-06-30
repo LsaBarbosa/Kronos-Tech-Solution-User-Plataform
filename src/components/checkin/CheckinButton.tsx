@@ -5,9 +5,13 @@ import { useAuth } from '@/context/AuthContext';
 
 export const CheckinButton = () => {
   const { state, openCheckin } = useCheckin();
-  const { isAuthenticated } = useAuth();
+  const { isAuthenticated, user } = useAuth();
 
   if (!isAuthenticated) {
+    return null;
+  }
+
+  if (user?.profile?.terminalFlag) {
     return null;
   }
 
