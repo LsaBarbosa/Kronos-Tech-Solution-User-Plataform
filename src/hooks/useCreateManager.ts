@@ -169,11 +169,22 @@ export const useCreateManager = () => {
       return;
     }
 
+    const companyId = form.getValues("companyId");
+    if (!companyId) {
+      toast({
+        title: "Empresa não selecionada",
+        description: "Selecione uma empresa antes de verificar o CPF.",
+        variant: "destructive",
+      });
+      setCpfAvailability(null);
+      return;
+    }
+
     setIsCheckingCPF(true);
     setCpfAvailability("checking");
 
     try {
-      const available = await checkCpfAvailability(cpf);
+      const available = await checkCpfAvailability(cpf, companyId);
       if (!available) {
         toast({ title: "CPF indisponível", description: "Este CPF já está cadastrado no sistema.", variant: "destructive" });
         setCpfAvailability("unavailable");
