@@ -48,6 +48,11 @@ export const COLLABORATOR_SCHEDULE_OPTIONS = [
     label: "6x1 + 1 fim de semana",
     description: "Inclui um fim de semana de folga no mês.",
   },
+  {
+    value: "CUSTOM_DAYS",
+    label: "Dias de trabalho",
+    description: "Defina quais dias da semana o colaborador trabalha.",
+  },
 ] as const;
 
 export const COLLABORATOR_DAY_OPTIONS = [

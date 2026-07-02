@@ -44,7 +44,7 @@ export const LANDING_MODULES: LandingModule[] = [
       "Gerencie cadastros, perfis de acesso, empresas e hierarquias operacionais. Controle por papel e rastreabilidade de ações.",
     icon: "Users",
     color: "blue",
-    features: ["Cadastro e edição", "Perfis PARTNER, MANAGER e CTO", "Gestão por empresa", "Biometria facial"],
+    features: ["Cadastro e edição", "Perfis PARTNER, MANAGER e CTO", "Gestão por empresa", "Biometria facial", "7 tipos de escala de trabalho"],
     backTitle: "Gestão completa de pessoas",
     backDescription:
       "Três níveis de acesso com permissões distintas. Cada colaborador, gestor e administrador vê apenas o que é autorizado.",
@@ -54,6 +54,7 @@ export const LANDING_MODULES: LandingModule[] = [
       { label: "CTO", value: "Admin global: empresas, inventário e LGPD" },
       { label: "Biometria", value: "Cadastro facial com consentimento LGPD" },
       { label: "Auditoria", value: "Ações rastreadas por usuário e data" },
+      { label: "Escalas", value: "7 tipos: 5x2, 6x1 fixo, 12x36, 24x72, 6x1 + fins de semana e dias de trabalho personalizados" },
     ],
     backStats: [
       { value: "3", label: "perfis de acesso" },

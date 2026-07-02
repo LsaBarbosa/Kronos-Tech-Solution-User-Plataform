@@ -44,7 +44,18 @@ const schema = z.object({
   preferredDayOff: z.string().optional(),
   weekendOffIndex: z.string().optional(),
   fixedWorkDays: z.array(z.string()).optional(),
-});
+}).refine(
+  (data) => {
+    if (data.scheduleType === "CUSTOM_DAYS") {
+      return Array.isArray(data.fixedWorkDays) && data.fixedWorkDays.length > 0;
+    }
+    return true;
+  },
+  {
+    message: 'Selecione ao menos um dia de trabalho para a escala "Dias de trabalho".',
+    path: ["fixedWorkDays"],
+  }
+);
 
 export type CollaboratorFormData = z.infer<typeof schema>;
 

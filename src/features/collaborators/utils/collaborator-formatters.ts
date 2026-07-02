@@ -12,6 +12,7 @@ export const SCHEDULE_TYPES = [
   { value: "ROTATING_24X72", label: "Plantão 24x72" },
   { value: "SIX_BY_ONE_TWO_WEEKENDS", label: "6x1 + 2 finais de semana" },
   { value: "SIX_BY_ONE_ONE_WEEKEND", label: "6x1 + 1 final de semana" },
+  { value: "CUSTOM_DAYS", label: "Dias de trabalho" },
 ] as const;
 
 export const DAYS_OF_WEEK = [
