@@ -8,6 +8,8 @@ import { preloadCsrfToken } from "@/service/csrf.service";
 import { checkCpfAvailability, createCollaborator } from "@/service/collaborator-management.service";
 import { findEmployeeByCpf } from "@/service/employee.service";
 import { fetchCompanyList } from "@/service/company.service";
+import { getMyCompanies } from "@/service/user-company.service";
+import { useAuth } from "@/context/AuthContext";
 import { APP_PATHS } from "@/config/app-routes";
 import {
   cepMask,
@@ -66,6 +68,7 @@ export interface CompanyOption {
 
 export const useCreateCollaborator = () => {
   const navigate = useNavigate();
+  const { role } = useAuth();
 
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
@@ -81,15 +84,22 @@ export const useCreateCollaborator = () => {
   const [selectedCompanyId, setSelectedCompanyId] = useState<string | undefined>(undefined);
 
   useEffect(() => {
+    if (!role) return;
     let cancelled = false;
     setIsLoadingCompanies(true);
-    // Carrega todas as empresas do sistema para qualquer role
-    void fetchCompanyList()
-      .then((list) => {
+
+    const loadCompanies =
+      role === "CTO"
+        ? fetchCompanyList().then((list) =>
+            list.filter((c) => c.active).map((c) => ({ companyId: c.id, companyName: c.name }))
+          )
+        : getMyCompanies().then((list) =>
+            list.filter((c) => c.active).map((c) => ({ companyId: c.companyId, companyName: c.companyName }))
+          );
+
+    void loadCompanies
+      .then((options) => {
         if (cancelled) return;
-        const options: CompanyOption[] = list
-          .filter((c) => c.active)
-          .map((c) => ({ companyId: c.id, companyName: c.name }));
         setCompanies(options);
         if (options.length === 1) setSelectedCompanyId(options[0].companyId);
       })
@@ -99,10 +109,11 @@ export const useCreateCollaborator = () => {
       .finally(() => {
         if (!cancelled) setIsLoadingCompanies(false);
       });
+
     return () => {
       cancelled = true;
     };
-  }, []);
+  }, [role]);
 
   const form = useForm<CollaboratorFormData>({
     resolver: zodResolver(schema),

@@ -1,7 +1,5 @@
-import { Link } from "react-router-dom";
 import { CheckCircle2 } from "lucide-react";
 
-import { APP_PATHS } from "@/config/app-routes";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
@@ -30,20 +28,7 @@ export const CreateUserMobile = ({ vm }: CreateUserMobileProps) => {
   const step = vm.stepCompleted ? 2 : 1;
 
   return (
-    <div className="flex min-h-screen flex-col bg-slate-50">
-      {/* Header mobile */}
-      <header className="sticky top-0 z-30 border-b border-slate-200 bg-white px-4 py-3">
-        <div className="flex items-center justify-between">
-          <Link to={APP_PATHS.dashboard} className="text-xl font-bold text-blue-600">K</Link>
-          <span className="text-sm font-semibold text-slate-700">Criar usuário</span>
-          <div className="flex items-center gap-1.5">
-            <div className={cn("h-2 w-2 rounded-full", step >= 1 ? "bg-blue-600" : "bg-slate-300")} />
-            <div className={cn("h-2 w-2 rounded-full", step >= 2 ? "bg-blue-600" : "bg-slate-300")} />
-          </div>
-        </div>
-      </header>
-
-      <Form {...vm.form}>
+    <Form {...vm.form}>
         <form onSubmit={vm.form.handleSubmit(vm.onSubmit)} className="flex flex-1 flex-col">
           <div className="flex-1 space-y-4 px-4 py-4 pb-28">
 
@@ -521,6 +506,5 @@ export const CreateUserMobile = ({ vm }: CreateUserMobileProps) => {
           </div>
         </form>
       </Form>
-    </div>
   );
 };

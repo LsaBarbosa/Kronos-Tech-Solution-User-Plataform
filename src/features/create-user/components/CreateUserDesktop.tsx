@@ -1,21 +1,8 @@
-import { Link, useNavigate } from "react-router-dom";
 import {
   CalendarDays,
   CheckCircle2,
-  Home,
-  Settings2,
-  TimerReset,
-  Users,
 } from "lucide-react";
 
-import { useAuth } from "@/context/AuthContext";
-import { APP_PATHS } from "@/config/app-routes";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
-import { Badge } from "@/components/ui/badge";
-import {
-  Breadcrumb, BreadcrumbItem, BreadcrumbLink,
-  BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator,
-} from "@/components/ui/breadcrumb";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
@@ -34,59 +21,7 @@ interface CreateUserDesktopProps {
   vm: CreateUserVM;
 }
 
-const getInitials = (value: string) =>
-  value.split(" ").filter(Boolean).slice(0, 2).map((p) => p[0]?.toUpperCase() ?? "").join("") || "K";
-
-const DesktopRail = () => {
-  const navigate = useNavigate();
-  const railItems = [
-    { icon: Home, label: "Início", path: APP_PATHS.dashboard, active: false },
-    { icon: Users, label: "Colaboradores", path: APP_PATHS.listaColaboradores, active: true },
-    { icon: TimerReset, label: "Abono", path: APP_PATHS.solicitarAbono, active: false },
-    { icon: Settings2, label: "Usuário", path: APP_PATHS.usuario, active: false },
-  ] as const;
-
-  return (
-    <aside className="fixed inset-y-0 left-0 z-20 hidden w-20 flex-col items-center bg-[#0B1220] py-5 text-white xl:flex">
-      <button
-        type="button"
-        onClick={() => navigate(APP_PATHS.dashboard)}
-        className="flex h-12 w-12 items-center justify-center rounded-2xl bg-gradient-to-br from-blue-500 to-cyan-400 text-xl font-bold shadow-lg shadow-blue-950/40"
-        aria-label="Dashboard"
-      >
-        K
-      </button>
-      <div className="mt-8 flex w-full flex-1 flex-col items-center gap-3 px-3">
-        {railItems.map((item) => {
-          const Icon = item.icon;
-          return (
-            <button
-              key={item.label}
-              type="button"
-              onClick={() => navigate(item.path)}
-              className={cn(
-                "group flex h-12 w-12 items-center justify-center rounded-2xl border transition-all",
-                item.active
-                  ? "border-cyan-300 bg-cyan-400/15 text-cyan-300"
-                  : "border-white/10 bg-white/5 text-white/70 hover:border-white/20 hover:bg-white/10 hover:text-white"
-              )}
-              aria-label={item.label}
-            >
-              <Icon className="h-5 w-5" />
-            </button>
-          );
-        })}
-      </div>
-    </aside>
-  );
-};
-
 export const CreateUserDesktop = ({ vm }: CreateUserDesktopProps) => {
-  const { user } = useAuth();
-  const fullName = user?.profile?.fullName ?? user?.account.username ?? "Equipe Kronos";
-  const roleLabel = user?.role ?? "";
-  const initials = getInitials(fullName);
-
   const selectedScheduleType = vm.selectedScheduleType;
   const isTraditional = selectedScheduleType === "TRADITIONAL_5X2";
   const isSixByOne = selectedScheduleType?.includes("SIX_BY_ONE");
@@ -94,45 +29,7 @@ export const CreateUserDesktop = ({ vm }: CreateUserDesktopProps) => {
   const isColaborador = vm.selectedType === "COLABORADOR";
 
   return (
-    <div className="min-h-screen overflow-x-hidden bg-[linear-gradient(180deg,#F8FAFC_0%,#EEF4FB_100%)] text-slate-900">
-      <DesktopRail />
-      <div className="min-h-screen xl:pl-20">
-        <header className="sticky top-0 z-30 border-b border-slate-200/80 bg-white/85 backdrop-blur-xl">
-          <div className="flex min-h-[80px] items-center justify-between gap-4 px-4 py-3 sm:px-6 xl:px-10">
-            <Breadcrumb className="hidden sm:block">
-              <BreadcrumbList>
-                <BreadcrumbItem>
-                  <BreadcrumbLink asChild><Link to={APP_PATHS.dashboard}>Kronos</Link></BreadcrumbLink>
-                </BreadcrumbItem>
-                <BreadcrumbSeparator />
-                <BreadcrumbItem>
-                  <BreadcrumbLink asChild><Link to={APP_PATHS.listaColaboradores}>Pessoas</Link></BreadcrumbLink>
-                </BreadcrumbItem>
-                <BreadcrumbSeparator />
-                <BreadcrumbItem>
-                  <BreadcrumbPage>Criar usuário</BreadcrumbPage>
-                </BreadcrumbItem>
-              </BreadcrumbList>
-            </Breadcrumb>
-
-            <div className="flex items-center gap-3">
-              <Badge variant="outline" className="rounded-full border-blue-200 bg-blue-50 px-4 py-1.5 text-[12px] font-semibold text-blue-700">
-                Onboarding cadastral
-              </Badge>
-              <div className="flex items-center gap-3 rounded-full border border-slate-200 bg-white px-3 py-2 shadow-sm">
-                <Avatar className="h-10 w-10">
-                  <AvatarFallback className="bg-blue-100 text-blue-700">{initials}</AvatarFallback>
-                </Avatar>
-                <div className="hidden min-w-0 sm:block">
-                  <div className="truncate text-sm font-semibold text-slate-900">{fullName}</div>
-                  <div className="text-[11px] uppercase tracking-[0.18em] text-slate-500">{roleLabel}</div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </header>
-
-        <main className="mx-auto flex w-full max-w-[900px] flex-col gap-6 px-4 py-6 sm:px-6 xl:px-10 xl:py-8">
+    <div className="mx-auto flex w-full max-w-[900px] flex-col gap-6 px-4 py-6 sm:px-6 xl:px-10 xl:py-8">
           <Form {...vm.form}>
             <form onSubmit={vm.form.handleSubmit(vm.onSubmit)} className="flex flex-col gap-6">
 
@@ -637,8 +534,6 @@ export const CreateUserDesktop = ({ vm }: CreateUserDesktopProps) => {
               </Card>
             </form>
           </Form>
-        </main>
-      </div>
     </div>
   );
 };
