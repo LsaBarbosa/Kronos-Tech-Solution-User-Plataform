@@ -247,6 +247,46 @@ export const CollaboratorEditForm = ({
               </div>
             </div>
           )}
+
+          {draft.scheduleType === "CUSTOM_DAYS" && (
+            <div className="space-y-3">
+              <Label className="text-xs font-semibold uppercase tracking-[0.14em] text-[#64748B]">Dias de trabalho</Label>
+              <div className="flex flex-wrap gap-2">
+                {DAYS_OF_WEEK.map((day) => {
+                  const isSelected = draft.fixedWorkDays.includes(day.value);
+                  const isOnlyOne = isSelected && draft.fixedWorkDays.length === 1;
+                  return (
+                    <button
+                      key={day.value}
+                      type="button"
+                      disabled={isOnlyOne}
+                      onClick={() => {
+                        const next = isSelected
+                          ? draft.fixedWorkDays.filter((d) => d !== day.value)
+                          : [...draft.fixedWorkDays, day.value];
+                        onChange("fixedWorkDays", next);
+                      }}
+                      className={cn(
+                        "rounded-full border px-4 py-2 text-sm font-semibold transition-all",
+                        isSelected
+                          ? "border-blue-500 bg-blue-50 text-blue-700"
+                          : "border-slate-200 bg-white text-slate-600 hover:border-blue-200 hover:bg-blue-50/60",
+                        isOnlyOne && "cursor-not-allowed opacity-50"
+                      )}
+                    >
+                      {day.short}
+                    </button>
+                  );
+                })}
+              </div>
+              <p className="text-xs text-slate-500">
+                {draft.fixedWorkDays.length}{" "}
+                {draft.fixedWorkDays.length === 1 ? "dia trabalhado" : "dias trabalhados"} ·{" "}
+                {7 - draft.fixedWorkDays.length}{" "}
+                {7 - draft.fixedWorkDays.length === 1 ? "folga" : "folgas"}
+              </p>
+            </div>
+          )}
         </div>
       </Section>
 
