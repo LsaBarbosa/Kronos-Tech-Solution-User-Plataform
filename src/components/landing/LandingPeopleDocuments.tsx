@@ -1,7 +1,7 @@
 import { Users, Building2, Upload, Bell, UserCheck, FileCheck } from "lucide-react";
 
 const PEOPLE_FEATURES = [
-  { icon: Users, title: "Gestão de colaboradores", description: "Cadastro, edição e inativação com controle de perfil. MANAGER gerencia colaboradores do próprio tenant.", color: "#2563EB", bg: "#EFF6FF", border: "#BFDBFE" },
+  { icon: Users, title: "Gestão de colaboradores", description: "Cadastro, edição e inativação com perfil e escala de trabalho configuráveis. 7 tipos de escala suportados, incluindo dias de trabalho personalizados.", color: "#2563EB", bg: "#EFF6FF", border: "#BFDBFE" },
   { icon: Building2, title: "Gestão de empresas", description: "CTO administra empresas, configura hierarquias e mantém controle global da plataforma.", color: "#0891B2", bg: "#ECFEFF", border: "#A5F3FC" },
   { icon: UserCheck, title: "Perfis de acesso", description: "PARTNER, MANAGER e CTO com permissões distintas. Cada perfil acessa apenas o que é autorizado.", color: "#16A34A", bg: "#F0FDF4", border: "#BBF7D0" },
   { icon: Bell, title: "Avisos internos", description: "Mural de comunicados por empresa. Gestores criam e publicam avisos para equipes específicas.", color: "#D97706", bg: "#FFFBEB", border: "#FDE68A" },
