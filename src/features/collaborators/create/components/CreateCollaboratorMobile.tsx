@@ -26,6 +26,7 @@ import {
   getHomeOfficeLabel,
 } from "../utils/create-collaborator-formatters";
 import { StatusBadge } from "./StatusBadge";
+import { CustomDaysSelector } from "./CustomDaysSelector";
 
 type CreateCollaboratorViewModel = UseCreateCollaboratorReturn;
 
@@ -109,6 +110,7 @@ const CreateCollaboratorMobile = ({
   const isTraditional = selectedScheduleType === "TRADITIONAL_5X2";
   const isSixByOne = selectedScheduleType?.includes("SIX_BY_ONE");
   const isRotating = selectedScheduleType?.startsWith("ROTATING");
+  const isCustomDays = selectedScheduleType === "CUSTOM_DAYS";
 
   const selectedCompanyName = vm.companies.find((c) => c.companyId === vm.selectedCompanyId)?.companyName ?? "";
 
@@ -610,6 +612,25 @@ const CreateCollaboratorMobile = ({
                             );
                           })}
                         </div>
+                        <FormMessage />
+                      </FormItem>
+                    )}
+                  />
+                )}
+
+                {isCustomDays && (
+                  <FormField
+                    control={vm.form.control}
+                    name="fixedWorkDays"
+                    render={({ field }) => (
+                      <FormItem className="rounded-[24px] border border-slate-200 bg-slate-50/80 p-4">
+                        <FormLabel>Dias de trabalho</FormLabel>
+                        <FormControl>
+                          <CustomDaysSelector
+                            value={field.value ?? []}
+                            onChange={field.onChange}
+                          />
+                        </FormControl>
                         <FormMessage />
                       </FormItem>
                     )}
