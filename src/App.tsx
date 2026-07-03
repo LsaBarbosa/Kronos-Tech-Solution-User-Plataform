@@ -78,6 +78,7 @@ const SelecionarEmpresa = lazy(() => import("./pages/SelecionarEmpresa"));
 const CTODemoSandbox = lazy(() => import("./pages/CTODemoSandbox"));
 const TerminalFlagManager = lazy(() => import("./pages/TerminalFlagManager"));
 const HardDeleteEmpresaPage = lazy(() => import("./pages/HardDeleteEmpresaPage"));
+const StatusEmpresaPage = lazy(() => import("./pages/StatusEmpresaPage"));
 const NotFound = lazy(() => import("./pages/NotFound"));
 
 const PageFallback = () => (
@@ -164,6 +165,7 @@ const App = () => (
                     {renderProtectedRoleRoute({ routeKey: "ctoDemoSandbox", element: <CTODemoSandbox /> })}
                     {renderProtectedRoleRoute({ routeKey: "empresaTerminalFlag", element: <TerminalFlagManager /> })}
                     {renderProtectedRoleRoute({ routeKey: "empresaHardDelete", element: <HardDeleteEmpresaPage /> })}
+                    {renderProtectedRoleRoute({ routeKey: "empresaGerenciarStatus", element: <StatusEmpresaPage /> })}
                   </Route>
 
                   <Route path="/privacy-policy" element={<Navigate to={APP_PATHS.privacyPolicy} replace />} />

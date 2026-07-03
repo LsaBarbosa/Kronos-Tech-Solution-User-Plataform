@@ -77,6 +77,7 @@ export const APP_PATHS = {
   ctoDemoSandbox: "/empresa/cto/demo",
   empresaTerminalFlag: "/empresa/terminal-flag",
   empresaHardDelete: "/empresa/hard-delete",
+  empresaGerenciarStatus: "/empresa/gerenciar-status",
 } as const;
 
 export const APP_ROUTE_META = {
@@ -325,6 +326,16 @@ export const APP_ROUTE_META = {
       { label: "Empresa", path: APP_PATHS.empresa },
       { label: "Buscar Empresa", path: APP_PATHS.empresaBuscar },
       { label: "Excluir Permanentemente", path: APP_PATHS.empresaHardDelete },
+    ],
+  }),
+  empresaGerenciarStatus: defineRoute(APP_PATHS.empresaGerenciarStatus, "Gerenciar Status da Empresa", {
+    allowedRoles: ["CTO"],
+    showInMenu: false,
+    breadcrumbs: [
+      { label: "Início", path: APP_PATHS.dashboard },
+      { label: "Empresa", path: APP_PATHS.empresa },
+      { label: "Buscar Empresa", path: APP_PATHS.empresaBuscar },
+      { label: "Gerenciar Status", path: APP_PATHS.empresaGerenciarStatus },
     ],
   }),
   privacyProcessingCatalog: defineRoute(APP_PATHS.privacyProcessingCatalog, "Catálogo de Tratamento de Dados", {
