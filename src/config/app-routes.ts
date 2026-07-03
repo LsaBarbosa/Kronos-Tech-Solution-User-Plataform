@@ -76,6 +76,7 @@ export const APP_PATHS = {
   lgpdAdminInventoryEdit: "/lgpd/admin/inventory/:processCode/editar",
   ctoDemoSandbox: "/empresa/cto/demo",
   empresaTerminalFlag: "/empresa/terminal-flag",
+  empresaHardDelete: "/empresa/hard-delete",
 } as const;
 
 export const APP_ROUTE_META = {
@@ -314,6 +315,16 @@ export const APP_ROUTE_META = {
       { label: "Início", path: APP_PATHS.dashboard },
       { label: "Empresa", path: APP_PATHS.empresa },
       { label: "Terminal Exclusivo", path: APP_PATHS.empresaTerminalFlag },
+    ],
+  }),
+  empresaHardDelete: defineRoute(APP_PATHS.empresaHardDelete, "Excluir Empresa Permanentemente", {
+    allowedRoles: ["CTO"],
+    showInMenu: false,
+    breadcrumbs: [
+      { label: "Início", path: APP_PATHS.dashboard },
+      { label: "Empresa", path: APP_PATHS.empresa },
+      { label: "Buscar Empresa", path: APP_PATHS.empresaBuscar },
+      { label: "Excluir Permanentemente", path: APP_PATHS.empresaHardDelete },
     ],
   }),
   privacyProcessingCatalog: defineRoute(APP_PATHS.privacyProcessingCatalog, "Catálogo de Tratamento de Dados", {

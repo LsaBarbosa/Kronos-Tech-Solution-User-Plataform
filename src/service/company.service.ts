@@ -6,6 +6,7 @@ import type {
     CompanyData,
     Location,
     CompanyUpdatePayload,
+    CompanyHardDeleteResultDTO,
 } from "@/types/company";
 import { extractArray, extractObject } from "@/service/helpers/response-normalizer.helper";
 import { API_ROUTES, buildRoute } from "@/config/api-routes";
@@ -147,6 +148,13 @@ export const toggleCompanyStatus = async (cnpj: string): Promise<void> => {
  */
 export const toggleTerminalFlag = async (cnpj: string): Promise<void> => {
     await api.patch(buildRoute(API_ROUTES.COMPANIES, cnpj, "toggle-terminal"));
+};
+
+export const hardDeleteCompany = async (cnpj: string): Promise<CompanyHardDeleteResultDTO> => {
+    const response = await api.delete<CompanyHardDeleteResultDTO>(
+        buildRoute(API_ROUTES.COMPANIES, cnpj, "hard-delete")
+    );
+    return response.data;
 };
 
 // Função utilitária para formatar CNPJ (Mantida como pura)

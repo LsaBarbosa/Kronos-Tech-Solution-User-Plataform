@@ -11,7 +11,7 @@ import { Dialog, DialogContent, DialogHeader, DialogTitle } from "../components/
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage } from "../components/ui/form";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "../components/ui/select";
 import { Separator } from "../components/ui/separator";
-import { ArrowLeft, Search, Building2, Mail, MapPin, Hash, Eye, Edit, Power, Loader2, Info, Users, UserX } from "lucide-react";
+import { ArrowLeft, Search, Building2, Mail, MapPin, Hash, Eye, Edit, Power, Loader2, Info, Users, UserX, Trash2 } from "lucide-react";
 import { useNavigate } from "react-router-dom";
 
 import { useCompanySearch } from "@/hooks/useCompanySearch"; 
@@ -185,10 +185,28 @@ const BuscarEmpresa = () => {
                             </div>
                           </TableCell>
                           <TableCell className="text-right">
-                          <Button variant="outline" size="sm" onClick={() => void handleViewEmpresa(empresa)}>
-                              <Eye className="h-3 w-3 mr-1" />
-                              Ver
-                            </Button>
+                            <div className="flex items-center justify-end gap-2">
+                              <Button variant="outline" size="sm" onClick={() => void handleViewEmpresa(empresa)}>
+                                <Eye className="h-3 w-3 mr-1" />
+                                Ver
+                              </Button>
+                              <Button
+                                variant="destructive"
+                                size="sm"
+                                onClick={() =>
+                                  navigate(APP_PATHS.empresaHardDelete, {
+                                    state: {
+                                      cnpj: empresa.cnpj,
+                                      name: empresa.name,
+                                      employeeCount: (empresa.activeEmployees ?? 0) + (empresa.inactiveEmployees ?? 0),
+                                    },
+                                  })
+                                }
+                              >
+                                <Trash2 className="h-3 w-3 mr-1" />
+                                Excluir
+                              </Button>
+                            </div>
                           </TableCell>
                         </TableRow>
                       ))}
