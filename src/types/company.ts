@@ -59,6 +59,14 @@ export interface CompanyUpdatePayload {
     location?: Location; // Opcional quando a API não devolve coordenadas
 }
 
+export interface CompanyHardDeleteResultDTO {
+    companyCnpj: string;
+    companyName: string;
+    employeesDeleted: number;
+    externalCleanupFailures: number;
+    externalFailureDetails: string[];
+}
+
 // --- Funções Utilitárias Puras ---
 
 // Função para formatar CNPJ (do seu código)
