@@ -21,7 +21,13 @@ const CreateCollaboratorPage = () => {
       return;
     }
 
-    await vm.submitEmployee();
+    if (mobileStep === 1) {
+      const success = await vm.submitEmployee();
+      if (success) setMobileStep(2);
+      return;
+    }
+
+    // step 2: criar acesso — acionado pelo botão próprio no step
   };
 
   return (

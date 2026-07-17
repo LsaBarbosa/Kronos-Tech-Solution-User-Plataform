@@ -52,6 +52,7 @@ export const CollaboratorMobileView = ({
     clearToggleTarget,
     confirmToggle,
     openBiometricEnrollment,
+    requestCreateAccess,
     closeBiometricEnrollment,
     refresh,
   } = viewModel;
@@ -257,6 +258,11 @@ export const CollaboratorMobileView = ({
               onOpenBiometric={() => {
                 if (selectedCollaborator) {
                   openBiometricEnrollment(selectedCollaborator);
+                }
+              }}
+              onCreateAccess={() => {
+                if (selectedCollaborator) {
+                  requestCreateAccess(selectedCollaborator);
                 }
               }}
               compact

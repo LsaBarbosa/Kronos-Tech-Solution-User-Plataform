@@ -78,4 +78,5 @@ export const COLLABORATOR_LONG_DAY_OPTIONS = [
 export const COLLABORATOR_MOBILE_STEPS = [
   { number: "1", title: "Dados e empresa" },
   { number: "2", title: "Escala e jornada" },
+  { number: "3", title: "Acesso ao sistema" },
 ] as const;

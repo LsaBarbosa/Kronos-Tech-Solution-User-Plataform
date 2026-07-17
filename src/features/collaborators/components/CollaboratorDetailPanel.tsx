@@ -4,7 +4,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 import type { ReactNode } from "react";
-import { Fingerprint, Power, ShieldCheck, User, UserCircle, BriefcaseBusiness } from "lucide-react";
+import { Fingerprint, KeyRound, Power, ShieldCheck, User, UserCircle, BriefcaseBusiness } from "lucide-react";
 import type { CollaboratorEditorDraft, CollaboratorRecord } from "../types/collaborator-view.types";
 import { CollaboratorEditForm } from "./CollaboratorEditForm";
 import { collaboratorTokens } from "../styles/collaborator.tokens";
@@ -21,6 +21,7 @@ type CollaboratorDetailPanelProps = {
   onChangeDraft: <K extends keyof CollaboratorEditorDraft>(field: K, value: CollaboratorEditorDraft[K]) => void;
   onRequestToggle: () => void;
   onOpenBiometric: () => void;
+  onCreateAccess: () => void;
   compact?: boolean;
 };
 
@@ -42,6 +43,7 @@ export const CollaboratorDetailPanel = ({
   onChangeDraft,
   onRequestToggle,
   onOpenBiometric,
+  onCreateAccess,
   compact,
 }: CollaboratorDetailPanelProps) => {
   if (!record) {
@@ -183,6 +185,16 @@ export const CollaboratorDetailPanel = ({
               <Fingerprint className="mr-2 h-4 w-4" />
               <span className="min-w-0 whitespace-normal break-words">Biometria</span>
             </Button>
+            {!record.hasAccount && (
+              <Button
+                type="button"
+                onClick={onCreateAccess}
+                className="h-auto min-h-11 w-full justify-start rounded-full bg-[#16A34A] px-4 py-3 text-left leading-5 hover:bg-[#166534]"
+              >
+                <KeyRound className="mr-2 h-4 w-4" />
+                <span className="min-w-0 whitespace-normal break-words">Criar acesso ao sistema</span>
+              </Button>
+            )}
           </div>
         </div>
 

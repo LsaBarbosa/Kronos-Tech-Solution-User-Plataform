@@ -1,5 +1,5 @@
 import { useMemo, type ReactNode } from "react";
-import { Building2, WandSparkles } from "lucide-react";
+import { Building2, CheckCircle2, KeyRound, ShieldCheck, WandSparkles } from "lucide-react";
 import { Link } from "react-router-dom";
 
 import { APP_PATHS } from "@/config/app-routes";
@@ -116,11 +116,13 @@ const CreateCollaboratorMobile = ({
 
   const actionLabel = useMemo(() => {
     if (activeStep === 0) return "Próximo: Escala";
-    return "Criar colaborador";
+    if (activeStep === 2) return "Criar acesso";
+    return "Cadastrar colaborador";
   }, [activeStep]);
 
   const actionDescription = useMemo(() => {
     if (activeStep === 0) return "Revise os dados e a empresa antes de avançar.";
+    if (activeStep === 2) return "Defina login e perfil ou pule esta etapa.";
     return "Confirme a escala e salve o colaborador.";
   }, [activeStep]);
 
@@ -732,6 +734,106 @@ const CreateCollaboratorMobile = ({
             )}
           </CardContent>
         </Card>
+        {/* ── Passo 3: Acesso ao sistema ── */}
+        <Card
+          className={cn(
+            "overflow-hidden rounded-[28px] border bg-white shadow-[0_24px_60px_-48px_rgba(15,23,42,0.55)]",
+            activeStep === 2 ? "border-blue-200 ring-1 ring-blue-100" : "border-slate-200"
+          )}
+        >
+          <CardHeader className="gap-2 px-5 py-5">
+            <div className="flex items-start justify-between gap-4">
+              <div>
+                <CardTitle className="text-xl text-slate-900">3. Acesso ao sistema</CardTitle>
+                <CardDescription className="mt-1 text-sm text-slate-500">
+                  Opcional — crie o login agora ou depois pela lista de colaboradores.
+                </CardDescription>
+              </div>
+              <KeyRound className="mt-1 h-5 w-5 shrink-0 text-slate-400" />
+            </div>
+          </CardHeader>
+          <CardContent className="space-y-4 px-5 pb-5">
+            {activeStep === 2 ? (
+              vm.employeeCreated ? (
+                <div className="space-y-5">
+                  <div className="flex items-center gap-3 rounded-[18px] border border-emerald-200 bg-emerald-50 px-4 py-3">
+                    <CheckCircle2 className="h-5 w-5 shrink-0 text-emerald-600" />
+                    <div>
+                      <div className="text-sm font-semibold text-emerald-800">Colaborador cadastrado</div>
+                      <div className="text-xs text-emerald-700">Agora você pode criar o acesso ao sistema.</div>
+                    </div>
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-slate-700">Nome de usuário</label>
+                    <div className="flex gap-2">
+                      <Input
+                        value={vm.username}
+                        onChange={(e) => vm.setUsername(e.target.value.toLowerCase().replace(/\s/g, ""))}
+                        placeholder="ex: joao.silva"
+                        className="h-12 flex-1 rounded-xl"
+                      />
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={() => void vm.handleCheckUsername()}
+                        disabled={vm.isCheckingUsername || vm.username.length < 4}
+                        className="h-12 shrink-0 rounded-xl"
+                      >
+                        {vm.isCheckingUsername ? "..." : "Verificar"}
+                      </Button>
+                    </div>
+                    {vm.usernameAvailability === "available" && (
+                      <p className="text-xs text-emerald-600">Nome de usuário disponível.</p>
+                    )}
+                    {vm.usernameAvailability === "unavailable" && (
+                      <p className="text-xs text-rose-600">Nome de usuário já em uso.</p>
+                    )}
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-slate-700">Perfil de acesso</label>
+                    <div className="grid grid-cols-2 gap-3">
+                      {vm.roleOptions.map((opt) => (
+                        <button
+                          key={opt.value}
+                          type="button"
+                          onClick={() => vm.setUserRole(opt.value)}
+                          className={cn(
+                            "rounded-[18px] border p-3 text-left transition-all",
+                            vm.userRole === opt.value
+                              ? "border-blue-400 bg-blue-50 text-blue-800"
+                              : "border-slate-200 bg-white text-slate-600"
+                          )}
+                        >
+                          <div className="text-sm font-semibold">{opt.label}</div>
+                          <div className="mt-1 text-xs leading-4">{opt.description}</div>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+
+                  <div className="rounded-[18px] border border-slate-200 bg-slate-50 p-4">
+                    <div className="flex items-center gap-2 text-sm font-medium text-slate-700">
+                      <ShieldCheck className="h-4 w-4" />
+                      A senha inicial será gerada automaticamente e enviada por e-mail ao colaborador.
+                    </div>
+                  </div>
+                </div>
+              ) : (
+                <div className="rounded-[18px] border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-800">
+                  Conclua o cadastro do colaborador antes de criar o acesso.
+                </div>
+              )
+            ) : (
+              <MobileCollapsedSummary
+                title="Acesso ao sistema"
+                subtitle="Disponível após cadastrar o colaborador."
+                badge={<StatusBadge label="Opcional" tone="neutral" description="Pode ser feito depois." className="w-full justify-between rounded-[18px]" />}
+              />
+            )}
+          </CardContent>
+        </Card>
       </main>
 
       <div className="fixed inset-x-0 bottom-0 z-40 border-t border-slate-200 bg-white/95 px-4 pb-[calc(env(safe-area-inset-bottom)+1rem)] pt-3 backdrop-blur-xl sm:px-6">
@@ -740,18 +842,39 @@ const CreateCollaboratorMobile = ({
             <div className="break-words text-sm font-semibold text-slate-900">{actionLabel}</div>
             <div className="break-words text-xs leading-4 text-slate-500">{actionDescription}</div>
           </div>
-          <Button
-            type="button"
-            onClick={() => void onPrimaryAction()}
-            disabled={
-              vm.isSubmitting ||
-              (activeStep === 0 && (!vm.selectedCompanyId || vm.cpfAvailability !== "available")) ||
-              (activeStep === 1 && vm.isSubmitting)
-            }
-            className="h-12 w-full rounded-2xl px-5 sm:w-auto"
-          >
-            {vm.isSubmitting ? "Salvando..." : actionLabel}
-          </Button>
+          {activeStep === 2 ? (
+            <div className="flex w-full flex-col gap-2 sm:w-auto sm:flex-row">
+              <Button
+                type="button"
+                variant="outline"
+                onClick={vm.skipUserCreation}
+                className="h-12 w-full rounded-2xl px-5 sm:w-auto"
+              >
+                Pular esta etapa
+              </Button>
+              <Button
+                type="button"
+                onClick={() => void vm.createUserForEmployee()}
+                disabled={vm.isSubmitting || vm.usernameAvailability !== "available" || !vm.employeeCreated}
+                className="h-12 w-full rounded-2xl px-5 sm:w-auto"
+              >
+                {vm.isSubmitting ? "Criando..." : "Criar acesso"}
+              </Button>
+            </div>
+          ) : (
+            <Button
+              type="button"
+              onClick={() => void onPrimaryAction()}
+              disabled={
+                vm.isSubmitting ||
+                (activeStep === 0 && (!vm.selectedCompanyId || vm.cpfAvailability !== "available")) ||
+                (activeStep === 1 && vm.isSubmitting)
+              }
+              className="h-12 w-full rounded-2xl px-5 sm:w-auto"
+            >
+              {vm.isSubmitting ? "Salvando..." : actionLabel}
+            </Button>
+          )}
         </div>
       </div>
     </div>

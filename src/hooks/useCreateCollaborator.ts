@@ -5,7 +5,12 @@ import { zodResolver } from "@hookform/resolvers/zod";
 import * as z from "zod";
 import { toast } from "@/hooks/use-toast";
 import { preloadCsrfToken } from "@/service/csrf.service";
-import { checkCpfAvailability, createCollaborator } from "@/service/collaborator-management.service";
+import {
+  checkCpfAvailability,
+  checkUsernameAvailability,
+  createCollaborator,
+  createUser,
+} from "@/service/collaborator-management.service";
 import { findEmployeeByCpf } from "@/service/employee.service";
 import { fetchCompanyList } from "@/service/company.service";
 import { getMyCompanies } from "@/service/user-company.service";
@@ -20,7 +25,9 @@ import {
 } from "@/features/collaborators/create/utils/create-collaborator-formatters";
 import {
   COLLABORATOR_LONG_DAY_OPTIONS,
+  COLLABORATOR_ROLE_OPTIONS,
   COLLABORATOR_SCHEDULE_OPTIONS,
+  type CollaboratorAccessRole,
 } from "@/features/collaborators/create/constants";
 import { safeLogger } from "@/utils/security/safeLogger";
 
@@ -82,6 +89,14 @@ export const useCreateCollaborator = () => {
   const [companies, setCompanies] = useState<CompanyOption[]>([]);
   const [isLoadingCompanies, setIsLoadingCompanies] = useState(true);
   const [selectedCompanyId, setSelectedCompanyId] = useState<string | undefined>(undefined);
+
+  // Step 3: acesso ao sistema
+  const [savedEmployeeId, setSavedEmployeeId] = useState<string | null>(null);
+  const [employeeCreated, setEmployeeCreated] = useState(false);
+  const [username, setUsername] = useState("");
+  const [userRole, setUserRole] = useState<CollaboratorAccessRole>("PARTNER");
+  const [usernameAvailability, setUsernameAvailability] = useState<"available" | "unavailable" | "checking" | null>(null);
+  const [isCheckingUsername, setIsCheckingUsername] = useState(false);
 
   useEffect(() => {
     if (!role) return;
@@ -196,7 +211,6 @@ export const useCreateCollaborator = () => {
     setAutoFilledFrom(undefined);
 
     try {
-      // 1. Verifica se o CPF já existe na empresa selecionada (bloqueia duplicata)
       const existsInTarget = !(await checkCpfAvailability(cpf, selectedCompanyId));
       if (existsInTarget) {
         setCpfAvailability("unavailable");
@@ -208,7 +222,6 @@ export const useCreateCollaborator = () => {
         return;
       }
 
-      // 2. Busca globalmente para preencher automaticamente
       const existing = await findEmployeeByCpf(cpf);
       if (existing) {
         const phone = (existing.phone ?? "").replace(/\D/g, "");
@@ -281,7 +294,7 @@ export const useCreateCollaborator = () => {
       setIsSubmitting(true);
       try {
         await preloadCsrfToken();
-        await createCollaborator({
+        const result = await createCollaborator({
           fullName: data.nomeCompleto,
           cpf: data.cpf.replace(/\D/g, ""),
           jobPosition: data.cargo,
@@ -307,11 +320,12 @@ export const useCreateCollaborator = () => {
         });
 
         const companyName = companies.find((c) => c.companyId === selectedCompanyId)?.companyName ?? "";
+        setSavedEmployeeId(result.employeeId);
+        setEmployeeCreated(true);
         toast({
           title: "Colaborador criado!",
-          description: `${data.nomeCompleto} foi cadastrado${companyName ? ` em ${companyName}` : ""}.`,
+          description: `${data.nomeCompleto} foi cadastrado${companyName ? ` em ${companyName}` : ""}. Defina o acesso ao sistema ou pule essa etapa.`,
         });
-        navigate(APP_PATHS.listaColaboradores);
         return true;
       } catch (error) {
         safeLogger.error("Erro ao criar colaborador:", error);
@@ -325,7 +339,7 @@ export const useCreateCollaborator = () => {
         setIsSubmitting(false);
       }
     },
-    [isSubmitting, cpfAvailability, faceImageBase64, selectedCompanyId, companies, navigate]
+    [isSubmitting, cpfAvailability, faceImageBase64, selectedCompanyId, companies]
   );
 
   const onSubmit = useCallback(
@@ -342,6 +356,63 @@ export const useCreateCollaborator = () => {
     })();
     return success;
   }, [form, handleCreateEmployee]);
+
+  const handleCheckUsername = useCallback(async () => {
+    if (username.length < 4) {
+      toast({ title: "Usuário inválido", description: "O nome de usuário deve ter pelo menos 4 caracteres.", variant: "destructive" });
+      setUsernameAvailability(null);
+      return;
+    }
+    setIsCheckingUsername(true);
+    setUsernameAvailability("checking");
+    try {
+      const available = await checkUsernameAvailability(username);
+      if (!available) {
+        toast({ title: "Nome de usuário indisponível", description: "Este nome já está em uso.", variant: "destructive" });
+        setUsernameAvailability("unavailable");
+      } else {
+        toast({ title: "Nome de usuário disponível!" });
+        setUsernameAvailability("available");
+      }
+    } catch (error) {
+      safeLogger.error("Erro ao verificar username:", error);
+      toast({ title: "Erro de rede", description: "Falha ao conectar com o servidor.", variant: "destructive" });
+      setUsernameAvailability(null);
+    } finally {
+      setIsCheckingUsername(false);
+    }
+  }, [username]);
+
+  const createUserForEmployee = useCallback(async () => {
+    if (!savedEmployeeId) {
+      toast({ title: "Erro", description: "ID do colaborador não encontrado.", variant: "destructive" });
+      return;
+    }
+    if (usernameAvailability !== "available") {
+      toast({ title: "Ação pendente", description: "Verifique a disponibilidade do nome de usuário.", variant: "destructive" });
+      return;
+    }
+    setIsSubmitting(true);
+    try {
+      await preloadCsrfToken();
+      await createUser({ username, role: userRole, employeeId: savedEmployeeId });
+      toast({ title: "Acesso criado!", description: `Usuário "${username}" criado com perfil ${userRole}.` });
+      navigate(APP_PATHS.listaColaboradores);
+    } catch (error) {
+      safeLogger.error("Erro ao criar usuário:", error);
+      toast({
+        title: "Erro ao criar acesso",
+        description: error instanceof Error ? error.message : "Tente novamente mais tarde.",
+        variant: "destructive",
+      });
+    } finally {
+      setIsSubmitting(false);
+    }
+  }, [savedEmployeeId, usernameAvailability, username, userRole, navigate]);
+
+  const skipUserCreation = useCallback(() => {
+    navigate(APP_PATHS.listaColaboradores);
+  }, [navigate]);
 
   return {
     form,
@@ -366,10 +437,23 @@ export const useCreateCollaborator = () => {
     onSubmit,
     scheduleTypes: COLLABORATOR_SCHEDULE_OPTIONS,
     daysOfWeek: COLLABORATOR_LONG_DAY_OPTIONS,
+    roleOptions: COLLABORATOR_ROLE_OPTIONS,
     companies,
     isLoadingCompanies,
     selectedCompanyId,
     setSelectedCompanyId,
+    // step 3
+    savedEmployeeId,
+    employeeCreated,
+    username,
+    setUsername,
+    userRole,
+    setUserRole,
+    usernameAvailability,
+    isCheckingUsername,
+    handleCheckUsername,
+    createUserForEmployee,
+    skipUserCreation,
   };
 };
 

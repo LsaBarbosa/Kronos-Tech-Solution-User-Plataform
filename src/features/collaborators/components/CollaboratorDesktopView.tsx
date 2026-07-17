@@ -139,6 +139,7 @@ export const CollaboratorDesktopView = ({
     confirmToggle,
     openBiometricEnrollment,
     closeBiometricEnrollment,
+    requestCreateAccess,
     refresh,
   } = viewModel;
 
@@ -246,6 +247,11 @@ export const CollaboratorDesktopView = ({
               onOpenBiometric={() => {
                 if (selectedCollaborator) {
                   openBiometricEnrollment(selectedCollaborator);
+                }
+              }}
+              onCreateAccess={() => {
+                if (selectedCollaborator) {
+                  requestCreateAccess(selectedCollaborator);
                 }
               }}
             />

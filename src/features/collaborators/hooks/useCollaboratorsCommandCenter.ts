@@ -154,6 +154,7 @@ export const useCollaboratorsCommandCenter = () => {
   const [isSaving, setIsSaving] = useState(false);
   const [mutationTarget, setMutationTarget] = useState<CollaboratorMutationTarget | null>(null);
   const [biometricTarget, setBiometricTarget] = useState<CollaboratorRecord | null>(null);
+  const [createAccessTarget, setCreateAccessTarget] = useState<CollaboratorRecord | null>(null);
 
   const { toast } = useToast();
 
@@ -388,6 +389,15 @@ export const useCollaboratorsCommandCenter = () => {
     }
   }, [fetchCollaborators, isSaving, mutationTarget, toast]);
 
+  const requestCreateAccess = useCallback((record: CollaboratorRecord) => {
+    setSelectedCollaboratorId(record.employeeId);
+    setCreateAccessTarget(record);
+  }, []);
+
+  const clearCreateAccess = useCallback(() => {
+    setCreateAccessTarget(null);
+  }, []);
+
   const openBiometricEnrollment = useCallback((record: CollaboratorRecord) => {
     setSelectedCollaboratorId(record.employeeId);
     setBiometricTarget(record);
@@ -430,6 +440,9 @@ export const useCollaboratorsCommandCenter = () => {
     confirmToggle,
     openBiometricEnrollment,
     closeBiometricEnrollment,
+    createAccessTarget,
+    requestCreateAccess,
+    clearCreateAccess,
     refresh: fetchCollaborators,
   };
 };

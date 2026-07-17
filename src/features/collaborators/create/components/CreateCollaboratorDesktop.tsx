@@ -5,8 +5,10 @@ import {
   CalendarDays,
   CheckCircle2,
   Home,
+  KeyRound,
   MapPin,
   Settings2,
+  ShieldCheck,
   Sparkles,
   TimerReset,
   Users,
@@ -197,6 +199,16 @@ const CreateCollaboratorDesktop = ({ vm }: CreateCollaboratorDesktopProps) => {
               ? "Já cadastrado nessa empresa."
               : "Aguardando verificação.",
         active: vm.cpfAvailability === "available",
+      },
+      {
+        number: "5",
+        title: "Acesso",
+        description: vm.employeeCreated
+          ? vm.usernameAvailability === "available"
+            ? `Usuário "${vm.username}" pronto.`
+            : "Defina o login do colaborador."
+          : "Disponível após salvar.",
+        active: vm.employeeCreated && vm.usernameAvailability === "available",
       },
     ],
     [journeySummary, scheduleSummary, vm.selectedCompanyId, vm.cpfAvailability, vm.isAutoFilled, vm.autoFilledFrom, selectedCompanyName]
@@ -805,23 +817,123 @@ const CreateCollaboratorDesktop = ({ vm }: CreateCollaboratorDesktopProps) => {
                   disabled={vm.isSubmitting || vm.cpfAvailability !== "available" || !vm.selectedCompanyId}
                   className="h-12 rounded-xl px-8"
                 >
-                  {vm.isSubmitting ? "Salvando..." : "Criar colaborador"}
+                  {vm.isSubmitting ? "Salvando..." : "Cadastrar colaborador"}
                 </Button>
               </div>
             </CardContent>
           </Card>
 
           {/* Filler card com o passo de verificação de CPF inclui CheckCircle quando salvo */}
-          {vm.cpfAvailability === "available" && vm.selectedCompanyId && (
+          {vm.cpfAvailability === "available" && vm.selectedCompanyId && !vm.employeeCreated && (
             <div className="flex items-center gap-3 rounded-[20px] border border-emerald-200 bg-emerald-50/60 px-5 py-4 text-sm text-emerald-800">
               <CheckCircle2 className="h-5 w-5 shrink-0 text-emerald-600" />
               <span>
                 <strong>Pronto para salvar.</strong>{" "}
                 {vm.isAutoFilled
-                  ? `Dados copiados de "${vm.autoFilledFrom}" — revise e clique em Criar colaborador.`
+                  ? `Dados copiados de "${vm.autoFilledFrom}" — revise e clique em Cadastrar colaborador.`
                   : "CPF verificado e disponível na empresa selecionada."}
               </span>
             </div>
+          )}
+
+          {/* ── Passo 5: Acesso ao sistema ── */}
+          {vm.employeeCreated && (
+            <Card className="overflow-hidden rounded-[28px] border border-blue-200 bg-white shadow-[0_24px_60px_-48px_rgba(15,23,42,0.55)] ring-1 ring-blue-100">
+              <CardHeader className="gap-2 px-6 py-5">
+                <div className="flex items-start justify-between gap-4">
+                  <div>
+                    <CardTitle className="flex items-center gap-2 text-xl text-slate-900">
+                      <KeyRound className="h-5 w-5 text-blue-500" />
+                      Acesso ao sistema
+                    </CardTitle>
+                    <CardDescription className="mt-1 text-sm text-slate-500">
+                      Opcional — crie o login agora ou pule e faça depois pela lista de colaboradores.
+                    </CardDescription>
+                  </div>
+                  <CheckCircle2 className="mt-1 h-5 w-5 shrink-0 text-emerald-500" />
+                </div>
+              </CardHeader>
+              <CardContent className="space-y-5 px-6 pb-6">
+                <div className="flex items-center gap-3 rounded-[18px] border border-emerald-200 bg-emerald-50 px-4 py-3">
+                  <CheckCircle2 className="h-5 w-5 shrink-0 text-emerald-600" />
+                  <span className="text-sm font-medium text-emerald-800">Colaborador cadastrado com sucesso. Defina o acesso abaixo.</span>
+                </div>
+
+                <div className="grid gap-4 sm:grid-cols-2">
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-slate-700">Nome de usuário</label>
+                    <div className="flex gap-2">
+                      <Input
+                        value={vm.username}
+                        onChange={(e) => vm.setUsername(e.target.value.toLowerCase().replace(/\s/g, ""))}
+                        placeholder="ex: joao.silva"
+                        className="h-11 flex-1 rounded-xl"
+                      />
+                      <Button
+                        type="button"
+                        variant="outline"
+                        onClick={() => void vm.handleCheckUsername()}
+                        disabled={vm.isCheckingUsername || vm.username.length < 4}
+                        className="h-11 shrink-0 rounded-xl"
+                      >
+                        {vm.isCheckingUsername ? "..." : "Verificar"}
+                      </Button>
+                    </div>
+                    {vm.usernameAvailability === "available" && (
+                      <p className="text-xs text-emerald-600">Nome de usuário disponível.</p>
+                    )}
+                    {vm.usernameAvailability === "unavailable" && (
+                      <p className="text-xs text-rose-600">Nome de usuário já em uso.</p>
+                    )}
+                  </div>
+
+                  <div className="space-y-2">
+                    <label className="text-sm font-medium text-slate-700">Perfil de acesso</label>
+                    <div className="flex gap-3">
+                      {vm.roleOptions.map((opt) => (
+                        <button
+                          key={opt.value}
+                          type="button"
+                          onClick={() => vm.setUserRole(opt.value)}
+                          className={`flex-1 rounded-[14px] border p-3 text-left transition-all ${
+                            vm.userRole === opt.value
+                              ? "border-blue-400 bg-blue-50 text-blue-800"
+                              : "border-slate-200 bg-white text-slate-600"
+                          }`}
+                        >
+                          <div className="text-sm font-semibold">{opt.label}</div>
+                          <div className="mt-0.5 text-xs">{opt.description}</div>
+                        </button>
+                      ))}
+                    </div>
+                  </div>
+                </div>
+
+                <div className="flex items-center gap-2 rounded-[14px] border border-slate-200 bg-slate-50 px-4 py-3 text-sm text-slate-600">
+                  <ShieldCheck className="h-4 w-4 shrink-0" />
+                  A senha inicial será gerada automaticamente e enviada por e-mail ao colaborador.
+                </div>
+
+                <div className="flex gap-3">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    onClick={vm.skipUserCreation}
+                    className="h-11 rounded-xl px-6"
+                  >
+                    Pular esta etapa
+                  </Button>
+                  <Button
+                    type="button"
+                    onClick={() => void vm.createUserForEmployee()}
+                    disabled={vm.isSubmitting || vm.usernameAvailability !== "available"}
+                    className="h-11 rounded-xl px-8"
+                  >
+                    {vm.isSubmitting ? "Criando acesso..." : "Criar acesso"}
+                  </Button>
+                </div>
+              </CardContent>
+            </Card>
           )}
         </main>
       </div>
