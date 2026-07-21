@@ -2,10 +2,7 @@ import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import PageShell from "@/components/PageShell";
-import { APP_PATHS } from "@/config/app-routes";
-import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from "@/components/ui/breadcrumb";
 import { AlertTriangle, RefreshCw, Search } from "lucide-react";
-import { Link } from "react-router-dom";
 import { CollaboratorHero } from "./CollaboratorHero";
 import { CollaboratorFiltersBar } from "./CollaboratorFiltersBar";
 import { CollaboratorTable } from "./CollaboratorTable";
@@ -153,26 +150,6 @@ export const CollaboratorDesktopView = ({
       mainClassName="relative z-10 overflow-x-hidden px-4 pb-10 pt-24 lg:px-6"
     >
       <div className="mx-auto flex min-w-0 max-w-[1600px] flex-col gap-6">
-        <Breadcrumb>
-          <BreadcrumbList>
-            <BreadcrumbItem>
-              <BreadcrumbLink asChild>
-                <Link to={APP_PATHS.dashboard}>Início</Link>
-              </BreadcrumbLink>
-            </BreadcrumbItem>
-            <BreadcrumbSeparator />
-            <BreadcrumbItem>
-              <BreadcrumbLink asChild>
-                <Link to={APP_PATHS.listaColaboradores}>Pessoas</Link>
-              </BreadcrumbLink>
-            </BreadcrumbItem>
-            <BreadcrumbSeparator />
-            <BreadcrumbItem>
-              <BreadcrumbPage>Lista de colaboradores</BreadcrumbPage>
-            </BreadcrumbItem>
-          </BreadcrumbList>
-        </Breadcrumb>
-
         <CollaboratorHero
           variant="desktop"
           summary={summary}

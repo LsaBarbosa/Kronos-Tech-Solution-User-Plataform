@@ -1,7 +1,6 @@
 import { format } from "date-fns";
 import { ptBR } from "date-fns/locale";
-import { ChevronLeft, FileText } from "lucide-react";
-import { Button } from "@/components/ui/button";
+import { FileText } from "lucide-react";
 import { Card, CardContent } from "@/components/ui/card";
 import { cn } from "@/lib/utils";
 import { FISCAL_REPORT_ORDER, FISCAL_REPORTS, previewFileName } from "../utils/fiscal-helpers";
@@ -55,19 +54,6 @@ const FiscalMobileView = ({ viewModel, onBack }: FiscalMobileViewProps) => {
 
   return (
     <div className="mx-auto w-full max-w-3xl space-y-4 pb-36">
-      <div className="flex">
-        <Button
-          type="button"
-          variant="outline"
-          size="sm"
-          onClick={onBack}
-          className="h-10 gap-1 border-[#D8E2EC] bg-white text-[#102A43] hover:bg-[#F4F6F9]"
-        >
-          <ChevronLeft className="h-4 w-4" />
-          Início
-        </Button>
-      </div>
-
       <FiscalAuditHero variant="mobile" />
 
       <div className="grid grid-cols-3 gap-2">

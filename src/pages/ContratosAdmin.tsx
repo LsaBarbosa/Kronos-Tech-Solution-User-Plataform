@@ -1,8 +1,10 @@
 import { useCallback, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { FileSignature, Loader2, Plus, RefreshCcw } from "lucide-react";
+import { FileSignature, Loader2, Plus, RefreshCcw, ScrollText } from "lucide-react";
 import PageShell from "@/components/PageShell";
+import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Card } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { ServiceContractSignatureService } from "@/service/serviceContractSignature.service";
 import { APP_PATHS } from "@/config/app-routes";
@@ -66,55 +68,67 @@ const ContratosAdmin = () => {
       mainClassName="pt-24 sm:pt-32 px-4 pb-5 sm:px-6 sm:pb-8 lg:px-8 relative z-10 overflow-x-hidden bg-[#D9E2EB]"
     >
       <div className="mx-auto w-full max-w-5xl space-y-6">
-        <header className="flex flex-col items-start justify-between gap-3 sm:flex-row sm:items-center">
-          <div>
-            <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-50">
-              Contratos enviados
-            </h1>
-            <p className="text-sm text-slate-600 dark:text-slate-300">
-              Acompanhe os contratos atribuídos e suas assinaturas.
-            </p>
-          </div>
-          <div className="flex flex-wrap gap-2">
-            <Button
-              type="button"
-              variant="outline"
-              size="sm"
-              onClick={() => load()}
-              disabled={isLoading}
-            >
-              <RefreshCcw className={"mr-2 h-4 w-4 " + (isLoading ? "animate-spin" : "")} />
-              Atualizar
-            </Button>
-            <Button
-              type="button"
-              size="sm"
-              className="bg-[#7C3AED] hover:bg-[#6D28D9]"
-              onClick={() => navigate(APP_PATHS.contratosEnviar)}
-            >
-              <Plus className="mr-2 h-4 w-4" />
-              Novo contrato
-            </Button>
-          </div>
-        </header>
+        <Card className="relative overflow-hidden border-border/70 shadow-[0_24px_70px_-35px_rgba(15,23,42,0.55)]">
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(34,211,238,0.14),transparent_30%),radial-gradient(circle_at_bottom_left,rgba(37,99,235,0.20),transparent_30%)]" />
+          <div className="relative bg-gradient-to-br from-[#102A43] via-[#1F4E5F] to-[#102A43] px-5 py-6 text-white sm:px-8 sm:py-8">
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between">
+              <div className="space-y-3">
+                <div className="flex items-center gap-2">
+                  <ScrollText className="h-5 w-5 text-cyan-300" />
+                  <Badge className="border-white/15 bg-white/10 text-white">Gestão de contratos</Badge>
+                </div>
+                <div className="space-y-1">
+                  <h1 className="text-2xl font-semibold leading-tight sm:text-3xl">
+                    Contratos enviados
+                  </h1>
+                  <p className="text-sm leading-6 text-white/78">
+                    Acompanhe os contratos atribuídos e suas assinaturas.
+                  </p>
+                </div>
+              </div>
+              <div className="flex flex-wrap gap-2 sm:shrink-0">
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={() => load()}
+                  disabled={isLoading}
+                  className="h-10 border-white/20 bg-white/10 px-4 text-white hover:bg-white/15 hover:text-white"
+                >
+                  <RefreshCcw className={"mr-2 h-4 w-4 " + (isLoading ? "animate-spin" : "")} />
+                  Atualizar
+                </Button>
+                <Button
+                  type="button"
+                  size="sm"
+                  className="h-10 bg-[#7C3AED] px-4 hover:bg-[#6D28D9]"
+                  onClick={() => navigate(APP_PATHS.contratosEnviar)}
+                >
+                  <Plus className="mr-2 h-4 w-4" />
+                  Novo contrato
+                </Button>
+              </div>
+            </div>
 
-        <div className="flex items-center gap-2">
-          {(["ALL", "ACTIVE", "VOIDED"] as const).map((s) => (
-            <button
-              key={s}
-              type="button"
-              onClick={() => setStatusFilter(s)}
-              className={
-                "rounded-full px-3 py-1 text-xs font-semibold transition-colors " +
-                (statusFilter === s
-                  ? "bg-[#7C3AED] text-white"
-                  : "bg-white text-slate-700 dark:bg-slate-800 dark:text-slate-200")
-              }
-            >
-              {s === "ALL" ? "Todos" : s === "ACTIVE" ? "Ativos" : "Anulados"}
-            </button>
-          ))}
-        </div>
+            <div className="mt-5 flex flex-wrap gap-2">
+              {(["ALL", "ACTIVE", "VOIDED"] as const).map((s) => (
+                <button
+                  key={s}
+                  type="button"
+                  onClick={() => setStatusFilter(s)}
+                  className={
+                    "rounded-full px-4 py-1.5 text-xs font-semibold transition-colors " +
+                    (statusFilter === s
+                      ? "bg-white text-[#102A43]"
+                      : "bg-white/10 text-white hover:bg-white/20")
+                  }
+                >
+                  {s === "ALL" ? "Todos" : s === "ACTIVE" ? "Ativos" : "Anulados"}
+                </button>
+              ))}
+            </div>
+          </div>
+        </Card>
 
         {isLoading && items.length === 0 ? (
           <div className="flex h-40 items-center justify-center rounded-2xl border border-[#E5E7EB] bg-white dark:border-[#404854] dark:bg-slate-800/50">

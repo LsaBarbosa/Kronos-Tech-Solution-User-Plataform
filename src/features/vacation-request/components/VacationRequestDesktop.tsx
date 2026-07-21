@@ -1,9 +1,6 @@
-import { useMemo } from "react";
 import { useNavigate } from "react-router-dom";
-import { ArrowLeftRight, CalendarRange, Home, ShieldCheck, TreePalm, UserRound } from "lucide-react";
-import { useAuth } from "@/context/AuthContext";
+import { CalendarRange, Home, ShieldCheck, TreePalm, UserRound } from "lucide-react";
 import { APP_PATHS } from "@/config/app-routes";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
 import type { VacationRequestViewModel } from "../types";
@@ -47,41 +44,9 @@ const DesktopRailButton = ({
 
 const VacationRequestDesktop = ({ viewModel }: VacationRequestDesktopProps) => {
   const navigate = useNavigate();
-  const { user } = useAuth();
-
-  const currentProfile = user?.profile;
-  const sessionName = currentProfile?.fullName ?? user?.account.username ?? "Sessão ativa";
-  const sessionRole = user?.role ?? currentProfile?.role ?? "Usuário";
-  const initials = useMemo(() => {
-    const source = currentProfile?.fullName || user?.account.username || "K";
-    return source
-      .split(" ")
-      .filter(Boolean)
-      .slice(0, 2)
-      .map((part) => part.charAt(0))
-      .join("")
-      .toUpperCase();
-  }, [currentProfile?.fullName, user?.account.username]);
 
   const summary = getVacationPeriodSummary(viewModel.startDate, viewModel.endDate);
   const selectedManagerDisplay = viewModel.selectedManager ? mapManagerOptionToDisplay(viewModel.selectedManager) : undefined;
-  const heroMetrics = [
-    {
-      label: "Fluxo",
-      value: "aprovação gerencial",
-      helper: "Solicitação oficial de férias.",
-    },
-    {
-      label: "Status inicial",
-      value: viewModel.successCreatedIds?.length ? "enviado" : "solicitado",
-      helper: "O pedido entra em análise.",
-    },
-    {
-      label: "Regra",
-      value: "período contínuo",
-      helper: "Dias passados permanecem bloqueados.",
-    },
-  ];
 
   const scrollToRules = () => {
     document.getElementById("vacation-rules")?.scrollIntoView({ behavior: "smooth", block: "start" });
@@ -138,66 +103,29 @@ const VacationRequestDesktop = ({ viewModel }: VacationRequestDesktopProps) => {
         </aside>
 
         <div className="min-w-0 flex-1">
-          <header className="border-b border-[#E2E8F0] bg-white/90 px-4 py-4 backdrop-blur sm:px-6 lg:px-8">
-            <div className="mx-auto flex max-w-[1560px] flex-wrap items-center justify-between gap-4">
-              <div className="space-y-1">
-                <p className="text-sm font-medium text-[#64748B]">Kronos / Jornada / Solicitar férias</p>
-                <div className="flex items-center gap-3">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#2563EB] text-sm font-semibold text-white">
-                    K
-                  </div>
-                  <div>
-                    <p className="text-lg font-semibold text-[#0F172A]">Solicitar férias</p>
-                    <p className="text-sm text-[#64748B]">Planejamento de período com aprovação gerencial</p>
-                  </div>
-                </div>
-              </div>
 
-              <div className="flex flex-wrap items-center gap-3">
-                <Badge variant="outline" className="border-[#BFDBFE] bg-[#EFF6FF] text-[#1E3A8A]">
-                  Sessão segura
-                </Badge>
-                <div className="flex items-center gap-3 rounded-full border border-[#E2E8F0] bg-white px-3 py-2 shadow-sm">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#1E3A8A] text-sm font-semibold text-white">
-                    {initials}
-                  </div>
-                  <div className="min-w-0">
-                    <p className="truncate text-sm font-semibold text-[#0F172A]">{sessionName}</p>
-                    <p className="truncate text-xs uppercase tracking-[0.18em] text-[#64748B]">{sessionRole}</p>
-                  </div>
-                </div>
-                <Button
-                  type="button"
-                  variant="outline"
-                  className="h-11 border-[#E2E8F0] bg-white text-[#0F172A]"
-                  onClick={() => navigate(APP_PATHS.dashboard)}
-                >
-                  <ArrowLeftRight className="h-4 w-4" />
-                  Voltar ao início
-                </Button>
-              </div>
-            </div>
-          </header>
 
           <main className="relative mx-auto max-w-[1560px] px-4 py-6 sm:px-6 lg:px-8">
-            <VacationHero
-              title="Planeje seu período de descanso"
-              subtitle="Escolha datas futuras, selecione o gestor responsável e revise o impacto antes de enviar para aprovação."
-              metrics={heroMetrics}
-              onPrimaryAction={scrollToRules}
-              primaryActionLabel="Ver regras"
-            />
+            <div className="mx-auto w-full max-w-[1180px]">
+              <VacationHero
+                title="Planeje seu período de descanso"
+                subtitle="Escolha datas futuras, selecione o gestor responsável e revise o impacto antes de enviar para aprovação."
+                metrics={[]}
+                onPrimaryAction={scrollToRules}
+                primaryActionLabel="Ver regras"
+              />
 
-            {viewModel.successCreatedIds?.length ? (
-              <div className="mt-6 rounded-[24px] border border-[#B7E4C7] bg-[#DCFCE7] p-4 text-sm leading-6 text-[#166534] shadow-[0_16px_40px_rgba(22,163,74,0.12)]">
-                <div className="flex items-start gap-2">
-                  <ShieldCheck className="mt-0.5 h-4 w-4" />
-                  <p>
-                    Solicitação enviada para análise. {viewModel.successCreatedIds.length} dias registrados para aprovação.
-                  </p>
+              {viewModel.successCreatedIds?.length ? (
+                <div className="mt-6 rounded-[24px] border border-[#B7E4C7] bg-[#DCFCE7] p-4 text-sm leading-6 text-[#166534] shadow-[0_16px_40px_rgba(22,163,74,0.12)]">
+                  <div className="flex items-start gap-2">
+                    <ShieldCheck className="mt-0.5 h-4 w-4" />
+                    <p>
+                      Solicitação enviada para análise. {viewModel.successCreatedIds.length} dias registrados para aprovação.
+                    </p>
+                  </div>
                 </div>
-              </div>
-            ) : null}
+              ) : null}
+            </div>
 
             <div className="mt-6 flex justify-center">
               <div className="w-full max-w-[1180px]">

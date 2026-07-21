@@ -60,19 +60,7 @@ export const DesktopMessagesView = ({
   onPreviousPage,
   onNextPage,
 }: DesktopMessagesViewProps) => (
-  <div className="mx-auto flex w-full max-w-7xl flex-col gap-6">
-    <div className="flex items-center justify-between gap-4">
-      <div>
-        <p className="text-sm font-semibold uppercase tracking-[0.28em] text-[#486581]">Avisos</p>
-        <h1 className="mt-2 text-3xl font-semibold text-[#102A43]">Central interna</h1>
-      </div>
-      {canCreate ? (
-        <Button onClick={onCreate} className="bg-[#0F4C81] text-white hover:bg-[#0B3A61]">
-          Novo Aviso
-        </Button>
-      ) : null}
-    </div>
-
+  <div className="flex w-full flex-col gap-6">
     <div className="grid gap-6 lg:grid-cols-[minmax(0,1.15fr)_minmax(380px,0.85fr)]">
       <Card className="border-[#D9E2EC] bg-white">
         <CardHeader className="gap-4 border-b border-[#D9E2EC]">

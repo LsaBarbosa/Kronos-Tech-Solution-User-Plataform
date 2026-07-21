@@ -31,13 +31,10 @@ export const DesktopCreateMessageView = ({ form }: DesktopCreateMessageViewProps
   };
 
   return (
-    <div className="mx-auto grid w-full max-w-7xl gap-6 xl:grid-cols-[minmax(0,1.2fr)_400px]">
+    <div className="grid w-full gap-6 xl:grid-cols-[minmax(0,1.2fr)_400px]">
       <div className="space-y-6">
         <Card className="border-[#D9E2EC] bg-white">
-          <CardHeader>
-            <CardTitle className="text-2xl text-[#102A43]">Criar aviso</CardTitle>
-          </CardHeader>
-          <CardContent className="space-y-5">
+          <CardContent className="space-y-5 pt-6">
             <div className="space-y-2">
               <Label htmlFor="title">Titulo</Label>
               <Input

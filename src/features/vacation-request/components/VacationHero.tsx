@@ -29,7 +29,7 @@ const VacationHero = ({
   return (
     <section
       className={cn(
-        "relative overflow-hidden rounded-[32px] border border-[#1E3A8A]/10 bg-[#0B1220] p-6 text-white shadow-[0_24px_70px_rgba(11,18,32,0.24)] sm:p-8",
+        "relative overflow-hidden rounded-[32px] border border-[#D8E2EC] bg-gradient-to-br from-[#102A43] via-[#1F4E5F] to-[#102A43] p-6 text-white shadow-[0_18px_50px_rgba(16,42,67,0.22)] sm:p-8",
         className
       )}
     >

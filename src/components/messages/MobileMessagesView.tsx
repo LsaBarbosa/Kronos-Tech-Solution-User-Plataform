@@ -61,12 +61,7 @@ export const MobileMessagesView = ({
   onPreviousPage,
   onNextPage,
 }: MobileMessagesViewProps) => (
-  <div className="mx-auto flex w-full max-w-3xl flex-col gap-4 pb-28">
-    <div>
-      <p className="text-sm font-semibold uppercase tracking-[0.24em] text-[#486581]">Avisos</p>
-      <h1 className="mt-2 text-2xl font-semibold text-[#102A43]">Central interna</h1>
-    </div>
-
+  <div className="flex w-full flex-col gap-4 pb-28">
     <div className="flex gap-2 overflow-x-auto pb-1">
       {FILTER_OPTIONS.map((option) => (
         <Button

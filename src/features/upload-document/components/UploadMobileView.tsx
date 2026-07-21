@@ -1,5 +1,5 @@
 import type { ChangeEvent, DragEvent, RefObject } from "react";
-import { ChevronLeft, Send, ShieldCheck, UserCheck, UserX } from "lucide-react";
+import { Send, ShieldCheck, UserCheck, UserX } from "lucide-react";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Label } from "@/components/ui/label";
@@ -110,19 +110,6 @@ const UploadMobileView = ({
 
   return (
     <div className="mx-auto w-full max-w-3xl space-y-4 pb-36">
-      <div className="flex">
-        <Button
-          type="button"
-          variant="outline"
-          size="sm"
-          onClick={onBack}
-          className="h-10 gap-1 border-[#D8E2EC] bg-white text-[#102A43] hover:bg-[#F4F6F9]"
-        >
-          <ChevronLeft className="h-4 w-4" />
-          Início
-        </Button>
-      </div>
-
       <UploadHero variant="mobile" scope={scope} recipientName={currentUserName} />
 
       <Card className={cn("border shadow-sm", scope.cardClass)}>

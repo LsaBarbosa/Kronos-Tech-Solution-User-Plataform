@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Camera, FileSignature, Loader2, RefreshCcw, RotateCw, ScanFace } from "lucide-react";
+import { Camera, ClipboardCheck, FileSignature, Loader2, RefreshCcw, RotateCw, ScanFace } from "lucide-react";
 import PageShell from "@/components/PageShell";
+import PageHero from "@/components/PageHero";
 import { Button } from "@/components/ui/button";
 import { Input } from "@/components/ui/input";
 import { useTimesheetSignatureViewModel } from "@/features/timesheet-signature/useTimesheetSignatureViewModel";
@@ -161,44 +162,39 @@ const AssinaturaPonto = () => {
       mainClassName="pt-24 sm:pt-32 px-4 pb-5 sm:px-6 sm:pb-8 lg:px-8 relative z-10 overflow-x-hidden bg-[#D9E2EB]"
     >
       <div className="mx-auto w-full max-w-3xl space-y-6">
-        <header className="space-y-4">
-          <div className="flex items-start justify-between gap-4">
-            <div>
-              <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-50">
-                Assinatura do Ponto
-              </h1>
-              <p className="text-sm text-slate-600 dark:text-slate-300">
-                Confirme eletronicamente o espelho de ponto de qualquer mês anterior ao vigente.
-              </p>
-            </div>
+        <PageHero
+          badge="Assinatura eletrônica"
+          title="Assinatura do Ponto"
+          description="Confirme eletronicamente o espelho de ponto de qualquer mês anterior ao vigente."
+          icon={<ClipboardCheck className="h-10 w-10 text-white/80" />}
+          primaryAction={
             <Button
               type="button"
-              variant="outline"
-              size="sm"
+              className="h-11 w-full gap-2 rounded-2xl bg-white text-[#102A43] hover:bg-white/90"
               onClick={() => vm.refresh()}
               disabled={vm.isLoading}
-              aria-label="Recarregar status"
             >
-              <RefreshCcw className={"mr-2 h-4 w-4 " + (vm.isLoading ? "animate-spin" : "")} />
-              Atualizar
+              <RefreshCcw className={"h-4 w-4 " + (vm.isLoading ? "animate-spin" : "")} />
+              Atualizar status
             </Button>
-          </div>
-          <div className="flex flex-col gap-2 rounded-2xl border border-[#E5E7EB] bg-white p-4 dark:border-[#404854] dark:bg-slate-800/50 sm:flex-row sm:items-center sm:justify-between">
-            <label htmlFor="signature-period" className="text-sm font-medium text-slate-700 dark:text-slate-200">
-              Período a assinar
-            </label>
-            <Input
-              id="signature-period"
-              type="month"
-              value={monthInputValue}
-              max={maxMonthValue}
-              onChange={(event) => handleMonthChange(event.target.value)}
-              disabled={vm.isLoading || vm.isSubmitting}
-              className="max-w-[180px]"
-              aria-label="Mês de referência"
-            />
-          </div>
-        </header>
+          }
+        />
+
+        <div className="flex flex-col gap-2 rounded-2xl border border-[#E5E7EB] bg-white p-4 dark:border-[#404854] dark:bg-slate-800/50 sm:flex-row sm:items-center sm:justify-between">
+          <label htmlFor="signature-period" className="text-sm font-medium text-slate-700 dark:text-slate-200">
+            Período a assinar
+          </label>
+          <Input
+            id="signature-period"
+            type="month"
+            value={monthInputValue}
+            max={maxMonthValue}
+            onChange={(event) => handleMonthChange(event.target.value)}
+            disabled={vm.isLoading || vm.isSubmitting}
+            className="max-w-[180px]"
+            aria-label="Mês de referência"
+          />
+        </div>
 
         {isLoading ? (
           <div className="flex h-40 items-center justify-center rounded-2xl border border-[#E5E7EB] bg-white dark:border-[#404854] dark:bg-slate-800/50">

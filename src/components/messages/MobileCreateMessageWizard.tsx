@@ -24,12 +24,7 @@ export const MobileCreateMessageWizard = ({ form }: MobileCreateMessageWizardPro
   };
 
   return (
-    <div className="mx-auto flex w-full max-w-3xl flex-col gap-4 pb-28">
-      <div>
-        <p className="text-sm font-semibold uppercase tracking-[0.24em] text-[#486581]">Criar aviso</p>
-        <h1 className="mt-2 text-2xl font-semibold text-[#102A43]">Wizard mobile</h1>
-      </div>
-
+    <div className="flex w-full flex-col gap-4 pb-28">
       <div className="flex gap-2">
         {["Conteudo", "Prioridade", "Audiencia"].map((label, index) => (
           <div

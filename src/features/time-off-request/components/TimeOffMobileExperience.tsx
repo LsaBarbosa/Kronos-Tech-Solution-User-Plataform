@@ -1,16 +1,10 @@
 import { useMemo, useState } from "react";
-import { useNavigate } from "react-router-dom";
-import { Home } from "lucide-react";
-import { APP_PATHS } from "@/config/app-routes";
-import { useAuth } from "@/context/AuthContext";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
 import { timeOffRequestTokens } from "../styles/timeOffRequest.tokens";
 import { getTimeOffStepValidationMessage } from "../utils/timeOffValidation";
 import type { TimeOffRequestStep, TimeOffRequestViewModel } from "../types";
-import TimeOffHero from "./TimeOffHero";
 import TimeOffTypeSelector from "./TimeOffTypeSelector";
 import TimeOffDateTimeFields from "./TimeOffDateTimeFields";
 import TimeOffManagerSelector from "./TimeOffManagerSelector";
@@ -29,27 +23,10 @@ interface TimeOffMobileExperienceProps {
 const steps: TimeOffRequestStep[] = ["type", "period", "manager", "evidence", "review"];
 
 const TimeOffMobileExperience = ({ viewModel }: TimeOffMobileExperienceProps) => {
-  const navigate = useNavigate();
-  const { user } = useAuth();
   const [activeStep, setActiveStep] = useState<TimeOffRequestStep>("type");
   const [policyOpen, setPolicyOpen] = useState(false);
 
-  const sessionName = user?.profile?.fullName ?? user?.account.username ?? "Sessão ativa";
-  const sessionRole = user?.role ?? "Usuário";
-  const initials = useMemo(
-    () =>
-      sessionName
-        .split(" ")
-        .filter(Boolean)
-        .slice(0, 2)
-        .map((part) => part.charAt(0))
-        .join("")
-        .toUpperCase() || "K",
-    [sessionName]
-  );
-
   const periodLabel = viewModel.periodSummary.periodLabel;
-  const currentStepIndex = steps.indexOf(activeStep);
   const selection = useMemo(
     () => ({
       requestType: viewModel.requestType,
@@ -135,47 +112,12 @@ const TimeOffMobileExperience = ({ viewModel }: TimeOffMobileExperienceProps) =>
       </div>
 
       <main className="relative mx-auto flex min-h-screen max-w-md flex-col gap-4 px-4 pb-36 pt-4">
-      <div className="flex items-center justify-between rounded-[24px] border border-[#D8E2EC] bg-white px-4 py-3 shadow-[0_14px_36px_rgba(16,42,67,0.08)]">
-          <button
-            type="button"
-            onClick={() => navigate(APP_PATHS.dashboard)}
-            className="flex h-10 w-10 items-center justify-center rounded-full border border-[#D8E2EC] bg-[#F8FAFC] text-[#102A43]"
-            aria-label="Voltar ao início"
-          >
-            <Home className="h-4 w-4" />
-          </button>
-          <div className="flex items-center gap-3">
-            <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#1F4E5F] text-sm font-semibold text-white">
-              {initials}
-            </div>
-            <div>
-              <p className="text-sm font-semibold text-[#102A43]">{sessionName}</p>
-              <p className="text-xs uppercase tracking-[0.18em] text-[#627D98]">{sessionRole}</p>
-            </div>
-          </div>
-          <Badge variant="outline" className="border-[#B8E4D2] bg-[#EAF9F3] text-[#166534]">
-            Seguro
-          </Badge>
+        <div className="rounded-[28px] bg-[#0B1220] px-5 py-6 text-white shadow-[0_24px_70px_rgba(11,18,32,0.24)]">
+          <p className="text-3xl font-semibold tracking-tight">Formalize seu abono</p>
+          <p className="mt-2 text-sm leading-6 text-[#DCE7F5]">
+            Escolha tipo, período e evidência para aprovação gerencial.
+          </p>
         </div>
-
-        <TimeOffHero
-          variant="mobile"
-          badgeLabel="Solicitação de abono"
-          title="Solicitar abono"
-          subtitle="Fluxo guiado para aprovação gerencial, com evidência protegida e revisão final."
-          metrics={[
-            {
-              label: "Etapa atual",
-              value: `${currentStepIndex + 1}/5`,
-              helper: "Progresso do assistente.",
-            },
-            {
-              label: "Período",
-              value: periodLabel || "Selecione",
-              helper: "Cada dia será registrado para aprovação.",
-            },
-          ]}
-        />
 
         <TimeOffMobileStepper value={activeStep} onChange={setActiveStep} />
 

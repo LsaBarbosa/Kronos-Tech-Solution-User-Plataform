@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useRef, useState } from "react";
-import { Camera, FileSignature, Loader2, RefreshCcw, RotateCw, ScanFace } from "lucide-react";
+import { Camera, FileSignature, Loader2, RefreshCcw, RotateCw, ScanFace, ScrollText } from "lucide-react";
 import PageShell from "@/components/PageShell";
+import PageHero from "@/components/PageHero";
 import { Button } from "@/components/ui/button";
 import { useServiceContractSignatureViewModel } from "@/features/service-contract-signature/useServiceContractSignatureViewModel";
 import { captureFrameFromVideo, startCameraStream, stopCameraStream } from "@/utils/camera.util";
@@ -119,27 +120,24 @@ const AssinaturaContrato = () => {
       mainClassName="pt-24 sm:pt-32 px-4 pb-5 sm:px-6 sm:pb-8 lg:px-8 relative z-10 overflow-x-hidden bg-[#D9E2EB]"
     >
       <div className="mx-auto w-full max-w-3xl space-y-6">
-        <header className="flex items-start justify-between gap-4">
-          <div>
-            <h1 className="text-2xl font-bold text-slate-900 dark:text-slate-50">
-              Assinatura de Contratos
-            </h1>
-            <p className="text-sm text-slate-600 dark:text-slate-300">
-              Assine eletronicamente os contratos que foram atribuídos a você.
-            </p>
-          </div>
-          <Button
-            type="button"
-            variant="outline"
-            size="sm"
-            onClick={() => vm.refresh()}
-            disabled={vm.isLoading}
-            aria-label="Recarregar contratos pendentes"
-          >
-            <RefreshCcw className={"mr-2 h-4 w-4 " + (vm.isLoading ? "animate-spin" : "")} />
-            Atualizar
-          </Button>
-        </header>
+        <PageHero
+          badge="Assinatura eletrônica"
+          title="Assinatura de Contratos"
+          description="Assine eletronicamente os contratos que foram atribuídos a você."
+          icon={<ScrollText className="h-10 w-10 text-white/80" />}
+          primaryAction={
+            <Button
+              type="button"
+              className="h-11 w-full gap-2 rounded-2xl bg-white text-[#102A43] hover:bg-white/90"
+              onClick={() => vm.refresh()}
+              disabled={vm.isLoading}
+              aria-label="Recarregar contratos pendentes"
+            >
+              <RefreshCcw className={"h-4 w-4 " + (vm.isLoading ? "animate-spin" : "")} />
+              Atualizar
+            </Button>
+          }
+        />
 
         {vm.isLoading && vm.pendingContracts.length === 0 ? (
           <div className="flex h-40 items-center justify-center rounded-2xl border border-[#E5E7EB] bg-white dark:border-[#404854] dark:bg-slate-800/50">

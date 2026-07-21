@@ -1,5 +1,3 @@
-import { ChevronLeft } from "lucide-react";
-import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { PaginationComponent } from "@/components/ui/PaginationComponent";
 import ApprovalHero from "./ApprovalHero";
@@ -79,19 +77,6 @@ const ApprovalDesktop = ({ viewModel, onBack }: ApprovalDesktopProps) => {
 
   return (
     <div className="mx-auto w-full max-w-[1600px] space-y-6 lg:space-y-8">
-      <div className="flex">
-        <Button
-          type="button"
-          variant="outline"
-          size="sm"
-          onClick={onBack}
-          className="h-10 gap-1 border-[#D8E2EC] bg-white text-[#102A43] hover:bg-[#F4F6F9]"
-        >
-          <ChevronLeft className="h-4 w-4" />
-          Voltar ao início
-        </Button>
-      </div>
-
       <ApprovalHero variant="desktop" pendingTotal={pendingTotal} />
 
       <ApprovalMetrics

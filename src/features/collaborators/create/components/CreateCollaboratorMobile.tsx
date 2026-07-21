@@ -1,8 +1,5 @@
 import { useMemo, type ReactNode } from "react";
 import { Building2, CheckCircle2, KeyRound, ShieldCheck, WandSparkles } from "lucide-react";
-import { Link } from "react-router-dom";
-
-import { APP_PATHS } from "@/config/app-routes";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
@@ -152,26 +149,6 @@ const CreateCollaboratorMobile = ({
             </p>
           </div>
 
-          <div className="mt-5 grid grid-cols-2 gap-2">
-            <Button
-              asChild
-              variant="outline"
-              className="h-11 rounded-2xl border-white/20 bg-white/10 px-3 text-sm font-semibold text-white hover:bg-white/15 hover:text-white"
-            >
-              <Link to={APP_PATHS.dashboard}>
-                <span>Dashboard</span>
-              </Link>
-            </Button>
-            <Button
-              asChild
-              variant="outline"
-              className="h-11 rounded-2xl border-white/20 bg-white/10 px-3 text-sm font-semibold text-white hover:bg-white/15 hover:text-white"
-            >
-              <Link to={APP_PATHS.listaColaboradores}>
-                <span>Lista</span>
-              </Link>
-            </Button>
-          </div>
         </div>
       </header>
 

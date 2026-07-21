@@ -22,7 +22,7 @@ const DocumentsHero = ({ variant, scope }: DocumentsHeroProps) => {
   if (variant === "mobile") {
     return (
       <Card className="overflow-hidden border-border/70 shadow-sm">
-        <div className="bg-[linear-gradient(135deg,#0B1220_0%,#101A33_52%,#1E3A8A_100%)] px-5 py-5 text-white">
+        <div className="bg-gradient-to-br from-[#102A43] via-[#1F4E5F] to-[#102A43] px-5 py-5 text-white">
           <div className="flex items-start justify-between gap-3">
             <div className="min-w-0 space-y-3">
               <div className="flex items-center gap-2">
@@ -67,7 +67,7 @@ const DocumentsHero = ({ variant, scope }: DocumentsHeroProps) => {
       <div className="absolute inset-0 bg-[radial-gradient(circle_at_top_right,rgba(34,211,238,0.14),transparent_30%),radial-gradient(circle_at_bottom_left,rgba(37,99,235,0.20),transparent_30%)]" />
       <div className="absolute inset-y-0 right-0 w-1/3 bg-[linear-gradient(180deg,rgba(255,255,255,0.08),transparent)]" />
 
-      <div className="relative bg-[linear-gradient(135deg,#0B1220_0%,#101A33_52%,#1E3A8A_100%)] px-6 py-7 text-white sm:px-8 sm:py-8">
+      <div className="relative bg-gradient-to-br from-[#102A43] via-[#1F4E5F] to-[#102A43] px-6 py-7 text-white sm:px-8 sm:py-8">
         <div className="flex flex-col gap-6 xl:flex-row xl:items-end xl:justify-between">
           <div className="max-w-4xl space-y-4">
             <div className="flex flex-wrap items-center gap-2">

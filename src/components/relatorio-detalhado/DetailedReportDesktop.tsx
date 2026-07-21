@@ -65,7 +65,6 @@ export const DetailedReportDesktop = ({ viewModel }: DetailedReportDesktopProps)
               <h1 className="text-3xl font-bold leading-tight sm:text-4xl">Relatório detalhado</h1>
               <p className="max-w-2xl text-base leading-7 text-white/85">
                 Construa o recorte por datas, referência, status e colaborador com governança por papel.
-                O fluxo preserva a edição de registros e habilita exportação apenas após resultados.
               </p>
             </div>
             <div className="flex flex-wrap gap-2">

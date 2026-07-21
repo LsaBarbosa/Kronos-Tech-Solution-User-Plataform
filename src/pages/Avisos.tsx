@@ -1,6 +1,9 @@
 import { useEffect, useMemo, useState } from "react";
 import { useNavigate } from "react-router-dom";
+import { BellRing, PlusCircle } from "lucide-react";
 import PageShell from "@/components/PageShell";
+import PageHero from "@/components/PageHero";
+import { Button } from "@/components/ui/button";
 import { DesktopMessagesView, type MessageScopeFilter } from "@/components/messages/DesktopMessagesView";
 import { MobileMessagesView } from "@/components/messages/MobileMessagesView";
 import { APP_PATHS } from "@/config/app-routes";
@@ -57,7 +60,26 @@ const Avisos = () => {
 
   return (
     <PageShell mainClassName="pt-24 sm:pt-32 px-4 pb-12 sm:px-6 lg:px-8 bg-[#D9E2EB]">
-      {isDesktop ? (
+      <div className="mx-auto w-full max-w-7xl space-y-6">
+        <PageHero
+          badge="Comunicados internos"
+          title="Avisos"
+          description="Acompanhe os comunicados e notificações enviados pela empresa."
+          icon={<BellRing className="h-10 w-10 text-white/80" />}
+          primaryAction={
+            canCreate ? (
+              <Button
+                type="button"
+                className="h-11 w-full gap-2 rounded-2xl bg-white text-[#102A43] hover:bg-white/90"
+                onClick={() => navigate(APP_PATHS.criarAviso)}
+              >
+                <PlusCircle className="h-4 w-4" />
+                Criar Aviso
+              </Button>
+            ) : undefined
+          }
+        />
+        {isDesktop ? (
         <DesktopMessagesView
           messages={messagesState.messages}
           filteredMessages={filteredMessages}
@@ -100,6 +122,7 @@ const Avisos = () => {
           onNextPage={messagesState.handleNextPage}
         />
       )}
+      </div>
 
       <NoticeDeleteDialog
         message={messagesState.selectedMessage}

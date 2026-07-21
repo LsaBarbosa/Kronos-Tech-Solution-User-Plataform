@@ -1,5 +1,5 @@
 import { useMemo } from "react";
-import { Link, useNavigate } from "react-router-dom";
+import { useNavigate } from "react-router-dom";
 import {
   Building2,
   CalendarDays,
@@ -17,9 +17,7 @@ import {
 
 import { useAuth } from "@/context/AuthContext";
 import { APP_PATHS } from "@/config/app-routes";
-import { Avatar, AvatarFallback } from "@/components/ui/avatar";
 import { Badge } from "@/components/ui/badge";
-import { Breadcrumb, BreadcrumbItem, BreadcrumbLink, BreadcrumbList, BreadcrumbPage, BreadcrumbSeparator } from "@/components/ui/breadcrumb";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { FormControl, FormDescription, FormField, FormItem, FormLabel, FormMessage } from "@/components/ui/form";
@@ -144,11 +142,6 @@ const DesktopRail = () => {
 };
 
 const CreateCollaboratorDesktop = ({ vm }: CreateCollaboratorDesktopProps) => {
-  const { user } = useAuth();
-  const fullName = user?.profile?.fullName ?? user?.account.username ?? "Equipe Kronos";
-  const roleLabel = user?.role ?? "MANAGER";
-  const initials = getInitials(fullName);
-
   const cpfBadge = getCpfVerificationLabel(vm.cpfAvailability);
   const homeOfficeLabel = getHomeOfficeLabel(vm.form.watch("homeOffice"));
   const scheduleSummary = formatScheduleSummary(vm.form.watch("scheduleType"), vm.form.watch("fixedWorkDays") ?? []);
@@ -224,60 +217,6 @@ const CreateCollaboratorDesktop = ({ vm }: CreateCollaboratorDesktopProps) => {
       <DesktopRail />
 
       <div className="min-h-screen xl:pl-20">
-        <header className="sticky top-0 z-30 border-b border-slate-200/80 bg-white/85 backdrop-blur-xl">
-          <div className="flex min-h-[80px] items-center justify-between gap-4 px-4 py-3 sm:px-6 xl:px-10">
-            <Breadcrumb className="hidden sm:block">
-              <BreadcrumbList>
-                <BreadcrumbItem>
-                  <BreadcrumbLink asChild>
-                    <Link to={APP_PATHS.dashboard}>Kronos</Link>
-                  </BreadcrumbLink>
-                </BreadcrumbItem>
-                <BreadcrumbSeparator />
-                <BreadcrumbItem>
-                  <BreadcrumbLink asChild>
-                    <Link to={APP_PATHS.listaColaboradores}>Pessoas</Link>
-                  </BreadcrumbLink>
-                </BreadcrumbItem>
-                <BreadcrumbSeparator />
-                <BreadcrumbItem>
-                  <BreadcrumbPage>Criar colaborador</BreadcrumbPage>
-                </BreadcrumbItem>
-              </BreadcrumbList>
-            </Breadcrumb>
-
-            <div className="flex items-center gap-3">
-              <Button
-                asChild
-                variant="outline"
-                className="h-11 rounded-2xl border-slate-200 bg-white px-4 text-sm font-semibold text-slate-700 hover:bg-slate-50"
-              >
-                <Link to={APP_PATHS.dashboard}>Dashboard</Link>
-              </Button>
-              <Button
-                asChild
-                variant="outline"
-                className="h-11 rounded-2xl border-slate-200 bg-white px-4 text-sm font-semibold text-slate-700 hover:bg-slate-50"
-              >
-                <Link to={APP_PATHS.listaColaboradores}>Lista</Link>
-              </Button>
-              <Badge variant="outline" className="rounded-full border-blue-200 bg-blue-50 px-4 py-1.5 text-[12px] font-semibold text-blue-700">
-                Onboarding cadastral
-              </Badge>
-
-              <div className="flex items-center gap-3 rounded-full border border-slate-200 bg-white px-3 py-2 shadow-sm">
-                <Avatar className="h-10 w-10">
-                  <AvatarFallback className="bg-blue-100 text-blue-700">{initials}</AvatarFallback>
-                </Avatar>
-                <div className="hidden min-w-0 sm:block">
-                  <div className="truncate text-sm font-semibold text-slate-900">{fullName}</div>
-                  <div className="text-[11px] uppercase tracking-[0.18em] text-slate-500">{roleLabel}</div>
-                </div>
-              </div>
-            </div>
-          </div>
-        </header>
-
         <main className="mx-auto flex w-full max-w-[1200px] flex-col gap-6 px-4 py-6 sm:px-6 xl:px-10 xl:py-8">
           <section className="rounded-[32px] bg-[linear-gradient(90deg,#0B1220_0%,#12367A_45%,#2563EB_100%)] px-5 py-6 text-white shadow-[0_40px_90px_-50px_rgba(37,99,235,0.75)] sm:px-8">
             <div className="flex flex-col gap-6 xl:flex-row xl:items-end xl:justify-between">

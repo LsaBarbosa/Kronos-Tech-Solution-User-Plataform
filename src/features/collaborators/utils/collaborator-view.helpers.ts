@@ -136,8 +136,8 @@ export const filterStatusOptions: Array<{ id: CollaboratorStatusFilter; label: s
 
 export const filterGroupOptions: Array<{ id: CollaboratorGroupFilter; label: string; description: string }> = [
   { id: "all", label: "Todos", description: "Todos os colaboradores" },
-  { id: "partners", label: "Somente colaboradores (PARTNER)", description: "Filtra contas com role PARTNER" },
-  { id: "managers", label: "Administradores (MANAGER)", description: "Filtra contas com role MANAGER" },
+  { id: "partners", label: "Colaboradores", description: "Filtra contas com role PARTNER" },
+  { id: "managers", label: "Administradores", description: "Filtra contas com role MANAGER" },
   { id: "biometric", label: "Biometria", description: "Colaboradores com consentimento biométrico aceito" },
 ];
 

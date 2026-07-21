@@ -1,9 +1,7 @@
-import { useMemo, useState } from "react";
+import { useState } from "react";
 import { useNavigate } from "react-router-dom";
 import { ArrowLeft, ShieldCheck, Home, UserRound, TimerReset, TreePalm, Shield } from "lucide-react";
 import { APP_PATHS } from "@/config/app-routes";
-import { useAuth } from "@/context/AuthContext";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle } from "@/components/ui/dialog";
 import { cn } from "@/lib/utils";
@@ -17,7 +15,7 @@ import TimeOffEvidenceUploader from "./TimeOffEvidenceUploader";
 import TimeOffApprovalSummary from "./TimeOffApprovalSummary";
 import TimeOffOperationalChecklist from "./TimeOffOperationalChecklist";
 import { formatTimeOffTypeLabel } from "../utils/timeOffFormatting";
-import { mapManagerOptionToDisplay } from "../mappers/time-off-request.mapper";
+
 
 interface TimeOffDesktopExperienceProps {
   viewModel: TimeOffRequestViewModel;
@@ -33,40 +31,7 @@ const railItems = [
 
 const TimeOffDesktopExperience = ({ viewModel }: TimeOffDesktopExperienceProps) => {
   const navigate = useNavigate();
-  const { user } = useAuth();
   const [policyOpen, setPolicyOpen] = useState(false);
-
-  const sessionName = user?.profile?.fullName ?? user?.account.username ?? "Sessão ativa";
-  const sessionRole = user?.role ?? "Usuário";
-  const initials = useMemo(
-    () =>
-      sessionName
-        .split(" ")
-        .filter(Boolean)
-        .slice(0, 2)
-        .map((part) => part.charAt(0))
-        .join("")
-        .toUpperCase() || "K",
-    [sessionName]
-  );
-
-  const metrics = [
-    {
-      label: "Tipo",
-      value: viewModel.selectedTypeOption?.label ?? "Selecione",
-      helper: viewModel.selectedTypeOption?.description ?? "Escolha o tipo de solicitação.",
-    },
-    {
-      label: "Destino",
-      value: viewModel.selectedManager ? mapManagerOptionToDisplay(viewModel.selectedManager).displayName : "Gestor responsável",
-      helper: "Manager responsável pela aprovação.",
-    },
-    {
-      label: "Anexo",
-      value: viewModel.documentSummary ? viewModel.documentSummary.statusLabel : "Opcional",
-      helper: "Evidência protegida e validada.",
-    },
-  ];
 
   return (
     <div className="relative min-h-screen overflow-hidden text-[#102A43]" style={{ background: timeOffRequestTokens.gradients.screen }}>
@@ -122,54 +87,12 @@ const TimeOffDesktopExperience = ({ viewModel }: TimeOffDesktopExperienceProps) 
         </aside>
 
         <div className="min-w-0 flex-1">
-          <header className="border-b border-[#B3C2D0]/70 bg-white/88 px-4 py-4 backdrop-blur sm:px-6 lg:px-8">
-            <div className="mx-auto flex max-w-[1560px] flex-wrap items-center justify-between gap-4">
-              <div className="space-y-1">
-                <p className="text-sm font-medium text-[#627D98]">Kronos / Jornada / Solicitar abono</p>
-                <div className="flex items-center gap-3">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#102A43] text-sm font-semibold text-white">
-                    K
-                  </div>
-                  <div>
-                    <p className="text-lg font-semibold text-[#102A43]">Formalize uma justificativa de jornada</p>
-                    <p className="text-sm text-[#627D98]">Fluxo corporativo com evidência protegida e revisão gerencial</p>
-                  </div>
-                </div>
-              </div>
-
-              <div className="flex flex-wrap items-center gap-3">
-                <Badge variant="outline" className="border-[#B8E4D2] bg-[#EAF9F3] text-[#166534]">
-                  <ShieldCheck className="mr-1 h-3.5 w-3.5" />
-                  Evidência protegida
-                </Badge>
-                <div className="flex items-center gap-3 rounded-full border border-[#D8E2EC] bg-white px-3 py-2 shadow-sm">
-                  <div className="flex h-10 w-10 items-center justify-center rounded-full bg-[#1F4E5F] text-sm font-semibold text-white">
-                    {initials}
-                  </div>
-                  <div className="min-w-0">
-                    <p className="truncate text-sm font-semibold text-[#102A43]">{sessionName}</p>
-                    <p className="truncate text-xs uppercase tracking-[0.18em] text-[#627D98]">{sessionRole}</p>
-                  </div>
-                </div>
-                <Button
-                  type="button"
-                  variant="outline"
-                  className="h-11 border-[#D8E2EC] bg-white text-[#102A43]"
-                  onClick={() => navigate(APP_PATHS.dashboard)}
-                >
-                  <ArrowLeft className="h-4 w-4" />
-                  Voltar ao início
-                </Button>
-              </div>
-            </div>
-          </header>
-
           <main className="relative mx-auto max-w-[1560px] px-4 py-6 sm:px-6 lg:px-8">
             <TimeOffHero
               badgeLabel="Solicitação de abono / esquecimento"
               title="Formalize uma justificativa de jornada"
               subtitle="Escolha o tipo, preencha período e gestor, anexe uma evidência opcional e envie para aprovação."
-              metrics={metrics}
+              metrics={[]}
               primaryActionLabel="Ver política de anexo"
               secondaryActionLabel="Ir para revisão"
               onPrimaryAction={() => setPolicyOpen(true)}

@@ -2,7 +2,6 @@ import { ArrowRight, Sparkles } from "lucide-react";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { timeOffRequestTokens } from "../styles/timeOffRequest.tokens";
 
 interface TimeOffHeroProps {
   badgeLabel: string;
@@ -38,11 +37,10 @@ const TimeOffHero = ({
   return (
     <section
       className={cn(
-        "relative overflow-hidden border text-white shadow-[0_24px_72px_rgba(16,42,67,0.18)]",
+        "relative overflow-hidden border border-[#D8E2EC] bg-gradient-to-br from-[#102A43] via-[#1F4E5F] to-[#102A43] text-white shadow-[0_18px_50px_rgba(16,42,67,0.22)]",
         isMobile ? "rounded-[28px] p-5" : "rounded-[32px] p-6 sm:p-8",
         className
       )}
-      style={{ background: isMobile ? timeOffRequestTokens.gradients.mobileHero : timeOffRequestTokens.gradients.hero }}
     >
       <div className="absolute -right-16 -top-10 h-44 w-44 rounded-full border border-white/20 opacity-70" />
       <div className="absolute right-24 top-0 h-36 w-36 rounded-full border border-white/12 opacity-60" />

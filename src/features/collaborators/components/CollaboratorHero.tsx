@@ -152,7 +152,7 @@ export const CollaboratorHero = ({
           </div>
           <div className="space-y-2">
             <h1 className="text-4xl font-semibold leading-tight lg:text-5xl">
-              Colaboradores, contas e operação em uma única visão
+              Colaboradores
             </h1>
             <p className="max-w-2xl text-base text-white/82 lg:text-lg">
               Acompanhe status, escala, vínculo de usuário, contato e ações sensíveis com rastreabilidade gerencial.
