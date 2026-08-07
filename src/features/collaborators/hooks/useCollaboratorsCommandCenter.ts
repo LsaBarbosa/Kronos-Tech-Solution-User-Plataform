@@ -103,6 +103,19 @@ const buildCollaboratorEmployeePayload = (record: CollaboratorRecord, draft: Col
     payload.weekendOffIndex = Number.isFinite(weekendOffIndex as number) ? weekendOffIndex : null;
   }
 
+  if (draft.weekendWorkStartTime !== (record.weekendWorkStartTime ?? "")) {
+    payload.weekendWorkStartTime = draft.weekendWorkStartTime || null;
+  }
+  if (draft.weekendWorkEndTime !== (record.weekendWorkEndTime ?? "")) {
+    payload.weekendWorkEndTime = draft.weekendWorkEndTime || null;
+  }
+  if (draft.weekendBreakStartTime !== (record.weekendBreakStartTime ?? "")) {
+    payload.weekendBreakStartTime = draft.weekendBreakStartTime || null;
+  }
+  if (draft.weekendBreakEndTime !== (record.weekendBreakEndTime ?? "")) {
+    payload.weekendBreakEndTime = draft.weekendBreakEndTime || null;
+  }
+
   if (JSON.stringify(draft.fixedWorkDays) !== JSON.stringify(record.fixedWorkDays ?? [])) {
     payload.fixedWorkDays = draft.fixedWorkDays;
   }

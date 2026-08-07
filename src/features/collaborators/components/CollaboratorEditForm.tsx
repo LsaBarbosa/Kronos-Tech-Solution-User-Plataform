@@ -198,6 +198,28 @@ export const CollaboratorEditForm = ({
             </div>
           </div>
 
+          <div className="rounded-[14px] border border-[#E2E8F0] bg-[#F8FAFC] p-3">
+            <p className="mb-3 text-xs font-semibold uppercase tracking-[0.14em] text-[#64748B]">Horário de fim de semana (opcional)</p>
+            <div className="grid gap-4 md:grid-cols-2">
+              <div className="space-y-2">
+                <Label className="text-xs font-semibold uppercase tracking-[0.14em] text-[#64748B]">Entrada</Label>
+                <Input type="time" value={draft.weekendWorkStartTime} onChange={(event) => onChange("weekendWorkStartTime", event.target.value)} className="h-11 rounded-[16px] border-[#CBD5E1] bg-white" />
+              </div>
+              <div className="space-y-2">
+                <Label className="text-xs font-semibold uppercase tracking-[0.14em] text-[#64748B]">Saída</Label>
+                <Input type="time" value={draft.weekendWorkEndTime} onChange={(event) => onChange("weekendWorkEndTime", event.target.value)} className="h-11 rounded-[16px] border-[#CBD5E1] bg-white" />
+              </div>
+              <div className="space-y-2">
+                <Label className="text-xs font-semibold uppercase tracking-[0.14em] text-[#64748B]">Início do intervalo</Label>
+                <Input type="time" value={draft.weekendBreakStartTime} onChange={(event) => onChange("weekendBreakStartTime", event.target.value)} className="h-11 rounded-[16px] border-[#CBD5E1] bg-white" />
+              </div>
+              <div className="space-y-2">
+                <Label className="text-xs font-semibold uppercase tracking-[0.14em] text-[#64748B]">Fim do intervalo</Label>
+                <Input type="time" value={draft.weekendBreakEndTime} onChange={(event) => onChange("weekendBreakEndTime", event.target.value)} className="h-11 rounded-[16px] border-[#CBD5E1] bg-white" />
+              </div>
+            </div>
+          </div>
+
           {(draft.scheduleType === "ROTATING_12X36" || draft.scheduleType === "ROTATING_24X72") && (
             <div className="space-y-2">
               <Label className="text-xs font-semibold uppercase tracking-[0.14em] text-[#64748B]">Data de início do ciclo</Label>

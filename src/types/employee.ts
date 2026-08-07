@@ -47,6 +47,10 @@ export interface EmployeeData {
     scaleStartDate?: string;
     preferredDayOff?: string;
     weekendOffIndex?: number;
+    weekendWorkStartTime?: string | null;
+    weekendWorkEndTime?: string | null;
+    weekendBreakStartTime?: string | null;
+    weekendBreakEndTime?: string | null;
     fixedWorkDays?: string[];
 }
 

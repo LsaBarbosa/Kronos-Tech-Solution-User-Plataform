@@ -34,6 +34,10 @@ export type CollaboratorEditorDraft = {
   scaleStartDate: string;
   preferredDayOff: string;
   weekendOffIndex: string;
+  weekendWorkStartTime: string;
+  weekendWorkEndTime: string;
+  weekendBreakStartTime: string;
+  weekendBreakEndTime: string;
   fixedWorkDays: string[];
 };
 

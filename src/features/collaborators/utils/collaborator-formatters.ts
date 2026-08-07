@@ -171,6 +171,10 @@ export const createCollaboratorEditorDraft = (record: CollaboratorRecord): Colla
   scaleStartDate: record.scaleStartDate ?? "",
   preferredDayOff: record.preferredDayOff ?? "",
   weekendOffIndex: record.weekendOffIndex?.toString() ?? "",
+  weekendWorkStartTime: record.weekendWorkStartTime ?? "",
+  weekendWorkEndTime: record.weekendWorkEndTime ?? "",
+  weekendBreakStartTime: record.weekendBreakStartTime ?? "",
+  weekendBreakEndTime: record.weekendBreakEndTime ?? "",
   fixedWorkDays: record.fixedWorkDays ?? [],
 });
 

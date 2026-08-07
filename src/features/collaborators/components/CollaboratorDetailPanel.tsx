@@ -146,6 +146,20 @@ export const CollaboratorDetailPanel = ({
           </div>
         </div>
 
+        {record.weekendWorkStartTime && (
+          <div className="rounded-[22px] border border-[#E2E8F0] bg-[#F8FAFC] p-4">
+            <div className="mb-3 flex items-center gap-2 text-sm font-medium text-[#1E3A8A]">
+              <BriefcaseBusiness className="h-4 w-4" />
+              Fim de semana
+            </div>
+            <div className="grid min-w-0 gap-3 sm:grid-cols-2">
+              <LabelValue label="Entrada" value={record.weekendWorkStartTime} />
+              <LabelValue label="Saída" value={record.weekendWorkEndTime ?? "—"} />
+              <LabelValue label="Intervalo" value={`${record.weekendBreakStartTime ?? "—"} até ${record.weekendBreakEndTime ?? "—"}`} />
+            </div>
+          </div>
+        )}
+
         {(record.role === "MANAGER" || record.role === "PARTNER") && (
           <ScheduleExceptionSection employeeId={record.employeeId} />
         )}
