@@ -31,6 +31,7 @@ const defineRoute = (
 
 export const APP_PATHS = {
   root: "/",
+  importarAfd: "/importar-afd",
   login: "/login",
   selecionarEmpresa: "/selecionar-empresa",
   senhaPrimeiroAcesso: "/senha-primeiro-acesso",
@@ -198,6 +199,10 @@ export const APP_ROUTE_META = {
     allowedRoles: ["MANAGER", "CTO"],
     breadcrumbs: [{ label: "Início", path: APP_PATHS.dashboard }, { label: "Auditoria Fiscal", path: APP_PATHS.auditoria }],
   }),
+  importarAfd: defineRoute(APP_PATHS.importarAfd, "Importar AFD", {
+    allowedRoles: ["MANAGER", "CTO"],
+    breadcrumbs: [{ label: "Início", path: APP_PATHS.dashboard }, { label: "Importar AFD", path: APP_PATHS.importarAfd }],
+  }),
   criarColaborador: defineRoute(APP_PATHS.criarColaborador, "Criar Colaborador", {
     allowedRoles: ["MANAGER", "CTO"],
     showInMenu: false,
@@ -354,7 +359,7 @@ export const APP_ROUTE_META = {
 
 export const ADMIN_MENU_GROUPS = {
   collaborators: [APP_ROUTE_META.listaColaboradores, APP_ROUTE_META.criarColaborador],
-  timesheet: [APP_ROUTE_META.apuracaoHoras, APP_ROUTE_META.statusDoRegistro],
+  timesheet: [APP_ROUTE_META.apuracaoHoras, APP_ROUTE_META.statusDoRegistro, APP_ROUTE_META.importarAfd],
   vacation: [APP_ROUTE_META.ferias],
   timeOff: [APP_ROUTE_META.aprovacoesAbono],
   contracts: [APP_ROUTE_META.contratosAdmin],

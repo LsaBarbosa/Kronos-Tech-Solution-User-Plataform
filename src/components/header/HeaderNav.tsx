@@ -20,6 +20,7 @@ import {
   Shield,
   TimerReset,
   TreePalm,
+  Upload,
   UserCheck,
   UserPlus,
   type LucideIcon,
@@ -117,6 +118,7 @@ const buildEntries = (role: string | null | undefined): NavEntry[] => {
       items: [
         leaf(APP_ROUTE_META.apuracaoHoras.label, APP_PATHS.apuracaoHoras, Calculator),
         leaf(APP_ROUTE_META.statusDoRegistro.label, APP_PATHS.statusDoRegistro, ClipboardCheck),
+        leaf(APP_ROUTE_META.importarAfd.label, APP_PATHS.importarAfd, Upload),
       ].filter((entry) => timesheetItems.some((meta) => meta.path === entry.path)),
     });
   }

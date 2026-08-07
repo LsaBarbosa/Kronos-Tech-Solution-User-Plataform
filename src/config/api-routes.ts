@@ -1,4 +1,5 @@
 export const API_ROUTES = {
+  AFD: "afd",
   AUTH: "auth",
   COMPANIES: "companies",
   CTO_DEMO: "cto/demo",
@@ -13,6 +14,11 @@ export const API_ROUTES = {
   SERVICE_CONTRACTS: "service-contracts",
   TERMS: "terms",
   USERS: "users",
+} as const;
+
+export const AFD_PATHS = {
+  IMPORT_PREVIEW: "import/preview",
+  IMPORT_CONFIRM: "import/confirm",
 } as const;
 
 export const buildRoute = (...segments: string[]) => `/${segments.join("/")}`;
