@@ -154,3 +154,9 @@ export const FAQ_PATHS = {
   CONTEXTUAL: "contextual",
   BY_ID: (faqId: string) => faqId,
 } as const;
+
+export const SCHEDULE_EXCEPTION_PATHS = {
+  LIST: (employeeId: string) => `${employeeId}/schedule-exceptions`,
+  CREATE: (employeeId: string) => `${employeeId}/schedule-exceptions`,
+  DELETE: (employeeId: string, date: string) => `${employeeId}/schedule-exceptions/${date}`,
+} as const;

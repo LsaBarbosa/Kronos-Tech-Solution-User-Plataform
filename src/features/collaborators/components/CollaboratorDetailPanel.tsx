@@ -7,6 +7,7 @@ import type { ReactNode } from "react";
 import { Fingerprint, KeyRound, Power, ShieldCheck, User, UserCircle, BriefcaseBusiness } from "lucide-react";
 import type { CollaboratorEditorDraft, CollaboratorRecord } from "../types/collaborator-view.types";
 import { CollaboratorEditForm } from "./CollaboratorEditForm";
+import { ScheduleExceptionSection } from "./ScheduleExceptionSection";
 import { collaboratorTokens } from "../styles/collaborator.tokens";
 import { formatAddress, formatCurrency, formatPhone, getToneClass } from "../utils/collaborator-formatters";
 
@@ -144,6 +145,10 @@ export const CollaboratorDetailPanel = ({
             <LabelValue label="Folga" value={record.preferredDayOff ?? "—"} />
           </div>
         </div>
+
+        {(record.role === "MANAGER" || record.role === "PARTNER") && (
+          <ScheduleExceptionSection employeeId={record.employeeId} />
+        )}
 
         <div className="rounded-[22px] border border-[#CBD5E1] bg-[#EEF4FB] p-4">
           <div className="mb-3 flex items-center gap-2 text-sm font-medium text-[#1E3A8A]">
