@@ -359,11 +359,10 @@ export const APP_ROUTE_META = {
 
 export const ADMIN_MENU_GROUPS = {
   collaborators: [APP_ROUTE_META.listaColaboradores, APP_ROUTE_META.criarColaborador],
-  timesheet: [APP_ROUTE_META.apuracaoHoras, APP_ROUTE_META.statusDoRegistro],
+  timesheet: [APP_ROUTE_META.apuracaoHoras, APP_ROUTE_META.statusDoRegistro, APP_ROUTE_META.importarAfd],
   vacation: [APP_ROUTE_META.ferias],
   timeOff: [APP_ROUTE_META.aprovacoesAbono],
   contracts: [APP_ROUTE_META.contratosAdmin],
   audit: [APP_ROUTE_META.auditoria],
-  afd: [APP_ROUTE_META.importarAfd],
   lgpd: [APP_ROUTE_META.lgpdAdminRequests, APP_ROUTE_META.lgpdAdminInventory],
 } as const;

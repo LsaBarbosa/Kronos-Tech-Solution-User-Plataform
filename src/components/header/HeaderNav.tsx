@@ -97,7 +97,6 @@ const buildEntries = (role: string | null | undefined): NavEntry[] => {
   const auditItems = ADMIN_MENU_GROUPS.audit.filter((route) =>
     canAccessRoute(role, route)
   );
-  const afdItems = ADMIN_MENU_GROUPS.afd.filter((route) => canAccessRoute(role, route));
   const contractItems = ADMIN_MENU_GROUPS.contracts.filter((route) => canAccessRoute(role, route));
   const lgpdItems = ADMIN_MENU_GROUPS.lgpd.filter((route) => canAccessRoute(role, route));
 
@@ -119,6 +118,7 @@ const buildEntries = (role: string | null | undefined): NavEntry[] => {
       items: [
         leaf(APP_ROUTE_META.apuracaoHoras.label, APP_PATHS.apuracaoHoras, Calculator),
         leaf(APP_ROUTE_META.statusDoRegistro.label, APP_PATHS.statusDoRegistro, ClipboardCheck),
+        leaf(APP_ROUTE_META.importarAfd.label, APP_PATHS.importarAfd, Upload),
       ].filter((entry) => timesheetItems.some((meta) => meta.path === entry.path)),
     });
   }
@@ -148,13 +148,6 @@ const buildEntries = (role: string | null | undefined): NavEntry[] => {
     adminSections.push({
       title: "Auditoria",
       items: [leaf(APP_ROUTE_META.auditoria.label, APP_PATHS.auditoria, Scale)],
-    });
-  }
-
-  if (afdItems.length) {
-    adminSections.push({
-      title: "Ponto Eletrônico",
-      items: [leaf(APP_ROUTE_META.importarAfd.label, APP_PATHS.importarAfd, Upload)],
     });
   }
 
