@@ -25,6 +25,7 @@ import { APP_PATHS } from "@/config/app-routes";
 interface BiometricConsentGuardProps {
   children: JSX.Element;
   onCancel?: () => void;
+  onAccepted?: () => void;
 }
 
 type GuardStatus = "checking" | "accepted" | "pending" | "error";
@@ -34,6 +35,7 @@ const SCROLL_END_TOLERANCE = 8;
 export const BiometricConsentGuard: React.FC<BiometricConsentGuardProps> = ({
   children,
   onCancel,
+  onAccepted,
 }) => {
   const navigate = useNavigate();
   const [status, setStatus] = useState<GuardStatus>("checking");
@@ -135,6 +137,7 @@ export const BiometricConsentGuard: React.FC<BiometricConsentGuardProps> = ({
         description: "Você pode usar recursos biométricos agora.",
       });
       setStatus("accepted");
+      onAccepted?.();
     } catch (error) {
       const serviceError = normalizeServiceError(error);
       setErrorMessage(serviceError.message);

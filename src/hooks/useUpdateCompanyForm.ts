@@ -29,8 +29,10 @@ const formSchema = z.object({
         postalCode: z.string().length(8, { message: "CEP deve ter 8 dígitos (somente números)." }),
         number: z.string().min(1, { message: "Número é obrigatório." }),
     }),
-    latitude: z.number().nullable().optional(), 
-    longitude: z.number().nullable().optional(),
+    latitude: z.number().min(-90, { message: "Latitude deve ser entre -90 e 90." }).max(90, { message: "Latitude deve ser entre -90 e 90." }).nullable().optional(),
+    longitude: z.number().min(-180, { message: "Longitude deve ser entre -180 e 180." }).max(180, { message: "Longitude deve ser entre -180 e 180." }).nullable().optional(),
+    manualLatitude: z.string().optional(),
+    manualLongitude: z.string().optional(),
 });
 
 type FormData = z.infer<typeof formSchema>;
@@ -43,6 +45,8 @@ interface UseUpdateCompanyFormReturn {
     isFetchingCompanies: boolean;
     isLoadingDetails: boolean;
     isGeocoding: boolean;
+    useManualCoords: boolean;
+    setUseManualCoords: (v: boolean) => void;
     onSubmit: (e?: React.BaseSyntheticEvent) => Promise<void>;
     formatCNPJ: (cnpj: string) => string;
     cleanCEP: (cep: string) => string;
@@ -59,6 +63,7 @@ export const useUpdateCompanyForm = (): UseUpdateCompanyFormReturn => {
     const [isGeocoding, setIsGeocoding] = useState(false);
     const [originalCompany, setOriginalCompany] = useState<CompanyData | null>(null);
     const [geocodeAttempts, setGeocodeAttempts] = useState(0);
+    const [useManualCoords, setUseManualCoords] = useState(false);
     const navigate = useNavigate();
     const { toast } = useToast();
 
@@ -75,6 +80,8 @@ export const useUpdateCompanyForm = (): UseUpdateCompanyFormReturn => {
             },
             latitude: null,
             longitude: null,
+            manualLatitude: "",
+            manualLongitude: "",
         },
     });
     
@@ -152,6 +159,7 @@ export const useUpdateCompanyForm = (): UseUpdateCompanyFormReturn => {
     
     useEffect(() => {
         if (!originalCompany) return;
+        if (useManualCoords) return;
 
         if (hasAddressChanged) {
             form.setValue("latitude", null, { shouldDirty: true, shouldValidate: false });
@@ -161,7 +169,7 @@ export const useUpdateCompanyForm = (): UseUpdateCompanyFormReturn => {
 
         form.setValue("latitude", originalCompany.location?.latitude ?? null, { shouldDirty: false, shouldValidate: false });
         form.setValue("longitude", originalCompany.location?.longitude ?? null, { shouldDirty: false, shouldValidate: false });
-    }, [form, hasAddressChanged, originalCompany]);
+    }, [form, hasAddressChanged, originalCompany, useManualCoords]);
 
 
     // --- FUNÇÃO DE SUBMISSÃO (Chamada pelo form.handleSubmit) ---
@@ -176,7 +184,19 @@ export const useUpdateCompanyForm = (): UseUpdateCompanyFormReturn => {
 
         try {
             let finalLocation: Location | undefined = originalCompany.location ?? undefined;
-            if (isAddressChanged) {
+
+            if (useManualCoords) {
+                const parsedLat = values.manualLatitude ? parseFloat(values.manualLatitude) : null;
+                const parsedLng = values.manualLongitude ? parseFloat(values.manualLongitude) : null;
+                if (parsedLat !== null && parsedLng !== null && !isNaN(parsedLat) && !isNaN(parsedLng)) {
+                    finalLocation = { latitude: parsedLat, longitude: parsedLng };
+                    form.setValue("latitude", parsedLat, { shouldDirty: false });
+                    form.setValue("longitude", parsedLng, { shouldDirty: false });
+                } else {
+                    toast({ title: "Coordenadas inválidas", description: "Informe latitude e longitude válidas.", variant: "destructive" });
+                    return;
+                }
+            } else if (isAddressChanged) {
                 setIsGeocoding(true);
                 try {
                     const resolvedLocation = await getGeolocationFromCEP(
@@ -236,7 +256,7 @@ export const useUpdateCompanyForm = (): UseUpdateCompanyFormReturn => {
             setIsSubmitting(false);
             setIsGeocoding(false);
         }
-    }, [fetchList, form, navigate, originalCompany, toast]);
+    }, [fetchList, form, navigate, originalCompany, toast, useManualCoords]);
 
 
     // --- EFEITOS DE ORQUESTRAÇÃO ---
@@ -256,6 +276,7 @@ export const useUpdateCompanyForm = (): UseUpdateCompanyFormReturn => {
         form.reset({ selectedCnpj: "" });
         setOriginalCompany(null);
         setGeocodeAttempts(0);
+        setUseManualCoords(false);
     }, [form]);
 
 
@@ -268,10 +289,12 @@ export const useUpdateCompanyForm = (): UseUpdateCompanyFormReturn => {
         isFetchingCompanies,
         isLoadingDetails,
         isGeocoding,
+        useManualCoords,
+        setUseManualCoords,
         // Handlers e Funções
-        onSubmit: form.handleSubmit(submitHandler), // Retorna a função de submit ligada ao hook-form
-        formatCNPJ, // Função de utilidade pura
-        cleanCEP, // Função de utilidade pura
+        onSubmit: form.handleSubmit(submitHandler),
+        formatCNPJ,
+        cleanCEP,
         handleCancel
     };
 };

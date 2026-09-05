@@ -40,7 +40,7 @@ const LoginBrandPanel = () => {
             Hora oficial Kronos
           </p>
           <div className="mt-1 text-white">
-            <Clock />
+            <Clock timeClassName="text-2xl font-bold font-mono text-white" />
           </div>
         </div>
 

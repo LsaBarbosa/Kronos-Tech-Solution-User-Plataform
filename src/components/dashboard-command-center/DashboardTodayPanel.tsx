@@ -1,20 +1,20 @@
-import { AlertTriangle, ArrowRight, Clock3, Fingerprint, RefreshCcw, ShieldCheck, TimerReset } from "lucide-react";
+import { useState } from "react";
+import { AlertTriangle, ArrowRight, Clock3, Fingerprint, RefreshCcw, Shield, ShieldCheck, TimerReset } from "lucide-react";
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent } from "@/components/ui/card";
 import { Separator } from "@/components/ui/separator";
 import { Skeleton } from "@/components/ui/skeleton";
+import { BiometricConsentGuard } from "@/components/BiometricConsentGuard";
 import { useTodayTimeRecordStatus } from "@/hooks/useTodayTimeRecordStatus";
 import { useCheckin } from "@/hooks/useCheckin";
 import { useAuth } from "@/context/AuthContext";
 import { cn } from "@/lib/utils";
 import {
-  formatTodayHeadlineDate,
   formatTodayRecordedAt,
   getTodayActionTypeLabel,
   getTodayLastRecordTypeLabel,
-  getTodayNextActionLabel,
   getTodayPendingCount,
   getTodayPrimaryActionDescriptor,
   getTodayRecordSourceLabel,
@@ -145,6 +145,7 @@ const DashboardTodayPanel = ({
   onOpenMirror,
   onOpenReport,
 }: DashboardTodayPanelProps) => {
+  const [showConsentDialog, setShowConsentDialog] = useState(false);
   const { todayStatus, isLoadingToday, todayError, refreshToday } = useTodayTimeRecordStatus();
   const { openCheckin } = useCheckin();
   const { user } = useAuth();
@@ -166,6 +167,20 @@ const DashboardTodayPanel = ({
   const secondaryActionLabel = getTodaySecondaryActionLabel(todayStatus);
   const secondaryAction =
     secondaryActionLabel === "Abrir relatorio" ? onOpenReport : onOpenMirror;
+
+  const isTermsRequired = todayStatus.status === "TERMS_REQUIRED";
+
+  const consentDialog = showConsentDialog ? (
+    <BiometricConsentGuard
+      onCancel={() => setShowConsentDialog(false)}
+      onAccepted={() => {
+        setShowConsentDialog(false);
+        void refreshToday();
+      }}
+    >
+      <></>
+    </BiometricConsentGuard>
+  ) : null;
 
   const timelineContent = todayStatus.records.length ? (
     <div className="space-y-3">
@@ -190,32 +205,9 @@ const DashboardTodayPanel = ({
 
   if (variant === "mobile") {
     return (
+      <>
+        {consentDialog}
       <Card className="overflow-hidden border-border/70 shadow-sm">
-        <div className="relative overflow-hidden bg-[linear-gradient(135deg,#0B1220_0%,#15254A_38%,#2D56D7_100%)] px-5 py-5 text-white">
-          <div className="absolute -right-12 -top-12 h-40 w-40 rounded-full bg-white/8" />
-          <div className="relative">
-            <div className="flex items-start justify-between gap-3">
-              <div>
-                <h2 className="mt-6 text-3xl font-semibold leading-tight">{primaryActionLabel}</h2>
-                <p className="mt-1 text-sm text-white/80">{formatTodayHeadlineDate(todayStatus.date)}</p>
-                <div className="mt-5 flex items-center gap-3">
-                  <span className="flex h-10 w-10 items-center justify-center rounded-2xl bg-[#2563EB] text-lg font-black">
-                    K
-                  </span>
-                  <div>
-                    <p className="text-[11px] font-semibold uppercase tracking-[0.24em] text-white/70">
-                      Ponto hoje
-                    </p>
-                  </div>
-                </div>
-              </div>
-              <Badge className={cn("border-white/20 bg-white/10 text-white", statusTone.textClassName)}>
-                {getTodayStatusLabel(todayStatus.status)}
-              </Badge>
-            </div>
-          </div>
-        </div>
-
         <CardContent className="space-y-4 bg-[#F8FAFC] px-4 py-4">
           {todayError ? (
             <Alert className="border-[#FCD34D] bg-[#FFFBEB] text-[#B45309]">
@@ -246,7 +238,7 @@ const DashboardTodayPanel = ({
               </div>
             </div>
 
-            {!isTerminal && (
+            {!isTerminal && !isTermsRequired && (
               <Button
                 type="button"
                 className="mt-4 h-11 w-full gap-2 rounded-full bg-[#2563EB] text-white hover:bg-[#1D4ED8]"
@@ -255,6 +247,16 @@ const DashboardTodayPanel = ({
               >
                 <Fingerprint className="h-4 w-4" />
                 {primaryActionLabel}
+              </Button>
+            )}
+            {isTermsRequired && (
+              <Button
+                type="button"
+                className="mt-4 h-11 w-full gap-2 rounded-full bg-[#D97706] text-white hover:bg-[#B45309]"
+                onClick={() => setShowConsentDialog(true)}
+              >
+                <Shield className="h-4 w-4" />
+                Aceitar Termo Biométrico
               </Button>
             )}
           </div>
@@ -303,11 +305,11 @@ const DashboardTodayPanel = ({
             <p className="mt-2 text-sm text-[#475569]">
               A proxima acao considera o status do dia e a sequencia atual das marcacoes.
             </p>
-            <div className={cn("mt-4 grid gap-3", isTerminal ? "grid-cols-1" : "grid-cols-2")}>
+            <div className={cn("mt-4 grid gap-3", isTerminal || isTermsRequired ? "grid-cols-1" : "grid-cols-2")}>
               <Button type="button" variant="outline" className="rounded-full" onClick={secondaryAction}>
                 {secondaryActionLabel}
               </Button>
-              {!isTerminal && (
+              {!isTerminal && !isTermsRequired && (
                 <Button
                   type="button"
                   className="rounded-full bg-[#2563EB] text-white hover:bg-[#1D4ED8]"
@@ -321,48 +323,14 @@ const DashboardTodayPanel = ({
           </section>
         </CardContent>
       </Card>
+      </>
     );
   }
 
   return (
+    <>
+      {consentDialog}
     <Card className="overflow-hidden border-border/70 shadow-[0_24px_70px_-40px_rgba(15,23,42,0.55)]">
-      <div className="relative overflow-hidden bg-[linear-gradient(135deg,#0B1220_0%,#15254A_42%,#2563EB_100%)] px-6 py-6 text-white">
-        <div className="absolute inset-y-0 right-0 w-1/3 bg-[radial-gradient(circle_at_top_right,rgba(34,211,238,0.24),transparent_52%)]" />
-        <div className="relative flex flex-col gap-5 xl:flex-row xl:items-end xl:justify-between">
-          <div className="space-y-4">
-            <div>
-              <h2 className="text-3xl font-semibold xl:text-4xl">{primaryActionLabel}</h2>
-              <p className="mt-2 text-sm text-white/80">
-                {formatTodayHeadlineDate(todayStatus.date)}
-              </p>
-            </div>
-            <div className="flex flex-wrap items-center gap-2">
-              <Badge className="border-white/15 bg-white/10 text-white">Ponto hoje</Badge>
-              <Badge className={cn("border-white/15 bg-white/10", statusTone.textClassName)}>
-                {getTodayStatusLabel(todayStatus.status)}
-              </Badge>
-            </div>
-          </div>
-
-          <div className="grid gap-3 sm:grid-cols-2 xl:w-[460px]">
-            <div className="rounded-3xl border border-white/10 bg-white/10 px-4 py-4 backdrop-blur">
-              <p className="text-xs uppercase tracking-[0.18em] text-white/65">Ultimo registro</p>
-              <p className="mt-2 text-2xl font-semibold">
-                {todayStatus.lastRecordAt ? formatTodayRecordedAt(todayStatus.lastRecordAt) : "Nenhum"}
-              </p>
-              <p className="mt-1 text-sm text-white/75">
-                {todayStatus.lastRecordType ? getTodayLastRecordTypeLabel(todayStatus.lastRecordType) : "Sem tipo"}
-              </p>
-            </div>
-            <div className="rounded-3xl border border-white/10 bg-white/10 px-4 py-4 backdrop-blur">
-              <p className="text-xs uppercase tracking-[0.18em] text-white/65">Proxima acao</p>
-              <p className="mt-2 text-2xl font-semibold">{getTodayNextActionLabel(todayStatus.nextAction)}</p>
-              <p className="mt-1 text-sm text-white/75">{sequenceSummary.description}</p>
-            </div>
-          </div>
-        </div>
-      </div>
-
       <CardContent className="space-y-6 bg-[#F8FAFC] px-6 py-6">
         {todayError ? (
           <Alert className="border-[#FCD34D] bg-[#FFFBEB] text-[#B45309]">
@@ -397,7 +365,7 @@ const DashboardTodayPanel = ({
                 </p>
               </div>
               <div className="flex flex-col gap-2 sm:flex-row">
-                {!isTerminal && (
+                {!isTerminal && !isTermsRequired && (
                   <Button
                     type="button"
                     onClick={openCheckin}
@@ -406,6 +374,16 @@ const DashboardTodayPanel = ({
                   >
                     <Fingerprint className="h-4 w-4" />
                     {primaryActionLabel}
+                  </Button>
+                )}
+                {isTermsRequired && (
+                  <Button
+                    type="button"
+                    onClick={() => setShowConsentDialog(true)}
+                    className="h-11 gap-2 bg-[#D97706] text-white hover:bg-[#B45309]"
+                  >
+                    <Shield className="h-4 w-4" />
+                    Aceitar Termo Biométrico
                   </Button>
                 )}
                 <Button type="button" variant="outline" className="h-11 gap-2" onClick={secondaryAction}>
@@ -460,6 +438,7 @@ const DashboardTodayPanel = ({
         </div>
       </CardContent>
     </Card>
+    </>
   );
 };
 

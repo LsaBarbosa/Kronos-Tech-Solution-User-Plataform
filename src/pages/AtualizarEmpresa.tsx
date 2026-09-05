@@ -7,7 +7,8 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Form, FormControl, FormField, FormItem, FormLabel, FormMessage, FormDescription } from "@/components/ui/form";
 import { Input } from "@/components/ui/input";
 import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select";
-import { ArrowLeft, Building2, Save, MapPin, Mail, Loader2, Hash, LocateFixed } from "lucide-react";
+import { ArrowLeft, Building2, Save, MapPin, Mail, Loader2, Hash, LocateFixed, PencilLine } from "lucide-react";
+import { Switch } from "@/components/ui/switch";
 import { useNavigate } from "react-router-dom";
 
 // 💡 NOVO: Importa o hook customizado com toda a lógica e estado
@@ -29,15 +30,16 @@ const AtualizarEmpresa = () => {
         isFetchingCompanies,
         isLoadingDetails,
         isGeocoding,
+        useManualCoords,
+        setUseManualCoords,
         onSubmit,
         formatCNPJ,
         cleanCEP,
         handleCancel
     } = useUpdateCompanyForm();
 
-    // Acessa os valores do form para renderização condicional/status
-    const currentLatitude = form.getValues('latitude');
-    const currentLongitude = form.getValues('longitude');
+    const currentLatitude = form.watch('latitude');
+    const currentLongitude = form.watch('longitude');
     
     const isSaveDisabled = isSubmitting || isLoadingDetails || isGeocoding || !originalCompany;
 
@@ -218,30 +220,95 @@ const AtualizarEmpresa = () => {
                                                 )}
                                             />
                                             
-                                            {/* STATUS GEOLOCALIZAÇÃO */}
-                                            <FormItem className="md:col-span-2">
-                                                <FormLabel className="text-foreground font-medium flex items-center gap-2">
-                                                    <LocateFixed className="h-4 w-4" /> Status Geolocalização
-                                                </FormLabel>
-                                                {isGeocoding ? (
-                                                    <div className="flex items-center gap-2 text-yellow-600">
-                                                        <Loader2 className="h-4 w-4 animate-spin" />
-                                                        <span>Recalculando coordenadas...</span>
+                                            {/* GEOLOCALIZAÇÃO */}
+                                            <div className="md:col-span-2 space-y-4 pt-2">
+                                                <div className="flex items-center justify-between">
+                                                    <FormLabel className="text-foreground font-medium flex items-center gap-2 mb-0">
+                                                        <LocateFixed className="h-4 w-4" /> Geolocalização
+                                                    </FormLabel>
+                                                    <div className="flex items-center gap-2">
+                                                        <PencilLine className="h-4 w-4 text-muted-foreground" />
+                                                        <span className="text-sm text-muted-foreground">Inserir manualmente</span>
+                                                        <Switch
+                                                            checked={useManualCoords}
+                                                            onCheckedChange={setUseManualCoords}
+                                                            disabled={!originalCompany || isLoadingDetails}
+                                                        />
                                                     </div>
-                                                ) : currentLatitude !== null && currentLongitude !== null ? (
-                                                    <div className="text-green-600">
-                                                        Coordenadas obtidas: **Lat: {currentLatitude}, Lon: {currentLongitude}**
-                                                    </div>
-                                                ) : (
-                                                    <div className="text-red-600">
-                                                        Atenção: Coordenadas pendentes ou inválidas.
+                                                </div>
+
+                                                {/* Modo automático: status das coordenadas */}
+                                                {!useManualCoords && (
+                                                    <div className="rounded-md border border-border bg-muted/30 px-4 py-3">
+                                                        {isGeocoding ? (
+                                                            <div className="flex items-center gap-2 text-yellow-600">
+                                                                <Loader2 className="h-4 w-4 animate-spin" />
+                                                                <span className="text-sm">Recalculando coordenadas via CEP...</span>
+                                                            </div>
+                                                        ) : currentLatitude != null && currentLongitude != null ? (
+                                                            <p className="text-sm text-green-600">
+                                                                Coordenadas ativas — Lat: <strong>{currentLatitude}</strong>, Lon: <strong>{currentLongitude}</strong>
+                                                            </p>
+                                                        ) : (
+                                                            <p className="text-sm text-amber-600">
+                                                                Coordenadas pendentes. Altere o CEP para recalcular ou ative o modo manual.
+                                                            </p>
+                                                        )}
+                                                        <p className="text-xs text-muted-foreground mt-1">
+                                                            As coordenadas são atualizadas automaticamente ao salvar com um novo CEP.
+                                                        </p>
                                                     </div>
                                                 )}
-                                                <FormDescription>As coordenadas são essenciais para a marcação de ponto.</FormDescription>
-                                                {/* Campos ocultos para Lat/Lon */}
+
+                                                {/* Modo manual: campos editáveis */}
+                                                {useManualCoords && (
+                                                    <div className="grid grid-cols-1 sm:grid-cols-2 gap-4 rounded-md border border-primary/30 bg-primary/5 p-4">
+                                                        <p className="sm:col-span-2 text-xs text-muted-foreground">
+                                                            Informe as coordenadas geográficas precisas da empresa. Latitude entre -90 e 90; longitude entre -180 e 180.
+                                                        </p>
+                                                        <FormField
+                                                            control={form.control}
+                                                            name="manualLatitude"
+                                                            render={({ field }) => (
+                                                                <FormItem>
+                                                                    <FormLabel className="text-foreground font-medium">Latitude</FormLabel>
+                                                                    <FormControl>
+                                                                        <Input
+                                                                            placeholder="-23.5505"
+                                                                            type="number"
+                                                                            step="any"
+                                                                            {...field}
+                                                                        />
+                                                                    </FormControl>
+                                                                    <FormMessage />
+                                                                </FormItem>
+                                                            )}
+                                                        />
+                                                        <FormField
+                                                            control={form.control}
+                                                            name="manualLongitude"
+                                                            render={({ field }) => (
+                                                                <FormItem>
+                                                                    <FormLabel className="text-foreground font-medium">Longitude</FormLabel>
+                                                                    <FormControl>
+                                                                        <Input
+                                                                            placeholder="-46.6333"
+                                                                            type="number"
+                                                                            step="any"
+                                                                            {...field}
+                                                                        />
+                                                                    </FormControl>
+                                                                    <FormMessage />
+                                                                </FormItem>
+                                                            )}
+                                                        />
+                                                    </div>
+                                                )}
+
+                                                {/* Campos ocultos para valores internos de lat/lng */}
                                                 <FormField control={form.control} name="latitude" render={() => <Input type="hidden" />} />
                                                 <FormField control={form.control} name="longitude" render={() => <Input type="hidden" />} />
-                                            </FormItem>
+                                            </div>
                                             
                                             {/* STATUS (ACTIVE) */}
                                             <FormField

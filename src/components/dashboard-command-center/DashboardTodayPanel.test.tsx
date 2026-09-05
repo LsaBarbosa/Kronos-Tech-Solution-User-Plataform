@@ -4,6 +4,10 @@ import DashboardTodayPanel from "./DashboardTodayPanel";
 import { useTodayTimeRecordStatus } from "@/hooks/useTodayTimeRecordStatus";
 import type { TodayTimeRecordStatusResponse } from "@/types/today-time-record";
 
+vi.mock("@/components/BiometricConsentGuard", () => ({
+  BiometricConsentGuard: vi.fn(() => <div data-testid="biometric-consent-dialog" />),
+}));
+
 const openCheckinMock = vi.fn();
 const refreshTodayMock = vi.fn();
 
@@ -25,6 +29,10 @@ const baseStatus: TodayTimeRecordStatusResponse = {
   source: "PERSISTED",
   timezone: "America/Sao_Paulo",
 };
+
+vi.mock("@/context/AuthContext", () => ({
+  useAuth: () => ({ user: null }),
+}));
 
 vi.mock("@/hooks/useCheckin", () => ({
   useCheckin: () => ({
@@ -203,7 +211,7 @@ describe("DashboardTodayPanel", () => {
     expect(openCheckinMock).toHaveBeenCalledTimes(2);
   });
 
-  it("mantem o CTA habilitado quando o backend exige aceite do termo biometrico", () => {
+  it("exibe botao independente de aceite do termo e abre dialog sem chamar openCheckin", () => {
     mockUseTodayTimeRecordStatus.mockReturnValue({
       todayStatus: {
         ...baseStatus,
@@ -223,10 +231,11 @@ describe("DashboardTodayPanel", () => {
       />
     );
 
-    const actionButton = screen.getByRole("button", { name: /Aceitar termo biometrico/i });
+    const actionButton = screen.getByRole("button", { name: /Aceitar Termo Biométrico/i });
     expect(actionButton).toBeEnabled();
 
     fireEvent.click(actionButton);
-    expect(openCheckinMock).toHaveBeenCalledTimes(1);
+    expect(openCheckinMock).not.toHaveBeenCalled();
+    expect(screen.getByTestId("biometric-consent-dialog")).toBeInTheDocument();
   });
 });

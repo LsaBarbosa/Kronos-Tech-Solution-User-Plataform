@@ -1,6 +1,6 @@
 import { useState, useEffect } from "react";
 
-const Clock = () => {
+const Clock = ({ timeClassName }: { timeClassName?: string }) => {
   const [time, setTime] = useState(new Date());
 
   useEffect(() => {
@@ -33,7 +33,7 @@ const Clock = () => {
 
   return (
     <div className="text-center">
-      <div className="text-2xl font-bold font-mono bg-gradient-to-r from-foreground to-primary bg-clip-text text-transparent">
+      <div className={timeClassName ?? "text-2xl font-bold font-mono bg-gradient-to-r from-foreground to-primary bg-clip-text text-transparent"}>
         {formatTime(time)}
       </div>
       <div className="text-xs text-muted-foreground capitalize">
