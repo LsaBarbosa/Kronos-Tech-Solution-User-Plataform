@@ -36,6 +36,7 @@ const mapCompanyListItem = (payload: CompanyReadResponse): CompanyListItem => ({
     email: payload.email ?? "",
     active: payload.active ?? false,
     terminalFlag: payload.terminalFlag ?? false,
+    midnightShiftFlag: payload.midnightShiftFlag ?? false,
     address: {
         street: payload.address?.street ?? "",
         number: payload.address?.number ?? "",
@@ -55,6 +56,7 @@ const mapCompanyReadModel = (payload: CompanyReadResponse): CompanyData => ({
     email: payload.email ?? "",
     active: payload.active ?? false,
     terminalFlag: payload.terminalFlag ?? false,
+    midnightShiftFlag: payload.midnightShiftFlag ?? false,
     address: {
         street: payload.address?.street ?? "",
         number: payload.address?.number ?? "",
@@ -148,6 +150,11 @@ export const toggleCompanyStatus = async (cnpj: string): Promise<void> => {
  */
 export const toggleTerminalFlag = async (cnpj: string): Promise<void> => {
     await api.patch(buildRoute(API_ROUTES.COMPANIES, cnpj, "toggle-terminal"));
+};
+
+/** Alterna a continuidade do registro aberto na virada da meia-noite (somente CTO). */
+export const toggleMidnightShiftFlag = async (cnpj: string): Promise<void> => {
+    await api.patch(buildRoute(API_ROUTES.COMPANIES, cnpj, "toggle-midnight-shift"));
 };
 
 export const hardDeleteCompany = async (cnpj: string): Promise<CompanyHardDeleteResultDTO> => {

@@ -25,6 +25,7 @@ export interface CompanyListItem {
     email: string;
     active: boolean;
     terminalFlag?: boolean;
+    midnightShiftFlag?: boolean;
     // Detalhes parciais necessários para a tabela
     address: Omit<Address, 'city' | 'state' | 'neighborhood'> & { city: string; state: string; }; // Garante CEP e número
     location?: Location;
@@ -42,6 +43,7 @@ export interface CompanyData extends CompanyListItem {
     activeEmployees: number; // Garante o contador
     inactiveEmployees: number; // Garante o contador
     terminalFlag: boolean;
+    midnightShiftFlag: boolean;
     location?: Location;
 }
 

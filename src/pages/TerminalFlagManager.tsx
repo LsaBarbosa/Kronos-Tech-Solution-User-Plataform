@@ -8,7 +8,7 @@ import { Card, CardContent } from "@/components/ui/card";
 import { Switch } from "@/components/ui/switch";
 import PageShell from "@/components/PageShell";
 import { APP_PATHS } from "@/config/app-routes";
-import { fetchCompanyList, toggleTerminalFlag } from "@/service/company.service";
+import { fetchCompanyList, toggleMidnightShiftFlag, toggleTerminalFlag } from "@/service/company.service";
 import { normalizeServiceError } from "@/service/helpers/service-error.helper";
 import { toast } from "@/hooks/use-toast";
 
@@ -35,6 +35,18 @@ const TerminalFlagManager = () => {
     onError: (error) => {
       const err = normalizeServiceError(error);
       toast({ title: "Erro ao atualizar terminal", description: err.message, variant: "destructive" });
+    },
+  });
+
+  const { mutate: toggleMidnight, isPending: isMidnightPending } = useMutation({
+    mutationFn: (cnpj: string) => toggleMidnightShiftFlag(cnpj),
+    onSuccess: () => {
+      queryClient.invalidateQueries({ queryKey: ["companies-terminal-flag"] });
+      toast({ title: "Virada de meia-noite atualizada." });
+    },
+    onError: (error) => {
+      const err = normalizeServiceError(error);
+      toast({ title: "Erro ao atualizar virada de meia-noite", description: err.message, variant: "destructive" });
     },
   });
 
@@ -65,14 +77,13 @@ const TerminalFlagManager = () => {
               <div className="max-w-3xl space-y-3">
                 <Badge className="border-white/15 bg-white/10 text-white">
                   <MonitorSmartphone className="mr-1.5 h-3.5 w-3.5" />
-                  Controle de terminal
+                  Configurações de registro
                 </Badge>
                 <h1 className="text-3xl font-semibold leading-tight xl:text-4xl">
-                  Terminal exclusivo
+                  Configurações por empresa
                 </h1>
                 <p className="max-w-2xl text-sm leading-6 text-white/78 sm:text-base">
-                  Quando ativado, colaboradores desta empresa não podem registrar ponto pelo aplicativo.
-                  O registro passa a ser obrigatório no terminal físico.
+                  Configure o terminal exclusivo e a continuidade de registros abertos na virada da meia-noite por empresa.
                 </p>
               </div>
               <div className="flex flex-wrap gap-2 xl:justify-end">
@@ -135,15 +146,30 @@ const TerminalFlagManager = () => {
                 </div>
 
                 <div className="flex items-center gap-3">
-                  <span className="text-xs text-[#64748B]">
-                    {company.terminalFlag ? "Terminal exclusivo" : "App habilitado"}
-                  </span>
-                  <Switch
-                    checked={company.terminalFlag ?? false}
-                    disabled={isPending}
-                    onCheckedChange={() => toggle(company.cnpj)}
-                    aria-label={`Toggle terminal para ${company.name}`}
-                  />
+                  <div className="flex flex-col items-end gap-3 sm:flex-row sm:items-center">
+                    <div className="flex items-center gap-3">
+                      <span className="text-xs text-[#64748B]">
+                        {company.terminalFlag ? "Terminal exclusivo" : "App habilitado"}
+                      </span>
+                      <Switch
+                        checked={company.terminalFlag ?? false}
+                        disabled={isPending || isMidnightPending}
+                        onCheckedChange={() => toggle(company.cnpj)}
+                        aria-label={`Toggle terminal para ${company.name}`}
+                      />
+                    </div>
+                    <div className="flex items-center gap-3">
+                      <span className="text-xs text-[#64748B]">
+                        {company.midnightShiftFlag ? "Virada contínua" : "Fecha no dia"}
+                      </span>
+                      <Switch
+                        checked={company.midnightShiftFlag ?? false}
+                        disabled={isPending || isMidnightPending}
+                        onCheckedChange={() => toggleMidnight(company.cnpj)}
+                        aria-label={`Toggle virada de meia-noite para ${company.name}`}
+                      />
+                    </div>
+                  </div>
                 </div>
               </CardContent>
             </Card>
