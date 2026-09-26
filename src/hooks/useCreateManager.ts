@@ -5,6 +5,8 @@ import * as z from "zod";
 import { useNavigate } from "react-router-dom";
 import { useToast } from "@/hooks/use-toast";
 import { fetchCompanyList } from "@/service/company.service";
+import { getMyCompanies } from "@/service/user-company.service";
+import { useAuth } from "@/context/AuthContext";
 import {
   checkCpfAvailability,
   checkUsernameAvailability,
@@ -69,6 +71,7 @@ interface Company {
 export const useCreateManager = () => {
   const navigate = useNavigate();
   const { toast } = useToast();
+  const { role } = useAuth();
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [sidebarOpen, setSidebarOpen] = useState(false);
   const [companies, setCompanies] = useState<Company[]>([]);
@@ -136,20 +139,29 @@ export const useCreateManager = () => {
   const handleToggleSidebar = useCallback(() => setSidebarOpen((prev) => !prev), []);
 
   const fetchCompanies = useCallback(async () => {
+    if (!role) return;
     setIsFetchingCompanies(true);
     try {
-      const data = await fetchCompanyList();
-      setCompanies(data.map((company) => ({
-        companyId: company.id,
-        name: company.name,
-      })));
+      if (role === "CTO") {
+        const data = await fetchCompanyList();
+        setCompanies(data.filter((company) => company.active).map((company) => ({
+          companyId: company.id,
+          name: company.name,
+        })));
+      } else {
+        const data = await getMyCompanies();
+        setCompanies(data.filter((company) => company.active).map((company) => ({
+          companyId: company.companyId,
+          name: company.companyName,
+        })));
+      }
     } catch (error) {
       safeLogger.error("Erro ao buscar empresas:", error);
       toast({ title: "Erro", description: "Não foi possível carregar a lista de empresas.", variant: "destructive" });
     } finally {
       setIsFetchingCompanies(false);
     }
-  }, [toast]);
+  }, [role, toast]);
 
   useEffect(() => {
     void fetchCompanies();

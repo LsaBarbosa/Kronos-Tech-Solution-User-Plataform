@@ -5,9 +5,19 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 import { useCreateManager } from "./useCreateManager";
 import { useToast } from "@/hooks/use-toast";
 import { fetchCompanyList } from "@/service/company.service";
+import { getMyCompanies } from "@/service/user-company.service";
+import { useAuth } from "@/context/AuthContext";
 
 vi.mock("@/service/company.service", () => ({
   fetchCompanyList: vi.fn(),
+}));
+
+vi.mock("@/service/user-company.service", () => ({
+  getMyCompanies: vi.fn(),
+}));
+
+vi.mock("@/context/AuthContext", () => ({
+  useAuth: vi.fn(),
 }));
 
 vi.mock("@/service/collaborator-management.service", () => ({
@@ -22,6 +32,8 @@ vi.mock("@/hooks/use-toast", () => ({
 }));
 
 const mockFetchCompanyList = vi.mocked(fetchCompanyList);
+const mockGetMyCompanies = vi.mocked(getMyCompanies);
+const mockUseAuth = vi.mocked(useAuth);
 const mockUseToast = vi.mocked(useToast);
 const wrapper = ({ children }: { children: ReactNode }) => (
   <MemoryRouter>{children}</MemoryRouter>
@@ -31,9 +43,11 @@ describe("useCreateManager", () => {
   beforeEach(() => {
     vi.clearAllMocks();
     mockUseToast.mockReturnValue({ toast: vi.fn() } as never);
+    mockUseAuth.mockReturnValue({ role: "CTO" } as never);
     mockFetchCompanyList.mockResolvedValue([
-      { id: "cmp-1", name: "Kronos Tech" } as any,
+      { id: "cmp-1", name: "Kronos Tech", active: true } as any,
     ]);
+    mockGetMyCompanies.mockResolvedValue([]);
   });
 
   it("carrega empresas e inicia como MANAGER", async () => {
