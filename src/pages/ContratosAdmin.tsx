@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useState } from "react";
 import { useNavigate } from "react-router-dom";
-import { FileSignature, Loader2, Plus, RefreshCcw, ScrollText } from "lucide-react";
+import { ChevronDown, ChevronUp, FileSignature, Loader2, Plus, RefreshCcw, ScrollText, Users } from "lucide-react";
 import PageShell from "@/components/PageShell";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
@@ -8,7 +8,7 @@ import { Card } from "@/components/ui/card";
 import { useToast } from "@/hooks/use-toast";
 import { ServiceContractSignatureService } from "@/service/serviceContractSignature.service";
 import { APP_PATHS } from "@/config/app-routes";
-import type { ServiceContractAdminItem } from "@/types/service-contract-signature";
+import type { ServiceContractAdminItem, ServiceContractSignatureAdminItem } from "@/types/service-contract-signature";
 import { FaqContextualBlock } from "@/components/faq/FaqContextualBlock";
 import { FAQ_SCREEN_KEYS } from "@/constants/faqScreenKeys";
 
@@ -31,6 +31,9 @@ const ContratosAdmin = () => {
   const [items, setItems] = useState<ServiceContractAdminItem[]>([]);
   const [isLoading, setIsLoading] = useState(false);
   const [statusFilter, setStatusFilter] = useState<"ACTIVE" | "VOIDED" | "ALL">("ALL");
+  const [expandedContractId, setExpandedContractId] = useState<string | null>(null);
+  const [signaturesByContract, setSignaturesByContract] = useState<Record<string, ServiceContractSignatureAdminItem[]>>({});
+  const [loadingSignatures, setLoadingSignatures] = useState<string | null>(null);
 
   const toggleSidebar = useCallback(() => setSidebarOpen((prev) => !prev), []);
 
@@ -60,6 +63,39 @@ const ContratosAdmin = () => {
   useEffect(() => {
     void load();
   }, [load]);
+
+  const toggleSignatures = useCallback(async (contract: ServiceContractAdminItem) => {
+    if (expandedContractId === contract.contractId) {
+      setExpandedContractId(null);
+      return;
+    }
+
+    setExpandedContractId(contract.contractId);
+    if (signaturesByContract[contract.contractId]) return;
+
+    setLoadingSignatures(contract.contractId);
+    try {
+      const page = await ServiceContractSignatureService.listAdminSignatures({
+        contractId: contract.contractId,
+        status: "ACTIVE",
+        page: 0,
+        size: 100,
+      });
+      setSignaturesByContract((current) => ({
+        ...current,
+        [contract.contractId]: Array.isArray(page?.items) ? page.items : [],
+      }));
+    } catch (error) {
+      setExpandedContractId(null);
+      toast({
+        variant: "destructive",
+        title: "Falha ao carregar assinantes",
+        description: error instanceof Error ? error.message : "Tente novamente.",
+      });
+    } finally {
+      setLoadingSignatures(null);
+    }
+  }, [expandedContractId, signaturesByContract, toast]);
 
   return (
     <PageShell
@@ -178,6 +214,50 @@ const ContratosAdmin = () => {
                     Total: {c.totalAssignments}
                   </span>
                 </div>
+                {c.signedCount > 0 ? (
+                  <div className="mt-4 border-t border-slate-100 pt-3 dark:border-slate-700">
+                    <Button
+                      type="button"
+                      variant="ghost"
+                      size="sm"
+                      className="h-8 gap-2 px-2 text-xs text-[#2563EB] hover:text-[#1D4ED8]"
+                      onClick={() => void toggleSignatures(c)}
+                      disabled={loadingSignatures === c.contractId}
+                    >
+                      {loadingSignatures === c.contractId ? (
+                        <Loader2 className="h-3.5 w-3.5 animate-spin" />
+                      ) : (
+                        <Users className="h-3.5 w-3.5" />
+                      )}
+                      {expandedContractId === c.contractId ? "Ocultar assinantes" : "Ver quem assinou"}
+                      {expandedContractId === c.contractId ? (
+                        <ChevronUp className="h-3.5 w-3.5" />
+                      ) : (
+                        <ChevronDown className="h-3.5 w-3.5" />
+                      )}
+                    </Button>
+                    {expandedContractId === c.contractId ? (
+                      <div className="mt-2 rounded-xl bg-slate-50 p-3 dark:bg-slate-900/40">
+                        <p className="mb-2 text-xs font-semibold text-slate-700 dark:text-slate-200">
+                          Assinantes ({signaturesByContract[c.contractId]?.length ?? 0})
+                        </p>
+                        <ul className="space-y-1.5">
+                          {(signaturesByContract[c.contractId] ?? []).map((signature) => (
+                            <li
+                              key={signature.signatureId}
+                              className="flex flex-col gap-0.5 text-xs text-slate-700 dark:text-slate-300 sm:flex-row sm:items-center sm:justify-between"
+                            >
+                              <span className="font-medium">{signature.employeeName || "Nome não informado"}</span>
+                              <span className="text-[11px] text-slate-500 dark:text-slate-400">
+                                Assinado em {new Date(signature.signedAt).toLocaleString("pt-BR")}
+                              </span>
+                            </li>
+                          ))}
+                        </ul>
+                      </div>
+                    ) : null}
+                  </div>
+                ) : null}
               </li>
             ))}
           </ul>
