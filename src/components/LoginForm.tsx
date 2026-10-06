@@ -12,6 +12,7 @@ import { getServiceErrorMessage } from "@/service/helpers/service-error.helper";
 import { toast } from "@/hooks/use-toast";
 import { APP_PATHS } from "@/config/app-routes";
 import { usePostLoginRedirect } from "@/hooks/usePostLoginRedirect";
+import { PENDING_EXIT_LOGIN_FLAG } from "@/constants/pending-exit";
 
 const LoginForm = () => {
   const [username, setUsername] = useState("");
@@ -36,6 +37,7 @@ const LoginForm = () => {
     try {
       await loginWithPassword({ username, password });
       await login();
+      sessionStorage.setItem(PENDING_EXIT_LOGIN_FLAG, "1");
       toast.success("Login realizado com sucesso!");
       await redirectAfterLogin();
     } catch (error) {

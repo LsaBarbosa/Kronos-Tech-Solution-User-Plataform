@@ -34,6 +34,12 @@ import type {
   TodayTimeRecordItemResponse,
   TodayTimeRecordStatusResponse,
 } from "@/types/today-time-record";
+import type { PendingExitItem, PendingExitResponse } from "@/types/pending-exit";
+import type {
+  ManagerMonthlyAlertFilter,
+  ManagerMonthlyAlertItem,
+  ManagerMonthlyAlertResponse,
+} from "@/types/manager-monthly-alert";
 import { ensureBackendDatePattern } from "@/utils/date-format";
 
 const RECORDS_BASE_URL = `/${API_ROUTES.RECORDS}`;
@@ -159,6 +165,24 @@ export const fetchPendingApprovals = async (
 export const fetchTodayTimeRecordStatus = async (): Promise<TodayTimeRecordStatusResponse> => {
   const response = await api.get<unknown>(`${RECORDS_BASE_URL}/${RECORD_PATHS.ME_TODAY}`);
   return normalizeTodayTimeRecordStatus(response.data);
+};
+
+export const fetchMyPendingExits = async (): Promise<PendingExitItem[]> => {
+  const response = await api.get<PendingExitResponse>(
+    `${RECORDS_BASE_URL}/${RECORD_PATHS.ME_PENDING_EXITS}`
+  );
+  return Array.isArray(response.data?.items) ? response.data.items : [];
+};
+
+export const fetchManagerMonthlyAlerts = async (
+  month: string,
+  filter: ManagerMonthlyAlertFilter
+): Promise<ManagerMonthlyAlertItem[]> => {
+  const response = await api.get<ManagerMonthlyAlertResponse>(
+    `${RECORDS_BASE_URL}/${RECORD_PATHS.MANAGER_MONTHLY_ALERTS}`,
+    { params: { month, filter } }
+  );
+  return Array.isArray(response.data?.items) ? response.data.items : [];
 };
 
 export const fetchDetailedReport = async (

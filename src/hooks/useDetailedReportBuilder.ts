@@ -1,6 +1,7 @@
-import { useCallback, useEffect, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useRef, useState } from "react";
 import type { Dispatch, SetStateAction } from "react";
-import { format } from "date-fns";
+import { format, isValid, parse } from "date-fns";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { useForm, type UseFormReturn } from "react-hook-form";
 import { zodResolver } from "@hookform/resolvers/zod";
 import { useToast } from "@/hooks/use-toast";
@@ -21,6 +22,7 @@ import {
   type ReportExportPayload,
 } from "@/features/detailed-report-export";
 import { safeLogger } from "@/utils/security/safeLogger";
+import { APP_PATHS } from "@/config/app-routes";
 
 export type EmployeeScope = "active" | "inactive";
 
@@ -74,6 +76,9 @@ const RESULTS_ANCHOR_ID = "detailed-report-results";
 export const useDetailedReportBuilder = (): DetailedReportBuilderViewModel => {
   const { toast } = useToast();
   const { status: authStatus, role, user } = useAuth();
+  const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
+  const pendingLaunchRef = useRef(false);
 
   const [selectedDates, setSelectedDates] = useState<Date[]>([]);
   const [referenceTime, setReferenceTime] = useState("08:00");
@@ -278,7 +283,7 @@ export const useDetailedReportBuilder = (): DetailedReportBuilderViewModel => {
               description: "Não há registros para os filtros selecionados.",
             });
           }
-          return;
+          return [];
         }
 
         setReportData(response);
@@ -291,6 +296,7 @@ export const useDetailedReportBuilder = (): DetailedReportBuilderViewModel => {
         window.requestAnimationFrame(() => {
           scrollToResults();
         });
+        return response;
       } catch (error) {
         const message = error instanceof Error ? error.message : "Ocorreu um erro ao buscar o relatório.";
         setSearchError(message);
@@ -411,6 +417,50 @@ export const useDetailedReportBuilder = (): DetailedReportBuilderViewModel => {
     },
     [form, managers]
   );
+
+  const pendingRecordId = Number(searchParams.get("pendingRecordId"));
+  const pendingDate = searchParams.get("pendingDate") || "";
+
+  useEffect(() => {
+    if (!pendingRecordId || !pendingDate || selectedDates.length > 0 || !selfEmployeeId) {
+      return;
+    }
+
+    const parsedDate = parse(pendingDate, "dd-MM-yyyy", new Date());
+    if (!isValid(parsedDate)) {
+      toast({ title: "Erro", description: "A data do registro pendente é inválida.", variant: "destructive" });
+      return;
+    }
+
+    setSelectedDates([parsedDate]);
+    setSelectedEmployee(selfEmployeeId);
+    setReportActive(true);
+    setSelectedStatuses([]);
+  }, [pendingDate, pendingRecordId, selfEmployeeId, selectedDates.length, toast]);
+
+  useEffect(() => {
+    if (pendingLaunchRef.current || !pendingRecordId || !pendingDate || selectedDates.length === 0 || !selfEmployeeId) {
+      return;
+    }
+
+    pendingLaunchRef.current = true;
+    void executeSearch({ quiet: true }).then((records) => {
+      const record = records?.find((item) => item.timeRecordId === pendingRecordId);
+      if (!record) {
+        toast({ title: "Registro não encontrado", description: "Não foi possível abrir o ponto pendente.", variant: "destructive" });
+        return;
+      }
+
+      handleEditRecord(record);
+      navigate(APP_PATHS.relatorioDetalhado, { replace: true });
+    });
+  }, [executeSearch, handleEditRecord, navigate, pendingDate, pendingRecordId, selfEmployeeId, selectedDates.length, toast]);
+
+  useEffect(() => {
+    if (editModalOpen && selectedRecord && !form.getValues("managerId") && managers[0]?.id) {
+      form.setValue("managerId", managers[0].id);
+    }
+  }, [editModalOpen, form, managers, selectedRecord]);
 
   const executeReportAfterSave = useCallback(async () => {
     await executeSearch({ quiet: true });

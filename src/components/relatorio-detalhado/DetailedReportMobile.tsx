@@ -13,6 +13,7 @@ import { ReportExpectedSummary } from "@/components/relatorio-detalhado/ReportEx
 import { ReportResultsSummary } from "@/components/relatorio-detalhado/ReportResultsSummary";
 import { ReportActionFooter } from "@/components/relatorio-detalhado/ReportActionFooter";
 import { ResultadosRelatorioDetalhado } from "@/components/ResultadosRelatorioDetalhado";
+import ManagerMonthlyAlertsDialog from "@/components/ManagerMonthlyAlertsDialog";
 
 type DetailedReportMobileProps = {
   viewModel: DetailedReportBuilderViewModel;
@@ -92,6 +93,7 @@ export const DetailedReportMobile = ({ viewModel }: DetailedReportMobileProps) =
             <ArrowUpRight className="ml-auto h-4 w-4" />
           </Link>
         </Button>
+        {role === "MANAGER" ? <div className="mt-3"><ManagerMonthlyAlertsDialog /></div> : null}
 
         <div className="mt-4 flex flex-wrap gap-2">
           <Badge className="rounded-full border border-white/20 bg-white/10 px-3 py-1 text-[11px] font-semibold text-white">{roleMeta.label}</Badge>

@@ -7,6 +7,7 @@ import { ThemeProvider } from "@/hooks/useTheme";
 import { AuthProvider } from "@/context/AuthContext";
 import { CheckinProvider } from "@/context/CheckinContext";
 import { CheckinModal } from "@/components/checkin/CheckinModal";
+import PendingExitPrompt from "@/components/PendingExitPrompt";
 import AppErrorBoundary from "@/components/AppErrorBoundary";
 import SandboxBanner from "@/components/SandboxBanner";
 import ProtectedRoute from "./components/ProtectedRoute";
@@ -112,6 +113,7 @@ const App = () => (
               <Toaster />
               <SandboxBanner />
               <CheckinModal />
+              <PendingExitPrompt />
               <AppErrorBoundary>
               <Suspense fallback={<PageFallback />}>
                 <Routes>

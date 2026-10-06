@@ -12,6 +12,7 @@ import { ReportExpectedSummary } from "@/components/relatorio-detalhado/ReportEx
 import { ReportResultsSummary } from "@/components/relatorio-detalhado/ReportResultsSummary";
 import { ReportActionFooter } from "@/components/relatorio-detalhado/ReportActionFooter";
 import { ResultadosRelatorioDetalhado } from "@/components/ResultadosRelatorioDetalhado";
+import ManagerMonthlyAlertsDialog from "@/components/ManagerMonthlyAlertsDialog";
 
 type DetailedReportDesktopProps = {
   viewModel: DetailedReportBuilderViewModel;
@@ -88,6 +89,7 @@ export const DetailedReportDesktop = ({ viewModel }: DetailedReportDesktopProps)
                 <ArrowUpRight className="ml-auto h-4 w-4" />
               </Link>
             </Button>
+            {role === "MANAGER" ? <ManagerMonthlyAlertsDialog /> : null}
             <Button asChild className="h-11 w-full gap-1 rounded-2xl bg-white text-[#102A43] hover:bg-white/90">
               <Link to={APP_PATHS.espelhoPonto}>
                 <FileSpreadsheet className="h-4 w-4" />
