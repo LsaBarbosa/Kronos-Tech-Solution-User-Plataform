@@ -10,16 +10,18 @@ import { fetchManagerMonthlyAlerts } from "@/service/records.service";
 import type { ManagerMonthlyAlertFilter, ManagerMonthlyAlertItem } from "@/types/manager-monthly-alert";
 import { getServiceErrorMessage } from "@/service/helpers/service-error.helper";
 
-const FILTER_LABELS: Record<ManagerMonthlyAlertFilter, string> = {
-  PENDING_EXIT: "Saída pendente",
-  OVERTIME: "Hora extra acima de 5 minutos",
-  NEGATIVE_BALANCE: "Saldo de horas negativo",
-};
-
 const formatDate = (value: string) => {
   const parts = value.split("-");
   return parts.length === 3 ? `${parts[0]}/${parts[1]}/${parts[2]}` : value;
 };
+
+const groupByEmployee = (items: ManagerMonthlyAlertItem[]) =>
+  items.reduce<Map<string, ManagerMonthlyAlertItem[]>>((groups, item) => {
+    const current = groups.get(item.employeeId) ?? [];
+    current.push(item);
+    groups.set(item.employeeId, current);
+    return groups;
+  }, new Map());
 
 const ManagerMonthlyAlertsDialog = () => {
   const [open, setOpen] = useState(false);
@@ -86,18 +88,23 @@ const ManagerMonthlyAlertsDialog = () => {
         ) : null}
         {items.length > 0 ? (
           <div className="overflow-hidden rounded-2xl border border-[#D8E2EC]">
-            <div className="grid grid-cols-[minmax(0,1fr)_120px_140px] gap-3 bg-[#F8FAFC] px-4 py-3 text-xs font-semibold uppercase tracking-[0.08em] text-[#627D98]">
-              <span>Colaborador</span><span>Data</span><span>{FILTER_LABELS[filter]}</span>
-            </div>
             <div className="divide-y divide-[#E2E8F0]">
-              {items.map((item) => (
-                <div key={`${item.employeeId}-${item.date}`} className="grid grid-cols-[minmax(0,1fr)_120px_140px] gap-3 px-4 py-3 text-sm text-[#102A43]">
-                  <span className="min-w-0 truncate font-semibold">{item.employeeName}</span>
-                  <span>{formatDate(item.date)}</span>
-                  <span className="flex items-center gap-1 font-semibold text-[#B45309]">
-                    {filter === "OVERTIME" ? <Clock4 className="h-4 w-4" /> : filter === "NEGATIVE_BALANCE" ? <TrendingDown className="h-4 w-4" /> : <AlertCircle className="h-4 w-4" />}
-                    {item.value}
-                  </span>
+              {[...groupByEmployee(items).entries()].map(([employeeId, employeeItems]) => (
+                <div key={employeeId} className="bg-white">
+                  <div className="border-b border-[#E2E8F0] bg-[#F8FAFC] px-4 py-3 font-semibold text-[#102A43]">
+                    {employeeItems[0].employeeName}
+                  </div>
+                  <div className="divide-y divide-[#F1F5F9]">
+                    {employeeItems.map((item) => (
+                      <div key={`${item.employeeId}-${item.date}`} className="grid grid-cols-[minmax(0,1fr)_140px] gap-3 px-4 py-3 text-sm text-[#102A43] sm:grid-cols-[120px_140px] sm:justify-end">
+                        <span>{formatDate(item.date)}</span>
+                        <span className="flex items-center gap-1 font-semibold text-[#B45309]">
+                          {filter === "OVERTIME" ? <Clock4 className="h-4 w-4" /> : filter === "NEGATIVE_BALANCE" ? <TrendingDown className="h-4 w-4" /> : <AlertCircle className="h-4 w-4" />}
+                          {item.value}
+                        </span>
+                      </div>
+                    ))}
+                  </div>
                 </div>
               ))}
             </div>
