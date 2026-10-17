@@ -1,4 +1,10 @@
-export type ManagerMonthlyAlertFilter = "PENDING_EXIT" | "OVERTIME" | "NEGATIVE_BALANCE";
+export type ManagerMonthlyAlertFilter =
+  | "PENDING_EXIT"
+  | "OVERTIME"
+  | "NEGATIVE_BALANCE"
+  | "LATE"
+  | "SHORT_BREAK"
+  | "ABSENCE";
 
 export interface ManagerMonthlyAlertItem {
   employeeId: string;

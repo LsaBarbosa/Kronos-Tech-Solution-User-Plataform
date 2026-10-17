@@ -185,6 +185,17 @@ export const fetchManagerMonthlyAlerts = async (
   return Array.isArray(response.data?.items) ? response.data.items : [];
 };
 
+export const downloadManagerMonthlyAlertsPdf = async (
+  month: string,
+  filter: ManagerMonthlyAlertFilter
+): Promise<Blob> => {
+  const response = await api.get<Blob>(
+    `${RECORDS_BASE_URL}/${RECORD_PATHS.MANAGER_MONTHLY_ALERTS}/pdf`,
+    { params: { month, filter }, responseType: "blob" }
+  );
+  return response.data;
+};
+
 export const fetchDetailedReport = async (
   params: DetailedReportQueryParams
 ): Promise<DetailedReportItem[]> => {
