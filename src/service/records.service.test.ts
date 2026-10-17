@@ -341,7 +341,8 @@ describe("records.service", () => {
   });
 
   it("solicita abono com multipart no endpoint correto", async () => {
-    const postSpy = vi.spyOn(api, "post").mockResolvedValue({ data: { timeRecordId: 123 } } as never);
+    const responseBody = { timeRecordId: 123, attachmentScanStatus: "PENDING" as const };
+    const postSpy = vi.spyOn(api, "post").mockResolvedValue({ data: responseBody } as never);
 
     await expect(
       requestTimeOff(
@@ -355,7 +356,7 @@ describe("records.service", () => {
         },
         new File(["pdf"], "comprovante.pdf", { type: "application/pdf" })
       )
-    ).resolves.toBe(123);
+    ).resolves.toEqual(responseBody);
 
     expect(postSpy).toHaveBeenCalledWith(
       "/records/time-off/request",
@@ -368,7 +369,7 @@ describe("records.service", () => {
   });
 
   it("normaliza datas ISO de abono para dd-MM-yyyy antes de enviar", async () => {
-    const postSpy = vi.spyOn(api, "post").mockResolvedValue({ data: { timeRecordId: 123 } } as never);
+    const postSpy = vi.spyOn(api, "post").mockResolvedValue({ data: { timeRecordId: 123, attachmentScanStatus: "NOT_APPLICABLE" } } as never);
 
     await requestTimeOff({
       startDate: "2026-04-10",

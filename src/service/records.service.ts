@@ -15,6 +15,7 @@ import type {
   TimeRecordApprovalPageResponse,
   TimeRecordPageResponse,
   TimeOffCreatedResponse,
+  TimeOffAttachmentScanStatusResponse,
 } from "@/types/recordApproval";
 import type {
   ManagerOption,
@@ -252,7 +253,7 @@ export const updateTimeRecord = async (
 export const requestTimeOff = async (
   requestData: RequestTimeOffRequestPayload,
   document?: File | null
-): Promise<number> => {
+): Promise<TimeOffCreatedResponse> => {
   const normalizedRequestData: RequestTimeOffRequestPayload = {
     ...requestData,
     startDate: ensureBackendDatePattern(requestData.startDate),
@@ -270,7 +271,16 @@ export const requestTimeOff = async (
   }
 
   const response = await api.post<TimeOffCreatedResponse>(`${RECORDS_BASE_URL}/time-off/request`, formData);
-  return response.data.timeRecordId;
+  return response.data;
+};
+
+export const getTimeOffAttachmentScanStatus = async (
+  timeRecordId: number
+): Promise<TimeOffAttachmentScanStatusResponse> => {
+  const response = await api.get<TimeOffAttachmentScanStatusResponse>(
+    `${RECORDS_BASE_URL}/time-off/${timeRecordId}/attachment-scan-status`
+  );
+  return response.data;
 };
 
 export const listTimeOffRequests = async (

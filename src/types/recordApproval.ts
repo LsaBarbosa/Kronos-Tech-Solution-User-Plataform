@@ -98,6 +98,13 @@ export interface TimeOffQueryParams {
 
 export interface TimeOffCreatedResponse {
   timeRecordId: number;
+  attachmentScanStatus: TimeOffAttachmentScanStatus;
+}
+
+export type TimeOffAttachmentScanStatus = "PENDING" | "CLEAN" | "REJECTED" | "NOT_APPLICABLE";
+
+export interface TimeOffAttachmentScanStatusResponse {
+  attachmentScanStatus: TimeOffAttachmentScanStatus;
 }
 
 export type EmployeeData = RecordEmployeeData;

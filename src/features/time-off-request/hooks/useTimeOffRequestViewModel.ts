@@ -1,8 +1,8 @@
-import { useCallback, useMemo, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { toast } from "@/hooks/use-toast";
 import { queryKeys } from "@/lib/query-keys";
-import { fetchManagerOptions, requestTimeOff } from "@/service/records.service";
+import { fetchManagerOptions, getTimeOffAttachmentScanStatus, requestTimeOff } from "@/service/records.service";
 import { getAdministrativeErrorMessage } from "@/service/helpers/admin-error-message.helper";
 import { getServiceErrorMessage } from "@/service/helpers/service-error.helper";
 import { dateToBackendDatePattern } from "@/utils/date-format";
@@ -32,6 +32,7 @@ export const useTimeOffRequestViewModel = (): TimeOffRequestViewModel => {
   const [documentErrorState, setDocumentErrorState] = useState<string | undefined>(undefined);
   const [isPreparingDocument, setIsPreparingDocument] = useState(false);
   const [successTimeRecordId, setSuccessTimeRecordId] = useState<number | undefined>(undefined);
+  const [attachmentScanStatus, setAttachmentScanStatus] = useState<"PENDING" | "CLEAN" | "REJECTED" | "NOT_APPLICABLE">("NOT_APPLICABLE");
   const [submitErrorMessage, setSubmitErrorMessage] = useState<string | undefined>(undefined);
 
   const {
@@ -42,6 +43,24 @@ export const useTimeOffRequestViewModel = (): TimeOffRequestViewModel => {
     queryKey: queryKeys.managerOptions,
     queryFn: fetchManagerOptions,
   });
+
+  const attachmentScanQuery = useQuery({
+    queryKey: ["time-off-attachment-scan-status", successTimeRecordId],
+    queryFn: () => getTimeOffAttachmentScanStatus(successTimeRecordId!),
+    enabled: successTimeRecordId !== undefined && attachmentScanStatus === "PENDING",
+    refetchInterval: (query) => query.state.data?.attachmentScanStatus === "PENDING" ? 3000 : false,
+  });
+
+  useEffect(() => {
+    const status = attachmentScanQuery.data?.attachmentScanStatus;
+    if (status === "CLEAN") {
+      setAttachmentScanStatus("CLEAN");
+      toast.success("Anexo validado", { description: "O arquivo está liberado para consulta pelo gestor." });
+    } else if (status === "REJECTED") {
+      setAttachmentScanStatus("REJECTED");
+      toast.error("Anexo não aprovado", { description: "O arquivo foi removido por segurança. Envie novamente a solicitação com um documento válido." });
+    }
+  }, [attachmentScanQuery.data?.attachmentScanStatus]);
 
   const selectedManager = useMemo(
     () => managerOptions.find((manager) => manager.userId === managerId),
@@ -101,6 +120,7 @@ export const useTimeOffRequestViewModel = (): TimeOffRequestViewModel => {
 
   const clearSubmissionFeedback = useCallback(() => {
     setSuccessTimeRecordId(undefined);
+    setAttachmentScanStatus("NOT_APPLICABLE");
     setSubmitErrorMessage(undefined);
   }, []);
 
@@ -191,11 +211,14 @@ export const useTimeOffRequestViewModel = (): TimeOffRequestViewModel => {
   const { mutate, isPending: isSubmitting } = useMutation({
     mutationFn: (payload: { request: RequestTimeOffRequestPayload; document: File | null }) =>
       requestTimeOff(payload.request, payload.document),
-    onSuccess: async (createdId) => {
-      setSuccessTimeRecordId(createdId);
+    onSuccess: async (response) => {
+      setSuccessTimeRecordId(response.timeRecordId);
+      setAttachmentScanStatus(response.attachmentScanStatus);
       setSubmitErrorMessage(undefined);
       toast.success("Solicitação enviada para análise.", {
-        description: "Cada dia do período será registrado para aprovação.",
+        description: response.attachmentScanStatus === "PENDING"
+          ? "Cada dia do período será registrado para aprovação. O anexo está em validação de segurança e ficará disponível após a liberação."
+          : "Cada dia do período será registrado para aprovação.",
       });
 
       await Promise.all([

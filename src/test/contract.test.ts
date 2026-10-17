@@ -135,7 +135,7 @@ describe("Contract tests — Front-end vs Back-end", () => {
     it("criação de time-off retorna 201 Created com TimeOffCreatedResponse", async () => {
       server.use(
         http.post("*/records/time-off/request", () =>
-          HttpResponse.json({ timeRecordId: 42 }, { status: 201 })
+          HttpResponse.json({ timeRecordId: 42, attachmentScanStatus: "PENDING" }, { status: 201 })
         )
       );
 
@@ -146,6 +146,7 @@ describe("Contract tests — Front-end vs Back-end", () => {
 
       expect(response.status).toBe(201);
       expect(response.data).toHaveProperty("timeRecordId");
+      expect(response.data).toHaveProperty("attachmentScanStatus");
     });
 
     it("aprovação de time-off retorna 204 No Content", async () => {

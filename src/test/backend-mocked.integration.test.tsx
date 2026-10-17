@@ -226,7 +226,7 @@ describe("backend mocked integration", () => {
   });
 
   it("solicita abono com multipart e aprova férias pelo backend", async () => {
-    const postSpy = vi.spyOn(api, "post").mockResolvedValue({ data: { timeRecordId: 77 } });
+    const postSpy = vi.spyOn(api, "post").mockResolvedValue({ data: { timeRecordId: 77, attachmentScanStatus: "PENDING" } });
     const patchSpy = vi.spyOn(api, "patch").mockResolvedValue({ data: undefined });
 
     await expect(
@@ -241,7 +241,7 @@ describe("backend mocked integration", () => {
         },
         new File(["pdf"], "abono.pdf", { type: "application/pdf" })
       )
-    ).resolves.toBe(77);
+    ).resolves.toEqual({ timeRecordId: 77, attachmentScanStatus: "PENDING" });
 
     expect(postSpy).toHaveBeenCalledTimes(1);
     const [postUrl, postBody] = postSpy.mock.calls[0];
