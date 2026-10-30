@@ -32,6 +32,7 @@ const defineRoute = (
 export const APP_PATHS = {
   root: "/",
   importarAfd: "/importar-afd",
+  importarContraCheques: "/importar-contracheques",
   login: "/login",
   selecionarEmpresa: "/selecionar-empresa",
   senhaPrimeiroAcesso: "/senha-primeiro-acesso",
@@ -202,6 +203,10 @@ export const APP_ROUTE_META = {
   importarAfd: defineRoute(APP_PATHS.importarAfd, "Importar AFD", {
     allowedRoles: ["MANAGER", "CTO"],
     breadcrumbs: [{ label: "Início", path: APP_PATHS.dashboard }, { label: "Importar AFD", path: APP_PATHS.importarAfd }],
+  }),
+  importarContraCheques: defineRoute(APP_PATHS.importarContraCheques, "Importar Contracheques", {
+    allowedRoles: ["MANAGER"], showInMenu: false,
+    breadcrumbs: [{ label: "Início", path: APP_PATHS.dashboard }, { label: "Importar Contracheques", path: APP_PATHS.importarContraCheques }],
   }),
   criarColaborador: defineRoute(APP_PATHS.criarColaborador, "Criar Colaborador", {
     allowedRoles: ["MANAGER", "CTO"],

@@ -133,10 +133,10 @@ export const downloadDocument = async (
 };
 
 export const fetchEmployeesForSelection = async (
-  active = true
+  active: boolean | null = true
 ): Promise<EmployeeListItem[]> => {
   const response = await api.get(`/${API_ROUTES.EMPLOYEE}`, {
-    params: { active },
+    params: active === null ? undefined : { active },
   });
 
   return mapArrayPayload<
@@ -171,4 +171,27 @@ export const uploadDocument = async (
   await api.post(`/${API_ROUTES.DOCUMENTS}`, formData, {
     params: { employeeId, type },
   });
+};
+
+
+export type PayslipPreviewStatus =
+  | "MATCHED" | "MANUAL_REVIEW" | "AMBIGUOUS" | "EMPLOYEE_NOT_FOUND"
+  | "INVALID_CPF" | "UNREADABLE_PDF" | "NO_MATCH";
+
+export interface PayslipImportPreview {
+  fileName: string; status: PayslipPreviewStatus; suggestedEmployeeId: string | null;
+  suggestedEmployeeName: string | null; maskedCpf: string | null;
+  manualReviewRequired: boolean; message: string;
+}
+
+const payslipForm = (file: File) => { const data = new FormData(); data.append("file", file); return data; };
+
+export const previewPayslipImport = async (file: File): Promise<PayslipImportPreview> => {
+  const response = await api.post<PayslipImportPreview>(`/${API_ROUTES.DOCUMENTS}/payslips/preview`, payslipForm(file));
+  return response.data;
+};
+
+export const importPayslip = async (file: File, employeeId: string, manualReviewConfirmed: boolean): Promise<void> => {
+  if (file.size > MAX_UPLOAD_SIZE_BYTES) throw new Error("O arquivo excede o limite de 5MB.");
+  await api.post(`/${API_ROUTES.DOCUMENTS}/payslips/import`, payslipForm(file), { params: { employeeId, manualReviewConfirmed } });
 };

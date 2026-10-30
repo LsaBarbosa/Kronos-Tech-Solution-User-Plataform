@@ -42,7 +42,13 @@ export default defineConfig(({ mode }) => ({
       output: {
         manualChunks: (id) => {
           if (!id.includes("node_modules")) return undefined;
-          if (id.includes("jspdf") || id.includes("jspdf-autotable") || id.includes("html2canvas")) return "vendor-pdf";
+          if (id.includes("/jspdf-autotable/")) return "vendor-pdf-table";
+          if (id.includes("/jspdf/")) return "vendor-jspdf";
+          if (id.includes("/html2canvas/")) return "vendor-html2canvas";
+          if (id.includes("/canvg/")) return "vendor-canvas-renderer";
+          if (id.includes("/dompurify/")) return "vendor-dom-sanitizer";
+          if (id.includes("/fast-png/")) return "vendor-png";
+          if (id.includes("/fflate/")) return "vendor-deflate";
           if (id.includes("react-hook-form") || id.includes("@hookform/resolvers") || id.includes("zod")) return "vendor-forms";
           if (id.includes("@tanstack/react-query")) return "vendor-query";
           if (id.includes("react-router-dom") || id.includes("react-dom") || id.includes("react")) return "vendor-react";

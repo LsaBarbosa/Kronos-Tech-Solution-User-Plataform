@@ -34,6 +34,7 @@ const AuditoriaFiscal = lazy(() => import("./pages/AuditoriaFiscal"));
 const Documentos = lazy(() => import("./pages/Documentos"));
 const EnviarDocumentos = lazy(() => import("./pages/EnviarDocumentos"));
 const DocumentoColaborador = lazy(() => import("./pages/DocumentoColaborador"));
+const ImportarContraCheques = lazy(() => import("./pages/ImportarContraCheques"));
 const Usuario = lazy(() => import("./pages/Usuario"));
 const CriarColaborador = lazy(() => import("./pages/CriarColaborador"));
 const CriarManager = lazy(() => import("./pages/CriarManager"));
@@ -170,6 +171,7 @@ const App = () => (
                     {renderProtectedRoleRoute({ routeKey: "empresaHardDelete", element: <HardDeleteEmpresaPage /> })}
                     {renderProtectedRoleRoute({ routeKey: "empresaGerenciarStatus", element: <StatusEmpresaPage /> })}
                     {renderProtectedRoleRoute({ routeKey: "importarAfd", element: <AfdImportPage /> })}
+                    {renderProtectedRoleRoute({ routeKey: "importarContraCheques", element: <ImportarContraCheques /> })}
                   </Route>
 
                   <Route path="/privacy-policy" element={<Navigate to={APP_PATHS.privacyPolicy} replace />} />

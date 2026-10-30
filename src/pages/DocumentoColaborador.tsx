@@ -1,6 +1,7 @@
 import { useCallback } from "react";
-import { useNavigate } from "react-router-dom";
+import { Link, useNavigate } from "react-router-dom";
 import PageShell from "@/components/PageShell";
+import { Button } from "@/components/ui/button";
 import { APP_PATHS } from "@/config/app-routes";
 import UploadDesktopView from "@/features/upload-document/components/UploadDesktopView";
 import UploadMobileView from "@/features/upload-document/components/UploadMobileView";
@@ -74,6 +75,7 @@ const DocumentoColaborador = () => {
       toggleSidebar={handleToggleSidebar}
       mainClassName="pt-24 sm:pt-32 mobile-container pb-36 sm:pb-12 space-y-6 sm:space-y-8 relative z-10 overflow-x-hidden"
     >
+      {userRole === "MANAGER" && <div className="flex justify-end"><Button asChild variant="outline"><Link to={APP_PATHS.importarContraCheques}>Importar contracheques em lote</Link></Button></div>}
       {isDesktop ? (
         <UploadDesktopView {...sharedProps} lastUploadAt={lastUploadAt} />
       ) : (
